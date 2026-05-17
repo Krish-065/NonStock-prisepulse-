@@ -33,12 +33,10 @@ export default function Sidebar() {
       display: 'flex',
       flexDirection: 'column',
       zIndex: 100,
-      overflowY: 'auto'
     }}>
       <div style={{ padding: '24px 20px', fontSize: '20px', fontWeight: 700, borderBottom: '1px solid rgba(0, 255, 136, 0.2)' }}>
         <span style={{ background: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>PricePulse</span>
       </div>
-      
       <nav style={{ flex: 1, padding: '20px 0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {menuItems.map(item => (
           <NavLink
@@ -60,7 +58,6 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      
       <div style={{ padding: '20px', borderTop: '1px solid rgba(0, 255, 136, 0.2)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <button onClick={toggleTheme} style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>
           {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}

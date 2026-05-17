@@ -17,7 +17,6 @@ export default function SearchWithSuggestions({ onSelect, placeholder, className
     const delay = setTimeout(async () => {
       setLoading(true);
       try {
-        // Use backend search endpoint (which calls Yahoo Finance)
         const res = await apiClient.get(`/market/search/${encodeURIComponent(query)}`);
         setSuggestions(res.data || []);
         setShow(true);
@@ -80,7 +79,6 @@ export default function SearchWithSuggestions({ onSelect, placeholder, className
           max-height: 300px;
           overflow-y: auto;
           z-index: 1000;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         .search-suggestion {
           padding: 10px 12px;
@@ -91,17 +89,11 @@ export default function SearchWithSuggestions({ onSelect, placeholder, className
           align-items: center;
           flex-wrap: wrap;
         }
-        .search-suggestion:hover {
-          background: rgba(0,255,136,0.1);
-        }
+        .search-suggestion:hover { background: rgba(0,255,136,0.1); }
         .search-suggestion strong { color: #00ff88; margin-right: 8px; }
-        .search-suggestion span { flex: 1; font-size: 13px; color: #d1d4dc; }
-        .search-suggestion small { color: #787b86; font-size: 10px; }
-        .search-loading, .search-no-results {
-          padding: 12px;
-          text-align: center;
-          color: #787b86;
-        }
+        .search-suggestion span { flex:1; font-size:13px; color:#d1d4dc; }
+        .search-suggestion small { color:#787b86; font-size:10px; }
+        .search-loading, .search-no-results { padding:12px; text-align:center; color:#787b86; }
       `}</style>
     </div>
   );

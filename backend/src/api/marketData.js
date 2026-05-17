@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-// Helper: fetch quote directly from Yahoo Finance
-async function fetchQuote(symbol) {
+async function fetchYahooQuote(symbol) {
   try {
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
-    const response = await fetch(url);
-    const data = await response.json();
+    const res = await fetch(url);
+    const data = await res.json();
     const result = data.chart.result[0];
     if (!result) return null;
     const meta = result.meta;
@@ -23,60 +22,56 @@ async function fetchQuote(symbol) {
       volume: meta.regularMarketVolume,
     };
   } catch (err) {
-    console.error(`Yahoo error for ${symbol}:`, err.message);
     return null;
   }
 }
 
-// GET /market/indices
 router.get('/indices', async (req, res) => {
   const symbols = ['^NSEI', '^BSESN', '^NSEBANK', '^NSEIT'];
   const results = {};
   for (const sym of symbols) {
-    const data = await fetchQuote(sym);
+    const data = await fetchYahooQuote(sym);
     results[sym] = data || { price: null, change: null, changePercent: null };
   }
   res.json(results);
 });
 
-// GET /market/movers
 router.get('/movers', async (req, res) => {
-  const niftyStocks = [
+  const nifty = [
     'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS',
     'HINDUNILVR.NS', 'ITC.NS', 'SBIN.NS', 'BHARTIARTL.NS', 'KOTAKBANK.NS',
     'AXISBANK.NS', 'LT.NS', 'WIPRO.NS', 'ASIANPAINT.NS', 'HCLTECH.NS'
   ];
   const stocks = [];
-  for (const sym of niftyStocks) {
-    const quote = await fetchQuote(sym);
-    if (quote && quote.price) {
+  for (const sym of nifty) {
+    const quote = await fetchYahooQuote(sym);
+    if (quote?.price) {
       stocks.push({
         symbol: sym.replace('.NS', ''),
         price: quote.price.toFixed(2),
-        changePercent: quote.changePercent.toFixed(2)
+        changePercent: quote.changePercent.toFixed(2),
       });
     }
     await new Promise(r => setTimeout(r, 150));
   }
-  const gainers = [...stocks].sort((a,b) => b.changePercent - a.changePercent).slice(0, 10);
-  const losers = [...stocks].sort((a,b) => a.changePercent - b.changePercent).slice(0, 10);
+  const gainers = [...stocks].sort((a,b) => b.changePercent - a.changePercent).slice(0,10);
+  const losers = [...stocks].sort((a,b) => a.changePercent - b.changePercent).slice(0,10);
   res.json({ gainers, losers });
 });
 
-// GET /market/search/:query – for autocomplete dropdown
 router.get('/search/:query', async (req, res) => {
   try {
-    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${req.params.query}&quotesCount=20&newsCount=0`;
+    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${req.params.query}&quotesCount=20`;
     const response = await fetch(url);
     const data = await response.json();
     const quotes = data.quotes || [];
     const stocks = quotes
       .filter(q => q.quoteType === 'EQUITY' && (q.exchange === 'NSI' || q.exchange === 'BSE'))
-      .slice(0, 15)
+      .slice(0,15)
       .map(q => ({
         symbol: q.symbol.replace('.NS', '').replace('.BO', ''),
         name: q.longname || q.shortname,
-        exchange: q.exchange
+        exchange: q.exchange,
       }));
     res.json(stocks);
   } catch (err) {
@@ -84,13 +79,10 @@ router.get('/search/:query', async (req, res) => {
   }
 });
 
-// GET /market/stock/:symbol
 router.get('/stock/:symbol', async (req, res) => {
   const { symbol } = req.params;
-  const quote = await fetchQuote(`${symbol}.NS`);
-  if (!quote || !quote.price) {
-    return res.status(404).json({ error: 'Stock not found' });
-  }
+  const quote = await fetchYahooQuote(`${symbol}.NS`);
+  if (!quote || !quote.price) return res.status(404).json({ error: 'Stock not found' });
   res.json({
     symbol,
     price: quote.price.toFixed(2),
@@ -102,13 +94,12 @@ router.get('/stock/:symbol', async (req, res) => {
   });
 });
 
-// GET /market/stock-list (NIFTY 50)
 router.get('/stock-list', async (req, res) => {
-  const symbols = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'HINDUNILVR', 'ITC', 'SBIN', 'BHARTIARTL', 'KOTAKBANK', 'AXISBANK', 'LT', 'WIPRO', 'ASIANPAINT', 'HCLTECH', 'TITAN', 'SUNPHARMA', 'MARUTI', 'BAJFINANCE', 'NESTLEIND'];
+  const symbols = ['RELIANCE','TCS','HDFCBANK','INFY','ICICIBANK','HINDUNILVR','ITC','SBIN','BHARTIARTL','KOTAKBANK','AXISBANK','LT','WIPRO','ASIANPAINT','HCLTECH','TITAN','SUNPHARMA','MARUTI','BAJFINANCE','NESTLEIND'];
   const results = [];
   for (const sym of symbols) {
-    const quote = await fetchQuote(`${sym}.NS`);
-    if (quote && quote.price) {
+    const quote = await fetchYahooQuote(`${sym}.NS`);
+    if (quote?.price) {
       results.push({
         symbol: sym,
         price: quote.price.toFixed(2),
@@ -124,7 +115,6 @@ router.get('/stock-list', async (req, res) => {
   res.json(results);
 });
 
-// GET /market/crypto
 router.get('/crypto', async (req, res) => {
   try {
     const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr&ids=bitcoin,ethereum,solana&order=market_cap_desc&sparkline=false');
@@ -142,7 +132,6 @@ router.get('/crypto', async (req, res) => {
   }
 });
 
-// GET /market/news
 const NEWS_API_KEY = process.env.NEWS_API_KEY;
 router.get('/news', async (req, res) => {
   if (!NEWS_API_KEY) return res.status(500).json({ error: 'News API key missing' });
@@ -151,7 +140,7 @@ router.get('/news', async (req, res) => {
     const response = await fetch(url);
     const data = await response.json();
     if (data.status === 'ok') {
-      const articles = data.articles.slice(0, 20).map(a => ({
+      const articles = data.articles.slice(0,20).map(a => ({
         title: a.title,
         description: a.description,
         time: new Date(a.publishedAt).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }),

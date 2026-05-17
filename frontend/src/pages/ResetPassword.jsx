@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
-import CandlestickBackground from '../components/CandlestickBackground';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { apiClient } from '../services/api';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -25,8 +22,8 @@ export default function ResetPassword() {
     }
     setLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/auth/reset-password`, { email, token, newPassword: password });
-      setMessage(res.data.message);
+      await apiClient.post('/auth/reset-password', { email, token, newPassword: password });
+      setMessage('Password reset successful. Redirecting to login...');
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
@@ -36,25 +33,17 @@ export default function ResetPassword() {
   };
 
   return (
-    <>
-      <CandlestickBackground />
-      <div className="market-bg"></div>
-      <div className="animated-bg"></div>
-      <div className="particle-bg">{[...Array(30)].map((_, i) => <div key={i} className="particle"></div>)}</div>
-      <div className="grid-overlay"></div>
-      
-      <div className="reset-container">
-        <div className="reset-card">
-          <h2>Create New Password</h2>
-          <form onSubmit={handleSubmit}>
-            <input type="password" placeholder="New Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            <input type="password" placeholder="Confirm Password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
-            <button type="submit" disabled={loading}>{loading ? 'Resetting...' : 'Reset Password'}</button>
-            {message && <p className="success">{message}</p>}
-            {error && <p className="error">{error}</p>}
-          </form>
-        </div>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>New Password</h2>
+        <form onSubmit={handleSubmit}>
+          <input type="password" placeholder="New Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input type="password" placeholder="Confirm Password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+          <button type="submit" disabled={loading}>{loading ? 'Resetting...' : 'Reset Password'}</button>
+        </form>
+        {message && <p style={{ color: '#00ff88', marginTop: '16px' }}>{message}</p>}
+        {error && <p style={{ color: '#ff4444', marginTop: '16px' }}>{error}</p>}
       </div>
-    </>
+    </div>
   );
 }

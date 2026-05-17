@@ -26,6 +26,7 @@ export default function Register() {
           <input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <p style={{ fontSize: '12px', marginTop: '-12px', marginBottom: '16px', color: '#9b9eac' }}>At least 8 chars, one uppercase, one lowercase, one number, one special character</p>
           <button type="submit" disabled={loading}>{loading ? 'Creating...' : 'Register'}</button>
         </form>
         <p>Already have an account? <Link to="/login">Login</Link></p>

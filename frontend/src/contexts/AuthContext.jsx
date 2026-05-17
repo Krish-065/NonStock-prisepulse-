@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
   const register = async (email, password, name) => {
     try {
       await apiClient.post('/auth/register', { email, password, name });
-      toast.success('Verification code sent to email');
+      toast.success('Verification code sent');
       return { success: true, email };
     } catch (err) {
       toast.error(err.response?.data?.error || 'Registration failed');
@@ -76,6 +76,7 @@ export function AuthProvider({ children }) {
     delete apiClient.defaults.headers.common['Authorization'];
     setUser(null);
     toast.success('Logged out');
+    window.location.href = '/login';
   };
 
   return (

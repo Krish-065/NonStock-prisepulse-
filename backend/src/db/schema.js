@@ -2,8 +2,7 @@ const { query } = require('./index');
 
 async function createTables() {
   console.log('Creating database tables...');
-  
-  // Users table
+
   await query(`
     CREATE TABLE IF NOT EXISTS users (
       id VARCHAR(255) PRIMARY KEY,
@@ -22,7 +21,6 @@ async function createTables() {
     )
   `);
 
-  // Sessions table
   await query(`
     CREATE TABLE IF NOT EXISTS sessions (
       id VARCHAR(255) PRIMARY KEY,
@@ -30,7 +28,6 @@ async function createTables() {
       token VARCHAR(255) UNIQUE NOT NULL,
       ip_address VARCHAR(45),
       user_agent TEXT,
-      device_name VARCHAR(255),
       is_valid BOOLEAN DEFAULT TRUE,
       last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -38,7 +35,6 @@ async function createTables() {
     )
   `);
 
-  // Login attempts table (for rate limiting)
   await query(`
     CREATE TABLE IF NOT EXISTS login_attempts (
       id VARCHAR(255) PRIMARY KEY,
@@ -49,21 +45,18 @@ async function createTables() {
     )
   `);
 
-  // Portfolio table
   await query(`
     CREATE TABLE IF NOT EXISTS portfolio_items (
       id VARCHAR(255) PRIMARY KEY,
       user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
       symbol VARCHAR(50) NOT NULL,
-      quantity DECIMAL(15, 4) NOT NULL,
-      buy_price DECIMAL(15, 4) NOT NULL,
+      quantity DECIMAL(15,4) NOT NULL,
+      buy_price DECIMAL(15,4) NOT NULL,
       buy_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      current_price DECIMAL(15, 4),
       UNIQUE(user_id, symbol)
     )
   `);
 
-  // Watchlist table
   await query(`
     CREATE TABLE IF NOT EXISTS watchlist_items (
       id VARCHAR(255) PRIMARY KEY,
@@ -74,21 +67,20 @@ async function createTables() {
     )
   `);
 
-  // Price alerts table
   await query(`
     CREATE TABLE IF NOT EXISTS price_alerts (
       id VARCHAR(255) PRIMARY KEY,
       user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
       symbol VARCHAR(50) NOT NULL,
-      target_price DECIMAL(15, 4) NOT NULL,
-      condition VARCHAR(10) CHECK (condition IN ('above', 'below')),
+      target_price DECIMAL(15,4) NOT NULL,
+      condition VARCHAR(10) CHECK (condition IN ('above','below')),
       is_triggered BOOLEAN DEFAULT FALSE,
       triggered_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
-  console.log('✅ All tables created successfully');
+  console.log('✅ All tables created');
 }
 
 module.exports = { createTables };
