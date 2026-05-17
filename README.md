@@ -1,469 +1,350 @@
-# 🚀 PrisePulse - Advanced Financial Intelligence Platform
+<div align="center">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node.js-v14+-green)](https://nodejs.org/)
-[![React Version](https://img.shields.io/badge/react-19.2.4-blue)](https://reactjs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green)](https://www.mongodb.com/cloud/atlas)
+# 📈 PrisePulse
 
-A comprehensive web-based financial intelligence platform with real-time stock tracking, cryptocurrency monitoring, paper trading, AI-powered insights, and advanced portfolio management. Designed for Indian investors and traders.
+### *Professional Financial Platform for Indian Markets*
 
-**🌐 Live App:** [prisepulse-two.vercel.app](https://prisepulse-two.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-00ff88?style=for-the-badge&logo=vercel)](https://prisepulse-nine.vercel.app)
+[![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)](https://prisepulse.onrender.com)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
+[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js)](https://nodejs.org)
+
+*A full-stack, real-time financial dashboard built for Indian stock markets — featuring live prices, paper trading, F&O analysis, crypto tracking, a stock screener, and professional financial calculators.*
+
+</div>
 
 ---
 
-## ✨ Key Features
+## 🌟 Features
 
-### 📈 Stock Market Intelligence
-- **150+ Indian Stocks**: Complete Nifty 50 + extended list coverage
-- **Real-time Data**: Live stock quotes, prices, and market updates
-- **Advanced Charts**: 1min to 1year timeframes with technical indicators (SMA, MACD, RSI)
-- **Company Information**: News, financials, peer comparison, recommendations
-- **Stock Screener**: Advanced filtering (P/E ratio, P/B ratio, dividend yield, sectors)
-- **Price Alerts**: Set and manage price notifications with multi-channel delivery
+### 📊 Live Market Data
+- **NIFTY 50, SENSEX, BANK NIFTY, NIFTY IT** — real-time index prices from Yahoo Finance
+- **Top Gainers & Top Losers** — refreshes every 15 seconds automatically
+- **Live Ticker** — scrolling market ticker at the top of every page
+- **Market News** — latest financial news via NewsAPI
+
+### 📈 Markets Explorer
+- **Interactive TradingView Charts** — full candlestick charts for any stock, index, crypto, or forex
+- **Quick Symbols** — NIFTY, SENSEX, BANK NIFTY, RELIANCE, TCS, BTC, ETH, Gold, Crude Oil, USD/INR, EUR/INR
+- **Universal Search** — type any symbol and load its chart instantly
+
+### 🔍 Stock Screener
+- **20 NIFTY 50 Stocks** — live data with auto-refresh every 30 seconds
+- **Advanced Table** — Symbol, Sector, Price, 1D/1W/1M performance, Volume, P/E, P/B, ROE, Dividend
+- **Filters** — All / Top Gainers / Top Losers
+- **Search** — search any symbol with live suggestions dropdown
+- **Last Updated timestamp** + manual Refresh button
 
 ### 💼 Portfolio Management
-- **Add Holdings**: Track your stock investments easily
-- **Real-time P&L**: Live profit/loss calculation and updates
-- **Performance Analytics**: Detailed statistics and insights
-- **Export Options**: Download portfolio as PDF or Excel
-- **Multi-Watchlist**: Organize stocks in custom watchlists
+- **Add Holdings** — search any stock, forex, index, or crypto and add to your portfolio
+- **Live P&L** — real-time profit/loss calculation against live market prices
+- **Remove Holdings** — delete any position instantly
+- **Authenticated** — portfolio data is saved per user in PostgreSQL
 
+### 👁️ Watchlist
+- **Add any asset** — stocks, indices, crypto, forex via search suggestions
+- **Live Prices** — every watchlist item shows live LTP, change, and change %
+- **Remove** — one-click removal
 
+### 📰 IPO Tracker
+- **Upcoming IPOs** — company name, open/close dates, price band, lot size, GMP, subscription
+- **Recently Listed** — listing gains with issue price vs listing price
 
-### 💎 Cryptocurrency Tracking
-- **16+ Cryptocurrencies**: Bitcoin, Ethereum, and major altcoins
-- **Real-time Prices**: INR conversion and live updates
-- **Market Trends**: 1h, 24h, 7d performance analysis
-- **Crypto Watchlist**: Track your favorite coins
+### 📊 Futures & Options (F&O)
+- **Live Futures Prices** — NIFTY FUT and BANKNIFTY FUT with live OI
+- **Put-Call Ratio (PCR)** — market sentiment indicator
+- **NIFTY Option Chain** — Strike, CE OI, CE Δ, PE OI, PE Δ with ATM strike highlighted
+- **Auto-refresh** every 15 seconds
 
-### 📰 News & Market Intelligence
-- **Financial News Feed**: Aggregated from top sources
-- **Category Filtering**: News by market, crypto, crypto, economics
-- **Real-time Updates**: Latest market-moving news
-- **Notifications**: Important news alerts
+### 🪙 Cryptocurrency
+- **20 Major Cryptos** — BTC, ETH, BNB, SOL, XRP, DOGE, ADA, SHIB, AVAX, TRX, DOT, BCH, LINK, MATIC, LTC, NEAR, TON, USDT, USDC, UNI
+- **Live USD prices** via Yahoo Finance
+- **Crypto logo images** for each coin
+- **Auto-refresh** every 60 seconds
 
-### 🏦 Additional Features
-- **IPO Tracker**: Upcoming and recent IPO information
-- **Mutual Fund Research**: Compare funds and performance
-- **Stock Comparison**: Multi-stock side-by-side analysis
-- **Financial Calculators**: SIP, EMI, position sizing, etc.
-- **Dark/Light Theme**: Eye-friendly interface options
-- **Mobile Responsive**: Perfect on all devices
+### 📉 Paper Trading
+- **Virtual ₹1,00,000 Balance** — practice trading risk-free
+- **Live Price Execution** — orders execute at real-time market price fetched from backend
+- **Search Suggestions** — find any stock/crypto to trade
+- **Holdings Tracker** — quantity, average price, current holdings value
+- **Reset Portfolio** — start fresh anytime
 
----
+### 🛠️ Financial Tools (8 Calculators)
+| Calculator | What it computes |
+|---|---|
+| **SIP** | Future value, invested amount, returns for monthly SIP |
+| **Lumpsum** | Total amount and profit for one-time investment |
+| **EMI / Loan** | Monthly EMI, total payment, interest paid |
+| **Brokerage** | Brokerage, STT, total charges, net profit |
+| **Position Sizing** | Quantity of shares and actual risk based on stop-loss |
+| **Compound Interest** | Total value and interest earned with configurable compounding frequency |
+| **Margin Calculator** | Total trade value and margin required for leveraged trading |
+| **Absolute Returns** | Profit/loss and return % for any buy/sell pair |
 
-## 🛠️ Technology Stack
-
-### Backend Architecture
-```
-Node.js + Express.js
-├── Authentication: JWT + OAuth2 (Google, Facebook)
-├── Database: MongoDB Atlas
-├── Real-time: Socket.IO WebSocket
-├── APIs: Finnhub, CoinGecko, NewsAPI, Alpha Vantage
-└── Notifications: Email/SMS via Nodemailer
-```
-
-### Frontend Architecture
-```
-React 19.2.4 + Tailwind CSS
-├── Routing: React Router 7.13.1
-├── State: Zustand + Jotai
-├── Data Fetching: TanStack Query + Axios
-├── Charts: TradingView Lightweight Charts
-├── Forms: React Hook Form + Zod
-└── Real-time: Socket.IO Client
-```
-
-### Database Schema
-```
-MongoDB Collections:
-├── Users (Authentication & Profile)
-├── Portfolios (Holdings & Performance)
-├── Watchlists (Saved Stocks & Cryptos)
-├── PriceAlerts (Price Notification Rules)
-├── TradeHistory (Paper Trading Records)
-├── TradingAccount (Virtual Account Stats)
-├── Notifications (User Notifications)
-├── ChatHistory (AI Chat Conversations)
-└── ScreenerResults (Saved Screener Runs)
-```
+### 🎨 Design & UX
+- **Dark / Light Theme Toggle** — full glassmorphism design in both themes
+- **Animated Candlestick Background** — subtle SVG pattern on every page
+- **Inter Font** — modern, professional typography
+- **Micro-animations** — hover effects, live badge pulse, smooth transitions
+- **Responsive** — works on desktop and tablet
 
 ---
 
-## 📋 System Requirements
+## 🏗️ Tech Stack
 
-- **Node.js**: v14+ (v18+ recommended)
-- **npm**: v6+
-- **MongoDB**: Cloud Atlas (free tier available)
-- **Modern Browser**: Chrome, Firefox, Safari, Edge
+### Frontend
+| Technology | Purpose |
+|---|---|
+| **React 18** | UI framework |
+| **Vite** | Build tool & dev server |
+| **React Router v6** | Client-side routing |
+| **Axios** | HTTP client |
+| **TradingView Widget** | Interactive financial charts |
+| **React Hot Toast** | Notification toasts |
+| **Vanilla CSS** | Styling with CSS variables and glassmorphism |
+
+### Backend
+| Technology | Purpose |
+|---|---|
+| **Node.js + Express** | REST API server |
+| **PostgreSQL** | User data, watchlist, portfolio |
+| **Socket.io** | Real-time WebSocket layer |
+| **JWT** | Stateless authentication tokens |
+| **bcrypt** | Password hashing |
+| **Helmet** | HTTP security headers |
+| **express-rate-limit** | Login brute-force protection |
+| **Yahoo Finance API** | Live stock, index, and crypto prices |
+| **NewsAPI** | Financial news feed |
+
+### Infrastructure
+| Service | Role |
+|---|---|
+| **Vercel** | Frontend hosting |
+| **Render** | Backend hosting |
+| **Neon / Supabase** | Managed PostgreSQL database |
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Clone Repository
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- PostgreSQL database (local or cloud)
+
+### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/prisepulse.git
+git clone https://github.com/Krish-065/prisepulse.git
 cd prisepulse
 ```
 
-### 2. Set Up Environment Variables
-
-**Backend (server/.env)**
+### 2. Setup the Backend
 ```bash
-# Database
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/prisepulse
-
-# JWT & Security
-JWT_SECRET=your_super_secret_key_minimum_32_characters_long
-
-# API Keys
-FINNHUB_API_KEY=your_finnhub_api_key
-NEWSAPI_KEY=your_newsapi_key
-ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
-TWELVE_DATA_API_KEY=your_twelve_data_key
-
-# OAuth (Google)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# OAuth (Facebook)
-FACEBOOK_APP_ID=your_facebook_app_id
-FACEBOOK_APP_SECRET=your_facebook_app_secret
-
-# Email Service (Gmail)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-
-# Environment
-NODE_ENV=development
-PORT=5000
-```
-
-**Frontend (client/.env.local)**
-```bash
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_SOCKET_URL=http://localhost:5000
-REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
-```
-
-### 3. Install Dependencies
-
-**Terminal 1 - Backend Setup**
-```bash
-cd server
+cd backend
 npm install
 ```
 
-**Terminal 2 - Frontend Setup**
-```bash
-cd client
-npm install
+Create `.env` in the `backend/` directory:
+```env
+DATABASE_URL=postgresql://user:password@host:5432/prisepulse
+JWT_SECRET=your_super_secret_jwt_key_here
+FRONTEND_URL=http://localhost:5173
+NEWS_API_KEY=your_newsapi_key        # optional, for market news
 ```
 
-### 4. Start Development Servers
-
-**Terminal 1 - Backend**
+Start the backend:
 ```bash
-cd server
 npm run dev
-# Output: Server running on http://localhost:5000 ✅
+# Server runs on http://localhost:3000
 ```
 
-**Terminal 2 - Frontend**
+### 3. Setup the Frontend
 ```bash
-cd client
-npm start
-# Output: Compiled successfully! http://localhost:3000 ✅
+cd ../frontend
+npm install
 ```
 
-### 5. Access Application
-Open browser and navigate to: **http://localhost:3000**
+Create `.env` in the `frontend/` directory:
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+Start the frontend:
+```bash
+npm run dev
+# App runs on http://localhost:5173
+```
 
 ---
 
-## 📊 Project Statistics
+## 🌐 API Endpoints
 
-| Metric | Count |
-|--------|-------|
-| API Routes | 15+ |
-| Database Models | 9 |
-| React Components | 16+ |
-| Custom Hooks | 5 |
-| Supported Stocks | 150+ |
-| Cryptocurrencies | 16 |
-| Pages | 13 |
-| Supported Indicators | 10+ |
+### Authentication
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user |
+| `POST` | `/api/auth/login` | Login and receive JWT |
+| `POST` | `/api/auth/forgot-password` | Send password reset email |
+| `POST` | `/api/auth/reset-password` | Reset password with token |
+| `POST` | `/api/auth/verify-email` | Verify email address |
 
----
+### Market Data
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/market/indices` | NIFTY 50, SENSEX, BANK NIFTY, NIFTY IT |
+| `GET` | `/api/market/movers` | Top gainers and losers |
+| `GET` | `/api/market/stock/:symbol` | Quote for any symbol |
+| `GET` | `/api/market/stock-list` | Full NIFTY 50 stock list with live data |
+| `GET` | `/api/market/search/:query` | Search stocks, indices, crypto, forex |
+| `GET` | `/api/market/crypto` | Top 20 cryptocurrencies |
+| `GET` | `/api/market/futures` | NIFTY and BANKNIFTY futures data |
+| `GET` | `/api/market/news` | Latest financial news |
 
-## 🔑 API Key Setup Guide
-
-### Finnhub (Stock Data)
-1. Visit [finnhub.io/register](https://finnhub.io/register)
-2. Sign up for free account
-3. Copy API key from dashboard
-4. Add to `.env`: `FINNHUB_API_KEY=your_key`
-
-### CoinGecko (Crypto - No Key Needed)
-- Free tier: Unlimited requests
-- Already integrated, no setup required
-
-### NewsAPI (News Feed)
-1. Visit [newsapi.org](https://newsapi.org/)
-2. Register for free
-3. Get API key
-4. Add to `.env`: `NEWSAPI_KEY=your_key`
-
-### Google OAuth
-1. Visit [console.cloud.google.com](https://console.cloud.google.com)
-2. Create new project: "PrisePulse"
-3. Enable OAuth consent screen
-4. Create OAuth 2.0 credentials (Web application)
-5. Authorized JavaScript origins: `http://localhost:3000`
-6. Authorized redirect URIs: `http://localhost:5000/api/auth/google/callback`
-7. Copy Client ID and Secret to `.env`
+### Portfolio & Watchlist *(requires auth)*
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/watchlist` | Get user's watchlist |
+| `POST` | `/api/watchlist` | Add symbol to watchlist |
+| `DELETE` | `/api/watchlist/:symbol` | Remove from watchlist |
+| `GET` | `/api/portfolio` | Get user's portfolio |
+| `POST` | `/api/portfolio` | Add holding to portfolio |
+| `DELETE` | `/api/portfolio/:symbol` | Remove holding from portfolio |
 
 ---
 
-## 🗂️ Directory Structure
+## 📁 Project Structure
 
 ```
 prisepulse/
-├── server/                          # Backend
-│   ├── config/
-│   │   ├── database.js             # MongoDB connection
-│   │   └── oauth.js                # OAuth strategies
-│   ├── middleware/
-│   │   └── auth.js                 # JWT verification
-│   ├── models/                     # Database schemas (9 models)
-│   ├── routes/                     # API routes (15+ endpoints)
-│   ├── services/                   # Business logic (13+ services)
-│   ├── utils/                      # Helpers & validators
-│   ├── index.js                    # App entry point
-│   ├── package.json
-│   └── .env
-│
-├── client/                          # Frontend
+├── backend/
 │   ├── src/
-│   │   ├── hooks/                  # Custom hooks (5)
-│   │   ├── services/               # API & Socket (3)
-│   │   ├── utils/                  # Formatters & validators (5)
-│   │   ├── components/             # React components (16+)
-│   │   ├── pages/                  # Page components (13)
-│   │   ├── App.js                  # Main app
-│   │   └── index.js                # React root
-│   ├── package.json
-│   └── .env.local
+│   │   ├── api/
+│   │   │   └── marketData.js       # Yahoo Finance integration
+│   │   ├── auth/
+│   │   │   └── auth.service.js     # JWT auth, registration, login
+│   │   ├── db/
+│   │   │   ├── index.js            # PostgreSQL connection pool
+│   │   │   └── schema.js           # Table creation SQL
+│   │   ├── middleware/
+│   │   │   ├── auth.js             # JWT verification middleware
+│   │   │   └── rateLimit.js        # Login rate limiter
+│   │   └── index.js                # Express app, routes, Socket.io
+│   └── package.json
 │
-├── README.md
-├── .gitignore
-└── PROJECT_COMPLETION_STATUS.md
+└── frontend/
+    ├── src/
+    │   ├── components/
+    │   │   ├── CandlestickBg.jsx   # Animated SVG background
+    │   │   ├── Layout.jsx          # App shell with sidebar
+    │   │   ├── PrivateRoute.jsx    # Auth guard
+    │   │   ├── SearchWithSuggestions.jsx  # Live search dropdown
+    │   │   └── Sidebar.jsx         # Navigation sidebar
+    │   ├── contexts/
+    │   │   ├── AuthContext.jsx     # Auth state & JWT handling
+    │   │   └── ThemeContext.jsx    # Dark/Light theme
+    │   ├── pages/
+    │   │   ├── Dashboard.jsx       # Live market overview
+    │   │   ├── Markets.jsx         # TradingView charts
+    │   │   ├── Screener.jsx        # Stock screener table
+    │   │   ├── Portfolio.jsx       # Portfolio with live P&L
+    │   │   ├── Watchlist.jsx       # Personal watchlist
+    │   │   ├── Trading.jsx         # Paper trading simulator
+    │   │   ├── Crypto.jsx          # Crypto market page
+    │   │   ├── FnO.jsx             # Futures & Options
+    │   │   ├── IPOs.jsx            # IPO tracker
+    │   │   ├── News.jsx            # Financial news
+    │   │   ├── Tools.jsx           # 8 financial calculators
+    │   │   ├── Login.jsx           # Auth — login
+    │   │   └── Register.jsx        # Auth — registration
+    │   ├── services/
+    │   │   └── api.js              # Axios client with base URL config
+    │   └── index.css               # Global styles, CSS variables, themes
+    └── package.json
 ```
 
 ---
 
-## 🔐 Security Features
+## 🔐 Security
 
-✅ **Authentication**
-- JWT token-based sessions
-- Bcryptjs password hashing
-- Google OAuth 2.0 integration
-- Facebook OAuth 2.0 integration
-- Session timeout & refresh tokens
-
-✅ **Data Protection**
-- CORS enabled for security
-- Input validation on all endpoints
-- SQL injection prevention
-- XSS protection with React
-- Rate limiting (configurable)
-
-✅ **Privacy**
-- Environment variables for secrets
-- No sensitive data in frontend
-- Secure token storage
-- User data encryption
+- **JWT authentication** — tokens expire after 7 days
+- **bcrypt password hashing** — 10 salt rounds
+- **Rate limiting** — 5 login attempts per 15 minutes
+- **Helmet.js** — sets secure HTTP headers
+- **CORS** — restricted to the configured frontend domain
+- **Parameterized SQL queries** — no raw string interpolation (SQL injection safe)
 
 ---
 
-## 📱 Responsive Design
+## 📦 Environment Variables
 
-- **Mobile (320px+)**: Full functionality, touch-optimized
-- **Tablet (768px+)**: Multi-column layouts, enhanced UX
-- **Desktop (1024px+)**: Full-featured dashboard experience
+### Backend (`backend/.env`)
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | ✅ | PostgreSQL connection string |
+| `JWT_SECRET` | ✅ | Secret key for signing JWTs |
+| `FRONTEND_URL` | ✅ | Frontend origin for CORS |
+| `NEWS_API_KEY` | ⚠️ Optional | [newsapi.org](https://newsapi.org) API key |
 
----
-
-## 🚢 Deployment Guide
-
-### Deploy Backend (Render.com)
-1. Push code to GitHub
-2. Visit [render.com](https://render.com)
-3. Connect GitHub repository
-4. Set environment variables in dashboard
-5. Deploy with `npm install && npm run dev`
-
-### Deploy Frontend (Vercel)
-1. Visit [vercel.com](https://vercel.com)
-2. Import from GitHub
-3. Set environment variables
-4. Deploy automatically
-
-### Deploy Database (MongoDB Atlas)
-1. Create account at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
-2. Create cluster (free tier available)
-3. Get connection string
-4. Add to backend `.env`
+### Frontend (`frontend/.env`)
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_API_URL` | ✅ | Backend API base URL (must end with `/api`) |
 
 ---
 
-## 🧪 Testing
+## 🚢 Deployment
 
-```bash
-# Backend tests
-cd server
-npm test
+### Frontend → Vercel
+1. Import the GitHub repo into [vercel.com](https://vercel.com)
+2. Set **Root Directory** to `frontend`
+3. Add environment variable: `VITE_API_URL=https://your-backend.onrender.com/api`
+4. Deploy
 
-# Frontend tests
-cd client
-npm test
-
-# Run linting
-npm run lint
-```
+### Backend → Render
+1. Create a **Web Service** on [render.com](https://render.com)
+2. Set **Root Directory** to `backend`
+3. Build command: `npm install`
+4. Start command: `node src/index.js`
+5. Add environment variables: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`
+6. Deploy
 
 ---
 
-## 🐛 Troubleshooting
+## 🛣️ Roadmap
 
-### Backend won't start
-```
-❌ Error: Cannot find module 'nodemon'
-✅ Solution: npm install in server/ folder
-```
-
-### Frontend compilation error
-```
-❌ Error: 'react-scripts' is not recognized
-✅ Solution: npm install in client/ folder
-```
-
-### MongoDB connection failed
-```
-❌ Error: MongooseError: connect ECONNREFUSED
-✅ Solution: Check MONGO_URI in .env, verify MongoDB Atlas is running
-```
-
-### API calls failing
-```
-❌ Error: 404 Not Found
-✅ Solution: Verify API key in .env, check route exists
-```
+- [ ] Real-time WebSocket price streaming
+- [ ] Price alerts & push notifications
+- [ ] Export portfolio as PDF / Excel
+- [ ] Technical indicators overlay (SMA, RSI, MACD)
+- [ ] Mutual Funds NAV tracking
+- [ ] 2FA (Two-Factor Authentication) via TOTP
+- [ ] Mobile-responsive sidebar
+- [ ] XIRR / CAGR return calculators
+- [ ] AI-powered stock recommendations
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome! 
-
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+2. Create your feature branch: `git checkout -b feat/amazing-feature`
+3. Commit your changes: `git commit -m 'feat: add amazing feature'`
+4. Push to the branch: `git push origin feat/amazing-feature`
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-MIT License © 2026 PrisePulse. See LICENSE file for details.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 👨‍💻 Author
+<div align="center">
 
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
-- Website: yourwebsite.com
+**Built with ❤️ for Indian markets**
 
----
+[🌐 Live Demo](https://prisepulse-nine.vercel.app) · [🐛 Report Bug](https://github.com/Krish-065/prisepulse/issues) · [✨ Request Feature](https://github.com/Krish-065/prisepulse/issues)
 
-## 🙏 Acknowledgments
-
-- **Data Providers**: Finnhub, CoinGecko, NewsAPI, Alpha Vantage
-- **Libraries**: React, Express, MongoDB, Socket.IO, Tailwind CSS
-- **Icons**: React Icons
-- **Charts**: TradingView Lightweight Charts
-
----
-
-## 📞 Support & Contact
-
-For support, feature requests, or bug reports:
-- Open an issue on GitHub
-- Email: your.email@example.com
-- Discord: [Join our community](https://discord.gg/yourlink)
-
----
-
-**⭐ If this project helped you, please give it a star!**
-
-**Made with ❤️ for Indian investors and traders**
-4. Use **Watchlist** to save your favourite stocks
-5. Use **Portfolio** to add your holdings and track P&L
-6. Explore **Crypto**, **Mutual Funds**, **News** for market insights
-7. Use **Tools** for financial calculations like SIP returns, position sizing, brokerage charges
-
-> **Note:** The backend is hosted on Render free tier. If the app takes 30-50 seconds to load for the first time, it is waking up from sleep. Subsequent requests will be instant.
-
----
-
-## Limitations
-
-- No email OTP verification — users can register with any email without confirming it is real or belongs to them
-- No password strength enforcement — any password is accepted including very weak ones like "123" or "password"
-
----
-
-
-
----
-
-## Project Structure
-
-```
-prisepulse/
-├── client/                 # React frontend
-│   └── src/
-│       ├── components/
-│       │   └── Navbar.jsx
-│       └── pages/
-│           ├── Markets.jsx
-│           ├── Portfolio.jsx
-│           ├── Watchlist.jsx
-│           ├── Crypto.jsx
-│           ├── MutualFunds.jsx
-│           ├── News.jsx
-│           ├── Tools.jsx
-│           └── Login.jsx
-└── server/                 # Node.js backend
-    ├── models/
-    │   ├── User.js
-    │   ├── Portfolio.js
-    │   └── Watchlist.js
-    ├── routes/
-    │   ├── auth.js
-    │   ├── market.js
-    │   ├── portfolio.js
-    │   ├── watchlist.js
-    │   └── news.js
-    └── index.js
-```
-
----
-
+</div>
