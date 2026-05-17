@@ -10,7 +10,7 @@
 
 > **PrisePulse** is a full-stack, real-time financial intelligence platform built for Indian retail investors and traders. Track live markets, manage your portfolio, paper-trade risk-free, screen stocks, and use professional financial calculators — all in one place.
 
-### 🌐 [https://prisepulse-nine.vercel.app](https://prisepulse-nine.vercel.app)
+### 🌐 [https://prisepulse-nine.vercel.app/](https://prisepulse-nine.vercel.app/)
 
 </div>
 
@@ -260,8 +260,20 @@ Clean sidebar navigation + results displayed with green highlights for profit fi
 
 ---
 
-## 🔐 Your Data & Security
+## 🛣️ Coming Soon
 
+- [ ] Real-time WebSocket price streaming (zero-poll live updates)
+- [ ] Price alerts & browser push notifications
+- [ ] Export portfolio as PDF / Excel report
+- [ ] XIRR and CAGR return calculators
+- [ ] Mutual Funds NAV tracking
+- [ ] Two-Factor Authentication (2FA / TOTP)
+- [ ] Full mobile-responsive layout
+- [ ] AI-powered stock insights and recommendations
+
+---
+
+## 🔐 Your Data & Security
 - All passwords are **hashed with bcrypt** — never stored in plain text
 - Authentication uses **short-lived JWT tokens** — your session is stateless and secure
 - Login attempts are **rate-limited** — brute-force attacks are blocked after 5 failed attempts
