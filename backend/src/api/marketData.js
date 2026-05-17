@@ -66,12 +66,13 @@ router.get('/search/:query', async (req, res) => {
     const data = await response.json();
     const quotes = data.quotes || [];
     const stocks = quotes
-      .filter(q => q.quoteType === 'EQUITY' && (q.exchange === 'NSI' || q.exchange === 'BSE'))
+      .filter(q => ['EQUITY', 'INDEX', 'CURRENCY', 'CRYPTOCURRENCY', 'ETF', 'MUTUALFUND'].includes(q.quoteType))
       .slice(0,15)
       .map(q => ({
-        symbol: q.symbol.replace('.NS', '').replace('.BO', ''),
-        name: q.longname || q.shortname,
+        symbol: q.symbol, // Keep exact symbol for fetching
+        name: q.longname || q.shortname || q.symbol,
         exchange: q.exchange,
+        type: q.quoteType
       }));
     res.json(stocks);
   } catch (err) {
@@ -81,10 +82,29 @@ router.get('/search/:query', async (req, res) => {
 
 router.get('/stock/:symbol', async (req, res) => {
   const { symbol } = req.params;
-  const quote = await fetchYahooQuote(`${symbol}.NS`);
+  let fetchSymbol = symbol.toUpperCase();
+  
+  // Mapping common Indian indices to Yahoo Finance symbols
+  const indexMap = {
+    'NIFTY50': '^NSEI',
+    'NIFTY': '^NSEI',
+    'SENSEX': '^BSESN',
+    'BANKNIFTY': '^NSEBANK',
+    'NIFTYBANK': '^NSEBANK',
+    'NIFTYIT': '^NSEIT'
+  };
+  
+  if (indexMap[fetchSymbol]) {
+    fetchSymbol = indexMap[fetchSymbol];
+  } else if (!fetchSymbol.includes('.') && !fetchSymbol.includes('=') && !fetchSymbol.includes('-') && !fetchSymbol.startsWith('^')) {
+    fetchSymbol = `${fetchSymbol}.NS`; // default to NSE
+  }
+  
+  const quote = await fetchYahooQuote(fetchSymbol);
   if (!quote || !quote.price) return res.status(404).json({ error: 'Stock not found' });
   res.json({
-    symbol,
+    symbol, // Return requested symbol back to match frontend states
+    fetchSymbol,
     price: quote.price.toFixed(2),
     change: quote.change.toFixed(2),
     changePercent: quote.changePercent.toFixed(2),

@@ -14,7 +14,7 @@ export default function Tools() {
         const r = v.rate / 12 / 100;
         const n = v.years * 12;
         const future = v.monthly * ((Math.pow(1 + r, n) - 1) / r) * (1 + r);
-        return { futureValue: future.toFixed(2), invested: (v.monthly * n).toFixed(2), returns: (future - v.monthly * n).toFixed(2) };
+        return { 'Future Value': future.toFixed(2), 'Invested': (v.monthly * n).toFixed(2), 'Returns': (future - v.monthly * n).toFixed(2) };
       },
     },
     lumpsum: {
@@ -23,11 +23,11 @@ export default function Tools() {
       labels: ['Amount (₹)', 'Years', 'Rate (%)'],
       compute: (v) => {
         const amount = v.amount * Math.pow(1 + v.rate / 100, v.years);
-        return { amount: amount.toFixed(2), profit: (amount - v.amount).toFixed(2) };
+        return { 'Total Amount': amount.toFixed(2), 'Profit': (amount - v.amount).toFixed(2) };
       },
     },
     emi: {
-      name: 'EMI Calculator',
+      name: 'EMI / Loan',
       fields: ['loan', 'years', 'rate'],
       labels: ['Loan Amount (₹)', 'Tenure (Years)', 'Interest Rate (%)'],
       compute: (v) => {
@@ -35,22 +35,64 @@ export default function Tools() {
         const n = v.years * 12;
         const emi = v.loan * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
         const total = emi * n;
-        return { emi: emi.toFixed(2), total: total.toFixed(2), interest: (total - v.loan).toFixed(2) };
+        return { 'EMI': emi.toFixed(2), 'Total Payment': total.toFixed(2), 'Interest Paid': (total - v.loan).toFixed(2) };
       },
     },
     brokerage: {
-      name: 'Brokerage Calculator',
+      name: 'Brokerage',
       fields: ['buy', 'sell', 'qty'],
       labels: ['Buy Price (₹)', 'Sell Price (₹)', 'Quantity'],
       compute: (v) => {
         const turnover = (v.buy + v.sell) * v.qty;
-        const brokerage = turnover * 0.0003;
-        const stt = v.sell * v.qty * 0.001;
+        const brokerage = turnover * 0.0003; // Assume 0.03% intraday
+        const stt = v.sell * v.qty * 0.00025;
         const total = brokerage + stt + brokerage * 0.18;
         const net = (v.sell - v.buy) * v.qty - total;
-        return { brokerage: brokerage.toFixed(2), stt: stt.toFixed(2), totalCharges: total.toFixed(2), netProfit: net.toFixed(2) };
+        return { 'Brokerage': brokerage.toFixed(2), 'STT': stt.toFixed(2), 'Total Charges': total.toFixed(2), 'Net Profit': net.toFixed(2) };
       },
     },
+    position: {
+      name: 'Position Sizing',
+      fields: ['capital', 'risk', 'entry', 'stoploss'],
+      labels: ['Capital (₹)', 'Risk per Trade (%)', 'Entry Price (₹)', 'Stop Loss (₹)'],
+      compute: (v) => {
+        const riskAmount = v.capital * (v.risk / 100);
+        const riskPerShare = Math.abs(v.entry - v.stoploss);
+        const qty = Math.floor(riskAmount / riskPerShare);
+        const actualRisk = qty * riskPerShare;
+        return { 'Quantity (Shares)': qty, 'Total Risk': actualRisk.toFixed(2) };
+      },
+    },
+    compound: {
+      name: 'Compound Interest',
+      fields: ['principal', 'rate', 'years', 'frequency'],
+      labels: ['Principal (₹)', 'Interest Rate (%)', 'Years', 'Compounding Frequency (per year)'],
+      compute: (v) => {
+        const n = v.frequency || 1;
+        const amount = v.principal * Math.pow(1 + (v.rate/100)/n, n * v.years);
+        return { 'Total Value': amount.toFixed(2), 'Interest Earned': (amount - v.principal).toFixed(2) };
+      },
+    },
+    margin: {
+      name: 'Margin Calculator',
+      fields: ['price', 'qty', 'leverage'],
+      labels: ['Share Price (₹)', 'Quantity', 'Leverage (x)'],
+      compute: (v) => {
+        const totalValue = v.price * v.qty;
+        const marginReq = totalValue / v.leverage;
+        return { 'Total Trade Value': totalValue.toFixed(2), 'Margin Required': marginReq.toFixed(2) };
+      },
+    },
+    returns: {
+      name: 'Absolute Returns',
+      fields: ['buy', 'sell'],
+      labels: ['Buy Value (₹)', 'Sell Value (₹)'],
+      compute: (v) => {
+        const profit = v.sell - v.buy;
+        const percent = (profit / v.buy) * 100;
+        return { 'Profit/Loss': profit.toFixed(2), 'Return (%)': percent.toFixed(2) };
+      },
+    }
   };
 
   const handleCalculate = () => {

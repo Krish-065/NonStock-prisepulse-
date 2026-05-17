@@ -58,15 +58,15 @@ export default function Dashboard() {
   const fetchCrypto = async () => {
     try {
       const res = await apiClient.get('/market/crypto');
-      setCrypto(res.data);
-    } catch (err) { console.error(err); }
+      setCrypto(Array.isArray(res.data) ? res.data : []);
+    } catch (err) { console.error(err); setCrypto([]); }
   };
 
   const fetchNews = async () => {
     try {
       const res = await apiClient.get('/market/news');
-      setNews(res.data);
-    } catch (err) { console.error(err); }
+      setNews(Array.isArray(res.data) ? res.data : []);
+    } catch (err) { console.error(err); setNews([]); }
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '40px' }}>Loading market data...</div>;
