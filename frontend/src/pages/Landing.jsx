@@ -1,41 +1,25 @@
 import { Link } from 'react-router-dom';
-import CandlestickBackground from '../components/CandlestickBackground';
 
 export default function Landing() {
   return (
     <>
-      <CandlestickBackground />
-      
-      {/* Animated Background */}
-      <div className="landing-bg"></div>
+      <div className="market-bg"></div>
       <div className="animated-bg"></div>
       <div className="particle-bg">{Array(40).fill().map((_, i) => <div key={i} className="particle"></div>)}</div>
       <div className="grid-overlay"></div>
 
-      {/* Market Ticker */}
-      <div className="ticker-premium">
-        <div className="ticker-scroll">
-          <div className="ticker-item">📈 NIFTY 50 22,450.75 <span className="up">+0.83%</span></div>
-          <div className="ticker-item">📊 SENSEX 73,985.32 <span className="up">+0.70%</span></div>
-          <div className="ticker-item">🏦 BANK NIFTY 48,234.15 <span className="down">-0.32%</span></div>
-          <div className="ticker-item">🪙 BTC/INR 78,02,643 <span className="up">+2.87%</span></div>
-        </div>
-      </div>
-
       <div className="landing-container">
         <div className="landing-content">
-          {/* Hero Section */}
           <div className="hero-section">
             <div className="hero-badge">🚀 POWERED BY AI</div>
             <h1 className="hero-title">Trade Smarter with <span className="gradient-text">PricePulse</span></h1>
-            <p className="hero-subtitle">Professional trading platform with real-time market data, advanced charts, and AI-powered insights.</p>
+            <p className="hero-subtitle">Professional trading platform with real-time data, advanced charts, and AI-powered insights.</p>
             <div className="hero-buttons">
               <Link to="/register" className="btn-primary-hero">Get Started →</Link>
               <Link to="/login" className="btn-secondary-hero">Sign In</Link>
             </div>
           </div>
 
-          {/* Features Grid */}
           <div className="features-section">
             <h2 className="section-title">Everything you need in one platform</h2>
             <div className="features-grid">
@@ -56,7 +40,6 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Stats Section */}
           <div className="stats-section">
             {[
               { number: '10K+', label: 'Active Users' },
@@ -71,7 +54,6 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* CTA Section */}
           <div className="cta-section">
             <h2>Ready to start trading?</h2>
             <p>Join PricePulse today and take control of your financial future</p>
@@ -79,6 +61,157 @@ export default function Landing() {
           </div>
         </div>
       </div>
+
+      <style>{`
+        .landing-container {
+          min-height: 100vh;
+          padding-top: 80px;
+          position: relative;
+          z-index: 1;
+        }
+        .landing-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 24px;
+        }
+        .hero-section {
+          text-align: center;
+          padding: 60px 0;
+        }
+        .hero-badge {
+          display: inline-block;
+          background: rgba(0,255,136,0.1);
+          border: 1px solid rgba(0,255,136,0.3);
+          border-radius: 40px;
+          padding: 6px 16px;
+          font-size: 12px;
+          color: #00ff88;
+          margin-bottom: 24px;
+        }
+        .hero-title {
+          font-size: 56px;
+          font-weight: 800;
+          margin-bottom: 24px;
+          line-height: 1.2;
+        }
+        .gradient-text {
+          background: linear-gradient(135deg, #00ff88, #00bcd4);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+        }
+        .hero-subtitle {
+          font-size: 18px;
+          color: #9b9eac;
+          max-width: 600px;
+          margin: 0 auto 32px;
+          line-height: 1.6;
+        }
+        .hero-buttons {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+        }
+        .btn-primary-hero {
+          background: linear-gradient(135deg, #00ff88, #00bcd4);
+          color: #0a0e27;
+          padding: 12px 32px;
+          border-radius: 40px;
+          text-decoration: none;
+          font-weight: 700;
+          transition: 0.2s;
+        }
+        .btn-primary-hero:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(0,255,136,0.3);
+        }
+        .btn-secondary-hero {
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.2);
+          color: white;
+          padding: 12px 32px;
+          border-radius: 40px;
+          text-decoration: none;
+          font-weight: 600;
+          transition: 0.2s;
+        }
+        .btn-secondary-hero:hover {
+          background: rgba(255,255,255,0.2);
+        }
+        .features-section {
+          padding: 60px 0;
+        }
+        .section-title {
+          text-align: center;
+          font-size: 32px;
+          font-weight: 700;
+          margin-bottom: 48px;
+        }
+        .features-grid {
+          display: grid;
+          grid-template-columns: repeat(3,1fr);
+          gap: 24px;
+        }
+        .feature-card {
+          background: rgba(19,23,34,0.9);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(0,255,136,0.1);
+          border-radius: 16px;
+          padding: 32px 24px;
+          text-align: center;
+          transition: 0.2s;
+        }
+        .feature-card:hover {
+          border-color: #00ff88;
+          transform: translateY(-4px);
+        }
+        .feature-icon { font-size: 48px; margin-bottom: 16px; }
+        .feature-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+        .feature-card p { font-size: 13px; color: #9b9eac; }
+        .stats-section {
+          display: grid;
+          grid-template-columns: repeat(4,1fr);
+          gap: 32px;
+          padding: 60px 0;
+          text-align: center;
+        }
+        .stat-number {
+          font-size: 36px;
+          font-weight: 700;
+          color: #00ff88;
+          margin-bottom: 8px;
+        }
+        .stat-label {
+          font-size: 14px;
+          color: #9b9eac;
+        }
+        .cta-section {
+          text-align: center;
+          padding: 60px 0;
+          background: rgba(0,255,136,0.05);
+          border-radius: 24px;
+          margin: 40px 0;
+        }
+        .cta-section h2 { font-size: 32px; margin-bottom: 16px; }
+        .cta-section p { color: #9b9eac; margin-bottom: 24px; }
+        .btn-cta {
+          display: inline-block;
+          background: linear-gradient(135deg, #00ff88, #00bcd4);
+          color: #0a0e27;
+          padding: 14px 40px;
+          border-radius: 40px;
+          text-decoration: none;
+          font-weight: 700;
+          transition: 0.2s;
+        }
+        .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,255,136,0.3); }
+        @media (max-width: 768px) {
+          .hero-title { font-size: 36px; }
+          .features-grid { grid-template-columns: 1fr; }
+          .stats-section { grid-template-columns: repeat(2,1fr); }
+          .hero-buttons { flex-direction: column; align-items: center; }
+        }
+      `}</style>
     </>
   );
 }
