@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import CandlestickBg from '../components/CandlestickBg';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -20,6 +21,7 @@ export default function Register() {
 
   return (
     <div className="auth-container">
+      <CandlestickBg />
       <div className="auth-card">
         <h2>Create Account</h2>
         <form onSubmit={handleSubmit}>

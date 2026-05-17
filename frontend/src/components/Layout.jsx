@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
+import CandlestickBg from './CandlestickBg';
 
 export default function Layout({ children }) {
   const [sidebarWidth, setSidebarWidth] = useState(260);
@@ -15,9 +16,10 @@ export default function Layout({ children }) {
   }, []);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
+      <CandlestickBg />
       <Sidebar />
-      <main style={{ flex: 1, padding: '24px', marginLeft: sidebarWidth, transition: 'margin-left 0.3s', background: 'var(--bg-primary)' }}>
+      <main style={{ flex: 1, padding: '24px', marginLeft: sidebarWidth, transition: 'margin-left 0.3s', background: 'transparent', position: 'relative', zIndex: 1 }}>
         {children}
       </main>
     </div>

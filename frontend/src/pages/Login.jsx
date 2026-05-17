@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import CandlestickBg from '../components/CandlestickBg';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -19,6 +20,7 @@ export default function Login() {
 
   return (
     <div className="auth-container">
+      <CandlestickBg />
       <div className="auth-card">
         <h2>Welcome Back</h2>
         <form onSubmit={handleSubmit}>

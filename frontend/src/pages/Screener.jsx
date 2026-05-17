@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import SearchWithSuggestions from '../components/SearchWithSuggestions';
+import { apiClient } from '../services/api';
 
 export default function Screener() {
   const [stocks, setStocks] = useState([]);
@@ -7,17 +8,21 @@ export default function Screener() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  const fetchStocks = async () => {
+    try {
+      const res = await apiClient.get('/market/stock-list');
+      const data = res.data || [];
+      setStocks(data);
+      setLastUpdated(new Date());
+    } catch (err) { console.error(err); } finally { setLoading(false); }
+  };
 
   useEffect(() => {
-    const fetchStocks = async () => {
-      try {
-        const { apiClient } = await import('../services/api');
-        const res = await apiClient.get('/market/stock-list');
-        setStocks(res.data || []);
-        setFiltered(res.data || []);
-      } catch (err) { console.error(err); } finally { setLoading(false); }
-    };
     fetchStocks();
+    const interval = setInterval(fetchStocks, 30000); // refresh every 30s
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -32,7 +37,14 @@ export default function Screener() {
 
   return (
     <div>
-      <h1>Stock Screener</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h1>Stock Screener</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span className="live-badge">LIVE</span>
+          {lastUpdated && <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Updated: {lastUpdated.toLocaleTimeString()}</span>}
+          <button onClick={fetchStocks} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '12px' }}>↻ Refresh</button>
+        </div>
+      </div>
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
         <SearchWithSuggestions onSelect={(stock) => setSearch(stock.symbol)} placeholder="Search symbol..." className="global-search" style={{ maxWidth: '300px' }} />
         <div style={{ display: 'flex', gap: '10px' }}>
