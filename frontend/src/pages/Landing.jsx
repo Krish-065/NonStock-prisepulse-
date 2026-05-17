@@ -11,7 +11,6 @@ export default function Landing() {
       <div className="landing-container">
         <div className="landing-content">
           <div className="hero-section">
-            <div className="hero-badge">🚀 POWERED BY AI</div>
             <h1 className="hero-title">Trade Smarter with <span className="gradient-text">PricePulse</span></h1>
             <p className="hero-subtitle">Professional trading platform with real-time data, advanced charts, and AI-powered insights.</p>
             <div className="hero-buttons">
