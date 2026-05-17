@@ -17,8 +17,25 @@ const io = new Server(httpServer, {
   cors: { origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true },
 });
 
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const allowedOrigin = frontendUrl.startsWith('http') ? frontendUrl : `https://${frontendUrl}`;
+
 app.use(helmet());
-app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || [allowedOrigin, frontendUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'].includes(origin)) {
+      callback(null, true);
+    } else {
+      // Also allow any vercel app for this project specifically as a fallback
+      if (origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 createTables().catch(console.error);
