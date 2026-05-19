@@ -210,7 +210,7 @@ async function login(req, res) {
       return res.status(429).json({ error: 'Too many attempts. Try again later.' });
     }
 
-    const userRes = await query(`SELECT * FROM users WHERE email = $1 AND is_email_verified = true`, [email]);
+    const userRes = await query(`SELECT * FROM users WHERE email = $1`, [email]);
     if (userRes.rows.length === 0) {
       await query(`INSERT INTO login_attempts (id, email, ip_address, success) VALUES ($1,$2,$3,$4)`, [generateUUID(), email, ip, false]);
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -311,7 +311,7 @@ async function verifyTwoFactorLogin(req, res) {
 async function forgotPassword(req, res) {
   try {
     const { email } = req.body;
-    const user = await query(`SELECT * FROM users WHERE email = $1 AND is_email_verified = true`, [email]);
+    const user = await query(`SELECT * FROM users WHERE email = $1`, [email]);
     if (user.rows.length === 0) {
       return res.json({ message: 'If your email is registered, you will receive a reset link.' });
     }
