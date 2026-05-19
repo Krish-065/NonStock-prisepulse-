@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const https = require('https');
 const { query } = require('../db/index');
 
 function generateUUID() {
@@ -50,14 +51,8 @@ async function sendVerificationEmail(email, otp) {
   if (process.env.EMAIL_PASS && process.env.EMAIL_PASS.startsWith('xsmtpsib-')) {
     try {
       console.log('Attempting to send verification email via Brevo HTTP API...');
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'api-key': process.env.EMAIL_PASS,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({
+      const apiResult = await new Promise((resolve, reject) => {
+        const postData = JSON.stringify({
           sender: {
             name: process.env.FROM_NAME || 'PricePulse',
             email: process.env.FROM_EMAIL
@@ -65,16 +60,47 @@ async function sendVerificationEmail(email, otp) {
           to: [{ email }],
           subject: 'Verify your email - PricePulse',
           htmlContent: html
-        })
+        });
+
+        const options = {
+          hostname: 'api.brevo.com',
+          port: 443,
+          path: '/v3/smtp/email',
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'api-key': process.env.EMAIL_PASS,
+            'content-type': 'application/json',
+            'content-length': Buffer.byteLength(postData)
+          }
+        };
+
+        const req = https.request(options, (res) => {
+          let body = '';
+          res.on('data', (chunk) => { body += chunk; });
+          res.on('end', () => {
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              try {
+                resolve({ success: true, body: JSON.parse(body) });
+              } catch (e) {
+                resolve({ success: true, body: { messageId: 'unknown' } });
+              }
+            } else {
+              resolve({ success: false, error: body });
+            }
+          });
+        });
+
+        req.on('error', (err) => { reject(err); });
+        req.write(postData);
+        req.end();
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Email successfully delivered via Brevo HTTP API! Message ID:', data.messageId);
+      if (apiResult.success) {
+        console.log('✅ Email successfully delivered via Brevo HTTP API! Message ID:', apiResult.body.messageId);
         return;
       } else {
-        const errorText = await response.text();
-        console.warn('⚠️ Brevo HTTP API rejected request, trying standard SMTP backup. Error:', errorText);
+        console.warn('⚠️ Brevo HTTP API rejected request, trying standard SMTP backup. Error:', apiResult.error);
       }
     } catch (apiError) {
       console.warn('⚠️ Brevo HTTP API request failed, trying standard SMTP backup. Error:', apiError.message);
