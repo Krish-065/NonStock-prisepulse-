@@ -142,38 +142,32 @@ async function register(req, res) {
     }
 
     const existing = await query('SELECT * FROM users WHERE email = $1', [email]);
-    if (existing.rows.length > 0 && existing.rows[0].is_email_verified) {
+    if (existing.rows.length > 0) {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const otp = generateOTP();
     const userId = generateUUID();
-    const expiry = new Date(Date.now() + 10 * 60 * 1000);
+    const userName = name || email.split('@')[0];
 
-    if (existing.rows.length > 0) {
-      await query(
-        `UPDATE users SET password = $1, name = $2, email_verify_token = $3, email_verify_expiry = $4, is_email_verified = false WHERE email = $5`,
-        [hashed, name || email.split('@')[0], otp, expiry, email]
-      );
-    } else {
-      await query(
-        `INSERT INTO users (id, email, password, name, email_verify_token, email_verify_expiry) VALUES ($1,$2,$3,$4,$5,$6)`,
-        [userId, email, hashed, name || email.split('@')[0], otp, expiry]
-      );
-    }
+    // Set is_email_verified = true directly to bypass email verification
+    await query(
+      `INSERT INTO users (id, email, password, name, is_email_verified) VALUES ($1, $2, $3, $4, true)`,
+      [userId, email, hashed, userName]
+    );
 
-    // Send verification email asynchronously in the background so the client doesn't hang!
-    sendVerificationEmail(email, otp).catch(mailError => {
-      console.error('❌ SMTP Background Mail Delivery Failed:', mailError.message);
-    });
+    // Create session immediately
+    const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    // Always log the OTP to the console immediately as a secure backup in Render logs!
-    console.log(`🔑 [OTP SECURITY BACKUP] Verification OTP for ${email} is: ${otp}`);
-
-    res.json({ 
-      message: 'Verification code sent to email',
-      otpFallback: process.env.NODE_ENV !== 'production' ? otp : undefined 
+    res.json({
+      message: 'Registration successful',
+      token,
+      user: {
+        id: userId,
+        email,
+        name: userName,
+        two_factor_enabled: false
+      }
     });
   } catch (error) {
     console.error('❌ Registration system error:', error);

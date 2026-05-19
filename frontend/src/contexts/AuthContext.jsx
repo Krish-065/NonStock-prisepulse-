@@ -51,8 +51,12 @@ export function AuthProvider({ children }) {
   const register = async (email, password, name) => {
     try {
       const res = await apiClient.post('/auth/register', { email, password, name });
-      toast.success('Verification code sent');
-      return { success: true, email, otpFallback: res.data.otpFallback };
+      const { token, user } = res.data;
+      localStorage.setItem('token', token);
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setUser(user);
+      toast.success('Registration successful');
+      return { success: true };
     } catch (err) {
       toast.error(err.response?.data?.error || 'Registration failed');
       return { success: false };
