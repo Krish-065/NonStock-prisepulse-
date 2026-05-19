@@ -51,7 +51,7 @@ export default function Login() {
       
       {!twoFactorRequired ? (
         <div className="auth-card" style={{ animation: 'fadeIn 0.5s ease' }}>
-          <h2 style={{ fontSize: '26px', fontWeight: '800', background: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: '8px' }}>Welcome Back</h2>
+          <h2 style={{ fontSize: '26px', fontWeight: '800', backgroundImage: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent', marginBottom: '8px' }}>Welcome Back</h2>
           <p style={{ color: '#9b9eac', fontSize: '14px', marginBottom: '24px', textAlign: 'center', marginTop: '0' }}>Sign in to continue to PricePulse</p>
           <form onSubmit={handleLoginSubmit}>
             <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -65,7 +65,7 @@ export default function Login() {
         </div>
       ) : (
         <div className="auth-card" style={{ animation: 'fadeIn 0.5s ease', border: '1px solid rgba(0, 255, 136, 0.4)' }}>
-          <h2 style={{ fontSize: '26px', fontWeight: '800', background: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: '8px' }}>2FA Verification</h2>
+          <h2 style={{ fontSize: '26px', fontWeight: '800', backgroundImage: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent', marginBottom: '8px' }}>2FA Verification</h2>
           <p style={{ color: '#9b9eac', fontSize: '14px', marginBottom: '24px', textAlign: 'center', marginTop: '0', lineHeight: '1.5' }}>
             Enter the 6-digit code from your <br />
             <strong style={{ color: '#ffffff' }}>Google Authenticator</strong> app.

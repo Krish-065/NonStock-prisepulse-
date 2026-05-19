@@ -72,7 +72,7 @@ export default function Register() {
       
       {step === 'register' ? (
         <div className="auth-card" style={{ animation: 'fadeIn 0.5s ease' }}>
-          <h2 style={{ fontSize: '26px', fontWeight: '800', background: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: '8px' }}>Create Account</h2>
+          <h2 style={{ fontSize: '26px', fontWeight: '800', backgroundImage: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent', marginBottom: '8px' }}>Create Account</h2>
           <p style={{ color: '#9b9eac', fontSize: '14px', marginBottom: '24px', textAlign: 'center', marginTop: '0' }}>Get started with PricePulse</p>
           <form onSubmit={handleRegisterSubmit}>
             <input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -89,7 +89,7 @@ export default function Register() {
         </div>
       ) : (
         <div className="auth-card" style={{ animation: 'fadeIn 0.5s ease', border: '1px solid rgba(0, 188, 212, 0.4)' }}>
-          <h2 style={{ fontSize: '26px', fontWeight: '800', background: 'linear-gradient(135deg, #00bcd4, #00ff88)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', marginBottom: '8px' }}>Verify Your Email</h2>
+          <h2 style={{ fontSize: '26px', fontWeight: '800', backgroundImage: 'linear-gradient(135deg, #00bcd4, #00ff88)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent', marginBottom: '8px' }}>Verify Your Email</h2>
           <p style={{ color: '#9b9eac', fontSize: '14px', marginBottom: '24px', textAlign: 'center', marginTop: '0', lineHeight: '1.5' }}>
             We've sent a 6-digit verification code to <br />
             <strong style={{ color: '#ffffff', wordBreak: 'break-all' }}>{email}</strong>

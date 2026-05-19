@@ -31,12 +31,58 @@ transporter.verify((error, success) => {
 
 async function sendVerificationEmail(email, otp) {
   const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto;">
-      <h2>PricePulse Email Verification</h2>
-      <p>Your OTP is: <strong>${otp}</strong></p>
-      <p>This code expires in 10 minutes.</p>
+    <div style="font-family: Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid rgba(0, 255, 136, 0.25); border-radius: 16px; background-color: #0a0e27; color: #ffffff; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.35);">
+      <h2 style="color: #00ff88; margin-top: 0; font-size: 22px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; text-align: center;">PricePulse Verification</h2>
+      <p style="font-size: 15px; color: #e1e3e6; line-height: 1.5; text-align: center; margin-top: 16px;">
+        Please verify your email address to complete your registration. Your one-time verification password (OTP) is:
+      </p>
+      <div style="background: rgba(0, 255, 136, 0.08); border: 1px dashed #00ff88; border-radius: 12px; padding: 16px; font-size: 26px; font-weight: 800; letter-spacing: 6px; text-align: center; color: #00ff88; margin: 24px 0; font-family: monospace;">
+        ${otp}
+      </div>
+      <p style="font-size: 13px; color: #9b9eac; text-align: center; margin-bottom: 0; line-height: 1.4;">
+        This code is valid for <strong>10 minutes</strong>. <br />
+        If you did not initiate this request, you can safely ignore this email.
+      </p>
     </div>
   `;
+
+  // 1. Try sending via Brevo's HTTP API (bypasses Render free tier port 587 outgoing firewall!)
+  if (process.env.EMAIL_PASS && process.env.EMAIL_PASS.startsWith('xsmtpsib-')) {
+    try {
+      console.log('Attempting to send verification email via Brevo HTTP API...');
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': process.env.EMAIL_PASS,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: {
+            name: process.env.FROM_NAME || 'PricePulse',
+            email: process.env.FROM_EMAIL
+          },
+          to: [{ email }],
+          subject: 'Verify your email - PricePulse',
+          htmlContent: html
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Email successfully delivered via Brevo HTTP API! Message ID:', data.messageId);
+        return;
+      } else {
+        const errorText = await response.text();
+        console.warn('⚠️ Brevo HTTP API rejected request, trying standard SMTP backup. Error:', errorText);
+      }
+    } catch (apiError) {
+      console.warn('⚠️ Brevo HTTP API request failed, trying standard SMTP backup. Error:', apiError.message);
+    }
+  }
+
+  // 2. Fallback to standard SMTP (works locally)
+  console.log('Sending verification email via traditional SMTP...');
   await transporter.sendMail({
     from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
     to: email,
