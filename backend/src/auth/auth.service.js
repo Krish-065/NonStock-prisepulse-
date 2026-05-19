@@ -159,6 +159,20 @@ async function login(req, res) {
 
     await query(`INSERT INTO login_attempts (id, email, ip_address, success) VALUES ($1,$2,$3,$4)`, [generateUUID(), email, ip, true]);
 
+    // Check if 2FA is enabled!
+    if (user.two_factor_enabled) {
+      const tempToken = jwt.sign(
+        { id: user.id, email, isPending2FA: true }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '5m' }
+      );
+      return res.json({ 
+        twoFactorRequired: true, 
+        tempToken, 
+        message: 'Two-factor verification required' 
+      });
+    }
+
     const sessionToken = crypto.randomBytes(32).toString('hex');
     const sessionId = generateUUID();
     await query(
@@ -172,6 +186,60 @@ async function login(req, res) {
     res.status(500).json({ error: 'Login failed' });
   }
 }
+
+// VERIFY 2FA DURING LOGIN
+async function verifyTwoFactorLogin(req, res) {
+  try {
+    const { tempToken, token } = req.body;
+    if (!tempToken || !token) {
+      return res.status(400).json({ error: 'Missing code or temporary token' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({ error: 'Session expired. Please log in again.' });
+    }
+
+    if (!decoded.isPending2FA) {
+      return res.status(400).json({ error: 'Invalid verification token' });
+    }
+
+    const userRes = await query(`SELECT * FROM users WHERE id = $1`, [decoded.id]);
+    if (userRes.rows.length === 0) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
+    const user = userRes.rows[0];
+    const verified = speakeasy.totp.verify({
+      secret: user.two_factor_secret,
+      encoding: 'base32',
+      token,
+      window: 1,
+    });
+
+    if (!verified) {
+      return res.status(400).json({ error: 'Invalid 2FA code' });
+    }
+
+    // Code is valid! Complete the login session creation.
+    const ip = req.ip;
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    const sessionId = generateUUID();
+    await query(
+      `INSERT INTO sessions (id, user_id, token, ip_address, user_agent, expires_at) VALUES ($1,$2,$3,$4,$5, NOW() + INTERVAL '7 days')`,
+      [sessionId, user.id, sessionToken, ip, req.headers['user-agent']]
+    );
+
+    const jwtToken = jwt.sign({ id: user.id, email: user.email, sessionId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ message: 'Login successful', token: jwtToken, user: { id: user.id, email: user.email, name: user.name } });
+  } catch (error) {
+    console.error('❌ 2FA login verification failed:', error);
+    res.status(500).json({ error: '2FA login verification failed' });
+  }
+}
+
 
 // FORGOT PASSWORD
 async function forgotPassword(req, res) {
@@ -310,6 +378,7 @@ module.exports = {
   register,
   verifyEmail,
   login,
+  verifyTwoFactorLogin,
   forgotPassword,
   resetPassword,
   getSessions,

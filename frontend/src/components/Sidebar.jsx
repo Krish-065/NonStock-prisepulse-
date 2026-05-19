@@ -18,6 +18,7 @@ export default function Sidebar() {
     { path: '/crypto', label: 'Crypto', icon: '🪙' },
     { path: '/news', label: 'News', icon: '📰' },
     { path: '/tools', label: 'Tools', icon: '🧮' },
+    { path: '/two-factor', label: 'Security / 2FA', icon: '🔒' },
   ];
 
   return (
