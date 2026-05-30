@@ -150,24 +150,32 @@ async function register(req, res) {
     const userId = generateUUID();
     const userName = name || email.split('@')[0];
 
-    // Set is_email_verified = true directly to bypass email verification
+    // Set is_email_verified = false to require email verification
     await query(
-      `INSERT INTO users (id, email, password, name, is_email_verified) VALUES ($1, $2, $3, $4, true)`,
+      `INSERT INTO users (id, email, password, name, is_email_verified) VALUES ($1, $2, $3, $4, false)`,
       [userId, email, hashed, userName]
     );
 
-    // Create session immediately
-    const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // Generate OTP and update user
+    const otp = generateOTP();
+    const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await query(
+      `UPDATE users SET email_verify_token = $1, email_verify_expiry = $2 WHERE id = $3`,
+      [otp, expiry, userId]
+    );
+
+    // Send verification email asynchronously
+    sendVerificationEmail(email, otp).catch(mailError => {
+      console.error('❌ SMTP Background Verification Mail Delivery Failed:', mailError.message);
+    });
+
+    // Log OTP in console as backup
+    console.log(`🔑 [VERIFICATION SECURITY BACKUP] OTP for ${email} is: ${otp}`);
 
     res.json({
-      message: 'Registration successful',
-      token,
-      user: {
-        id: userId,
-        email,
-        name: userName,
-        two_factor_enabled: false
-      }
+      message: 'Registration successful, please verify your email',
+      requiresVerification: true,
+      email
     });
   } catch (error) {
     console.error('❌ Registration system error:', error);

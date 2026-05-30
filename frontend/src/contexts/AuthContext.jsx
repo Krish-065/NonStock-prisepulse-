@@ -51,6 +51,10 @@ export function AuthProvider({ children }) {
   const register = async (email, password, name) => {
     try {
       const res = await apiClient.post('/auth/register', { email, password, name });
+      if (res.data.requiresVerification) {
+        toast.success('Registration successful. Please check your email for the OTP.');
+        return { success: true, requiresVerification: true, email: res.data.email };
+      }
       const { token, user } = res.data;
       localStorage.setItem('token', token);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
