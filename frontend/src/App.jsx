@@ -24,7 +24,7 @@ import Tools from './pages/Tools';
 import News from './pages/News';
 import Crypto from './pages/Crypto';
 import MutualFunds from './pages/MutualFunds';
-import TwoFactorSetup from './pages/TwoFactorSetup';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -52,7 +52,7 @@ function App() {
             <Route path="/news" element={<PrivateRoute><Layout><News /></Layout></PrivateRoute>} />
             <Route path="/crypto" element={<PrivateRoute><Layout><Crypto /></Layout></PrivateRoute>} />
             <Route path="/mutual-funds" element={<PrivateRoute><Layout><MutualFunds /></Layout></PrivateRoute>} />
-            <Route path="/two-factor" element={<PrivateRoute><Layout><TwoFactorSetup /></Layout></PrivateRoute>} />
+            <Route path="/profile" element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
           </Routes>
         </AuthProvider>
       </ThemeProvider>

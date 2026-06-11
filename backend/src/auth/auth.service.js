@@ -233,19 +233,7 @@ async function login(req, res) {
 
     await query(`INSERT INTO login_attempts (id, email, ip_address, success) VALUES ($1,$2,$3,$4)`, [generateUUID(), email, ip, true]);
 
-    // Check if 2FA is enabled!
-    if (user.two_factor_enabled) {
-      const tempToken = jwt.sign(
-        { id: user.id, email, isPending2FA: true }, 
-        process.env.JWT_SECRET, 
-        { expiresIn: '5m' }
-      );
-      return res.json({ 
-        twoFactorRequired: true, 
-        tempToken, 
-        message: 'Two-factor verification required' 
-      });
-    }
+
 
     const sessionToken = crypto.randomBytes(32).toString('hex');
     const sessionId = generateUUID();
