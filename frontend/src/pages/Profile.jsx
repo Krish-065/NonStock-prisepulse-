@@ -327,9 +327,9 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState('');
   
   // Interactive Preferences
-  const [baseCurrency, setBaseCurrency] = useState('INR');
-  const [refreshRate, setRefreshRate] = useState('15s');
-  const [landingPage, setLandingPage] = useState('Dashboard');
+  const [baseCurrency, setBaseCurrency] = useState(() => localStorage.getItem('baseCurrency') || 'INR');
+  const [refreshRate, setRefreshRate] = useState(() => localStorage.getItem('refreshRate') || '15s');
+  const [landingPage, setLandingPage] = useState(() => localStorage.getItem('landingPage') || 'Dashboard');
 
   // Edit states
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
@@ -351,10 +351,6 @@ export default function Profile() {
       setDpName(user.dp_name || 'PricePulse Securities Pvt Ltd');
       setPanId(user.pan_id || 'ABCDE*****F');
       setBrokeragePlan(user.brokerage_plan || '₹0 Equity Delivery / ₹20 F&O Intraday');
-
-      if (user.base_currency) setBaseCurrency(user.base_currency);
-      if (user.refresh_rate) setRefreshRate(user.refresh_rate);
-      if (user.landing_page) setLandingPage(user.landing_page);
     }
   }, [user]);
 
@@ -378,23 +374,23 @@ export default function Profile() {
     }
   };
 
-  const handleCurrencyChange = async (curr) => {
+  const handleCurrencyChange = (curr) => {
     setBaseCurrency(curr);
     localStorage.setItem('baseCurrency', curr);
-    await updateProfile({ base_currency: curr });
+    toast.success(`Base Currency updated to ${curr}`);
   };
 
-  const handleRefreshChange = async (rate) => {
+  const handleRefreshChange = (rate) => {
     setRefreshRate(rate);
     localStorage.setItem('refreshRate', rate);
-    await updateProfile({ refresh_rate: rate });
+    toast.success(`Data refresh rate set to ${rate}`);
   };
 
-  const handleLandingPageChange = async (e) => {
+  const handleLandingPageChange = (e) => {
     const page = e.target.value;
     setLandingPage(page);
     localStorage.setItem('landingPage', page);
-    await updateProfile({ landing_page: page });
+    toast.success(`Default landing page set to ${page}`);
   };
 
   const handleSavePersonal = async () => {
