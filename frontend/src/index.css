@@ -87,6 +87,11 @@ body {
   50% { opacity: 0.6; }
 }
 
+@keyframes pulseStatus {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
 .particle-bg {
   position: fixed;
   top: 0;

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { TrendingUp, BarChart3, Search, FolderClosed, Bell, Calculator } from 'lucide-react';
+import { TrendingUp, BarChart3, Search, FolderClosed, Activity, Calculator } from 'lucide-react';
 
 export default function Landing() {
   return (
@@ -28,7 +28,7 @@ export default function Landing() {
                 { icon: <BarChart3 size={36} style={{ color: '#00bcd4' }} />, title: 'Advanced Charts', desc: 'Candlestick charts with technical indicators' },
                 { icon: <Search size={36} style={{ color: '#00ff88' }} />, title: 'Stock Screener', desc: 'Filter stocks by 1D/1W/1M change and key metrics' },
                 { icon: <FolderClosed size={36} style={{ color: '#00bcd4' }} />, title: 'Portfolio Tracker', desc: 'Track your investments in real-time' },
-                { icon: <Bell size={36} style={{ color: '#00ff88' }} />, title: 'Price Alerts', desc: 'Get notified when stocks hit your target' },
+                { icon: <Activity size={36} style={{ color: '#00ff88' }} />, title: 'Futures & Options', desc: 'Analyze option chain open interest and Put-Call Ratio' },
                 { icon: <Calculator size={36} style={{ color: '#00bcd4' }} />, title: 'Financial Calculators', desc: 'SIP, EMI, Brokerage, and more' }
               ].map((f, i) => (
                 <div key={i} className="feature-card">
