@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '../services/api';
+import { Search, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 
 const SECTORS = ['All', 'IT', 'Banking', 'NBFC', 'Insurance', 'Oil & Gas', 'Auto', 'Auto Anc',
   'Pharma', 'Healthcare', 'FMCG', 'Metals', 'Mining', 'Cement', 'Power', 'Finance',
@@ -112,9 +113,9 @@ export default function Screener() {
           {lastUpdated && <span style={{ fontSize: '12px', color: '#9b9eac' }}>Updated: {lastUpdated.toLocaleTimeString()}</span>}
           <button
             onClick={fetchStocks}
-            style={{ padding: '7px 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', color: '#e1e3e6', fontSize: '12px', fontWeight: 600, transition: 'all 0.2s' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', color: '#e1e3e6', fontSize: '12px', fontWeight: 600, transition: 'all 0.2s' }}
           >
-            ↻ Refresh
+            <RefreshCw size={12} /> Refresh
           </button>
         </div>
       </div>
@@ -122,22 +123,26 @@ export default function Screener() {
       {/* Controls */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
         {/* Search */}
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="🔍  Search by symbol or sector…"
-          style={{ padding: '9px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '240px', transition: 'border 0.2s' }}
-          onFocus={e => e.target.style.borderColor = '#00ff88'}
-          onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
-        />
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <Search size={16} style={{ position: 'absolute', left: '12px', color: '#9b9eac' }} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by symbol or sector..."
+            style={{ padding: '9px 14px 9px 36px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '240px', transition: 'border 0.2s' }}
+            onFocus={e => e.target.style.borderColor = '#00ff88'}
+            onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+          />
+        </div>
 
         {/* Gainer / Loser Filter */}
-        {[{ label: 'All', value: 'all' }, { label: '▲ Gainers', value: 'gainers' }, { label: '▼ Losers', value: 'losers' }].map(f => (
+        {[{ label: 'All', value: 'all' }, { label: 'Gainers', value: 'gainers', icon: <TrendingUp size={14} /> }, { label: 'Losers', value: 'losers', icon: <TrendingDown size={14} /> }].map(f => (
           <button
             key={f.value}
             onClick={() => setMoverFilter(f.value)}
-            style={{ padding: '8px 16px', background: moverFilter === f.value ? (f.value === 'losers' ? 'rgba(255,51,102,0.15)' : 'rgba(0,255,136,0.15)') : 'rgba(255,255,255,0.04)', border: `1px solid ${moverFilter === f.value ? (f.value === 'losers' ? '#ff3366' : '#00ff88') : 'rgba(255,255,255,0.1)'}`, borderRadius: '8px', color: moverFilter === f.value ? (f.value === 'losers' ? '#ff3366' : '#00ff88') : '#e1e3e6', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: moverFilter === f.value ? (f.value === 'losers' ? 'rgba(255,51,102,0.15)' : 'rgba(0,255,136,0.15)') : 'rgba(255,255,255,0.04)', border: `1px solid ${moverFilter === f.value ? (f.value === 'losers' ? '#ff3366' : '#00ff88') : 'rgba(255,255,255,0.1)'}`, borderRadius: '8px', color: moverFilter === f.value ? (f.value === 'losers' ? '#ff3366' : '#00ff88') : '#e1e3e6', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
           >
+            {f.icon}
             {f.label}
           </button>
         ))}
@@ -158,7 +163,7 @@ export default function Screener() {
 
       {/* Table */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#00ff88', fontSize: '18px' }}>Loading market data…</div>
+        <div style={{ textAlign: 'center', padding: '60px', color: '#00ff88', fontSize: '18px' }}>Loading market data...</div>
       ) : (
         <div style={{ overflowX: 'auto', borderRadius: '12px', background: '#0a0e27', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', whiteSpace: 'nowrap' }}>

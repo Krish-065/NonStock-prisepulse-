@@ -132,6 +132,101 @@ async function sendResetEmail(email, resetUrl) {
   });
 }
 
+async function sendPasswordChangeNotificationEmail(email, userName) {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid rgba(255, 51, 102, 0.25); border-radius: 16px; background-color: #0a0e27; color: #ffffff; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.35);">
+      <h2 style="color: #ff3366; margin-top: 0; font-size: 22px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; text-align: center;">Security Alert: Password Changed</h2>
+      <p style="font-size: 15px; color: #e1e3e6; line-height: 1.5;">
+        Hello ${userName || 'Investor'},
+      </p>
+      <p style="font-size: 15px; color: #e1e3e6; line-height: 1.5;">
+        This email confirms that the password for your <strong>PricePulse</strong> account has been successfully updated.
+      </p>
+      <div style="background: rgba(255, 51, 102, 0.08); border-left: 4px solid #ff3366; border-radius: 4px; padding: 12px; margin: 20px 0; color: #e1e3e6; font-size: 14px;">
+        <strong>Details:</strong><br />
+        • Date/Time: ${new Date().toUTCString()}<br />
+        • Action: Password Update
+      </div>
+      <p style="font-size: 14px; color: #e1e3e6; line-height: 1.5;">
+        If you performed this action, no further steps are required.
+      </p>
+      <p style="font-size: 14px; color: #ff3366; line-height: 1.5; font-weight: 700;">
+        If you did NOT perform this action, please reset your password immediately or contact our support team to secure your account.
+      </p>
+      <p style="font-size: 13px; color: #9b9eac; text-align: center; margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; margin-bottom: 0;">
+        This is an automated security notification. Please do not reply directly to this email.
+      </p>
+    </div>
+  `;
+
+  if (process.env.EMAIL_PASS && process.env.EMAIL_PASS.startsWith('xsmtpsib-')) {
+    try {
+      console.log('Attempting to send password change notification via Brevo HTTP API...');
+      const postData = JSON.stringify({
+        sender: {
+          name: process.env.FROM_NAME || 'PricePulse',
+          email: process.env.FROM_EMAIL
+        },
+        to: [{ email }],
+        subject: 'Security Alert: Password Changed - PricePulse',
+        htmlContent: html
+      });
+
+      const apiResult = await new Promise((resolve, reject) => {
+        const options = {
+          hostname: 'api.brevo.com',
+          port: 443,
+          path: '/v3/smtp/email',
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'api-key': process.env.EMAIL_PASS,
+            'content-type': 'application/json',
+            'content-length': Buffer.byteLength(postData)
+          }
+        };
+
+        const req = https.request(options, (res) => {
+          let body = '';
+          res.on('data', (chunk) => { body += chunk; });
+          res.on('end', () => {
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              try {
+                resolve({ success: true, body: JSON.parse(body) });
+              } catch (e) {
+                resolve({ success: true, body: { messageId: 'unknown' } });
+              }
+            } else {
+              resolve({ success: false, error: body });
+            }
+          });
+        });
+
+        req.on('error', (err) => { reject(err); });
+        req.write(postData);
+        req.end();
+      });
+
+      if (apiResult.success) {
+        console.log('✅ Password change email delivered via Brevo HTTP API!');
+        return;
+      } else {
+        console.warn('⚠️ Brevo HTTP API rejected request, trying standard SMTP backup. Error:', apiResult.error);
+      }
+    } catch (apiError) {
+      console.warn('⚠️ Brevo HTTP API request failed, trying standard SMTP backup. Error:', apiError.message);
+    }
+  }
+
+  console.log('Sending password change email via traditional SMTP...');
+  await transporter.sendMail({
+    from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
+    to: email,
+    subject: 'Security Alert: Password Changed - PricePulse',
+    html,
+  });
+}
+
 // REGISTER
 async function register(req, res) {
   try {
@@ -448,7 +543,7 @@ async function changePassword(req, res) {
       return res.status(400).json({ error: 'Password must be 8+ chars with uppercase, lowercase, number & special character' });
     }
 
-    const userRes = await query(`SELECT password FROM users WHERE id = $1`, [req.user.id]);
+    const userRes = await query(`SELECT password, email, name FROM users WHERE id = $1`, [req.user.id]);
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -461,6 +556,11 @@ async function changePassword(req, res) {
 
     const hashed = await bcrypt.hash(newPassword, 10);
     await query(`UPDATE users SET password = $1 WHERE id = $2`, [hashed, req.user.id]);
+
+    // Send email notification asynchronously so we don't block the API response
+    sendPasswordChangeNotificationEmail(user.email, user.name).catch((mailErr) => {
+      console.error('❌ Failed to send password change email:', mailErr.message);
+    });
 
     res.json({ message: 'Password updated successfully' });
   } catch (error) {

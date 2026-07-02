@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Search } from 'lucide-react';
 
 // Symbol categories with popular options
 const SYMBOL_CATEGORIES = {
@@ -150,7 +151,7 @@ export default function Markets() {
             onClick={() => setShowSearch(v => !v)}
             style={{ padding: '9px 18px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#ffffff', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
           >
-            🔍 Search Symbol
+            <Search size={16} /> Search Symbol
           </button>
 
           {showSearch && (

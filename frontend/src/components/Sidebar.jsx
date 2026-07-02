@@ -1,22 +1,37 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { 
+  LayoutDashboard, 
+  TrendingUp, 
+  Search, 
+  Star, 
+  Briefcase, 
+  LineChart, 
+  Coins, 
+  Newspaper, 
+  Calculator, 
+  User, 
+  Sun, 
+  Moon, 
+  LogOut 
+} from 'lucide-react';
 
 export default function Sidebar() {
   const { logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const menuItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-    { path: '/markets', label: 'Markets', icon: '🌍' },
-    { path: '/screener', label: 'Screener', icon: '🔍' },
-    { path: '/watchlist', label: 'Watchlist', icon: '⭐' },
-    { path: '/portfolio', label: 'Portfolio', icon: '📁' },
-    { path: '/ipos', label: 'IPOs', icon: '📈' },
-    { path: '/crypto', label: 'Crypto', icon: '🪙' },
-    { path: '/news', label: 'News', icon: '📰' },
-    { path: '/tools', label: 'Tools', icon: '🧮' },
-    { path: '/profile', label: 'My Profile', icon: '👤' },
+    { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+    { path: '/markets', label: 'Markets', icon: <TrendingUp size={18} /> },
+    { path: '/screener', label: 'Screener', icon: <Search size={18} /> },
+    { path: '/watchlist', label: 'Watchlist', icon: <Star size={18} /> },
+    { path: '/portfolio', label: 'Portfolio', icon: <Briefcase size={18} /> },
+    { path: '/ipos', label: 'IPOs', icon: <LineChart size={18} /> },
+    { path: '/crypto', label: 'Crypto', icon: <Coins size={18} /> },
+    { path: '/news', label: 'News', icon: <Newspaper size={18} /> },
+    { path: '/tools', label: 'Tools', icon: <Calculator size={18} /> },
+    { path: '/profile', label: 'My Profile', icon: <User size={18} /> },
   ];
 
   return (
@@ -52,17 +67,27 @@ export default function Sidebar() {
               borderRight: isActive ? '3px solid #00ff88' : 'none'
             })}
           >
-            <span style={{ fontSize: '18px' }}>{item.icon}</span>
+            <span style={{ display: 'flex', alignItems: 'center' }}>{item.icon}</span>
             <span style={{ fontSize: '14px', fontWeight: 500 }}>{item.label}</span>
           </NavLink>
         ))}
       </nav>
       <div style={{ padding: '20px', borderTop: '1px solid rgba(0, 255, 136, 0.2)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <button onClick={toggleTheme} style={{ padding: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>
-          {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+        <button 
+          onClick={toggleTheme} 
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+          onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.05)'}
+        >
+          {theme === 'dark' ? <><Sun size={16} /> Light Mode</> : <><Moon size={16} /> Dark Mode</>}
         </button>
-        <button onClick={logout} style={{ padding: '8px', background: 'rgba(255,68,68,0.2)', border: '1px solid rgba(255,68,68,0.3)', borderRadius: '8px', color: '#ff4444', cursor: 'pointer' }}>
-          🚪 Logout
+        <button 
+          onClick={logout} 
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', background: 'rgba(255,68,68,0.1)', border: '1px solid rgba(255,68,68,0.2)', borderRadius: '8px', color: '#ff4444', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'all 0.2s' }}
+          onMouseOver={(e) => { e.target.style.background = 'rgba(255,68,68,0.2)'; }}
+          onMouseOut={(e) => { e.target.style.background = 'rgba(255,68,68,0.1)'; }}
+        >
+          <LogOut size={16} /> Logout
         </button>
       </div>
     </aside>

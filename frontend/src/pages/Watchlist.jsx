@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
 import SearchWithSuggestions from '../components/SearchWithSuggestions';
+import { ClipboardList } from 'lucide-react';
 
 export default function Watchlist() {
   const [watchlist, setWatchlist] = useState([]);
@@ -73,7 +74,9 @@ export default function Watchlist() {
         <div>Loading...</div>
       ) : watchlist.length === 0 ? (
         <div className="empty-watchlist">
-          <div className="empty-icon">📋</div>
+          <div className="empty-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: '#9b9eac' }}>
+            <ClipboardList size={48} />
+          </div>
           <h3>Your watchlist is empty</h3>
           <p>Search and add stocks to track them here</p>
         </div>

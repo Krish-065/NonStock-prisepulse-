@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { TrendingUp, BarChart3, Search, FolderClosed, Bell, Calculator } from 'lucide-react';
 
 export default function Landing() {
   return (
@@ -23,15 +24,15 @@ export default function Landing() {
             <h2 className="section-title">Everything you need in one platform</h2>
             <div className="features-grid">
               {[
-                { icon: '📈', title: 'Live Market Data', desc: 'Real-time NSE/BSE indices and global markets' },
-                { icon: '📊', title: 'Advanced Charts', desc: 'Candlestick charts with technical indicators' },
-                { icon: '🔍', title: 'Stock Screener', desc: 'Filter stocks by 1D/1W/1M change and key metrics' },
-                { icon: '📁', title: 'Portfolio Tracker', desc: 'Track your investments in real-time' },
-                { icon: '🔔', title: 'Price Alerts', desc: 'Get notified when stocks hit your target' },
-                { icon: '🧮', title: 'Financial Calculators', desc: 'SIP, EMI, Brokerage, and more' }
+                { icon: <TrendingUp size={36} style={{ color: '#00ff88' }} />, title: 'Live Market Data', desc: 'Real-time NSE/BSE indices and global markets' },
+                { icon: <BarChart3 size={36} style={{ color: '#00bcd4' }} />, title: 'Advanced Charts', desc: 'Candlestick charts with technical indicators' },
+                { icon: <Search size={36} style={{ color: '#00ff88' }} />, title: 'Stock Screener', desc: 'Filter stocks by 1D/1W/1M change and key metrics' },
+                { icon: <FolderClosed size={36} style={{ color: '#00bcd4' }} />, title: 'Portfolio Tracker', desc: 'Track your investments in real-time' },
+                { icon: <Bell size={36} style={{ color: '#00ff88' }} />, title: 'Price Alerts', desc: 'Get notified when stocks hit your target' },
+                { icon: <Calculator size={36} style={{ color: '#00bcd4' }} />, title: 'Financial Calculators', desc: 'SIP, EMI, Brokerage, and more' }
               ].map((f, i) => (
                 <div key={i} className="feature-card">
-                  <div className="feature-icon">{f.icon}</div>
+                  <div className="feature-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>{f.icon}</div>
                   <h3>{f.title}</h3>
                   <p>{f.desc}</p>
                 </div>
@@ -164,7 +165,7 @@ export default function Landing() {
           border-color: #00ff88;
           transform: translateY(-4px);
         }
-        .feature-icon { font-size: 48px; margin-bottom: 16px; }
+        .feature-icon { margin-bottom: 16px; }
         .feature-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
         .feature-card p { font-size: 13px; color: #9b9eac; }
         .stats-section {

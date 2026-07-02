@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
+import { BarChart3, TrendingUp } from 'lucide-react';
 
 export default function FnO() {
   const [futures, setFutures] = useState([]);
@@ -65,7 +66,9 @@ export default function FnO() {
       </div>
 
       <div className="section-card">
-        <h2>📊 Futures Data</h2>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <BarChart3 size={20} style={{ color: '#00bcd4' }} /> Futures Data
+        </h2>
         <div className="two-column" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
           {futures.map((f, idx) => (
             <div key={idx} className="index-card">
@@ -80,7 +83,9 @@ export default function FnO() {
 
       <div className="section-card">
         <div className="section-header">
-          <h2>📈 NIFTY Option Chain</h2>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <TrendingUp size={20} style={{ color: '#00ff88' }} /> NIFTY Option Chain
+          </h2>
           <div className="expiry-selector" style={{ display: 'flex', gap: '8px' }}>
             {['28 Nov 2024', '05 Dec 2024', '12 Dec 2024'].map(exp => (
               <button

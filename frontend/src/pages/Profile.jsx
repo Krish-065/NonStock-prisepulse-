@@ -3,6 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import styled from 'styled-components';
 import toast from 'react-hot-toast';
+import { 
+  User, 
+  Check, 
+  BarChart3, 
+  Link2, 
+  KeyRound, 
+  Activity, 
+  FolderClosed, 
+  Star, 
+  Search, 
+  ArrowRight,
+  ShieldCheck
+} from 'lucide-react';
 
 const ProfileContainer = styled.div`
   max-width: 1200px;
@@ -80,6 +93,9 @@ const Badge = styled.span`
   background: ${props => props.type === 'primary' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(0, 188, 212, 0.1)'};
   color: ${props => props.type === 'primary' ? '#00ff88' : '#00bcd4'};
   border: 1px solid ${props => props.type === 'primary' ? 'rgba(0, 255, 136, 0.2)' : 'rgba(0, 188, 212, 0.2)'};
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 `;
 
 const Grid = styled.div`
@@ -244,6 +260,8 @@ const NavButton = styled.button`
 
   .icon {
     font-size: 18px;
+    display: flex;
+    align-items: center;
   }
 `;
 
@@ -368,8 +386,8 @@ export default function Profile() {
           <h2>{user?.name || 'Investor Profile'}</h2>
           <p>{user?.email || 'investor@prisepulse.com'}</p>
           <div className="badges">
-            <Badge type="primary">✓ KYC Verified</Badge>
-            <Badge type="secondary">Pro Account</Badge>
+            <Badge type="primary"><Check size={12} /> KYC Verified</Badge>
+            <Badge type="secondary"><ShieldCheck size={12} /> Pro Account</Badge>
           </div>
         </HeaderInfo>
         <div>
@@ -389,7 +407,7 @@ export default function Profile() {
           
           <Card>
             <CardHeader>
-              <h3>👤 Personal & Account Details</h3>
+              <h3><User size={18} style={{ color: '#00ff88' }} /> Personal & Account Details</h3>
               {isEditingPersonal ? (
                 <ActionButtonGroup>
                   <CancelButton onClick={() => { setIsEditingPersonal(false); setPersonalName(user?.name || ''); }}>Cancel</CancelButton>
@@ -414,7 +432,9 @@ export default function Profile() {
             </InfoRow>
             <InfoRow>
               <span className="label">KYC Verification Status</span>
-              <span className="value" style={{ color: '#00ff88' }}>Verified</span>
+              <span className="value" style={{ color: '#00ff88', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Check size={14} /> Verified
+              </span>
             </InfoRow>
             <InfoRow>
               <span className="label">Account ID</span>
@@ -428,7 +448,7 @@ export default function Profile() {
 
           <Card>
             <CardHeader>
-              <h3>📊 Demat & Brokerage Details</h3>
+              <h3><BarChart3 size={18} style={{ color: '#00bcd4' }} /> Demat & Brokerage Details</h3>
               {isEditingDemat ? (
                 <ActionButtonGroup>
                   <CancelButton onClick={() => {
@@ -493,25 +513,31 @@ export default function Profile() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           <Card>
-            <h3>🔗 Quick Links</h3>
+            <h3><Link2 size={18} style={{ color: '#00ff88' }} /> Quick Links</h3>
             <QuickLinks>
               <NavButton onClick={() => navigate('/portfolio')}>
-                <span>📁 Go to Portfolio</span>
-                <span className="icon">→</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FolderClosed size={16} style={{ color: '#9b9eac' }} /> Go to Portfolio
+                </span>
+                <span className="icon"><ArrowRight size={16} /></span>
               </NavButton>
               <NavButton onClick={() => navigate('/watchlist')}>
-                <span>⭐ Go to Watchlist</span>
-                <span className="icon">→</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Star size={16} style={{ color: '#9b9eac' }} /> Go to Watchlist
+                </span>
+                <span className="icon"><ArrowRight size={16} /></span>
               </NavButton>
               <NavButton onClick={() => navigate('/screener')}>
-                <span>🔍 Go to Screener</span>
-                <span className="icon">→</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Search size={16} style={{ color: '#9b9eac' }} /> Go to Screener
+                </span>
+                <span className="icon"><ArrowRight size={16} /></span>
               </NavButton>
             </QuickLinks>
           </Card>
 
           <Card>
-            <h3>🔑 Change Password</h3>
+            <h3><KeyRound size={18} style={{ color: '#00ff88' }} /> Change Password</h3>
             <Form onSubmit={handlePasswordChange}>
               <input 
                 type="password" 
@@ -536,7 +562,7 @@ export default function Profile() {
           </Card>
 
           <Card>
-            <h3>⚡ System Diagnostics</h3>
+            <h3><Activity size={18} style={{ color: '#00bcd4' }} /> System Diagnostics</h3>
             <InfoRow>
               <span className="label">Server Link</span>
               <span className="value" style={{ color: '#00ff88' }}>Connected</span>
