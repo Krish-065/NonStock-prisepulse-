@@ -284,40 +284,6 @@ const Form = styled.form`
   }
 `;
 
-const PreferenceGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-bottom: 20px;
-
-  label {
-    font-size: 13px;
-    color: #9b9eac;
-  }
-
-  .options-row {
-    display: flex;
-    gap: 8px;
-  }
-`;
-
-const PreferenceBtn = styled.button`
-  flex: 1;
-  padding: 10px;
-  background: ${props => props.active ? 'rgba(0, 255, 136, 0.15)' : 'rgba(255,255,255,0.02)'};
-  border: 1px solid ${props => props.active ? '#00ff88' : 'rgba(255,255,255,0.08)'};
-  color: ${props => props.active ? '#00ff88' : '#e1e3e6'};
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: ${props => props.active ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255,255,255,0.05)'};
-  }
-`;
-
 export default function Profile() {
   const { user, logout, updateProfile, changePassword } = useAuth();
   const navigate = useNavigate();
@@ -325,11 +291,6 @@ export default function Profile() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
-  // Interactive Preferences
-  const [baseCurrency, setBaseCurrency] = useState(() => localStorage.getItem('baseCurrency') || 'INR');
-  const [refreshRate, setRefreshRate] = useState(() => localStorage.getItem('refreshRate') || '15s');
-  const [landingPage, setLandingPage] = useState(() => localStorage.getItem('landingPage') || 'Dashboard');
 
   // Edit states
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
@@ -372,25 +333,6 @@ export default function Profile() {
       setNewPassword('');
       setConfirmPassword('');
     }
-  };
-
-  const handleCurrencyChange = (curr) => {
-    setBaseCurrency(curr);
-    localStorage.setItem('baseCurrency', curr);
-    toast.success(`Base Currency updated to ${curr}`);
-  };
-
-  const handleRefreshChange = (rate) => {
-    setRefreshRate(rate);
-    localStorage.setItem('refreshRate', rate);
-    toast.success(`Data refresh rate set to ${rate}`);
-  };
-
-  const handleLandingPageChange = (e) => {
-    const page = e.target.value;
-    setLandingPage(page);
-    localStorage.setItem('landingPage', page);
-    toast.success(`Default landing page set to ${page}`);
   };
 
   const handleSavePersonal = async () => {
@@ -544,41 +486,6 @@ export default function Profile() {
                 <span className="value" style={{ color: '#00bcd4' }}>{user?.brokerage_plan || '₹0 Equity Delivery / ₹20 F&O Intraday'}</span>
               )}
             </InfoRow>
-          </Card>
-
-          <Card>
-            <h3>⚙️ App Preferences</h3>
-            <PreferenceGroup>
-              <label>Default Launch Page</label>
-              <select 
-                value={landingPage} 
-                onChange={handleLandingPageChange}
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px', color: '#ffffff', outline: 'none' }}
-              >
-                <option value="Dashboard" style={{ background: '#0a0e27' }}>Dashboard</option>
-                <option value="Watchlist" style={{ background: '#0a0e27' }}>Watchlist</option>
-                <option value="Screener" style={{ background: '#0a0e27' }}>Stock Screener</option>
-                <option value="IPOs" style={{ background: '#0a0e27' }}>IPO Center</option>
-              </select>
-            </PreferenceGroup>
-
-            <PreferenceGroup>
-              <label>Display & Pricing Currency</label>
-              <div className="options-row">
-                <PreferenceBtn active={baseCurrency === 'INR'} onClick={() => handleCurrencyChange('INR')}>INR (₹)</PreferenceBtn>
-                <PreferenceBtn active={baseCurrency === 'USD'} onClick={() => handleCurrencyChange('USD')}>USD ($)</PreferenceBtn>
-                <PreferenceBtn active={baseCurrency === 'EUR'} onClick={() => handleCurrencyChange('EUR')}>EUR (€)</PreferenceBtn>
-              </div>
-            </PreferenceGroup>
-
-            <PreferenceGroup>
-              <label>Market Data Poll Interval</label>
-              <div className="options-row">
-                <PreferenceBtn active={refreshRate === '5s'} onClick={() => handleRefreshChange('5s')}>Fast (5s)</PreferenceBtn>
-                <PreferenceBtn active={refreshRate === '15s'} onClick={() => handleRefreshChange('15s')}>Normal (15s)</PreferenceBtn>
-                <PreferenceBtn active={refreshRate === '30s'} onClick={() => handleRefreshChange('30s')}>Slow (30s)</PreferenceBtn>
-              </div>
-            </PreferenceGroup>
           </Card>
 
         </div>
