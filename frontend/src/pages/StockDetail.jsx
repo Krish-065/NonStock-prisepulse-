@@ -37,6 +37,11 @@ export default function StockDetail() {
   const [takeProfitPct, setTakeProfitPct] = useState(10); // % above entry price, 0 = disabled
   const [trendFilter, setTrendFilter] = useState(false);  // only buy when price > SMA50
 
+  // Backtest Configurations & Parameters
+  const [timeRange, setTimeRange] = useState('3mo');             // '1mo', '3mo', '6mo', '1y'
+  const [tradeDirection, setTradeDirection] = useState('long');   // 'long' (buy first) or 'short' (sell first)
+  const [strategyExplanation, setStrategyExplanation] = useState('');
+
   // Backtest Results
   const [signals, setSignals] = useState([]); 
   const [trades, setTrades] = useState([]);
@@ -120,7 +125,7 @@ export default function StockDetail() {
     else setRefreshing(true);
 
     try {
-      const histRes = await apiClient.get(`/market/stock-history/${symbol}`);
+      const histRes = await apiClient.get(`/market/stock-history/${symbol}?range=${timeRange}`);
       setHistory(histRes.data);
 
       const nsSymbol = symbol.endsWith('.NS') ? symbol : `${symbol}.NS`;
@@ -150,7 +155,7 @@ export default function StockDetail() {
 
   useEffect(() => {
     fetchStockData();
-  }, [symbol]);
+  }, [symbol, timeRange]);
 
   // Math functions for indicator values
   const computeIndicators = () => {
@@ -251,19 +256,29 @@ export default function StockDetail() {
       }
     };
 
+    const isLong = tradeDirection === 'long';
+
     // ─── Walk through every daily bar ───
     for (let i = 20; i < history.length; i++) {
       const price = history[i].close;
 
       if (!activeTrade) {
-        // ─── Trend Filter: skip BUY when price is below SMA50 (downtrend) ───
-        if (trendFilter && sma50[i] !== null && price < sma50[i]) continue;
+        // ─── Trend Filter Rule ───
+        // For LONG: only buy if price is ABOVE SMA50
+        // For SHORT: only sell if price is BELOW SMA50
+        if (trendFilter && sma50[i] !== null) {
+          if (isLong && price < sma50[i]) continue;
+          if (!isLong && price > sma50[i]) continue;
+        }
 
-        const buyTriggered = evaluateRule(
-          buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator, i
-        );
-        if (buyTriggered) {
-          generatedSignals[i] = 'BUY';
+        // For LONG: Entry is triggered by BUY Rule
+        // For SHORT: Entry is triggered by SELL Rule
+        const entryTriggered = isLong
+          ? evaluateRule(buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator, i)
+          : evaluateRule(sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator, i);
+
+        if (entryTriggered) {
+          generatedSignals[i] = isLong ? 'BUY' : 'SELL';
           activeTrade = {
             entryIndex: i,
             entryDate:  new Date(history[i].time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
@@ -271,20 +286,27 @@ export default function StockDetail() {
           };
         }
       } else {
-        const pnlPct = ((price - activeTrade.entryPrice) / activeTrade.entryPrice) * 100;
+        // PnL calculation:
+        // For LONG: (Price - EntryPrice) / EntryPrice
+        // For SHORT: (EntryPrice - Price) / EntryPrice
+        const rawPnL = isLong 
+          ? (price - activeTrade.entryPrice) / activeTrade.entryPrice
+          : (activeTrade.entryPrice - price) / activeTrade.entryPrice;
+        const pnlPct = rawPnL * 100;
 
-        // ─── Stop Loss: auto-exit if loss exceeds threshold ───
+        // ─── Stop Loss & Take Profit ───
         const slHit = stopLossPct > 0 && pnlPct <= -Math.abs(stopLossPct);
-        // ─── Take Profit: auto-exit if gain exceeds threshold ───
         const tpHit = takeProfitPct > 0 && pnlPct >= Math.abs(takeProfitPct);
-        // ─── Strategy SELL rule ───
-        const sellTriggered = evaluateRule(
-          sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator, i
-        );
 
-        if (slHit || tpHit || sellTriggered) {
+        // For LONG: Exit is triggered by SELL Rule
+        // For SHORT: Exit is triggered by BUY Rule
+        const exitTriggered = isLong
+          ? evaluateRule(sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator, i)
+          : evaluateRule(buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator, i);
+
+        if (slHit || tpHit || exitTriggered) {
           const exitReason = slHit ? 'Stop Loss' : tpHit ? 'Take Profit' : 'Signal';
-          generatedSignals[i] = 'SELL';
+          generatedSignals[i] = isLong ? 'SELL' : 'BUY';
           executedTrades.push({
             ...activeTrade,
             exitIndex:  i,
@@ -303,7 +325,11 @@ export default function StockDetail() {
     if (activeTrade !== null) {
       const lastIdx  = history.length - 1;
       const lastPrice = history[lastIdx].close;
-      const pnl = ((lastPrice - activeTrade.entryPrice) / activeTrade.entryPrice) * 100;
+      const rawPnL = isLong 
+        ? (lastPrice - activeTrade.entryPrice) / activeTrade.entryPrice
+        : (activeTrade.entryPrice - lastPrice) / activeTrade.entryPrice;
+      const pnl = rawPnL * 100;
+
       executedTrades.push({
         ...activeTrade,
         exitIndex:  lastIdx,
@@ -319,7 +345,7 @@ export default function StockDetail() {
     setSignals(generatedSignals);
     setTrades(executedTrades);
 
-    // ─── Compute rich statistics ───
+    // ─── Compute rich statistics and build summary narrative ───
     if (executedTrades.length > 0) {
       const wins   = executedTrades.filter(t => t.pnl > 0);
       const losses = executedTrades.filter(t => t.pnl <= 0);
@@ -328,7 +354,6 @@ export default function StockDetail() {
       const bestTrade  = Math.max(...executedTrades.map(t => t.pnl));
       const worstTrade = Math.min(...executedTrades.map(t => t.pnl));
 
-      // Max drawdown: largest peak-to-trough in running PnL
       let runningPnl = 0, peak = 0, maxDrawdown = 0;
       executedTrades.forEach(t => {
         runningPnl += t.pnl;
@@ -337,19 +362,31 @@ export default function StockDetail() {
         if (dd > maxDrawdown) maxDrawdown = dd;
       });
 
+      const winRateVal = parseFloat(((wins.length / executedTrades.length) * 100).toFixed(1));
+
       setPerformance({
         totalTrades:  executedTrades.length,
         wins:         wins.length,
         losses:       losses.length,
-        winRate:      parseFloat(((wins.length / executedTrades.length) * 100).toFixed(1)),
+        winRate:      winRateVal,
         netReturn:    parseFloat(netReturn.toFixed(1)),
         avgDuration,
         bestTrade:    parseFloat(bestTrade.toFixed(2)),
         worstTrade:   parseFloat(worstTrade.toFixed(2)),
         maxDrawdown:  parseFloat(maxDrawdown.toFixed(1)),
       });
+
+      // Generate clean summary text
+      const timeStr = timeRange === '1mo' ? '1 Month' : timeRange === '3mo' ? '3 Months' : timeRange === '6mo' ? '6 Months' : '1 Year';
+      const performanceType = netReturn >= 0 ? 'net positive return' : 'net negative return';
+      setStrategyExplanation(
+        `During the backtest over the last ${timeStr}, the ${tradeDirection.toUpperCase()} strategy was executed ${executedTrades.length} times. The strategy finished with a ${performanceType} of ${netReturn.toFixed(1)}%. Out of the total executions, the strategy saw ${wins.length} profitable outcomes and ${losses.length} unprofitable outcomes, resulting in a Win Rate of ${winRateVal}%. The positions were held for an average of ${avgDuration} days. The maximum drawdown peak-to-trough experienced during the period was -${maxDrawdown.toFixed(1)}%, with the most successful position capturing +${bestTrade.toFixed(2)}% and the least successful losing ${worstTrade.toFixed(2)}%.`
+      );
     } else {
       setPerformance({ totalTrades: 0, wins: 0, losses: 0, winRate: 0, netReturn: 0, avgDuration: 0, bestTrade: 0, worstTrade: 0, maxDrawdown: 0 });
+      setStrategyExplanation(
+        `Over the selected backtesting window, no trade entries were triggered. This indicates that the entry criteria did not occur in the historical price series, or were filtered out by the Trend Filter. Try modifying your indicator thresholds or disabling the Trend Filter to check if setups existed.`
+      );
     }
   };
 
@@ -360,7 +397,7 @@ export default function StockDetail() {
     history,
     buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator,
     sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator,
-    stopLossPct, takeProfitPct, trendFilter
+    stopLossPct, takeProfitPct, trendFilter, tradeDirection
   ]);
 
   // Strategy Presets Loader
@@ -587,13 +624,64 @@ export default function StockDetail() {
             gap: '16px',
             position: 'relative'
           }}>
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
-                PricePulse Backtesting canvas
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>
-                Overlaying Buy (▲) & Sell (▼) triggers on daily candlesticks, with EMA 20 (<span style={{ color: '#00bcd4' }}>■</span>) & EMA 50 (<span style={{ color: '#ffb300' }}>■</span>) lines.
-              </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                  PricePulse Backtesting Canvas
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>
+                  Overlaying Buy (▲) & Sell (▼) triggers on daily candlesticks, with SMA 20 (<span style={{ color: '#00bcd4' }}>■</span>) & SMA 50 (<span style={{ color: '#ffb300' }}>■</span>) lines.
+                </p>
+              </div>
+
+              {/* Timeframe & Direction Config selectors */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Simulation Range</span>
+                  <select 
+                    value={timeRange}
+                    onChange={(e) => setTimeRange(e.target.value)}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="1mo">1 Month Simulation</option>
+                    <option value="3mo">3 Months Simulation</option>
+                    <option value="6mo">6 Months Simulation</option>
+                    <option value="1y">1 Year Simulation</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Position style</span>
+                  <select 
+                    value={tradeDirection}
+                    onChange={(e) => setTradeDirection(e.target.value)}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="long">Long (Buy First, Sell to Exit)</option>
+                    <option value="short">Short (Sell First, Buy to Cover)</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             {/* Price Graph Canvas */}
@@ -884,7 +972,10 @@ export default function StockDetail() {
                     justifyContent: 'space-between'
                   }}
                 >
-                  <span>💜 RSI Reversion</span>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#e040fb', marginRight: '6px' }}></span>
+                    RSI Reversion
+                  </span>
                   <ChevronRight size={10} />
                 </button>
 
@@ -904,7 +995,10 @@ export default function StockDetail() {
                     justifyContent: 'space-between'
                   }}
                 >
-                  <span>💙 SMA(20) Cross</span>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#00bcd4', marginRight: '6px' }}></span>
+                    SMA(20) Cross
+                  </span>
                   <ChevronRight size={10} />
                 </button>
 
@@ -924,7 +1018,10 @@ export default function StockDetail() {
                     justifyContent: 'space-between'
                   }}
                 >
-                  <span>💛 SMA(50) Rider</span>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#ffb300', marginRight: '6px' }}></span>
+                    SMA(50) Rider
+                  </span>
                   <ChevronRight size={10} />
                 </button>
 
@@ -944,7 +1041,10 @@ export default function StockDetail() {
                     justifyContent: 'space-between'
                   }}
                 >
-                  <span>💚 Smart Trend</span>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#00ff88', marginRight: '6px' }}></span>
+                    Smart Trend
+                  </span>
                   <ChevronRight size={10} />
                 </button>
               </div>
@@ -952,7 +1052,10 @@ export default function StockDetail() {
 
             {/* Buy condition builder */}
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#00ff88', textTransform: 'uppercase' }}>🟢 Algo BUY RULE</span>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#00ff88', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#00ff88' }}></span>
+                Buy Trigger Setup
+              </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
                 <select 
                   value={buyIndicator} 
@@ -1011,7 +1114,10 @@ export default function StockDetail() {
 
             {/* Sell condition builder */}
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#ff4444', textTransform: 'uppercase' }}>🔴 Algo SELL RULE</span>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#ff4444', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#ff4444' }}></span>
+                Sell Trigger Setup
+              </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
                 <select 
                   value={sellIndicator} 
@@ -1070,8 +1176,9 @@ export default function StockDetail() {
 
             {/* Risk & Trend Management Section */}
             <div>
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#00bcd4', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                🛡️ Risk & Trend Filter
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#00bcd4', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <ShieldAlert size={12} style={{ color: '#00bcd4' }} />
+                Risk & Trend Filter
               </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1099,7 +1206,10 @@ export default function StockDetail() {
                     onChange={(e) => setTrendFilter(e.target.checked)}
                     style={{ cursor: 'pointer' }}
                   />
-                  Trend filter (Buy only if Price &gt; SMA50)
+                  {tradeDirection === 'long' 
+                    ? 'Trend filter (Buy only if Price > SMA50)' 
+                    : 'Trend filter (Short only if Price < SMA50)'
+                  }
                 </label>
               </div>
             </div>
@@ -1142,10 +1252,10 @@ export default function StockDetail() {
           }}>
             <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Award size={18} style={{ color: '#ffb300' }} />
-              Backtest Performance Card (3-Month simulation)
+              Backtest Performance Card ({timeRange === '1mo' ? '1-Month' : timeRange === '3mo' ? '3-Month' : timeRange === '6mo' ? '6-Month' : '1-Year'} Simulation)
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
               
               <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>STRATEGY NET RETURN</div>
@@ -1170,8 +1280,12 @@ export default function StockDetail() {
 
               <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>PROFITABLE VS LOSSES</div>
-                <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginTop: '8px' }}>
-                  🟢 {performance.wins} W / 🔴 {performance.losses} L
+                <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#00ff88' }}></span>
+                  {performance.wins} W 
+                  <span style={{ color: 'rgba(255,255,255,0.15)' }}>|</span> 
+                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#ff4444' }}></span>
+                  {performance.losses} L
                 </div>
               </div>
 
@@ -1191,14 +1305,35 @@ export default function StockDetail() {
 
               <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
                 <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>BEST / WORST TRADE</div>
-                <div style={{ fontSize: '14px', fontWeight: '700', marginTop: '10px', display: 'flex', gap: '8px' }}>
-                  <span style={{ color: '#00ff88' }}>🟢 {performance.bestTrade >= 0 ? '+' : ''}{performance.bestTrade}%</span>
-                  <span style={{ color: '#ff9999' }}>/</span>
-                  <span style={{ color: '#ff4444' }}>🔴 {performance.worstTrade}%</span>
+                <div style={{ fontSize: '14px', fontWeight: '700', marginTop: '10px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#00ff88' }}></span>
+                  <span style={{ color: '#00ff88' }}>{performance.bestTrade >= 0 ? '+' : ''}{performance.bestTrade}%</span>
+                  <span style={{ color: 'rgba(255,255,255,0.15)' }}>/</span>
+                  <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#ff4444' }}></span>
+                  <span style={{ color: '#ff4444' }}>{performance.worstTrade}%</span>
                 </div>
               </div>
 
             </div>
+
+            {/* Strategy Narrative Explanation */}
+            {strategyExplanation && (
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.01)',
+                border: '1px solid rgba(255, 255, 255, 0.04)',
+                borderRadius: '8px',
+                padding: '16px',
+                lineHeight: '1.6'
+              }}>
+                <h4 style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <Activity size={12} style={{ color: '#00ff88' }} />
+                  Strategy Performance Summary & Interpretation
+                </h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0 }}>
+                  {strategyExplanation}
+                </p>
+              </div>
+            )}
           </div>
         )}
 

@@ -903,7 +903,11 @@ router.get('/stock-history/:symbol', async (req, res) => {
       symbol = `${symbol}.NS`;
     }
 
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=3mo&interval=1d`;
+    // Support dynamic ranges: 1mo, 3mo, 6mo, 1y. Default to 3mo
+    const allowedRanges = ['1mo', '3mo', '6mo', '1y'];
+    const range = allowedRanges.includes(req.query.range) ? req.query.range : '3mo';
+
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1d`;
     const response = await fetch(url, { headers: YAHOO_HEADERS });
     if (!response.ok) {
       return res.status(response.status).json({ error: 'Failed to fetch stock history' });
