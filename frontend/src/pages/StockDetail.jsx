@@ -22,15 +22,20 @@ export default function StockDetail() {
   // Strategy Configurations
   const [buyIndicator, setBuyIndicator] = useState('RSI');
   const [buyOperator, setBuyOperator] = useState('lessThan');
-  const [buyTargetType, setBuyTargetType] = useState('value'); // 'value' or 'indicator'
+  const [buyTargetType, setBuyTargetType] = useState('value');
   const [buyTargetValue, setBuyTargetValue] = useState(35);
   const [buyTargetIndicator, setBuyTargetIndicator] = useState('SMA20');
 
   const [sellIndicator, setSellIndicator] = useState('RSI');
   const [sellOperator, setSellOperator] = useState('greaterThan');
-  const [sellTargetType, setSellTargetType] = useState('value'); // 'value' or 'indicator'
+  const [sellTargetType, setSellTargetType] = useState('value');
   const [sellTargetValue, setSellTargetValue] = useState(65);
   const [sellTargetIndicator, setSellTargetIndicator] = useState('SMA20');
+
+  // Risk Management
+  const [stopLossPct, setStopLossPct] = useState(5);      // % below entry price, 0 = disabled
+  const [takeProfitPct, setTakeProfitPct] = useState(10); // % above entry price, 0 = disabled
+  const [trendFilter, setTrendFilter] = useState(false);  // only buy when price > SMA50
 
   // Backtest Results
   const [signals, setSignals] = useState([]); 
@@ -205,17 +210,17 @@ export default function StockDetail() {
     const indicators = computeIndicators();
     const sma20 = indicators.sma20;
     const sma50 = indicators.sma50;
-    const rsi = indicators.rsi14;
+    const rsi   = indicators.rsi14;
 
-    const generatedSignals = new Array(history.length).fill(null); 
-    const executedTrades = [];
+    const generatedSignals = new Array(history.length).fill(null);
+    const executedTrades   = [];
     let activeTrade = null;
 
     const getValue = (indicator, idx) => {
       if (indicator === 'Price') return history[idx].close;
       if (indicator === 'SMA20') return sma20[idx];
       if (indicator === 'SMA50') return sma50[idx];
-      if (indicator === 'RSI') return rsi[idx];
+      if (indicator === 'RSI')   return rsi[idx];
       return null;
     };
 
@@ -226,154 +231,158 @@ export default function StockDetail() {
 
       let targetVal, prevTargetVal;
       if (targetType === 'value') {
-        targetVal = parseFloat(targetValInput);
-        prevTargetVal = targetVal; // static value doesn't change
+        targetVal     = parseFloat(targetValInput);
+        prevTargetVal = targetVal;
       } else {
-        targetVal = getValue(targetIndInput, idx);
+        targetVal     = getValue(targetIndInput, idx);
         prevTargetVal = getValue(targetIndInput, idx - 1);
       }
 
       if (currVal === null || prevVal === null || targetVal === null || isNaN(targetVal)) return false;
 
       switch (operator) {
-        case 'lessThan':
-          return currVal < targetVal;
-        case 'greaterThan':
-          return currVal > targetVal;
+        case 'lessThan':    return currVal < targetVal;
+        case 'greaterThan': return currVal > targetVal;
         case 'crossesBelow':
-          // prev was above-or-equal, now below
           return (prevVal >= (prevTargetVal ?? targetVal)) && currVal < targetVal;
         case 'crossesAbove':
-          // prev was below-or-equal, now above
           return (prevVal <= (prevTargetVal ?? targetVal)) && currVal > targetVal;
-        default:
-          return false;
+        default: return false;
       }
     };
 
-    // Walk through historical ticks
+    // ─── Walk through every daily bar ───
     for (let i = 20; i < history.length; i++) {
+      const price = history[i].close;
+
       if (!activeTrade) {
-        const buyTriggered = evaluateRule(buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator, i);
+        // ─── Trend Filter: skip BUY when price is below SMA50 (downtrend) ───
+        if (trendFilter && sma50[i] !== null && price < sma50[i]) continue;
+
+        const buyTriggered = evaluateRule(
+          buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator, i
+        );
         if (buyTriggered) {
           generatedSignals[i] = 'BUY';
           activeTrade = {
             entryIndex: i,
-            entryDate: new Date(history[i].time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-            entryPrice: history[i].close,
+            entryDate:  new Date(history[i].time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+            entryPrice: price,
           };
         }
       } else {
-        const sellTriggered = evaluateRule(sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator, i);
-        if (sellTriggered) {
+        const pnlPct = ((price - activeTrade.entryPrice) / activeTrade.entryPrice) * 100;
+
+        // ─── Stop Loss: auto-exit if loss exceeds threshold ───
+        const slHit = stopLossPct > 0 && pnlPct <= -Math.abs(stopLossPct);
+        // ─── Take Profit: auto-exit if gain exceeds threshold ───
+        const tpHit = takeProfitPct > 0 && pnlPct >= Math.abs(takeProfitPct);
+        // ─── Strategy SELL rule ───
+        const sellTriggered = evaluateRule(
+          sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator, i
+        );
+
+        if (slHit || tpHit || sellTriggered) {
+          const exitReason = slHit ? 'Stop Loss' : tpHit ? 'Take Profit' : 'Signal';
           generatedSignals[i] = 'SELL';
-          const pnl = ((history[i].close - activeTrade.entryPrice) / activeTrade.entryPrice) * 100;
           executedTrades.push({
             ...activeTrade,
-            exitIndex: i,
-            exitDate: new Date(history[i].time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-            exitPrice: history[i].close,
-            pnl: parseFloat(pnl.toFixed(2))
+            exitIndex:  i,
+            exitDate:   new Date(history[i].time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+            exitPrice:  price,
+            pnl:        parseFloat(pnlPct.toFixed(2)),
+            duration:   i - activeTrade.entryIndex,
+            exitReason,
           });
           activeTrade = null;
         }
       }
     }
 
-    // ─── CRITICAL FIX: Auto-close any open trade at end of backtest window ───
-    // Without this, strategies that never hit the sell threshold show 0 trades.
+    // ─── Auto-close any open position at period end ───
     if (activeTrade !== null) {
-      const lastIdx = history.length - 1;
-      const pnl = ((history[lastIdx].close - activeTrade.entryPrice) / activeTrade.entryPrice) * 100;
+      const lastIdx  = history.length - 1;
+      const lastPrice = history[lastIdx].close;
+      const pnl = ((lastPrice - activeTrade.entryPrice) / activeTrade.entryPrice) * 100;
       executedTrades.push({
         ...activeTrade,
-        exitIndex: lastIdx,
-        exitDate: new Date(history[lastIdx].time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-        exitPrice: history[lastIdx].close,
-        pnl: parseFloat(pnl.toFixed(2)),
-        isOpen: true // mark as still-open at period end
+        exitIndex:  lastIdx,
+        exitDate:   new Date(history[lastIdx].time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+        exitPrice:  lastPrice,
+        pnl:        parseFloat(pnl.toFixed(2)),
+        duration:   lastIdx - activeTrade.entryIndex,
+        exitReason: 'Period End',
+        isOpen:     true,
       });
     }
 
     setSignals(generatedSignals);
     setTrades(executedTrades);
 
-    // Calculate overall stats
+    // ─── Compute rich statistics ───
     if (executedTrades.length > 0) {
-      const wins = executedTrades.filter(t => t.pnl > 0).length;
-      const winRate = (wins / executedTrades.length) * 100;
-      const cumulativeReturn = executedTrades.reduce((acc, t) => acc + t.pnl, 0);
+      const wins   = executedTrades.filter(t => t.pnl > 0);
+      const losses = executedTrades.filter(t => t.pnl <= 0);
+      const netReturn = executedTrades.reduce((acc, t) => acc + t.pnl, 0);
+      const avgDuration = Math.round(executedTrades.reduce((a, t) => a + (t.duration || 0), 0) / executedTrades.length);
+      const bestTrade  = Math.max(...executedTrades.map(t => t.pnl));
+      const worstTrade = Math.min(...executedTrades.map(t => t.pnl));
+
+      // Max drawdown: largest peak-to-trough in running PnL
+      let runningPnl = 0, peak = 0, maxDrawdown = 0;
+      executedTrades.forEach(t => {
+        runningPnl += t.pnl;
+        if (runningPnl > peak) peak = runningPnl;
+        const dd = peak - runningPnl;
+        if (dd > maxDrawdown) maxDrawdown = dd;
+      });
 
       setPerformance({
-        totalTrades: executedTrades.length,
-        wins,
-        losses: executedTrades.length - wins,
-        winRate: parseFloat(winRate.toFixed(1)),
-        netReturn: parseFloat(cumulativeReturn.toFixed(1))
+        totalTrades:  executedTrades.length,
+        wins:         wins.length,
+        losses:       losses.length,
+        winRate:      parseFloat(((wins.length / executedTrades.length) * 100).toFixed(1)),
+        netReturn:    parseFloat(netReturn.toFixed(1)),
+        avgDuration,
+        bestTrade:    parseFloat(bestTrade.toFixed(2)),
+        worstTrade:   parseFloat(worstTrade.toFixed(2)),
+        maxDrawdown:  parseFloat(maxDrawdown.toFixed(1)),
       });
     } else {
-      setPerformance({
-        totalTrades: 0,
-        wins: 0,
-        losses: 0,
-        winRate: 0,
-        netReturn: 0
-      });
+      setPerformance({ totalTrades: 0, wins: 0, losses: 0, winRate: 0, netReturn: 0, avgDuration: 0, bestTrade: 0, worstTrade: 0, maxDrawdown: 0 });
     }
   };
 
   // Run backtest automatically on config/history load
   useEffect(() => {
-    if (history.length > 0) {
-      runBacktest();
-    }
+    if (history.length > 0) runBacktest();
   }, [
-    history, 
+    history,
     buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator,
-    sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator
+    sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator,
+    stopLossPct, takeProfitPct, trendFilter
   ]);
 
   // Strategy Presets Loader
   const applyPreset = (presetType) => {
     if (presetType === 'rsi_reversion') {
-      // Classic RSI Oversold/Overbought strategy
-      // BUY when RSI drops into oversold territory (<30)
-      // SELL when RSI reaches overbought territory (>70)
-      setBuyIndicator('RSI');
-      setBuyOperator('lessThan');
-      setBuyTargetType('value');
-      setBuyTargetValue(35);  // slightly wider than 30 to generate more signals on 3-month data
-      
-      setSellIndicator('RSI');
-      setSellOperator('greaterThan');
-      setSellTargetType('value');
-      setSellTargetValue(65); // slightly tighter than 70 for 3-month period
+      setBuyIndicator('RSI'); setBuyOperator('lessThan'); setBuyTargetType('value'); setBuyTargetValue(35);
+      setSellIndicator('RSI'); setSellOperator('greaterThan'); setSellTargetType('value'); setSellTargetValue(65);
+      setStopLossPct(7); setTakeProfitPct(12); setTrendFilter(false);
     } else if (presetType === 'sma_crossover') {
-      // Golden/Death Cross: Price crossing SMA20 line
-      // BUY when price crosses UP through SMA20 (bullish signal)
-      // SELL when price crosses DOWN through SMA20 (bearish signal)
-      setBuyIndicator('Price');
-      setBuyOperator('crossesAbove');
-      setBuyTargetType('indicator');
-      setBuyTargetIndicator('SMA20');
-
-      setSellIndicator('Price');
-      setSellOperator('crossesBelow');
-      setSellTargetType('indicator');
-      setSellTargetIndicator('SMA20');
+      setBuyIndicator('Price'); setBuyOperator('crossesAbove'); setBuyTargetType('indicator'); setBuyTargetIndicator('SMA20');
+      setSellIndicator('Price'); setSellOperator('crossesBelow'); setSellTargetType('indicator'); setSellTargetIndicator('SMA20');
+      setStopLossPct(5); setTakeProfitPct(10); setTrendFilter(false);
     } else if (presetType === 'momentum_trend') {
-      // Trend following: stay in trade while price is above SMA50
-      // BUY when price moves above the long-term SMA50 (trend confirmation)
-      // SELL when price drops below SMA50 (trend reversal)
-      setBuyIndicator('Price');
-      setBuyOperator('crossesAbove');
-      setBuyTargetType('indicator');
-      setBuyTargetIndicator('SMA50');
-
-      setSellIndicator('Price');
-      setSellOperator('crossesBelow');
-      setSellTargetType('indicator');
-      setSellTargetIndicator('SMA50');
+      setBuyIndicator('Price'); setBuyOperator('crossesAbove'); setBuyTargetType('indicator'); setBuyTargetIndicator('SMA50');
+      setSellIndicator('Price'); setSellOperator('crossesBelow'); setSellTargetType('indicator'); setSellTargetIndicator('SMA50');
+      setStopLossPct(8); setTakeProfitPct(0); setTrendFilter(false);
+    } else if (presetType === 'smart_trend') {
+      // Smart Trend: RSI oversold + price must be ABOVE SMA50 (uptrend confirmed)
+      // This avoids buying into downtrends - the most common mistake in basic RSI strategies
+      setBuyIndicator('RSI'); setBuyOperator('lessThan'); setBuyTargetType('value'); setBuyTargetValue(40);
+      setSellIndicator('RSI'); setSellOperator('greaterThan'); setSellTargetType('value'); setSellTargetValue(60);
+      setStopLossPct(5); setTakeProfitPct(10); setTrendFilter(true); // KEY: trend filter ON
     }
   };
 
@@ -858,68 +867,85 @@ export default function StockDetail() {
             {/* Quick Presets Block */}
             <div>
               <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase' }}>Load Strategy Preset</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '6px' }}>
                 <button
                   onClick={() => applyPreset('rsi_reversion')}
                   style={{
-                    padding: '8px 12px',
+                    padding: '8px',
                     background: 'rgba(224, 64, 251, 0.08)',
                     border: '1px solid rgba(224, 64, 251, 0.25)',
                     borderRadius: '6px',
                     color: '#e040fb',
-                    fontSize: '11px',
+                    fontSize: '10px',
                     fontWeight: '700',
                     cursor: 'pointer',
-                    textAlign: 'left',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}
                 >
-                  <span>💜 RSI Mean Reversion</span>
-                  <ChevronRight size={12} />
+                  <span>💜 RSI Reversion</span>
+                  <ChevronRight size={10} />
                 </button>
 
                 <button
                   onClick={() => applyPreset('sma_crossover')}
                   style={{
-                    padding: '8px 12px',
+                    padding: '8px',
                     background: 'rgba(0, 188, 212, 0.08)',
                     border: '1px solid rgba(0, 188, 212, 0.25)',
                     borderRadius: '6px',
                     color: '#00bcd4',
-                    fontSize: '11px',
+                    fontSize: '10px',
                     fontWeight: '700',
                     cursor: 'pointer',
-                    textAlign: 'left',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}
                 >
-                  <span>💙 SMA(20) Crossover</span>
-                  <ChevronRight size={12} />
+                  <span>💙 SMA(20) Cross</span>
+                  <ChevronRight size={10} />
                 </button>
 
                 <button
                   onClick={() => applyPreset('momentum_trend')}
                   style={{
-                    padding: '8px 12px',
+                    padding: '8px',
                     background: 'rgba(255, 179, 0, 0.08)',
                     border: '1px solid rgba(255, 179, 0, 0.25)',
                     borderRadius: '6px',
                     color: '#ffb300',
-                    fontSize: '11px',
+                    fontSize: '10px',
                     fontWeight: '700',
                     cursor: 'pointer',
-                    textAlign: 'left',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}
                 >
-                  <span>💛 SMA(50) Trend Rider</span>
-                  <ChevronRight size={12} />
+                  <span>💛 SMA(50) Rider</span>
+                  <ChevronRight size={10} />
+                </button>
+
+                <button
+                  onClick={() => applyPreset('smart_trend')}
+                  style={{
+                    padding: '8px',
+                    background: 'rgba(0, 255, 136, 0.08)',
+                    border: '1px solid rgba(0, 255, 136, 0.25)',
+                    borderRadius: '6px',
+                    color: '#00ff88',
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <span>💚 Smart Trend</span>
+                  <ChevronRight size={10} />
                 </button>
               </div>
             </div>
@@ -984,7 +1010,7 @@ export default function StockDetail() {
             </div>
 
             {/* Sell condition builder */}
-            <div>
+            <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
               <span style={{ fontSize: '11px', fontWeight: '800', color: '#ff4444', textTransform: 'uppercase' }}>🔴 Algo SELL RULE</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
                 <select 
@@ -1042,18 +1068,54 @@ export default function StockDetail() {
               </div>
             </div>
 
+            {/* Risk & Trend Management Section */}
+            <div>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#00bcd4', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                🛡️ Risk & Trend Filter
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Stop Loss %:</span>
+                  <input 
+                    type="number" 
+                    value={stopLossPct}
+                    onChange={(e) => setStopLossPct(parseFloat(e.target.value) || 0)}
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', width: '60px', textAlign: 'right' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Take Profit %:</span>
+                  <input 
+                    type="number" 
+                    value={takeProfitPct}
+                    onChange={(e) => setTakeProfitPct(parseFloat(e.target.value) || 0)}
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', width: '60px', textAlign: 'right' }}
+                  />
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={trendFilter}
+                    onChange={(e) => setTrendFilter(e.target.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  Trend filter (Buy only if Price &gt; SMA50)
+                </label>
+              </div>
+            </div>
+
             {/* Run backtest action button */}
             <button
               onClick={runBacktest}
               style={{
-                marginTop: 'auto',
-                padding: '12px',
+                marginTop: '12px',
+                padding: '10px',
                 background: 'linear-gradient(135deg, #00ff88, #00bcd4)',
                 border: 'none',
                 borderRadius: '8px',
                 color: '#000000',
                 fontWeight: '800',
-                fontSize: '13px',
+                fontSize: '12px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -1062,7 +1124,7 @@ export default function StockDetail() {
                 boxShadow: '0 4px 15px rgba(0, 255, 136, 0.25)'
               }}
             >
-              <Play size={14} fill="#000000" />
+              <Play size={12} fill="#000000" />
               Compile & Run backtest
             </button>
           </div>
@@ -1083,33 +1145,56 @@ export default function StockDetail() {
               Backtest Performance Card (3-Month simulation)
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
               
               <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>STRATEGY NET RETURN</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>STRATEGY NET RETURN</div>
                 <div style={{ fontSize: '24px', fontWeight: '800', color: performance.netReturn >= 0 ? '#00ff88' : '#ff4444', marginTop: '4px' }}>
                   {performance.netReturn >= 0 ? '+' : ''}{performance.netReturn}%
                 </div>
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>WIN RATE PERCENTAGE</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>WIN RATE PERCENTAGE</div>
                 <div style={{ fontSize: '24px', fontWeight: '800', color: '#00bcd4', marginTop: '4px' }}>
                   {performance.winRate}%
                 </div>
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>TOTAL EXECUTED TRADES</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>TOTAL EXECUTED TRADES</div>
                 <div style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', marginTop: '4px' }}>
                   {performance.totalTrades}
                 </div>
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>PROFITABLE VS LOSSES</div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginTop: '12px' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>PROFITABLE VS LOSSES</div>
+                <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginTop: '8px' }}>
                   🟢 {performance.wins} W / 🔴 {performance.losses} L
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>MAX DRAWDOWN</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: '#ff4444', marginTop: '6px' }}>
+                  -{performance.maxDrawdown}%
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>AVG HOLDING DURATION</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: '#00bcd4', marginTop: '6px' }}>
+                  {performance.avgDuration} days
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>BEST / WORST TRADE</div>
+                <div style={{ fontSize: '14px', fontWeight: '700', marginTop: '10px', display: 'flex', gap: '8px' }}>
+                  <span style={{ color: '#00ff88' }}>🟢 {performance.bestTrade >= 0 ? '+' : ''}{performance.bestTrade}%</span>
+                  <span style={{ color: '#ff9999' }}>/</span>
+                  <span style={{ color: '#ff4444' }}>🔴 {performance.worstTrade}%</span>
                 </div>
               </div>
 
@@ -1134,10 +1219,10 @@ export default function StockDetail() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
                     <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700' }}>TRADE ID</th>
-                    <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700' }}>ENTRY DATE</th>
-                    <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700' }}>ENTRY PRICE</th>
-                    <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700' }}>EXIT DATE</th>
-                    <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700' }}>EXIT PRICE</th>
+                    <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700' }}>ENTRY</th>
+                    <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700' }}>EXIT</th>
+                    <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700' }}>DURATION</th>
+                    <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700' }}>EXIT REASON</th>
                     <th style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', textAlign: 'right' }}>PROFIT / LOSS</th>
                   </tr>
                 </thead>
@@ -1150,20 +1235,53 @@ export default function StockDetail() {
                           <span style={{ marginLeft: '6px', fontSize: '9px', background: 'rgba(255,179,0,0.2)', color: '#ffb300', padding: '2px 5px', borderRadius: '3px', fontWeight: '700' }}>OPEN</span>
                         )}
                       </td>
-                      <td style={{ padding: '12px', fontSize: '13px', fontWeight: '600' }}>{trade.entryDate}</td>
-                      <td style={{ padding: '12px', fontSize: '13px' }}>₹{trade.entryPrice.toLocaleString('en-IN')}</td>
-                      <td style={{ padding: '12px', fontSize: '13px', fontWeight: '600', color: trade.isOpen ? '#ffb300' : 'var(--text-primary)' }}>
-                        {trade.isOpen ? 'Period End' : trade.exitDate}
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '600' }}>{trade.entryDate}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>₹{trade.entryPrice.toLocaleString('en-IN')}</div>
                       </td>
-                      <td style={{ padding: '12px', fontSize: '13px', color: trade.isOpen ? '#ffb300' : 'var(--text-primary)' }}>₹{trade.exitPrice.toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: trade.isOpen ? '#ffb300' : 'var(--text-primary)' }}>
+                          {trade.isOpen ? 'Period End' : trade.exitDate}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>₹{trade.exitPrice.toLocaleString('en-IN')}</div>
+                      </td>
+                      <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                        {trade.duration !== undefined ? `${trade.duration} days` : 'N/A'}
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: '700',
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          textTransform: 'uppercase',
+                          background: trade.exitReason === 'Stop Loss' 
+                            ? 'rgba(255, 68, 68, 0.15)' 
+                            : trade.exitReason === 'Take Profit'
+                            ? 'rgba(0, 255, 136, 0.15)'
+                            : trade.exitReason === 'Period End'
+                            ? 'rgba(255, 179, 0, 0.15)'
+                            : 'rgba(0, 188, 212, 0.15)',
+                          color: trade.exitReason === 'Stop Loss' 
+                            ? '#ff4444' 
+                            : trade.exitReason === 'Take Profit'
+                            ? '#00ff88'
+                            : trade.exitReason === 'Period End'
+                            ? '#ffb300'
+                            : '#00bcd4'
+                        }}>
+                          {trade.exitReason || 'Signal'}
+                        </span>
+                      </td>
                       <td style={{ 
                         padding: '12px', 
                         textAlign: 'right', 
                         fontWeight: '700', 
-                        color: trade.pnl >= 0 ? '#00ff88' : '#ff4444' 
+                        color: trade.pnl >= 0 ? '#00ff88' : '#ff4444',
+                        fontSize: '13px'
                       }}>
                         {trade.pnl >= 0 ? '+' : ''}{trade.pnl}%
-                        {trade.isOpen && <span style={{ fontSize: '10px', color: '#ffb300', marginLeft: '4px' }}>(unrealised)</span>}
+                        {trade.isOpen && <span style={{ fontSize: '9px', color: '#ffb300', block: 'block', display: 'block', fontWeight: '500' }}>(unrealised)</span>}
                       </td>
                     </tr>
                   ))}
