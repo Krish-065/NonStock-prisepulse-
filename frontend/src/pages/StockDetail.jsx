@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiClient } from '../services/api';
+import { createChart } from 'lightweight-charts';
 import { 
   TrendingUp, Activity, Play, RefreshCw, BarChart2, 
   Settings, Award, ShieldAlert, CheckCircle, ChevronRight, HelpCircle, Sparkles
@@ -19,18 +20,30 @@ export default function StockDetail() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Strategy Configurations
-  const [buyIndicator, setBuyIndicator] = useState('RSI');
-  const [buyOperator, setBuyOperator] = useState('lessThan');
-  const [buyTargetType, setBuyTargetType] = useState('value');
-  const [buyTargetValue, setBuyTargetValue] = useState(35);
-  const [buyTargetIndicator, setBuyTargetIndicator] = useState('SMA20');
+  // Strategy Configurations (Compound Rules AND/OR logic)
+  const [buyConditions, setBuyConditions] = useState([
+    { indicator: 'RSI', operator: 'lessThan', targetType: 'value', targetValue: 35, targetIndicator: 'SMA20' }
+  ]);
+  const [buyLogicGate, setBuyLogicGate] = useState('AND');
 
-  const [sellIndicator, setSellIndicator] = useState('RSI');
-  const [sellOperator, setSellOperator] = useState('greaterThan');
-  const [sellTargetType, setSellTargetType] = useState('value');
-  const [sellTargetValue, setSellTargetValue] = useState(65);
-  const [sellTargetIndicator, setSellTargetIndicator] = useState('SMA20');
+  const [sellConditions, setSellConditions] = useState([
+    { indicator: 'RSI', operator: 'greaterThan', targetType: 'value', targetValue: 65, targetIndicator: 'SMA20' }
+  ]);
+  const [sellLogicGate, setSellLogicGate] = useState('AND');
+
+  // Automatic parameter optimizer state
+  const [optimizationResult, setOptimizationResult] = useState(null);
+  const [optimizing, setOptimizing] = useState(false);
+
+  // Lightweight Charts Refs
+  const priceChartContainerRef = useRef(null);
+  const rsiChartContainerRef = useRef(null);
+  const priceSeriesRef = useRef(null);
+  const sma20SeriesRef = useRef(null);
+  const sma50SeriesRef = useRef(null);
+  const rsiSeriesRef = useRef(null);
+  const priceChartRef = useRef(null);
+  const rsiChartRef = useRef(null);
 
   // Risk Management
   const [stopLossPct, setStopLossPct] = useState(5);      // % below entry price, 0 = disabled
@@ -166,7 +179,16 @@ export default function StockDetail() {
   };
 
   useEffect(() => {
+    // Fetch initial data
     fetchStockData();
+    setOptimizationResult(null); // reset optimization when settings/stock changes
+
+    // Start silent polling for live updates every 10 seconds
+    const intervalId = setInterval(() => {
+      fetchStockData(true);
+    }, 10000);
+
+    return () => clearInterval(intervalId);
   }, [symbol, timeRange, chartInterval]);
 
   // Math functions for indicator values
@@ -252,23 +274,23 @@ export default function StockDetail() {
       }
     };
 
-    const evaluateRule = (ind, operator, targetType, targetValInput, targetIndInput, idx) => {
+    const evaluateSingleCondition = (cond, idx) => {
       if (idx === 0) return false;
-      const currVal = getValue(ind, idx);
-      const prevVal = getValue(ind, idx - 1);
+      const currVal = getValue(cond.indicator, idx);
+      const prevVal = getValue(cond.indicator, idx - 1);
 
       let targetVal, prevTargetVal;
-      if (targetType === 'value') {
-        targetVal     = parseFloat(targetValInput);
+      if (cond.targetType === 'value') {
+        targetVal     = parseFloat(cond.targetValue);
         prevTargetVal = targetVal;
       } else {
-        targetVal     = getValue(targetIndInput, idx);
-        prevTargetVal = getValue(targetIndInput, idx - 1);
+        targetVal     = getValue(cond.targetIndicator, idx);
+        prevTargetVal = getValue(cond.targetIndicator, idx - 1);
       }
 
       if (currVal === null || prevVal === null || targetVal === null || isNaN(targetVal)) return false;
 
-      switch (operator) {
+      switch (cond.operator) {
         case 'lessThan':    return currVal < targetVal;
         case 'greaterThan': return currVal > targetVal;
         case 'crossesBelow':
@@ -285,20 +307,24 @@ export default function StockDetail() {
     for (let i = 20; i < history.length; i++) {
       const price = history[i].close;
 
+      const buyTriggered = buyLogicGate === 'AND'
+        ? buyConditions.every(c => evaluateSingleCondition(c, i))
+        : buyConditions.some(c => evaluateSingleCondition(c, i));
+
+      const sellTriggered = sellLogicGate === 'AND'
+        ? sellConditions.every(c => evaluateSingleCondition(c, i))
+        : sellConditions.some(c => evaluateSingleCondition(c, i));
+
       if (!activeTrade) {
         // ─── Trend Filter Rule ───
-        // For LONG: only buy if price is ABOVE SMA50 (higher timeframe check)
-        // For SHORT: only sell if price is BELOW SMA50 (higher timeframe check)
+        // For LONG: only buy if price is ABOVE SMA50
+        // For SHORT: only sell if price is BELOW SMA50
         if (trendFilter && sma50[i] !== null) {
           if (isLong && price < sma50[i]) continue;
           if (!isLong && price > sma50[i]) continue;
         }
 
-        // For LONG: Entry is triggered by BUY Rule
-        // For SHORT: Entry is triggered by SELL Rule
-        const entryTriggered = isLong
-          ? evaluateRule(buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator, i)
-          : evaluateRule(sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator, i);
+        const entryTriggered = isLong ? buyTriggered : sellTriggered;
 
         if (entryTriggered) {
           generatedSignals[i] = isLong ? 'BUY' : 'SELL';
@@ -321,11 +347,7 @@ export default function StockDetail() {
         const slHit = stopLossPct > 0 && pnlPct <= -Math.abs(stopLossPct);
         const tpHit = takeProfitPct > 0 && pnlPct >= Math.abs(takeProfitPct);
 
-        // For LONG: Exit is triggered by SELL Rule
-        // For SHORT: Exit is triggered by BUY Rule
-        const exitTriggered = isLong
-          ? evaluateRule(sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator, i)
-          : evaluateRule(buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator, i);
+        const exitTriggered = isLong ? sellTriggered : buyTriggered;
 
         if (slHit || tpHit || exitTriggered) {
           const exitReason = slHit ? 'Stop Loss' : tpHit ? 'Take Profit' : 'Signal';
@@ -428,41 +450,379 @@ export default function StockDetail() {
     if (history.length > 0) runBacktest();
   }, [
     history,
-    buyIndicator, buyOperator, buyTargetType, buyTargetValue, buyTargetIndicator,
-    sellIndicator, sellOperator, sellTargetType, sellTargetValue, sellTargetIndicator,
+    buyConditions, buyLogicGate,
+    sellConditions, sellLogicGate,
     stopLossPct, takeProfitPct, trendFilter, tradeDirection
   ]);
+
+  // Automatic Strategy Parameter Optimizer
+  const runStrategyOptimizer = () => {
+    if (history.length === 0) return;
+    setOptimizing(true);
+
+    setTimeout(() => {
+      let bestReturn = -Infinity;
+      let bestConfig = null;
+
+      // Candidate parameter sweeps
+      const slCandidates = [0, 1, 1.5, 2, 3, 5, 7];
+      const tpCandidates = [0, 2, 3, 5, 8, 10, 12, 15];
+      const tfCandidates = [true, false];
+
+      const indicators = computeIndicators();
+      const sma20 = indicators.sma20;
+      const sma50 = indicators.sma50;
+      const rsi   = indicators.rsi14;
+
+      const getValue = (indicator, idx) => {
+        if (indicator === 'Price') return history[idx].close;
+        if (indicator === 'SMA20') return sma20[idx];
+        if (indicator === 'SMA50') return sma50[idx];
+        if (indicator === 'RSI')   return rsi[idx];
+        return null;
+      };
+
+      const evaluateSingleCondition = (cond, idx) => {
+        if (idx === 0) return false;
+        const currVal = getValue(cond.indicator, idx);
+        const prevVal = getValue(cond.indicator, idx - 1);
+        let targetVal, prevTargetVal;
+        if (cond.targetType === 'value') {
+          targetVal     = parseFloat(cond.targetValue);
+          prevTargetVal = targetVal;
+        } else {
+          targetVal     = getValue(cond.targetIndicator, idx);
+          prevTargetVal = getValue(cond.targetIndicator, idx - 1);
+        }
+        if (currVal === null || prevVal === null || targetVal === null || isNaN(targetVal)) return false;
+
+        switch (cond.operator) {
+          case 'lessThan':    return currVal < targetVal;
+          case 'greaterThan': return currVal > targetVal;
+          case 'crossesBelow':
+            return (prevVal >= (prevTargetVal ?? targetVal)) && currVal < targetVal;
+          case 'crossesAbove':
+            return (prevVal <= (prevTargetVal ?? targetVal)) && currVal > targetVal;
+          default: return false;
+        }
+      };
+
+      const isLong = tradeDirection === 'long';
+
+      // Sweep through combinations in memory
+      for (const sl of slCandidates) {
+        for (const tp of tpCandidates) {
+          for (const tf of tfCandidates) {
+            
+            let activeTrade = null;
+            let netReturn = 0;
+            let tradesCount = 0;
+
+            for (let i = 20; i < history.length; i++) {
+              const price = history[i].close;
+
+              const buyTriggered = buyLogicGate === 'AND'
+                ? buyConditions.every(c => evaluateSingleCondition(c, i))
+                : buyConditions.some(c => evaluateSingleCondition(c, i));
+
+              const sellTriggered = sellLogicGate === 'AND'
+                ? sellConditions.every(c => evaluateSingleCondition(c, i))
+                : sellConditions.some(c => evaluateSingleCondition(c, i));
+
+              if (!activeTrade) {
+                if (tf && sma50[i] !== null) {
+                  if (isLong && price < sma50[i]) continue;
+                  if (!isLong && price > sma50[i]) continue;
+                }
+
+                const entryTriggered = isLong ? buyTriggered : sellTriggered;
+
+                if (entryTriggered) {
+                  activeTrade = { entryPrice: price };
+                }
+              } else {
+                const rawPnL = isLong 
+                  ? (price - activeTrade.entryPrice) / activeTrade.entryPrice
+                  : (activeTrade.entryPrice - price) / activeTrade.entryPrice;
+                const pnlPct = rawPnL * 100;
+
+                const slHit = sl > 0 && pnlPct <= -Math.abs(sl);
+                const tpHit = tp > 0 && pnlPct >= Math.abs(tp);
+
+                const exitTriggered = isLong ? sellTriggered : buyTriggered;
+
+                if (slHit || tpHit || exitTriggered) {
+                  netReturn += pnlPct;
+                  tradesCount++;
+                  activeTrade = null;
+                }
+              }
+            }
+
+            if (activeTrade !== null) {
+              const lastPrice = history[history.length - 1].close;
+              const rawPnL = isLong 
+                ? (lastPrice - activeTrade.entryPrice) / activeTrade.entryPrice
+                : (activeTrade.entryPrice - lastPrice) / activeTrade.entryPrice;
+              netReturn += rawPnL * 100;
+              tradesCount++;
+            }
+
+            if (tradesCount > 0 && netReturn > bestReturn) {
+              bestReturn = netReturn;
+              bestConfig = { stopLoss: sl, takeProfit: tp, trendFilter: tf, netReturn };
+            }
+          }
+        }
+      }
+
+      setOptimizing(false);
+      if (bestConfig) {
+        setOptimizationResult(bestConfig);
+      } else {
+        setOptimizationResult({ noResult: true });
+      }
+    }, 150);
+  };
+
+  // Lightweight Charts Initialization and Synced Panning/Zooming
+  useEffect(() => {
+    if (activeTab !== 'algo' || history.length === 0 || !priceChartContainerRef.current || !rsiChartContainerRef.current) {
+      return;
+    }
+
+    // 1. Clean up existing charts
+    if (priceChartRef.current) {
+      try { priceChartRef.current.remove(); } catch(e){}
+      priceChartRef.current = null;
+    }
+    if (rsiChartRef.current) {
+      try { rsiChartRef.current.remove(); } catch(e){}
+      rsiChartRef.current = null;
+    }
+
+    const chartTheme = {
+      layout: {
+        background: { color: '#0a0e27' },
+        textColor: '#9b9eaf',
+        fontSize: 10,
+        fontFamily: 'Inter, sans-serif',
+      },
+      grid: {
+        vertLines: { color: 'rgba(255, 255, 255, 0.02)' },
+        horzLines: { color: 'rgba(255, 255, 255, 0.02)' },
+      },
+      crosshair: {
+        mode: 0,
+      },
+    };
+
+    // 2. Create Price Chart
+    const priceChart = createChart(priceChartContainerRef.current, {
+      ...chartTheme,
+      height: 280,
+      timeScale: {
+        visible: false,
+      },
+    });
+    priceChartRef.current = priceChart;
+
+    const candlestickSeries = priceChart.addCandlestickSeries({
+      upColor: '#00ff88',
+      downColor: '#ff4444',
+      borderVisible: false,
+      wickUpColor: '#00ff88',
+      wickDownColor: '#ff4444',
+    });
+    priceSeriesRef.current = candlestickSeries;
+
+    const sma20Series = priceChart.addLineSeries({
+      color: '#00bcd4',
+      lineWidth: 1.5,
+    });
+    sma20SeriesRef.current = sma20Series;
+
+    const sma50Series = priceChart.addLineSeries({
+      color: '#ffb300',
+      lineWidth: 1.5,
+    });
+    sma50SeriesRef.current = sma50Series;
+
+    // 3. Create RSI Chart
+    const rsiChart = createChart(rsiChartContainerRef.current, {
+      ...chartTheme,
+      height: 110,
+      timeScale: {
+        visible: true,
+        timeVisible: chartInterval !== '1d',
+        secondsVisible: false,
+      },
+    });
+    rsiChartRef.current = rsiChart;
+
+    const rsiLineSeries = rsiChart.addLineSeries({
+      color: '#e040fb',
+      lineWidth: 1.5,
+    });
+    rsiSeriesRef.current = rsiLineSeries;
+
+    // RSI bounds lines (30, 70)
+    rsiLineSeries.createPriceLine({
+      price: 70,
+      color: 'rgba(255, 68, 68, 0.3)',
+      lineWidth: 1,
+      lineStyle: 2,
+      axisLabelVisible: true,
+      title: '70',
+    });
+    rsiLineSeries.createPriceLine({
+      price: 30,
+      color: 'rgba(0, 255, 136, 0.3)',
+      lineWidth: 1,
+      lineStyle: 2,
+      axisLabelVisible: true,
+      title: '30',
+    });
+
+    // 4. Map & Format historical data
+    const seenTimes = new Set();
+    const formattedHistory = [];
+    const formattedSma20 = [];
+    const formattedSma50 = [];
+    const formattedRsi = [];
+
+    const indicators = computeIndicators();
+
+    for (let i = 0; i < history.length; i++) {
+      const candle = history[i];
+      const timeSec = Math.floor(candle.time / 1000);
+      if (seenTimes.has(timeSec)) continue;
+      seenTimes.add(timeSec);
+
+      formattedHistory.push({
+        time: timeSec,
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+      });
+
+      if (indicators.sma20[i] !== null && !isNaN(indicators.sma20[i])) {
+        formattedSma20.push({ time: timeSec, value: parseFloat(indicators.sma20[i]) });
+      }
+      if (indicators.sma50[i] !== null && !isNaN(indicators.sma50[i])) {
+        formattedSma50.push({ time: timeSec, value: parseFloat(indicators.sma50[i]) });
+      }
+      if (indicators.rsi14[i] !== null && !isNaN(indicators.rsi14[i])) {
+        formattedRsi.push({ time: timeSec, value: parseFloat(indicators.rsi14[i]) });
+      }
+    }
+
+    candlestickSeries.setData(formattedHistory);
+    sma20Series.setData(formattedSma20);
+    sma50Series.setData(formattedSma50);
+    rsiLineSeries.setData(formattedRsi);
+
+    // 5. Draw Signals as interactive markers
+    const markers = [];
+    for (let i = 0; i < history.length; i++) {
+      if (signals[i] === 'BUY') {
+        const timeSec = Math.floor(history[i].time / 1000);
+        markers.push({
+          time: timeSec,
+          position: 'belowBar',
+          color: '#00ff88',
+          shape: 'arrowUp',
+          text: 'BUY',
+        });
+      } else if (signals[i] === 'SELL') {
+        const timeSec = Math.floor(history[i].time / 1000);
+        markers.push({
+          time: timeSec,
+          position: 'aboveBar',
+          color: '#ff4444',
+          shape: 'arrowDown',
+          text: 'SELL',
+        });
+      }
+    }
+    candlestickSeries.setMarkers(markers);
+
+    // 6. Synchronize Zoom/Pan ranges
+    let isSyncing = false;
+    const priceTimeScale = priceChart.timeScale();
+    const rsiTimeScale = rsiChart.timeScale();
+
+    priceTimeScale.subscribeVisibleLogicalRangeChange((range) => {
+      if (isSyncing || !range) return;
+      isSyncing = true;
+      rsiTimeScale.setVisibleLogicalRange(range);
+      isSyncing = false;
+    });
+
+    rsiTimeScale.subscribeVisibleLogicalRangeChange((range) => {
+      if (isSyncing || !range) return;
+      isSyncing = true;
+      priceTimeScale.setVisibleLogicalRange(range);
+      isSyncing = false;
+    });
+
+    // Fit content
+    priceTimeScale.fitContent();
+    rsiTimeScale.fitContent();
+
+    return () => {
+      if (priceChartRef.current) {
+        try { priceChartRef.current.remove(); } catch(e){}
+        priceChartRef.current = null;
+      }
+      if (rsiChartRef.current) {
+        try { rsiChartRef.current.remove(); } catch(e){}
+        rsiChartRef.current = null;
+      }
+    };
+  }, [history, signals, activeTab, chartInterval]);
 
   // Strategy Presets Loader
   const applyPreset = (presetType) => {
     if (presetType === 'rsi_reversion') {
       setChartInterval('1d'); setTimeRange('3mo'); setTradeDirection('long');
-      setBuyIndicator('RSI'); setBuyOperator('lessThan'); setBuyTargetType('value'); setBuyTargetValue(35);
-      setSellIndicator('RSI'); setSellOperator('greaterThan'); setSellTargetType('value'); setSellTargetValue(65);
+      setBuyConditions([{ indicator: 'RSI', operator: 'lessThan', targetType: 'value', targetValue: 35, targetIndicator: 'SMA20' }]);
+      setBuyLogicGate('AND');
+      setSellConditions([{ indicator: 'RSI', operator: 'greaterThan', targetType: 'value', targetValue: 65, targetIndicator: 'SMA20' }]);
+      setSellLogicGate('AND');
       setStopLossPct(7); setTakeProfitPct(12); setTrendFilter(false);
     } else if (presetType === 'sma_crossover') {
       setChartInterval('1d'); setTimeRange('3mo'); setTradeDirection('long');
-      setBuyIndicator('Price'); setBuyOperator('crossesAbove'); setBuyTargetType('indicator'); setBuyTargetIndicator('SMA20');
-      setSellIndicator('Price'); setSellOperator('crossesBelow'); setSellTargetType('indicator'); setSellTargetIndicator('SMA20');
+      setBuyConditions([{ indicator: 'Price', operator: 'crossesAbove', targetType: 'indicator', targetValue: 0, targetIndicator: 'SMA20' }]);
+      setBuyLogicGate('AND');
+      setSellConditions([{ indicator: 'Price', operator: 'crossesBelow', targetType: 'indicator', targetValue: 0, targetIndicator: 'SMA20' }]);
+      setSellLogicGate('AND');
       setStopLossPct(5); setTakeProfitPct(10); setTrendFilter(false);
     } else if (presetType === 'intraday_scalper') {
       // 5-Min Quick Scalper (Long Mean Reversion)
       setChartInterval('5m'); setTimeRange('5d'); setTradeDirection('long');
-      setBuyIndicator('RSI'); setBuyOperator('lessThan'); setBuyTargetType('value'); setBuyTargetValue(30);
-      setSellIndicator('RSI'); setSellOperator('greaterThan'); setSellTargetType('value'); setSellTargetValue(70);
+      setBuyConditions([{ indicator: 'RSI', operator: 'lessThan', targetType: 'value', targetValue: 30, targetIndicator: 'SMA20' }]);
+      setBuyLogicGate('AND');
+      setSellConditions([{ indicator: 'RSI', operator: 'greaterThan', targetType: 'value', targetValue: 70, targetIndicator: 'SMA20' }]);
+      setSellLogicGate('AND');
       setStopLossPct(1.5); setTakeProfitPct(3.0); setTrendFilter(false);
     } else if (presetType === 'intraday_trend_rider') {
       // Intraday Trend Rider (Momentum Alignment: Buy above SMA50, trigger on SMA20 crosses)
       setChartInterval('5m'); setTimeRange('5d'); setTradeDirection('long');
-      setBuyIndicator('Price'); setBuyOperator('crossesAbove'); setBuyTargetType('indicator'); setBuyTargetIndicator('SMA20');
-      setSellIndicator('Price'); setSellOperator('crossesBelow'); setSellTargetType('indicator'); setSellTargetIndicator('SMA20');
+      setBuyConditions([{ indicator: 'Price', operator: 'crossesAbove', targetType: 'indicator', targetValue: 0, targetIndicator: 'SMA20' }]);
+      setBuyLogicGate('AND');
+      setSellConditions([{ indicator: 'Price', operator: 'crossesBelow', targetType: 'indicator', targetValue: 0, targetIndicator: 'SMA20' }]);
+      setSellLogicGate('AND');
       setStopLossPct(2.0); setTakeProfitPct(5.0); setTrendFilter(true); // Must align with SMA50
     } else if (presetType === 'intraday_short_scalp') {
       // Short Seller Scalper (Counter-Trend shorting in Downtrends)
       setChartInterval('5m'); setTimeRange('5d'); setTradeDirection('short');
       // For short: entry rule is Sell rule (RSI overbought), exit rule is Buy rule (RSI oversold)
-      setBuyIndicator('RSI'); setBuyOperator('lessThan'); setBuyTargetType('value'); setBuyTargetValue(30);
-      setSellIndicator('RSI'); setSellOperator('greaterThan'); setSellTargetType('value'); setSellTargetValue(70);
+      setBuyConditions([{ indicator: 'RSI', operator: 'lessThan', targetType: 'value', targetValue: 30, targetIndicator: 'SMA20' }]);
+      setBuyLogicGate('AND');
+      setSellConditions([{ indicator: 'RSI', operator: 'greaterThan', targetType: 'value', targetValue: 70, targetIndicator: 'SMA20' }]);
+      setSellLogicGate('AND');
       setStopLossPct(1.5); setTakeProfitPct(3.0); setTrendFilter(true); // Short only if Price < SMA50
     }
   };
@@ -770,9 +1130,8 @@ export default function StockDetail() {
               </div>
             </div>
 
-            {/* Price Graph Canvas */}
-            {history.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'none' }}>
+              <div>
                 
                 {/* 1. Candlestick Chart */}
                 <div style={{ position: 'relative' }}>
@@ -1014,10 +1373,32 @@ export default function StockDetail() {
                     )}
                   </svg>
                 </div>
+              </div>
+            </div>
 
+            {/* Price Graph Canvas - TradingView Lightweight Charts */}
+            {history.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(10, 14, 39, 0.2)', borderRadius: '12px', padding: '12px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                {/* Candlestick & SMA Chart container */}
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: '8px', left: '12px', zIndex: 10, display: 'flex', gap: '16px', pointerEvents: 'none' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#ffffff' }}>Price Plot</span>
+                    <span style={{ fontSize: '10px', color: '#00bcd4', fontWeight: '700' }}>SMA 20</span>
+                    <span style={{ fontSize: '10px', color: '#ffb300', fontWeight: '700' }}>SMA 50</span>
+                  </div>
+                  <div ref={priceChartContainerRef} style={{ width: '100%', height: '280px' }} />
+                </div>
+
+                {/* RSI Chart container */}
+                <div style={{ position: 'relative', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                  <div style={{ position: 'absolute', top: '16px', left: '12px', zIndex: 10, pointerEvents: 'none' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#e040fb' }}>RSI Oscillator (14)</span>
+                  </div>
+                  <div ref={rsiChartContainerRef} style={{ width: '100%', height: '110px' }} />
+                </div>
               </div>
             ) : (
-              <div style={{ height: svgHeight, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+              <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
                 No historical data available.
               </div>
             )}
@@ -1160,129 +1541,249 @@ export default function StockDetail() {
               </div>
             </div>
 
-            {/* Buy condition builder */}
-            <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#00ff88', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#00ff88' }}></span>
-                Buy Trigger Setup
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                <select 
-                  value={buyIndicator} 
-                  onChange={(e) => setBuyIndicator(e.target.value)}
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px' }}
-                >
-                  <option value="RSI">RSI (Relative Strength)</option>
-                  <option value="Price">Close Price</option>
-                  <option value="SMA20">SMA 20</option>
-                  <option value="SMA50">SMA 50</option>
-                </select>
-
-                <select 
-                  value={buyOperator} 
-                  onChange={(e) => setBuyOperator(e.target.value)}
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px' }}
-                >
-                  <option value="lessThan">is Less Than</option>
-                  <option value="greaterThan">is Greater Than</option>
-                  <option value="crossesBelow">Crosses Below</option>
-                  <option value="crossesAbove">Crosses Above</option>
-                </select>
-
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <select
-                    value={buyTargetType}
-                    onChange={(e) => setBuyTargetType(e.target.value)}
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px', flex: 1 }}
-                  >
-                    <option value="value">Value</option>
-                    <option value="indicator">Indicator</option>
-                  </select>
-
-                  {buyTargetType === 'value' ? (
-                    <input 
-                      type="number" 
-                      value={buyTargetValue}
-                      onChange={(e) => setBuyTargetValue(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px', width: '70px' }}
-                    />
-                  ) : (
-                    <select
-                      value={buyTargetIndicator}
-                      onChange={(e) => setBuyTargetIndicator(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px', flex: 1 }}
-                    >
-                      <option value="Price">Close Price</option>
-                      <option value="SMA20">SMA 20</option>
-                      <option value="SMA50">SMA 50</option>
-                      <option value="RSI">RSI</option>
-                    </select>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Sell condition builder */}
-            <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#ff4444', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#ff4444' }}></span>
-                Sell Trigger Setup
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                <select 
-                  value={sellIndicator} 
-                  onChange={(e) => setSellIndicator(e.target.value)}
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px' }}
-                >
-                  <option value="RSI">RSI (Relative Strength)</option>
-                  <option value="Price">Close Price</option>
-                  <option value="SMA20">SMA 20</option>
-                  <option value="SMA50">SMA 50</option>
-                </select>
-
-                <select 
-                  value={sellOperator} 
-                  onChange={(e) => setSellOperator(e.target.value)}
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px' }}
-                >
-                  <option value="greaterThan">is Greater Than</option>
-                  <option value="lessThan">is Less Than</option>
-                  <option value="crossesAbove">Crosses Above</option>
-                  <option value="crossesBelow">Crosses Below</option>
-                </select>
-
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <select
-                    value={sellTargetType}
-                    onChange={(e) => setSellTargetType(e.target.value)}
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px', flex: 1 }}
-                  >
-                    <option value="value">Value</option>
-                    <option value="indicator">Indicator</option>
-                  </select>
-
-                  {sellTargetType === 'value' ? (
-                    <input 
-                      type="number" 
-                      value={sellTargetValue}
-                      onChange={(e) => setSellTargetValue(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px', width: '70px' }}
-                    />
-                  ) : (
-                    <select
-                      value={sellTargetIndicator}
-                      onChange={(e) => setSellTargetIndicator(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '6px', borderRadius: '4px', color: '#ffffff', fontSize: '12px', flex: 1 }}
-                    >
-                      <option value="Price">Close Price</option>
-                      <option value="SMA20">SMA 20</option>
-                      <option value="SMA50">SMA 50</option>
-                      <option value="RSI">RSI</option>
-                    </select>
-                  )}
-                </div>
-              </div>
-            </div>
+             {/* Compound Buy condition builder */}
+             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                 <span style={{ fontSize: '11px', fontWeight: '800', color: '#00ff88', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                   <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#00ff88' }}></span>
+                   Buy Setup
+                 </span>
+                 {buyConditions.length > 1 && (
+                   <select
+                     value={buyLogicGate}
+                     onChange={(e) => setBuyLogicGate(e.target.value)}
+                     style={{ background: 'rgba(0, 255, 136, 0.15)', border: '1px solid rgba(0, 255, 136, 0.3)', padding: '2px 6px', borderRadius: '4px', color: '#00ff88', fontSize: '9px', fontWeight: '800', outline: 'none' }}
+                   >
+                     <option value="AND" style={{ background: '#0a0e27', color: '#ffffff' }}>ALL (AND)</option>
+                     <option value="OR" style={{ background: '#0a0e27', color: '#ffffff' }}>ANY (OR)</option>
+                   </select>
+                 )}
+               </div>
+ 
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                 {buyConditions.map((cond, index) => (
+                   <div key={index} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '8px', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>Rule #{index + 1}</span>
+                       {buyConditions.length > 1 && (
+                         <button
+                           onClick={() => {
+                             const newConds = [...buyConditions];
+                             newConds.splice(index, 1);
+                             setBuyConditions(newConds);
+                           }}
+                           style={{ background: 'none', border: 'none', color: '#ff4444', fontSize: '10px', cursor: 'pointer', padding: 0 }}
+                         >
+                           Remove
+                         </button>
+                       )}
+                     </div>
+ 
+                     <select
+                       value={cond.indicator}
+                       onChange={(e) => {
+                         const newConds = [...buyConditions];
+                         newConds[index].indicator = e.target.value;
+                         setBuyConditions(newConds);
+                       }}
+                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                     >
+                       <option value="RSI">RSI (Relative Strength)</option>
+                       <option value="Price">Close Price</option>
+                       <option value="SMA20">SMA 20</option>
+                       <option value="SMA50">SMA 50</option>
+                     </select>
+ 
+                     <select
+                       value={cond.operator}
+                       onChange={(e) => {
+                         const newConds = [...buyConditions];
+                         newConds[index].operator = e.target.value;
+                         setBuyConditions(newConds);
+                       }}
+                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                     >
+                       <option value="lessThan">is Less Than</option>
+                       <option value="greaterThan">is Greater Than</option>
+                       <option value="crossesBelow">Crosses Below</option>
+                       <option value="crossesAbove">Crosses Above</option>
+                     </select>
+ 
+                     <div style={{ display: 'flex', gap: '6px' }}>
+                       <select
+                         value={cond.targetType}
+                         onChange={(e) => {
+                           const newConds = [...buyConditions];
+                           newConds[index].targetType = e.target.value;
+                           setBuyConditions(newConds);
+                         }}
+                         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', flex: 1, outline: 'none' }}
+                       >
+                         <option value="value">Value</option>
+                         <option value="indicator">Indicator</option>
+                       </select>
+ 
+                       {cond.targetType === 'value' ? (
+                         <input
+                           type="number"
+                           value={cond.targetValue}
+                           onChange={(e) => {
+                             const newConds = [...buyConditions];
+                             newConds[index].targetValue = parseFloat(e.target.value) || 0;
+                             setBuyConditions(newConds);
+                           }}
+                           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', width: '60px', outline: 'none' }}
+                         />
+                       ) : (
+                         <select
+                           value={cond.targetIndicator}
+                           onChange={(e) => {
+                             const newConds = [...buyConditions];
+                             newConds[index].targetIndicator = e.target.value;
+                             setBuyConditions(newConds);
+                           }}
+                           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', flex: 1, outline: 'none' }}
+                         >
+                           <option value="Price">Close Price</option>
+                           <option value="SMA20">SMA 20</option>
+                           <option value="SMA50">SMA 50</option>
+                           <option value="RSI">RSI</option>
+                         </select>
+                       )}
+                     </div>
+                   </div>
+                 ))}
+ 
+                 <button
+                   onClick={() => setBuyConditions([...buyConditions, { indicator: 'RSI', operator: 'lessThan', targetType: 'value', targetValue: 35, targetIndicator: 'SMA20' }])}
+                   style={{ background: 'rgba(0, 255, 136, 0.08)', border: '1px dashed rgba(0, 255, 136, 0.3)', padding: '6px', borderRadius: '6px', color: '#00ff88', fontSize: '10px', fontWeight: '700', cursor: 'pointer', transition: '0.2s' }}
+                 >
+                   + Add Buy Condition
+                 </button>
+               </div>
+             </div>
+ 
+             {/* Compound Sell condition builder */}
+             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                 <span style={{ fontSize: '11px', fontWeight: '800', color: '#ff4444', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                   <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#ff4444' }}></span>
+                   Sell Setup
+                 </span>
+                 {sellConditions.length > 1 && (
+                   <select
+                     value={sellLogicGate}
+                     onChange={(e) => setSellLogicGate(e.target.value)}
+                     style={{ background: 'rgba(255, 68, 68, 0.15)', border: '1px solid rgba(255, 68, 68, 0.3)', padding: '2px 6px', borderRadius: '4px', color: '#ff4444', fontSize: '9px', fontWeight: '800', outline: 'none' }}
+                   >
+                     <option value="AND" style={{ background: '#0a0e27', color: '#ffffff' }}>ALL (AND)</option>
+                     <option value="OR" style={{ background: '#0a0e27', color: '#ffffff' }}>ANY (OR)</option>
+                   </select>
+                 )}
+               </div>
+ 
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                 {sellConditions.map((cond, index) => (
+                   <div key={index} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '8px', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>Rule #{index + 1}</span>
+                       {sellConditions.length > 1 && (
+                         <button
+                           onClick={() => {
+                             const newConds = [...sellConditions];
+                             newConds.splice(index, 1);
+                             setSellConditions(newConds);
+                           }}
+                           style={{ background: 'none', border: 'none', color: '#ff4444', fontSize: '10px', cursor: 'pointer', padding: 0 }}
+                         >
+                           Remove
+                         </button>
+                       )}
+                     </div>
+ 
+                     <select
+                       value={cond.indicator}
+                       onChange={(e) => {
+                         const newConds = [...sellConditions];
+                         newConds[index].indicator = e.target.value;
+                         setSellConditions(newConds);
+                       }}
+                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                     >
+                       <option value="RSI">RSI (Relative Strength)</option>
+                       <option value="Price">Close Price</option>
+                       <option value="SMA20">SMA 20</option>
+                       <option value="SMA50">SMA 50</option>
+                     </select>
+ 
+                     <select
+                       value={cond.operator}
+                       onChange={(e) => {
+                         const newConds = [...sellConditions];
+                         newConds[index].operator = e.target.value;
+                         setSellConditions(newConds);
+                       }}
+                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                     >
+                       <option value="greaterThan">is Greater Than</option>
+                       <option value="lessThan">is Less Than</option>
+                       <option value="crossesAbove">Crosses Above</option>
+                       <option value="crossesBelow">Crosses Below</option>
+                     </select>
+ 
+                     <div style={{ display: 'flex', gap: '6px' }}>
+                       <select
+                         value={cond.targetType}
+                         onChange={(e) => {
+                           const newConds = [...sellConditions];
+                           newConds[index].targetType = e.target.value;
+                           setSellConditions(newConds);
+                         }}
+                         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', flex: 1, outline: 'none' }}
+                       >
+                         <option value="value">Value</option>
+                         <option value="indicator">Indicator</option>
+                       </select>
+ 
+                       {cond.targetType === 'value' ? (
+                         <input
+                           type="number"
+                           value={cond.targetValue}
+                           onChange={(e) => {
+                             const newConds = [...sellConditions];
+                             newConds[index].targetValue = parseFloat(e.target.value) || 0;
+                             setSellConditions(newConds);
+                           }}
+                           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', width: '60px', outline: 'none' }}
+                         />
+                       ) : (
+                         <select
+                           value={cond.targetIndicator}
+                           onChange={(e) => {
+                             const newConds = [...sellConditions];
+                             newConds[index].targetIndicator = e.target.value;
+                             setSellConditions(newConds);
+                           }}
+                           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '4px 6px', borderRadius: '4px', color: '#ffffff', fontSize: '11px', flex: 1, outline: 'none' }}
+                         >
+                           <option value="Price">Close Price</option>
+                           <option value="SMA20">SMA 20</option>
+                           <option value="SMA50">SMA 50</option>
+                           <option value="RSI">RSI</option>
+                         </select>
+                       )}
+                     </div>
+                   </div>
+                 ))}
+ 
+                 <button
+                   onClick={() => setSellConditions([...sellConditions, { indicator: 'RSI', operator: 'greaterThan', targetType: 'value', targetValue: 65, targetIndicator: 'SMA20' }])}
+                   style={{ background: 'rgba(255, 68, 68, 0.08)', border: '1px dashed rgba(255, 68, 68, 0.3)', padding: '6px', borderRadius: '6px', color: '#ff4444', fontSize: '10px', fontWeight: '700', cursor: 'pointer', transition: '0.2s' }}
+                 >
+                   + Add Sell Condition
+                 </button>
+               </div>
+             </div>
 
             {/* Risk & Trend Management Section */}
             <div>
@@ -1336,10 +1837,123 @@ export default function StockDetail() {
             padding: '24px',
             marginBottom: '24px'
           }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Award size={18} style={{ color: '#ffb300' }} />
-              Backtest Performance Card ({timeRange === '1mo' ? '1-Month' : timeRange === '3mo' ? '3-Month' : timeRange === '6mo' ? '6-Month' : '1-Year'} Simulation)
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Award size={18} style={{ color: '#ffb300' }} />
+                Backtest Performance Card ({timeRange === '1mo' ? '1-Month' : timeRange === '3mo' ? '3-Month' : timeRange === '6mo' ? '6-Month' : '1-Year'} Simulation)
+              </h3>
+              <button
+                onClick={runStrategyOptimizer}
+                disabled={optimizing}
+                style={{
+                  background: 'linear-gradient(135deg, #ffb300 0%, #ff8f00 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#000000',
+                  padding: '8px 16px',
+                  fontSize: '12px',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 14px rgba(255, 179, 0, 0.3)',
+                  transition: '0.2s',
+                  opacity: optimizing ? 0.7 : 1,
+                }}
+              >
+                {optimizing ? (
+                  <>
+                    <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                    Sweeping Parameters...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={14} />
+                    Auto-Optimize Setup
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Optimization Suggestions Panel */}
+            {optimizationResult && (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255, 179, 0, 0.05) 0%, rgba(10, 14, 39, 0.8) 100%)',
+                border: '1px solid rgba(255, 179, 0, 0.25)',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <h4 style={{ fontSize: '13px', fontWeight: '800', color: '#ffb300', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Sparkles size={14} style={{ color: '#ffb300' }} />
+                      Optimizer Parameter Sweeper Suggestions
+                    </h4>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '11px', margin: '4px 0 0 0' }}>
+                      Simulated 112 parameter combinations to find the best configuration matching your rules.
+                    </p>
+                  </div>
+                  {optimizationResult.noResult ? (
+                    <span style={{ fontSize: '11px', color: '#ff4444', fontWeight: '700' }}>No setups found</span>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setStopLossPct(optimizationResult.stopLoss);
+                        setTakeProfitPct(optimizationResult.takeProfit);
+                        setTrendFilter(optimizationResult.trendFilter);
+                      }}
+                      style={{
+                        background: 'rgba(255, 179, 0, 0.15)',
+                        border: '1px solid rgba(255, 179, 0, 0.3)',
+                        borderRadius: '6px',
+                        color: '#ffb300',
+                        padding: '6px 12px',
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        cursor: 'pointer',
+                        transition: '0.2s',
+                      }}
+                    >
+                      Apply Optimization
+                    </button>
+                  )}
+                </div>
+
+                {!optimizationResult.noResult && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px' }}>
+                    <div>
+                      <span style={{ fontSize: '9px', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block' }}>Stop Loss Suggestion</span>
+                      <span style={{ fontSize: '14px', fontWeight: '800', color: '#ffffff' }}>
+                        {optimizationResult.stopLoss > 0 ? `${optimizationResult.stopLoss}%` : 'Disabled'}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '9px', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block' }}>Take Profit Suggestion</span>
+                      <span style={{ fontSize: '14px', fontWeight: '800', color: '#ffffff' }}>
+                        {optimizationResult.takeProfit > 0 ? `${optimizationResult.takeProfit}%` : 'Disabled'}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '9px', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block' }}>Trend Filter Suggestion</span>
+                      <span style={{ fontSize: '14px', fontWeight: '800', color: '#ffffff' }}>
+                        {optimizationResult.trendFilter ? 'Enabled (SMA50)' : 'Disabled'}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '9px', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block' }}>Projected Net Return</span>
+                      <span style={{ fontSize: '14px', fontWeight: '800', color: '#00ff88' }}>
+                        +{optimizationResult.netReturn.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
               
