@@ -46,9 +46,16 @@ export default function StockDetail() {
       script.async = true;
       script.onload = () => {
         if (tvContainerRef.current) {
+          const cleanSymbol = symbol.replace('.NS', '').toUpperCase();
+          const tvSymbol = cleanSymbol === '^NSEI' || cleanSymbol === 'NSEI'
+            ? 'NSE:NIFTY'
+            : cleanSymbol === '^NSEBANK' || cleanSymbol === 'NSEBANK'
+            ? 'NSE:BANKNIFTY'
+            : `NSE:${cleanSymbol}`;
+
           new window.TradingView.widget({
             container_id: tvContainerRef.current.id,
-            symbol: `NSE:${symbol}`,
+            symbol: tvSymbol,
             interval: 'D',
             timezone: 'Asia/Kolkata',
             theme: 'dark',
