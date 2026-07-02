@@ -16,7 +16,8 @@ import {
   Moon, 
   LogOut,
   X,
-  Activity
+  Activity,
+  Compass
 } from 'lucide-react';
 
 export default function Sidebar({ isMobile, isOpen, onClose }) {
@@ -27,6 +28,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
     { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={16} /> },
     { path: '/fno', label: 'Futures & Options', icon: <Activity size={16} /> },
+    { path: '/sector-rotation', label: 'Sector Rotation', icon: <Compass size={16} /> },
     { path: '/screener', label: 'Screener', icon: <Search size={16} /> },
     { path: '/watchlist', label: 'Watchlist', icon: <Star size={16} /> },
     { path: '/portfolio', label: 'Portfolio', icon: <Briefcase size={16} /> },

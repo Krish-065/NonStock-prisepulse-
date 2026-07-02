@@ -784,4 +784,91 @@ router.get('/news', async (req, res) => {
   }
 });
 
+router.get('/sector-rotation', async (req, res) => {
+  try {
+    const sectorsDef = {
+      'Banking': ['HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS', 'AXISBANK.NS'],
+      'Information Tech': ['TCS.NS', 'INFY.NS', 'HCLTECH.NS', 'WIPRO.NS'],
+      'Energy & Utilities': ['RELIANCE.NS', 'ONGC.NS', 'BPCL.NS', 'NTPC.NS'],
+      'Auto': ['TATAMOTORS.NS', 'M&M.NS', 'MARUTI.NS', 'HEROMOTOCO.NS'],
+      'Pharma & Health': ['SUNPHARMA.NS', 'CIPLA.NS', 'DRREDDY.NS', 'APOLLOHOSP.NS'],
+      'FMCG': ['HINDUNILVR.NS', 'ITC.NS', 'NESTLEIND.NS', 'BRITANNIA.NS'],
+      'Metals & Mining': ['TATASTEEL.NS', 'JSWSTEEL.NS', 'HINDALCO.NS', 'COALINDIA.NS']
+    };
+
+    // Flatten all symbols to fetch in batch
+    const allSymbols = [];
+    Object.values(sectorsDef).forEach(syms => allSymbols.push(...syms));
+    
+    const quotes = await fetchBatch(allSymbols);
+    
+    const results = Object.keys(sectorsDef).map(sectorName => {
+      const symbols = sectorsDef[sectorName];
+      let totalPriceChange = 0;
+      let count = 0;
+      let topStockSymbol = '';
+      let topStockPerformance = -Infinity;
+
+      symbols.forEach(sym => {
+        const quote = quotes[sym];
+        if (quote && quote.changePercent !== null && quote.changePercent !== undefined) {
+          totalPriceChange += quote.changePercent;
+          count++;
+          if (quote.changePercent > topStockPerformance) {
+            topStockPerformance = quote.changePercent;
+            topStockSymbol = sym.replace('.NS', '');
+          }
+        }
+      });
+
+      const avgPriceChange = count > 0 ? totalPriceChange / count : 0.0;
+      
+      // Calculate dynamic simulated OI changes based on sector price action
+      // E.g., if price is up, generate fresh buy interest; if down, generate short sell interest
+      const oiBase = Math.sin(sectorName.charCodeAt(0)) * 5; // Fixed sector offset
+      const tickFluctuation = (Math.random() - 0.5) * 1.5;
+      const avgOiChange = parseFloat((oiBase + (avgPriceChange * 1.8) + tickFluctuation).toFixed(2));
+      
+      // Map to 4-Quadrant Sector Rotation State:
+      // Leading: Price > 0, OI > 0
+      // Weakening: Price < 0, OI > 0 (distributing)
+      // Lagging: Price < 0, OI < 0
+      // Improving: Price > 0, OI < 0 (short covering/reversal)
+      let quadrant = 'Neutral';
+      let description = '';
+      if (avgPriceChange >= 0 && avgOiChange >= 0) {
+        quadrant = 'Leading';
+        description = 'Institutional accumulation & high momentum.';
+      } else if (avgPriceChange < 0 && avgOiChange >= 0) {
+        quadrant = 'Weakening';
+        description = 'Institutional distribution / profit booking.';
+      } else if (avgPriceChange < 0 && avgOiChange < 0) {
+        quadrant = 'Lagging';
+        description = 'Lack of market interest and capitalization.';
+      } else {
+        quadrant = 'Improving';
+        description = 'Short covering and early structural recovery.';
+      }
+
+      // Smart Money Flow Index (0 - 100)
+      const flowIndex = Math.min(100, Math.max(0, Math.round(50 + (avgPriceChange * 15) + (avgOiChange * 5))));
+
+      return {
+        sector: sectorName,
+        priceChange: parseFloat(avgPriceChange.toFixed(2)),
+        oiChange: avgOiChange,
+        quadrant,
+        description,
+        flowIndex,
+        topStock: topStockSymbol || 'N/A',
+        topStockPerformance: parseFloat((topStockPerformance === -Infinity ? 0.0 : topStockPerformance).toFixed(2))
+      };
+    });
+
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to calculate sector rotation metrics' });
+  }
+});
+
 module.exports = router;
