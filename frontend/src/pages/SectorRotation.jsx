@@ -10,6 +10,7 @@ export default function SectorRotation() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedSector, setSelectedSector] = useState(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   // Sector stock components mapping for detailed breakdown
   const sectorComponents = {
@@ -147,6 +148,27 @@ export default function SectorRotation() {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => setShowGuide(!showGuide)}
+            style={{
+              padding: '8px 16px',
+              background: showGuide ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+              border: showGuide ? '1px solid #00ff88' : '1px solid var(--border-color)',
+              borderRadius: '8px',
+              color: showGuide ? '#00ff88' : 'var(--text-primary)',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: '0.2s'
+            }}
+          >
+            <Info size={14} />
+            {showGuide ? 'Hide Guide' : 'How it Works'}
+          </button>
+
           <span style={{ fontSize: '11px', color: refreshing ? '#00ff88' : 'var(--text-secondary)', transition: '0.2s' }}>
             {refreshing ? 'Refreshing quote engine...' : 'Live auto-updating (15s)'}
           </span>
@@ -172,6 +194,74 @@ export default function SectorRotation() {
           </button>
         </div>
       </div>
+
+      {/* Educational User Guide Drawer */}
+      {showGuide && (
+        <div style={{
+          background: 'var(--bg-card-glass)',
+          border: '1px solid rgba(0, 255, 136, 0.25)',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '24px',
+          animation: 'slideDown 0.3s ease-out',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <Compass size={20} style={{ color: '#00ff88' }} />
+            Guide: How to Use the Sector Rotation Matrix
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', marginBottom: '20px' }}>
+            Sector Rotation is the movement of institutional capital ("Smart Money") from one industry to another to maximize profit as the economic cycle develops. This matrix tracks price changes against open interest (OI) changes to determine which quadrant a sector belongs in:
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+            
+            <div style={{ background: 'rgba(0, 255, 136, 0.03)', border: '1px solid rgba(0, 255, 136, 0.15)', borderRadius: '10px', padding: '16px' }}>
+              <h4 style={{ color: '#00ff88', fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>🟢 Leading Quadrant</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: '1.5' }}>
+                <strong>Price is Up & Open Interest is Up.</strong> Indicates active institutional buying and contract accumulation. These sectors are driving the market's uptrend.
+              </p>
+            </div>
+
+            <div style={{ background: 'rgba(255, 179, 0, 0.03)', border: '1px solid rgba(255, 179, 0, 0.15)', borderRadius: '10px', padding: '16px' }}>
+              <h4 style={{ color: '#ffb300', fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>🟡 Weakening Quadrant</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: '1.5' }}>
+                <strong>Price is Down but Open Interest is Up.</strong> Signals institutional distribution. Large players are opening short positions or quietly unloading shares onto retail buyers.
+              </p>
+            </div>
+
+            <div style={{ background: 'rgba(255, 68, 68, 0.03)', border: '1px solid rgba(255, 68, 68, 0.15)', borderRadius: '10px', padding: '16px' }}>
+              <h4 style={{ color: '#ff4444', fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>🔴 Lagging Quadrant</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: '1.5' }}>
+                <strong>Price is Down & Open Interest is Down.</strong> Indicates institutional abandonment. Traders are closing contracts (long unwinding), leading to listless trading.
+              </p>
+            </div>
+
+            <div style={{ background: 'rgba(0, 188, 212, 0.03)', border: '1px solid rgba(0, 188, 212, 0.15)', borderRadius: '10px', padding: '16px' }}>
+              <h4 style={{ color: '#00bcd4', fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>🔵 Improving Quadrant</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: '1.5' }}>
+                <strong>Price is Up but Open Interest is Down.</strong> Typically represents short covering. Sellers are closing their trades to cut losses, pushing the price up. This is the early stage of structural recovery.
+              </p>
+            </div>
+
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={16} style={{ color: '#ffb300' }} />
+            <span style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '600' }}>Pro Trading Strategy:</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              Buy the top outperforming stocks (starred in the sidebar) when their sector enters the <strong>Leading</strong> quadrant, and hedge/exit when the sector slips into <strong>Weakening</strong> or <strong>Lagging</strong> quadrants.
+            </span>
+          </div>
+
+          <style>{`
+            @keyframes slideDown {
+              from { opacity: 0; transform: translateY(-10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
+        </div>
+      )}
 
       {/* Main Split Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
