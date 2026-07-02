@@ -469,7 +469,18 @@ router.get('/search/:query', async (req, res) => {
     const data = await response.json();
     const quotes = data.quotes || [];
     const stocks = quotes
-      .filter(q => ['EQUITY', 'INDEX', 'CURRENCY', 'CRYPTOCURRENCY', 'ETF', 'MUTUALFUND'].includes(q.quoteType))
+      // ─── ONLY allow Indian Equities, Indices and ETFs in stock search ───
+      // Crypto (CRYPTOCURRENCY), Forex (CURRENCY), US stocks etc. are excluded.
+      // Crypto is available on the dedicated /crypto page.
+      .filter(q => ['EQUITY', 'INDEX', 'ETF', 'MUTUALFUND'].includes(q.quoteType))
+      // Further filter: only NSE/BSE listed instruments (exchange codes)
+      .filter(q => {
+        const ex = (q.exchange || '').toUpperCase();
+        // Allow NSE, BSE, and Indian mutual fund exchanges. Block NYSE, NASDAQ, crypto etc.
+        return ['NSI', 'BSE', 'NSE', 'BOM'].includes(ex) ||
+               ex.startsWith('NS') ||
+               ex.startsWith('BO');
+      })
       .slice(0, 15)
       .map(q => ({
         symbol: q.symbol,
@@ -874,9 +885,24 @@ router.get('/sector-rotation', async (req, res) => {
 router.get('/stock-history/:symbol', async (req, res) => {
   try {
     let symbol = req.params.symbol.toUpperCase();
-    if (!symbol.endsWith('.NS') && symbol !== '^NSEI' && symbol !== '^BSESN' && symbol !== '^NSEBANK' && symbol !== '^CNXIT') {
+
+    // ─── Smart Symbol Resolver ───
+    // Do NOT blindly append .NS — only do so for real Indian equity tickers
+    const isIndex = symbol.startsWith('^') ||
+                    ['NSEI', 'BSESN', 'NSEBANK', 'CNXIT', 'NIFTY', 'SENSEX', 'BANKNIFTY'].includes(symbol);
+    const isCrypto = symbol.endsWith('-USD') || symbol.endsWith('-USDT') ||
+                     ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'SHIB', 'AVAX', 'TRX'].includes(symbol);
+    const isForex  = symbol.endsWith('=X') || symbol.includes('USD') || symbol.includes('INR') && !symbol.endsWith('.NS');
+    const alreadySuffixed = symbol.includes('.') || symbol.includes('=') || symbol.includes('-');
+
+    if (isCrypto && !alreadySuffixed) {
+      // e.g. BTC → BTC-USD (Yahoo Finance format for crypto)
+      symbol = `${symbol}-USD`;
+    } else if (!isIndex && !isCrypto && !isForex && !alreadySuffixed) {
+      // Plain Indian equity ticker → append .NS
       symbol = `${symbol}.NS`;
     }
+
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=3mo&interval=1d`;
     const response = await fetch(url, { headers: YAHOO_HEADERS });
     if (!response.ok) {
@@ -889,21 +915,21 @@ router.get('/stock-history/:symbol', async (req, res) => {
     }
     const timestamps = result.timestamp || [];
     const quotes = result.indicators?.quote?.[0] || {};
-    const opens = quotes.open || [];
-    const highs = quotes.high || [];
-    const lows = quotes.low || [];
-    const closes = quotes.close || [];
+    const opens   = quotes.open   || [];
+    const highs   = quotes.high   || [];
+    const lows    = quotes.low    || [];
+    const closes  = quotes.close  || [];
     const volumes = quotes.volume || [];
 
     const history = [];
     for (let i = 0; i < timestamps.length; i++) {
       if (opens[i] !== null && closes[i] !== null) {
         history.push({
-          time: timestamps[i] * 1000, // JavaScript time in ms
-          open: parseFloat(opens[i].toFixed(2)),
-          high: parseFloat(highs[i].toFixed(2)),
-          low: parseFloat(lows[i].toFixed(2)),
-          close: parseFloat(closes[i].toFixed(2)),
+          time:   timestamps[i] * 1000,
+          open:   parseFloat(opens[i].toFixed(2)),
+          high:   parseFloat(highs[i].toFixed(2)),
+          low:    parseFloat(lows[i].toFixed(2)),
+          close:  parseFloat(closes[i].toFixed(2)),
           volume: Math.round(volumes[i] || 0)
         });
       }

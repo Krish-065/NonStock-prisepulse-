@@ -40,6 +40,38 @@ export default function StockDetail() {
   // Interactive Hover Crosshair
   const [hoverIndex, setHoverIndex] = useState(null);
 
+  // ─── Smart TradingView Symbol Resolver ───
+  // Maps Yahoo Finance symbols to correct TradingView exchange:ticker format
+  const resolveTVSymbol = (rawSymbol) => {
+    const s = rawSymbol.replace('.NS', '').replace('.BO', '').toUpperCase();
+
+    // Indian Indices
+    if (s === '^NSEI' || s === 'NSEI' || s === 'NIFTY' || s === 'NIFTY50') return 'NSE:NIFTY';
+    if (s === '^BSESN' || s === 'BSESN' || s === 'SENSEX') return 'BSE:SENSEX';
+    if (s === '^NSEBANK' || s === 'NSEBANK' || s === 'BANKNIFTY') return 'NSE:BANKNIFTY';
+    if (s === '^CNXIT' || s === 'CNXIT' || s === 'NIFTYIT') return 'NSE:CNXIT';
+
+    // Crypto — map to Binance for best coverage
+    const cryptoMap = {
+      'BTC': 'BINANCE:BTCUSDT', 'ETH': 'BINANCE:ETHUSDT',
+      'BNB': 'BINANCE:BNBUSDT', 'SOL': 'BINANCE:SOLUSDT',
+      'XRP': 'BINANCE:XRPUSDT', 'DOGE': 'BINANCE:DOGEUSDT',
+      'ADA': 'BINANCE:ADAUSDT', 'SHIB': 'BINANCE:SHIBUSDT',
+      'AVAX': 'BINANCE:AVAXUSDT', 'TRX': 'BINANCE:TRXUSDT',
+    };
+    const cryptoBase = s.replace('-USD', '').replace('-USDT', '');
+    if (cryptoMap[cryptoBase]) return cryptoMap[cryptoBase];
+
+    // Forex — map to FX prefix
+    if (s.endsWith('=X') || s.endsWith('USD') || s.endsWith('INR')) {
+      const pair = s.replace('=X', '');
+      return `FX:${pair}`;
+    }
+
+    // Default: Indian NSE equity
+    return `NSE:${s}`;
+  };
+
   // Load TV Widget once when symbol changes
   useEffect(() => {
     const script = document.createElement('script');
@@ -47,12 +79,7 @@ export default function StockDetail() {
     script.async = true;
     script.onload = () => {
       if (tvContainerRef.current) {
-        const cleanSymbol = symbol.replace('.NS', '').toUpperCase();
-        const tvSymbol = cleanSymbol === '^NSEI' || cleanSymbol === 'NSEI'
-          ? 'NSE:NIFTY'
-          : cleanSymbol === '^NSEBANK' || cleanSymbol === 'NSEBANK'
-          ? 'NSE:BANKNIFTY'
-          : `NSE:${cleanSymbol}`;
+        const tvSymbol = resolveTVSymbol(symbol);
 
         // Clear existing widget content if any
         tvContainerRef.current.innerHTML = '';
