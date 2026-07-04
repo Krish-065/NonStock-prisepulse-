@@ -445,7 +445,8 @@ export default function Portfolio() {
       setTotp('');
       fetchPortfolio();
     } catch (err) {
-      toast.error('Broker authorization failed. Try again.');
+      const errMsg = err.response?.data?.error || err.message || 'Broker authorization failed. Try again.';
+      toast.error(errMsg);
     } finally {
       setSyncing(false);
     }
