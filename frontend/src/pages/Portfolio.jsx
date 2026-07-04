@@ -151,9 +151,11 @@ const ModalOverlay = styled.div`
   background: rgba(0, 0, 0, 0.7);
   z-index: 1000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   backdrop-filter: blur(4px);
+  overflow-y: auto;
+  padding: 40px 16px;
 `;
 
 const ModalContent = styled.div`
@@ -167,6 +169,8 @@ const ModalContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  margin: auto;
+  position: relative;
 `;
 
 const FormGroup = styled.div`
