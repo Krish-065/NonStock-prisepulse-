@@ -743,10 +743,10 @@ export default function Portfolio() {
               </FormGroup>
 
               <FormGroup>
-                <label>TOTP Token (Optional)</label>
+                <label>TOTP Token (Required for Live Accounts)</label>
                 <input 
                   type="text" 
-                  placeholder="6-digit authenticator code"
+                  placeholder="6-digit Google Authenticator code"
                   value={totp}
                   onChange={(e) => setTotp(e.target.value)}
                 />
