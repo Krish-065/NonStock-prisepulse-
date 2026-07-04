@@ -1,8 +1,37 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 import { TrendingUp, BarChart3, Search, FolderClosed, Activity, Calculator } from 'lucide-react';
+import { apiClient } from '../services/api';
 
 export default function Landing() {
+  const [stats, setStats] = useState({
+    activeUsers: '10K+',
+    dailyVolume: '₹2.4T',
+    stocksListed: '2,156',
+    uptime: '99.9%'
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await apiClient.get('/market/public-stats');
+        setStats({
+          activeUsers: res.data.activeUsers + '+',
+          dailyVolume: res.data.dailyVolume,
+          stocksListed: res.data.stocksListed.toLocaleString('en-IN'),
+          uptime: res.data.uptime
+        });
+      } catch (err) {
+        console.error('Failed to fetch public stats:', err);
+      }
+    };
+    fetchStats();
+    // Poll stats every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       <div className="market-bg"></div>
@@ -46,10 +75,10 @@ export default function Landing() {
 
           <div className="stats-section">
             {[
-              { number: '10K+', label: 'Active Users' },
-              { number: '₹2.4T', label: 'Daily Volume' },
-              { number: '2,156', label: 'Stocks Listed' },
-              { number: '99.9%', label: 'Uptime' }
+              { number: stats.activeUsers, label: 'Active Users' },
+              { number: stats.dailyVolume, label: 'Daily Volume' },
+              { number: stats.stocksListed, label: 'Stocks Listed' },
+              { number: stats.uptime, label: 'Uptime' }
             ].map((s, i) => (
               <div key={i} className="stat-item">
                 <div className="stat-number">{s.number}</div>
