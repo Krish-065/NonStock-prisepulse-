@@ -78,7 +78,7 @@ export default function StockDetail() {
   // ─── Smart TradingView Symbol Resolver ───
   // Maps Yahoo Finance symbols to correct TradingView exchange:ticker format
   const resolveTVSymbol = (rawSymbol) => {
-    const s = rawSymbol.replace('.NS', '').replace('.BO', '').toUpperCase();
+    const s = rawSymbol.toUpperCase();
 
     // Indian Indices
     if (s === '^NSEI' || s === 'NSEI' || s === 'NIFTY' || s === 'NIFTY50') return 'NSE:NIFTY';
@@ -86,7 +86,8 @@ export default function StockDetail() {
     if (s === '^NSEBANK' || s === 'NSEBANK' || s === 'BANKNIFTY') return 'NSE:BANKNIFTY';
     if (s === '^CNXIT' || s === 'CNXIT' || s === 'NIFTYIT') return 'NSE:CNXIT';
 
-    // Crypto — map to Binance for best coverage
+    // Crypto — map to Binance/Coinbase for best coverage
+    const cryptoBase = s.replace('-USD', '').replace('-USDT', '');
     const cryptoMap = {
       'BTC': 'BINANCE:BTCUSDT', 'ETH': 'BINANCE:ETHUSDT',
       'BNB': 'BINANCE:BNBUSDT', 'SOL': 'BINANCE:SOLUSDT',
@@ -94,17 +95,30 @@ export default function StockDetail() {
       'ADA': 'BINANCE:ADAUSDT', 'SHIB': 'BINANCE:SHIBUSDT',
       'AVAX': 'BINANCE:AVAXUSDT', 'TRX': 'BINANCE:TRXUSDT',
     };
-    const cryptoBase = s.replace('-USD', '').replace('-USDT', '');
     if (cryptoMap[cryptoBase]) return cryptoMap[cryptoBase];
-
-    // Forex — map to FX prefix
-    if (s.endsWith('=X') || s.endsWith('USD') || s.endsWith('INR')) {
-      const pair = s.replace('=X', '');
-      return `FX:${pair}`;
+    if (s.includes('USD') && (s.includes('-') || s.includes('USDT'))) {
+      return `BINANCE:${cryptoBase}USDT`;
     }
 
+    // Forex — map to FX prefix
+    if (s.endsWith('=X') || s.endsWith('USD') || s.endsWith('INR') || s.includes('USD') || s.includes('EUR') || s.includes('GBP')) {
+      const pair = s.replace('=X', '').replace('-', '').replace('/', '');
+      if (pair.length === 6) {
+        return `FX:${pair}`;
+      }
+    }
+
+    // US Equities
+    const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR'];
+    const cleanSym = s.replace('.NS', '').replace('.BO', '');
+    if (usTickers.includes(cleanSym)) {
+      return `NASDAQ:${cleanSym}`;
+    }
+
+    if (rawSymbol.endsWith('.BO')) return `BSE:${cleanSym}`;
+
     // Default: Indian NSE equity
-    return `NSE:${s}`;
+    return `NSE:${cleanSym}`;
   };
 
   // Load TV Widget once when symbol changes

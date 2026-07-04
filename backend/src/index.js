@@ -141,8 +141,15 @@ app.delete('/api/watchlist/:symbol', authenticate, async (req, res) => {
 
 // Portfolio
 app.get('/api/portfolio', authenticate, async (req, res) => {
-  const result = await query(`SELECT symbol, quantity, buy_price FROM portfolio_items WHERE user_id = $1`, [req.user.id]);
-  res.json({ portfolio: result.rows });
+  try {
+    const result = await query(`SELECT symbol, quantity, buy_price FROM portfolio_items WHERE user_id = $1`, [req.user.id]);
+    const userResult = await query(`SELECT connected_broker FROM users WHERE id = $1`, [req.user.id]);
+    const connectedBroker = userResult.rows[0]?.connected_broker || null;
+    res.json({ portfolio: result.rows, connectedBroker });
+  } catch (err) {
+    console.error('Fetch portfolio error:', err);
+    res.status(500).json({ error: 'Failed to fetch portfolio' });
+  }
 });
 app.post('/api/portfolio', authenticate, async (req, res) => {
   const { symbol, quantity, buyPrice } = req.body;
@@ -172,11 +179,27 @@ app.post('/api/portfolio/sync-broker', authenticate, async (req, res) => {
         [require('crypto').randomUUID(), req.user.id, nsSymbol, item.quantity, item.buyPrice]
       );
     }
+
+    // Save connection status in user record
+    await query(`UPDATE users SET connected_broker = $1 WHERE id = $2`, [broker, req.user.id]);
     
     res.json({ success: true, count: holdingsSeed.length, message: `Successfully connected with ${broker || 'Broker'}` });
   } catch (err) {
     console.error('Broker sync error:', err);
     res.status(500).json({ error: 'Failed to sync broker assets' });
+  }
+});
+app.post('/api/portfolio/disconnect-broker', authenticate, async (req, res) => {
+  try {
+    // Clear portfolio items
+    await query(`DELETE FROM portfolio_items WHERE user_id = $1`, [req.user.id]);
+    // Clear connected broker status in user table
+    await query(`UPDATE users SET connected_broker = NULL WHERE id = $1`, [req.user.id]);
+    
+    res.json({ success: true, message: 'Disconnected broker demat and cleared portfolio.' });
+  } catch (err) {
+    console.error('Broker disconnect error:', err);
+    res.status(500).json({ error: 'Failed to disconnect broker' });
   }
 });
 app.delete('/api/portfolio/:symbol', authenticate, async (req, res) => {

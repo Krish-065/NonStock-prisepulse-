@@ -54,10 +54,14 @@ export default function Screener() {
   const filtered = useMemo(() => {
     let result = [...stocks];
 
-    // Text search on symbol
+    // Text search on symbol or name
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      result = result.filter(s => s.symbol.toLowerCase().includes(q) || (s.sector || '').toLowerCase().includes(q));
+      result = result.filter(s => 
+        s.symbol.toLowerCase().includes(q) || 
+        (s.name || '').toLowerCase().includes(q) || 
+        (s.sector || '').toLowerCase().includes(q)
+      );
     }
 
     // Sector filter

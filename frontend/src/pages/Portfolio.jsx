@@ -321,6 +321,7 @@ export default function Portfolio() {
   const [totalValue, setTotalValue] = useState(0);
   const [totalInvested, setTotalInvested] = useState(0);
   const [totalProfit, setTotalProfit] = useState(0);
+  const [connectedBroker, setConnectedBroker] = useState(null);
   
   // Broker Connect Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -330,29 +331,43 @@ export default function Portfolio() {
   const [totp, setTotp] = useState('');
   const [syncing, setSyncing] = useState(false);
 
+  const handleDisconnectBroker = async () => {
+    if (!window.confirm('Are you sure you want to disconnect your broker demat? This will clear all synced assets.')) return;
+    try {
+      await apiClient.post('/portfolio/disconnect-broker');
+      toast.success('Successfully disconnected broker demat');
+      fetchPortfolio();
+    } catch (err) {
+      toast.error('Failed to disconnect broker');
+    }
+  };
+
   const fetchPortfolio = async () => {
     setLoading(true);
     try {
       const res = await apiClient.get('/portfolio');
       const items = res.data.portfolio || [];
+      setConnectedBroker(res.data.connectedBroker || null);
       const enriched = [];
       let value = 0;
       let invested = 0;
       
       for (const item of items) {
+        const qty = parseFloat(item.quantity) || 0;
+        const buyPrice = parseFloat(item.buy_price) || 0;
         try {
           const quote = await apiClient.get(`/market/stock/${item.symbol}`);
-          const currentPrice = parseFloat(quote.data.price) || item.buy_price;
-          const cost = item.quantity * item.buy_price;
-          const currentVal = item.quantity * currentPrice;
+          const currentPrice = parseFloat(quote.data.price) || buyPrice;
+          const cost = qty * buyPrice;
+          const currentVal = qty * currentPrice;
           const pnl = currentVal - cost;
           
           const meta = getStockMetadata(item.symbol);
           
           enriched.push({
             symbol: item.symbol,
-            quantity: item.quantity,
-            buyPrice: item.buy_price,
+            quantity: qty,
+            buyPrice: buyPrice,
             currentPrice,
             invested: cost,
             currentValue: currentVal,
@@ -364,13 +379,13 @@ export default function Portfolio() {
           value += currentVal;
           invested += cost;
         } catch (err) {
-          const cost = item.quantity * item.buy_price;
+          const cost = qty * buyPrice;
           const meta = getStockMetadata(item.symbol);
           enriched.push({
             symbol: item.symbol,
-            quantity: item.quantity,
-            buyPrice: item.buy_price,
-            currentPrice: item.buy_price,
+            quantity: qty,
+            buyPrice: buyPrice,
+            currentPrice: buyPrice,
             invested: cost,
             currentValue: cost,
             pnl: 0,
@@ -476,9 +491,48 @@ export default function Portfolio() {
           <Title>Portfolio Analyst & Smart Sync</Title>
           <Subtitle>Connect your demat securely in read-only mode to visualize sector rotation risk in your holdings</Subtitle>
         </div>
-        <ActionButton onClick={() => setIsModalOpen(true)}>
-          <LogIn size={16} /> Sync Broker Demat
-        </ActionButton>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {connectedBroker ? (
+            <>
+              <span style={{ 
+                background: 'rgba(0, 255, 136, 0.1)', 
+                color: '#00ff88', 
+                padding: '8px 12px', 
+                borderRadius: '8px', 
+                fontSize: '13px', 
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: '1px solid rgba(0, 255, 136, 0.2)'
+              }}>
+                <CheckCircle2 size={14} /> Linked: {connectedBroker}
+              </span>
+              <button 
+                onClick={handleDisconnectBroker}
+                style={{ 
+                  background: 'rgba(255, 51, 102, 0.1)', 
+                  border: '1px solid rgba(255, 51, 102, 0.2)', 
+                  color: '#ff3366', 
+                  padding: '8px 14px', 
+                  borderRadius: '8px', 
+                  fontSize: '13px', 
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                Disconnect Demat
+              </button>
+            </>
+          ) : (
+            <ActionButton onClick={() => setIsModalOpen(true)}>
+              <LogIn size={16} /> Sync Broker Demat
+            </ActionButton>
+          )}
+        </div>
       </Header>
 
       {/* ─── EDUCATIONAL INTRODUCTION NOTE ─── */}
@@ -680,7 +734,7 @@ export default function Portfolio() {
                 <label>MPIN / Password</label>
                 <input 
                   type="password" 
-                  placeholder="6-digit MPIN"
+                  placeholder="4 or 6-digit login PIN"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
                   required

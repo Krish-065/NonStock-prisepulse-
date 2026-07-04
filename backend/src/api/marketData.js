@@ -204,6 +204,34 @@ const STOCK_UNIVERSE = {
 
   // Miscellaneous
   'CHOLAFIN': 'NBFC', 'M&MFIN': 'NBFC', 'SUNDARMFIN': 'NBFC',
+
+  // Cryptocurrencies
+  'BTC-USD': 'Crypto',
+  'ETH-USD': 'Crypto',
+  'BNB-USD': 'Crypto',
+  'SOL-USD': 'Crypto',
+  'XRP-USD': 'Crypto',
+  'DOGE-USD': 'Crypto',
+  'ADA-USD': 'Crypto',
+  'TRX-USD': 'Crypto',
+  'AVAX-USD': 'Crypto',
+  'SHIB-USD': 'Crypto',
+  'TON-USD': 'Crypto',
+  'DOT-USD': 'Crypto',
+
+  // Forex Currency Pairs
+  'EURUSD=X': 'Forex',
+  'GBPUSD=X': 'Forex',
+  'USDJPY=X': 'Forex',
+  'AUDUSD=X': 'Forex',
+  'USDCAD=X': 'Forex',
+  'USDCHF=X': 'Forex',
+  'EURGBP=X': 'Forex',
+  'EURJPY=X': 'Forex',
+  'USDINR=X': 'Forex',
+  'EURINR=X': 'Forex',
+  'GBPINR=X': 'Forex',
+  'JPYINR=X': 'Forex',
 };
 
 const ALL_STOCKS = Object.keys(STOCK_UNIVERSE);
@@ -501,30 +529,35 @@ router.get('/ipos', (req, res) => {
 
 router.get('/search/:query', async (req, res) => {
   try {
-    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(req.params.query)}&quotesCount=20`;
+    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(req.params.query)}&quotesCount=30`;
     const response = await fetch(url, { headers: YAHOO_HEADERS });
     const data = await response.json();
     const quotes = data.quotes || [];
     const stocks = quotes
-      // ─── ONLY allow Indian Equities, Indices and ETFs in stock search ───
-      // Crypto (CRYPTOCURRENCY), Forex (CURRENCY), US stocks etc. are excluded.
-      // Crypto is available on the dedicated /crypto page.
-      .filter(q => ['EQUITY', 'INDEX', 'ETF', 'MUTUALFUND'].includes(q.quoteType))
-      // Further filter: only NSE/BSE listed instruments (exchange codes)
-      .filter(q => {
-        const ex = (q.exchange || '').toUpperCase();
-        // Allow NSE, BSE, and Indian mutual fund exchanges. Block NYSE, NASDAQ, crypto etc.
-        return ['NSI', 'BSE', 'NSE', 'BOM'].includes(ex) ||
-               ex.startsWith('NS') ||
-               ex.startsWith('BO');
-      })
-      .slice(0, 15)
-      .map(q => ({
-        symbol: q.symbol,
-        name: q.longname || q.shortname || q.symbol,
-        exchange: q.exchange,
-        type: q.quoteType
-      }));
+      // Allow equities, indices, ETFs, Mutual Funds, Cryptocurrencies, and Forex Currencies
+      .filter(q => ['EQUITY', 'INDEX', 'ETF', 'MUTUALFUND', 'CRYPTOCURRENCY', 'CURRENCY'].includes(q.quoteType))
+      .slice(0, 20)
+      .map(q => {
+        let exchangeLabel = q.exchange;
+        if (q.quoteType === 'CRYPTOCURRENCY') {
+          exchangeLabel = 'Crypto';
+        } else if (q.quoteType === 'CURRENCY') {
+          exchangeLabel = 'Forex';
+        } else if (['NYQ', 'NMS', 'NGM', 'PCX'].includes(q.exchange)) {
+          exchangeLabel = 'US Market';
+        } else if (['NSI', 'BOM', 'NSE', 'BSE'].includes(q.exchange) || (q.exchange || '').startsWith('NS') || (q.exchange || '').startsWith('BO')) {
+          exchangeLabel = q.exchange || 'NSE';
+        } else {
+          exchangeLabel = q.exchange || 'Global';
+        }
+
+        return {
+          symbol: q.symbol,
+          name: q.longname || q.shortname || q.symbol,
+          exchange: exchangeLabel,
+          type: q.quoteType
+        };
+      });
     res.json(stocks);
   } catch (err) {
     res.status(500).json([]);
@@ -542,12 +575,19 @@ router.get('/stock/:symbol', async (req, res) => {
 
   if (indexMap[fetchSymbol]) {
     fetchSymbol = indexMap[fetchSymbol];
-  } else if (!fetchSymbol.includes('.') && !fetchSymbol.includes('=') && !fetchSymbol.includes('-') && !fetchSymbol.startsWith('^')) {
-    fetchSymbol = `${fetchSymbol}.NS`;
   }
 
-  const quote = await fetchYahooQuote(fetchSymbol);
+  // Try fetching as-is first (e.g. AAPL, BTC-USD, EURUSD=X, RELIANCE.NS)
+  let quote = await fetchYahooQuote(fetchSymbol);
+  
+  // If not found and doesn't contain any dot/hyphen/equals, try appending .NS (fallback for Indian stocks typed without .NS)
+  if ((!quote || !quote.price) && !fetchSymbol.includes('.') && !fetchSymbol.includes('=') && !fetchSymbol.includes('-') && !fetchSymbol.startsWith('^')) {
+    fetchSymbol = `${fetchSymbol}.NS`;
+    quote = await fetchYahooQuote(fetchSymbol);
+  }
+
   if (!quote || !quote.price) return res.status(404).json({ error: 'Stock not found' });
+  
   res.json({
     symbol,
     fetchSymbol,
@@ -561,14 +601,47 @@ router.get('/stock/:symbol', async (req, res) => {
 });
 
 router.get('/stock-list', async (req, res) => {
-  const nsSymbols = ALL_STOCKS.map(s => `${s}.NS`);
+  const nsSymbols = ALL_STOCKS.map(s => {
+    if (s.includes('-USD') || s.endsWith('=X') || s.includes('=')) {
+      return s;
+    }
+    return `${s}.NS`;
+  });
   const fetched = await fetchBatch(nsSymbols);
   const results = [];
   for (const sym of ALL_STOCKS) {
-    const quote = fetched[`${sym}.NS`];
+    const fetchKey = (sym.includes('-USD') || sym.endsWith('=X') || sym.includes('=')) ? sym : `${sym}.NS`;
+    const quote = fetched[fetchKey];
     if (quote?.price) {
+      let name = sym;
+      if (sym === 'BTC-USD') name = 'Bitcoin USD';
+      else if (sym === 'ETH-USD') name = 'Ethereum USD';
+      else if (sym === 'BNB-USD') name = 'Binance Coin USD';
+      else if (sym === 'SOL-USD') name = 'Solana USD';
+      else if (sym === 'XRP-USD') name = 'Ripple USD';
+      else if (sym === 'DOGE-USD') name = 'Dogecoin USD';
+      else if (sym === 'ADA-USD') name = 'Cardano USD';
+      else if (sym === 'TRX-USD') name = 'TRON USD';
+      else if (sym === 'AVAX-USD') name = 'Avalanche USD';
+      else if (sym === 'SHIB-USD') name = 'Shiba Inu USD';
+      else if (sym === 'TON-USD') name = 'Toncoin USD';
+      else if (sym === 'DOT-USD') name = 'Polkadot USD';
+      else if (sym === 'EURUSD=X') name = 'EUR / USD Forex';
+      else if (sym === 'GBPUSD=X') name = 'GBP / USD Forex';
+      else if (sym === 'USDJPY=X') name = 'USD / JPY Forex';
+      else if (sym === 'AUDUSD=X') name = 'AUD / USD Forex';
+      else if (sym === 'USDCAD=X') name = 'USD / CAD Forex';
+      else if (sym === 'USDCHF=X') name = 'USD / CHF Forex';
+      else if (sym === 'EURGBP=X') name = 'EUR / GBP Forex';
+      else if (sym === 'EURJPY=X') name = 'EUR / JPY Forex';
+      else if (sym === 'USDINR=X') name = 'USD / INR Forex';
+      else if (sym === 'EURINR=X') name = 'EUR / INR Forex';
+      else if (sym === 'GBPINR=X') name = 'GBP / INR Forex';
+      else if (sym === 'JPYINR=X') name = 'JPY / INR Forex';
+
       results.push({
         symbol: sym,
+        name: name,
         sector: STOCK_UNIVERSE[sym] || 'Other',
         price: quote.price.toFixed(2),
         change: quote.change.toFixed(2),
