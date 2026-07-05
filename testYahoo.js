@@ -6,20 +6,21 @@ const YAHOO_HEADERS = {
   'Origin': 'https://finance.yahoo.com',
 };
 
-async function test() {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/C2C-SM.NS?range=1mo&interval=1d`;
+async function test(range, interval) {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/C2C-SM.NS?range=${range}&interval=${interval}`;
   const response = await fetch(url, { headers: YAHOO_HEADERS });
   const data = await response.json();
   const result = data?.chart?.result?.[0];
-  if (result?.timestamp) {
-    console.log("TOTAL DAYS:", result.timestamp.length);
-    for (let i = 0; i < result.timestamp.length; i++) {
-      const date = new Date(result.timestamp[i] * 1000).toLocaleDateString('en-IN');
-      console.log(`DATE: ${date} | CLOSE: ${result.indicators.quote[0].close[i]}`);
-    }
-  } else {
-    console.log("NO DATA");
+  console.log(`INTERVAL: ${interval} | RANGE: ${range} | TIMESTAMPS LENGTH:`, result?.timestamp?.length);
+  if (result?.timestamp && result.timestamp.length > 0) {
+    console.log("FIRST DATE:", new Date(result.timestamp[0] * 1000).toLocaleString('en-IN'));
+    console.log("LAST DATE:", new Date(result.timestamp[result.timestamp.length - 1] * 1000).toLocaleString('en-IN'));
   }
 }
 
-test();
+async function run() {
+  await test('5d', '5m');
+  await test('1d', '1m');
+}
+
+run();

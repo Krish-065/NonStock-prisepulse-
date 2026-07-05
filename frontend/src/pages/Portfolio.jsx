@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { apiClient } from '../services/api';
 import SearchWithSuggestions from '../components/SearchWithSuggestions';
@@ -325,6 +326,13 @@ export default function Portfolio() {
   
   // Broker Connect Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const location = useLocation();
+  
+  useEffect(() => {
+    if (location.state?.openConnect) {
+      setIsModalOpen(true);
+    }
+  }, [location]);
   const [broker, setBroker] = useState('Angel One');
   const [clientCode, setClientCode] = useState('');
   const [pin, setPin] = useState('');

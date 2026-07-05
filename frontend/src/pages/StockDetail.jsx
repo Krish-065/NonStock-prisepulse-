@@ -127,6 +127,25 @@ export default function StockDetail() {
     return `NSE:${cleanSym}`;
   };
 
+  // Dynamically set default tab based on symbol type (Indian NSE/BSE vs Global/Crypto/Forex)
+  useEffect(() => {
+    if (symbol) {
+      const s = symbol.toUpperCase();
+      const isCrypto = s.endsWith('-USD') || s.endsWith('-USDT') ||
+                       ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'SHIB', 'AVAX', 'TRX'].includes(s);
+      const isForex = s.endsWith('=X') || s.includes('USD') || s.includes('EUR') || s.includes('GBP');
+      const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR'];
+      const cleanSym = s.replace('.NS', '').replace('.BO', '');
+      const isUS = usTickers.includes(cleanSym);
+
+      if (isCrypto || isForex || isUS) {
+        setActiveTab('tradingview');
+      } else {
+        setActiveTab('algo');
+      }
+    }
+  }, [symbol]);
+
   // Load TV Widget once when symbol changes
   useEffect(() => {
     const script = document.createElement('script');

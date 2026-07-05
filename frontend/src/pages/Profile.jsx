@@ -463,63 +463,104 @@ export default function Profile() {
           <Card>
             <CardHeader>
               <h3><IconContainer $color="#00bcd4"><BarChart3 size={16} /></IconContainer> Demat & Brokerage Details</h3>
-              {isEditingDemat ? (
-                <ActionButtonGroup>
-                  <CancelButton onClick={() => {
-                    setIsEditingDemat(false);
-                    setBrokerCode(user?.broker_code || 'PRP065');
-                    setDematId(user?.demat_id || '1208160001094852');
-                    setDpName(user?.dp_name || 'NonStock Securities Pvt Ltd');
-                    setPanId(user?.pan_id || 'ABCDE*****F');
-                    setBrokeragePlan(user?.brokerage_plan || '₹0 Equity Delivery / ₹20 F&O Intraday');
-                  }}>Cancel</CancelButton>
-                  <EditButton onClick={handleSaveDemat}>Save</EditButton>
-                </ActionButtonGroup>
-              ) : (
-                <EditButton onClick={() => setIsEditingDemat(true)}>Edit Details</EditButton>
+              {user?.connected_broker && (
+                isEditingDemat ? (
+                  <ActionButtonGroup>
+                    <CancelButton onClick={() => {
+                      setIsEditingDemat(false);
+                      setBrokerCode(user?.broker_code || '');
+                      setDematId(user?.demat_id || '');
+                      setDpName(user?.dp_name || '');
+                      setPanId(user?.pan_id || '');
+                      setBrokeragePlan(user?.brokerage_plan || '');
+                    }}>Cancel</CancelButton>
+                    <EditButton onClick={handleSaveDemat}>Save</EditButton>
+                  </ActionButtonGroup>
+                ) : (
+                  <EditButton onClick={() => setIsEditingDemat(true)}>Edit Details</EditButton>
+                )
               )}
             </CardHeader>
 
-            <InfoRow>
-              <span className="label">Broker Code / Client Code</span>
-              {isEditingDemat ? (
-                <RowInput value={brokerCode} onChange={(e) => setBrokerCode(e.target.value)} />
-              ) : (
-                <span className="value">{user?.broker_code || 'PRP065'}</span>
-              )}
-            </InfoRow>
-            <InfoRow>
-              <span className="label">Demat BO ID</span>
-              {isEditingDemat ? (
-                <RowInput value={dematId} onChange={(e) => setDematId(e.target.value)} />
-              ) : (
-                <span className="value" style={{ fontFamily: 'monospace' }}>{user?.demat_id || '1208160001094852'}</span>
-              )}
-            </InfoRow>
-            <InfoRow>
-              <span className="label">DP Name</span>
-              {isEditingDemat ? (
-                <RowInput value={dpName} onChange={(e) => setDpName(e.target.value)} />
-              ) : (
-                <span className="value">{user?.dp_name || 'NonStock Securities Pvt Ltd'}</span>
-              )}
-            </InfoRow>
-            <InfoRow>
-              <span className="label">PAN ID</span>
-              {isEditingDemat ? (
-                <RowInput value={panId} onChange={(e) => setPanId(e.target.value)} />
-              ) : (
-                <span className="value" style={{ fontFamily: 'monospace' }}>{user?.pan_id || 'ABCDE*****F'}</span>
-              )}
-            </InfoRow>
-            <InfoRow>
-              <span className="label">Brokerage Plan</span>
-              {isEditingDemat ? (
-                <RowInput value={brokeragePlan} onChange={(e) => setBrokeragePlan(e.target.value)} />
-              ) : (
-                <span className="value" style={{ color: '#00bcd4' }}>{user?.brokerage_plan || '₹0 Equity Delivery / ₹20 F&O Intraday'}</span>
-              )}
-            </InfoRow>
+            {!user?.connected_broker ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '24px 12px', textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.2)', display: 'flex', alignItems: 'center', justifyComposite: 'none', justifyContent: 'center', color: '#ffaa00' }}>
+                  <ShieldCheck size={24} />
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#ffffff', fontWeight: '700' }}>No Broker Account Connected</h4>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#9b9eac', lineHeight: '1.5' }}>
+                    Connect your Angel One or sandbox broker account to view linked Demat, DP, and PAN details.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => navigate('/portfolio', { state: { openConnect: true } })}
+                  style={{
+                    background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                    border: 'none',
+                    color: '#0a0e27',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 12px rgba(0, 255, 136, 0.2)'
+                  }}
+                  onMouseOver={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 16px rgba(0, 255, 136, 0.35)'; }}
+                  onMouseOut={(e) => { e.target.style.transform = 'none'; e.target.style.boxShadow = '0 4px 12px rgba(0, 255, 136, 0.2)'; }}
+                >
+                  Connect Broker Account
+                </button>
+              </div>
+            ) : (
+              <>
+                <InfoRow>
+                  <span className="label">Connected Broker</span>
+                  <span className="value" style={{ color: '#00ff88', fontWeight: '700' }}>{user.connected_broker}</span>
+                </InfoRow>
+                <InfoRow>
+                  <span className="label">Broker Code / Client Code</span>
+                  {isEditingDemat ? (
+                    <RowInput value={brokerCode} onChange={(e) => setBrokerCode(e.target.value)} />
+                  ) : (
+                    <span className="value">{user?.broker_code || 'Not Configured'}</span>
+                  )}
+                </InfoRow>
+                <InfoRow>
+                  <span className="label">Demat BO ID</span>
+                  {isEditingDemat ? (
+                    <RowInput value={dematId} onChange={(e) => setDematId(e.target.value)} />
+                  ) : (
+                    <span className="value" style={{ fontFamily: 'monospace' }}>{user?.demat_id || 'Not Configured'}</span>
+                  )}
+                </InfoRow>
+                <InfoRow>
+                  <span className="label">DP Name</span>
+                  {isEditingDemat ? (
+                    <RowInput value={dpName} onChange={(e) => setDpName(e.target.value)} />
+                  ) : (
+                    <span className="value">{user?.dp_name || 'Not Configured'}</span>
+                  )}
+                </InfoRow>
+                <InfoRow>
+                  <span className="label">PAN ID</span>
+                  {isEditingDemat ? (
+                    <RowInput value={panId} onChange={(e) => setPanId(e.target.value)} />
+                  ) : (
+                    <span className="value" style={{ fontFamily: 'monospace' }}>{user?.pan_id || 'Not Configured'}</span>
+                  )}
+                </InfoRow>
+                <InfoRow>
+                  <span className="label">Brokerage Plan</span>
+                  {isEditingDemat ? (
+                    <RowInput value={brokeragePlan} onChange={(e) => setBrokeragePlan(e.target.value)} />
+                  ) : (
+                    <span className="value" style={{ color: '#00bcd4' }}>{user?.brokerage_plan || 'Not Configured'}</span>
+                  )}
+                </InfoRow>
+              </>
+            )}
           </Card>
 
         </div>
