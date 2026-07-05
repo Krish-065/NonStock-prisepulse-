@@ -632,8 +632,8 @@ router.get('/stock/:symbol', async (req, res) => {
   // Try fetching as-is first (e.g. AAPL, BTC-USD, EURUSD=X, RELIANCE.NS)
   let quote = await fetchYahooQuote(fetchSymbol);
   
-  // If not found and doesn't contain any dot/hyphen/equals, try appending .NS (fallback for Indian stocks typed without .NS)
-  if ((!quote || !quote.price) && !fetchSymbol.includes('.') && !fetchSymbol.includes('=') && !fetchSymbol.includes('-') && !fetchSymbol.startsWith('^')) {
+  // If not found, check if it already ends with common suffixes. If not, try appending .NS (unless it's an index or crypto/forex format)
+  if ((!quote || !quote.price) && !fetchSymbol.endsWith('.NS') && !fetchSymbol.endsWith('.BO') && !fetchSymbol.endsWith('=X') && !fetchSymbol.endsWith('-USD') && !fetchSymbol.startsWith('^')) {
     fetchSymbol = `${fetchSymbol}.NS`;
     quote = await fetchYahooQuote(fetchSymbol);
   }
@@ -1055,7 +1055,7 @@ router.get('/stock-history/:symbol', async (req, res) => {
     const isCrypto = symbol.endsWith('-USD') || symbol.endsWith('-USDT') ||
                      ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'SHIB', 'AVAX', 'TRX'].includes(symbol);
     const isForex  = symbol.endsWith('=X') || symbol.includes('USD') || symbol.includes('INR') && !symbol.endsWith('.NS');
-    const alreadySuffixed = symbol.includes('.') || symbol.includes('=') || symbol.includes('-');
+    const alreadySuffixed = symbol.endsWith('.NS') || symbol.endsWith('.BO') || symbol.endsWith('=X') || symbol.endsWith('-USD') || symbol.endsWith('-USDT');
 
     if (isCrypto && !alreadySuffixed) {
       // e.g. BTC → BTC-USD (Yahoo Finance format for crypto)
