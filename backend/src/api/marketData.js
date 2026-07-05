@@ -1138,22 +1138,20 @@ router.get('/stock-history/:symbol', async (req, res) => {
         return x - Math.floor(x);
       };
 
-      let currPrice = basePrice * (0.8 + random() * 0.15);
+      let currPrice = basePrice;
       const simulatedHistory = [];
       const dataPointsCount = interval === '1d' ? 60 : 30;
       const timeStep = interval === '1m' ? 60000 : interval === '5m' ? 300000 : oneDay;
 
-      for (let i = dataPointsCount; i >= 0; i--) {
+      for (let i = 0; i < dataPointsCount; i++) {
         const time = now - i * timeStep;
-        const change = (random() - 0.48) * (currPrice * 0.02);
-        let nextPrice = currPrice + change;
+        
+        // Generate a random daily change (mean zero, std dev ~1.5%)
+        const changePct = (random() - 0.49) * 0.03;
+        const prevPrice = currPrice * (1 - changePct);
 
-        if (i === 0) {
-          nextPrice = basePrice;
-        }
-
-        const open = currPrice;
-        const close = nextPrice;
+        const open = prevPrice;
+        const close = currPrice;
         const high = Math.max(open, close) * (1 + random() * 0.008);
         const low = Math.min(open, close) * (1 - random() * 0.008);
         const volume = Math.floor(10000 + random() * 90000);
@@ -1166,8 +1164,9 @@ router.get('/stock-history/:symbol', async (req, res) => {
           close: parseFloat(close.toFixed(2)),
           volume: Math.round(volume)
         });
-        currPrice = nextPrice;
+        currPrice = prevPrice;
       }
+      simulatedHistory.reverse();
       return res.json(simulatedHistory);
     }
 
