@@ -1010,6 +1010,28 @@ export default function StockDetail() {
         overflow: 'hidden',
         marginBottom: '24px'
       }}>
+        {/* Info Banner for Restricted symbols */}
+        <div style={{
+          background: 'rgba(0, 188, 212, 0.04)',
+          border: '1px solid rgba(0, 188, 212, 0.15)',
+          borderRadius: '10px',
+          padding: '12px 16px',
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          fontSize: '13px',
+          color: '#d1d4dc',
+          lineHeight: '1.4'
+        }}>
+          <span style={{ color: '#00bcd4', display: 'flex', alignItems: 'center' }}>
+            <HelpCircle size={18} />
+          </span>
+          <div>
+            <strong>TradingView Embed Notice:</strong> Some specific equities (like NSE SME boards, e.g., <em>C2C-SM</em>) are restricted from external widgets by TradingView. If you see a "symbol only available on TradingView" message, switch to the <strong>NonStock Algorithmic Strategy Lab</strong> tab above, which uses our native charts and fully supports this symbol!
+          </div>
+        </div>
+
         <div id="tradingview-chart-element" ref={tvContainerRef} style={{ height: '520px', borderRadius: '8px' }}></div>
       </div>
 
