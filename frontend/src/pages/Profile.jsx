@@ -328,22 +328,10 @@ export default function Profile() {
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
   const [personalName, setPersonalName] = useState('');
 
-  const [isEditingDemat, setIsEditingDemat] = useState(false);
-  const [brokerCode, setBrokerCode] = useState('');
-  const [dematId, setDematId] = useState('');
-  const [dpName, setDpName] = useState('');
-  const [panId, setPanId] = useState('');
-  const [brokeragePlan, setBrokeragePlan] = useState('');
-
   // Sync state with authenticated user
   useEffect(() => {
     if (user) {
       setPersonalName(user.name || '');
-      setBrokerCode(user.broker_code || 'PRP065');
-      setDematId(user.demat_id || '1208160001094852');
-      setDpName(user.dp_name || 'NonStock Securities Pvt Ltd');
-      setPanId(user.pan_id || 'ABCDE*****F');
-      setBrokeragePlan(user.brokerage_plan || '₹0 Equity Delivery / ₹20 F&O Intraday');
     }
   }, [user]);
 
@@ -377,18 +365,7 @@ export default function Profile() {
     }
   };
 
-  const handleSaveDemat = async () => {
-    const success = await updateProfile({
-      broker_code: brokerCode,
-      demat_id: dematId,
-      dp_name: dpName,
-      pan_id: panId,
-      brokerage_plan: brokeragePlan
-    });
-    if (success) {
-      setIsEditingDemat(false);
-    }
-  };
+
 
   const userInitial = user?.name ? user.name.charAt(0) : (user?.email ? user.email.charAt(0) : 'U');
 
@@ -462,35 +439,18 @@ export default function Profile() {
 
           <Card>
             <CardHeader>
-              <h3><IconContainer $color="#00bcd4"><BarChart3 size={16} /></IconContainer> Demat & Brokerage Details</h3>
-              {user?.connected_broker && (
-                isEditingDemat ? (
-                  <ActionButtonGroup>
-                    <CancelButton onClick={() => {
-                      setIsEditingDemat(false);
-                      setBrokerCode(user?.broker_code || '');
-                      setDematId(user?.demat_id || '');
-                      setDpName(user?.dp_name || '');
-                      setPanId(user?.pan_id || '');
-                      setBrokeragePlan(user?.brokerage_plan || '');
-                    }}>Cancel</CancelButton>
-                    <EditButton onClick={handleSaveDemat}>Save</EditButton>
-                  </ActionButtonGroup>
-                ) : (
-                  <EditButton onClick={() => setIsEditingDemat(true)}>Edit Details</EditButton>
-                )
-              )}
+              <h3><IconContainer $color="#00bcd4"><BarChart3 size={16} /></IconContainer> Broker Integration</h3>
             </CardHeader>
 
             {!user?.connected_broker ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '24px 12px', textAlign: 'center' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.2)', display: 'flex', alignItems: 'center', justifyComposite: 'none', justifyContent: 'center', color: '#ffaa00' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffaa00' }}>
                   <ShieldCheck size={24} />
                 </div>
                 <div>
                   <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', color: '#ffffff', fontWeight: '700' }}>No Broker Account Connected</h4>
                   <p style={{ margin: 0, fontSize: '13px', color: '#9b9eac', lineHeight: '1.5' }}>
-                    Connect your Angel One or sandbox broker account to view linked Demat, DP, and PAN details.
+                    Connect your Angel One or sandbox broker account to view linked holdings and credentials.
                   </p>
                 </div>
                 <button 
@@ -520,44 +480,8 @@ export default function Profile() {
                   <span className="value" style={{ color: '#00ff88', fontWeight: '700' }}>{user.connected_broker}</span>
                 </InfoRow>
                 <InfoRow>
-                  <span className="label">Broker Code / Client Code</span>
-                  {isEditingDemat ? (
-                    <RowInput value={brokerCode} onChange={(e) => setBrokerCode(e.target.value)} />
-                  ) : (
-                    <span className="value">{user?.broker_code || 'Not Configured'}</span>
-                  )}
-                </InfoRow>
-                <InfoRow>
-                  <span className="label">Demat BO ID</span>
-                  {isEditingDemat ? (
-                    <RowInput value={dematId} onChange={(e) => setDematId(e.target.value)} />
-                  ) : (
-                    <span className="value" style={{ fontFamily: 'monospace' }}>{user?.demat_id || 'Not Configured'}</span>
-                  )}
-                </InfoRow>
-                <InfoRow>
-                  <span className="label">DP Name</span>
-                  {isEditingDemat ? (
-                    <RowInput value={dpName} onChange={(e) => setDpName(e.target.value)} />
-                  ) : (
-                    <span className="value">{user?.dp_name || 'Not Configured'}</span>
-                  )}
-                </InfoRow>
-                <InfoRow>
-                  <span className="label">PAN ID</span>
-                  {isEditingDemat ? (
-                    <RowInput value={panId} onChange={(e) => setPanId(e.target.value)} />
-                  ) : (
-                    <span className="value" style={{ fontFamily: 'monospace' }}>{user?.pan_id || 'Not Configured'}</span>
-                  )}
-                </InfoRow>
-                <InfoRow>
-                  <span className="label">Brokerage Plan</span>
-                  {isEditingDemat ? (
-                    <RowInput value={brokeragePlan} onChange={(e) => setBrokeragePlan(e.target.value)} />
-                  ) : (
-                    <span className="value" style={{ color: '#00bcd4' }}>{user?.brokerage_plan || 'Not Configured'}</span>
-                  )}
+                  <span className="label">Client Code / ID</span>
+                  <span className="value">{user?.broker_code || 'Not Configured'}</span>
                 </InfoRow>
               </>
             )}
