@@ -1255,8 +1255,8 @@ router.get('/mutual-funds/:schemeCode', async (req, res) => {
 
     const returns = calculateMFReturns(navHistory);
     
-    // Format chart data for TradingView or Recharts
-    const chartData = navHistory.slice(0, 252).reverse().map(item => {
+    // Format chart data for TradingView or Recharts (return up to 1500 points for historical timeframes)
+    const chartData = navHistory.slice(0, 1500).reverse().map(item => {
       // Convert DD-MM-YYYY to YYYY-MM-DD or Unix timestamp
       const parts = item.date.split('-');
       const dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
