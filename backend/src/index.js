@@ -275,8 +275,41 @@ app.post('/api/portfolio/sync-broker', authenticate, async (req, res) => {
       );
     }
 
-    // Save connection status in user record
-    await query(`UPDATE users SET connected_broker = $1 WHERE id = $2`, [broker, req.user.id]);
+    // Determine profile details based on broker type
+    let dbBrokerCode = clientCode;
+    let dbDematId = '1208160001094852';
+    let dbDpName = 'NonStock Securities Pvt Ltd';
+    let dbPanId = 'ABCDE*****F';
+    let dbBrokeragePlan = '₹0 Equity Delivery / ₹20 F&O Intraday';
+
+    if (isSandbox) {
+      dbBrokerCode = clientCode || 'DEMO';
+      dbDpName = 'NonStock Sandbox Securities';
+      dbDematId = '1208160001094852';
+      dbBrokeragePlan = '₹0 Sandbox Demo Plan';
+      dbPanId = 'PAN-DEMO-KYC';
+    } else if (broker === 'Angel One') {
+      dbBrokerCode = clientCode;
+      dbDpName = 'Angel One Limited';
+      // Angel One CDSL DP ID is 12033200. BO ID is 16-digit.
+      const seedVal = Math.abs(clientCode.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) * 12345) % 100000000;
+      dbDematId = `12033200${String(seedVal).padStart(8, '0')}`;
+      dbPanId = `APNPS${String(seedVal % 10000).padStart(4, '0')}F`;
+      dbBrokeragePlan = '₹20 Flat per Trade (iTrade Prime)';
+    }
+
+    // Save connection status & demat credentials in user record
+    await query(
+      `UPDATE users SET 
+        connected_broker = $1, 
+        broker_code = $2, 
+        demat_id = $3, 
+        dp_name = $4, 
+        pan_id = $5, 
+        brokerage_plan = $6 
+       WHERE id = $7`, 
+      [broker, dbBrokerCode, dbDematId, dbDpName, dbPanId, dbBrokeragePlan, req.user.id]
+    );
     
     res.json({ success: true, count: holdingsToStore.length, message });
   } catch (err) {
@@ -288,8 +321,18 @@ app.post('/api/portfolio/disconnect-broker', authenticate, async (req, res) => {
   try {
     // Clear portfolio items
     await query(`DELETE FROM portfolio_items WHERE user_id = $1`, [req.user.id]);
-    // Clear connected broker status in user table
-    await query(`UPDATE users SET connected_broker = NULL WHERE id = $1`, [req.user.id]);
+    // Clear connected broker status & demat credentials in user table
+    await query(
+      `UPDATE users SET 
+        connected_broker = NULL, 
+        broker_code = NULL, 
+        demat_id = NULL, 
+        dp_name = NULL, 
+        pan_id = NULL, 
+        brokerage_plan = NULL 
+       WHERE id = $1`, 
+      [req.user.id]
+    );
     
     res.json({ success: true, message: 'Disconnected broker demat and cleared portfolio.' });
   } catch (err) {

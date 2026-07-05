@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import styled from 'styled-components';
 import { apiClient } from '../services/api';
 import SearchWithSuggestions from '../components/SearchWithSuggestions';
@@ -317,6 +318,7 @@ const getStockMetadata = (sym) => {
 };
 
 export default function Portfolio() {
+  const { fetchUser } = useAuth();
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalValue, setTotalValue] = useState(0);
@@ -345,6 +347,7 @@ export default function Portfolio() {
       await apiClient.post('/portfolio/disconnect-broker');
       toast.success('Successfully disconnected broker demat');
       fetchPortfolio();
+      fetchUser();
     } catch (err) {
       toast.error('Failed to disconnect broker');
     }
@@ -475,6 +478,7 @@ export default function Portfolio() {
       setPin('');
       setTotp('');
       fetchPortfolio();
+      fetchUser();
     } catch (err) {
       const errMsg = err.response?.data?.error || err.message || 'Broker authorization failed. Try again.';
       toast.error(errMsg);
