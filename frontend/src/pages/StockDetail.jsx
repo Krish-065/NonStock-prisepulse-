@@ -12,7 +12,7 @@ export default function StockDetail() {
   const tvContainerRef = useRef(null);
 
   // UI Tabs: 'tradingview' or 'algo'
-  const [activeTab, setActiveTab] = useState('tradingview');
+  const [activeTab, setActiveTab] = useState('algo');
   
   // Historical data states
   const [history, setHistory] = useState([]);
@@ -956,27 +956,6 @@ export default function StockDetail() {
       {/* Tabs pills */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
         <button
-          onClick={() => setActiveTab('tradingview')}
-          style={{
-            padding: '12px 20px',
-            background: activeTab === 'tradingview' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-            border: `1px solid ${activeTab === 'tradingview' ? '#00ff88' : 'rgba(255, 255, 255, 0.08)'}`,
-            borderRadius: '8px',
-            color: activeTab === 'tradingview' ? '#00ff88' : 'var(--text-secondary)',
-            fontSize: '14px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: '0.2s'
-          }}
-        >
-          <BarChart2 size={16} />
-          Interactive TradingView Widget
-        </button>
-
-        <button
           onClick={() => setActiveTab('algo')}
           style={{
             padding: '12px 20px',
@@ -993,8 +972,29 @@ export default function StockDetail() {
             transition: '0.2s'
           }}
         >
+          <BarChart2 size={16} />
+          NonStock Native Interactive Chart
+        </button>
+
+        <button
+          onClick={() => setActiveTab('tradingview')}
+          style={{
+            padding: '12px 20px',
+            background: activeTab === 'tradingview' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+            border: `1px solid ${activeTab === 'tradingview' ? '#00ff88' : 'rgba(255, 255, 255, 0.08)'}`,
+            borderRadius: '8px',
+            color: activeTab === 'tradingview' ? '#00ff88' : 'var(--text-secondary)',
+            fontSize: '14px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: '0.2s'
+          }}
+        >
           <Settings size={16} />
-          NonStock Algorithmic Strategy Lab
+          TradingView External Widget
         </button>
       </div>
 
