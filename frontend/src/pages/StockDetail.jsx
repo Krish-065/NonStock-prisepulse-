@@ -115,7 +115,13 @@ export default function StockDetail() {
       return `NASDAQ:${cleanSym}`;
     }
 
-    if (rawSymbol.endsWith('.BO')) return `BSE:${cleanSym}`;
+    if (rawSymbol.endsWith('.BO')) {
+      // If the symbol is numeric (e.g., 500325), use BSE. Otherwise, map to NSE for TradingView compatibility
+      if (/^\d+$/.test(cleanSym)) {
+        return `BSE:${cleanSym}`;
+      }
+      return `NSE:${cleanSym}`;
+    }
 
     // Default: Indian NSE equity
     return `NSE:${cleanSym}`;
@@ -140,7 +146,7 @@ export default function StockDetail() {
           timezone: 'Asia/Kolkata',
           theme: 'dark',
           style: '1',
-          locale: 'in',
+          locale: 'en',
           toolbar_bg: '#101427',
           enable_publishing: false,
           hide_top_toolbar: false,
