@@ -1104,10 +1104,10 @@ router.get('/stock-history/:symbol', async (req, res) => {
       if (opens[i] !== null && closes[i] !== null) {
         history.push({
           time:   timestamps[i] * 1000,
-          open:   parseFloat(opens[i].toFixed(2)),
-          high:   parseFloat(highs[i].toFixed(2)),
-          low:    parseFloat(lows[i].toFixed(2)),
-          close:  parseFloat(closes[i].toFixed(2)),
+          open:   parseFloat(opens[i]),
+          high:   parseFloat(highs[i]),
+          low:    parseFloat(lows[i]),
+          close:  parseFloat(closes[i]),
           volume: Math.round(volumes[i] || 0)
         });
       }
@@ -1158,10 +1158,10 @@ router.get('/stock-history/:symbol', async (req, res) => {
 
         simulatedHistory.push({
           time,
-          open: parseFloat(open.toFixed(2)),
-          high: parseFloat(high.toFixed(2)),
-          low: parseFloat(low.toFixed(2)),
-          close: parseFloat(close.toFixed(2)),
+          open: parseFloat(open),
+          high: parseFloat(high),
+          low: parseFloat(low),
+          close: parseFloat(close),
           volume: Math.round(volume)
         });
         currPrice = prevPrice;

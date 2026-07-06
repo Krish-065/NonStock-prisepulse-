@@ -127,27 +127,31 @@ export default function StockDetail() {
     return `NSE:${cleanSym}`;
   };
 
+  const isNSEorBSE = (sym) => {
+    if (!sym) return false;
+    const s = sym.toUpperCase();
+    return s.endsWith('.NS') || s.endsWith('.BO') || 
+           s.startsWith('NSE:') || s.startsWith('BSE:') ||
+           ['^NSEI', 'NSEI', 'NIFTY', 'NIFTY50', '^BSESN', 'BSESN', 'SENSEX', '^NSEBANK', 'NSEBANK', 'BANKNIFTY', '^CNXIT', 'CNXIT', 'NIFTYIT'].includes(s);
+  };
+
+  const isNSE = isNSEorBSE(symbol);
+
   // Dynamically set default tab based on symbol type (Indian NSE/BSE vs Global/Crypto/Forex)
   useEffect(() => {
     if (symbol) {
-      const s = symbol.toUpperCase();
-      const isCrypto = s.endsWith('-USD') || s.endsWith('-USDT') ||
-                       ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'SHIB', 'AVAX', 'TRX'].includes(s);
-      const isForex = s.endsWith('=X') || s.includes('USD') || s.includes('EUR') || s.includes('GBP');
-      const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR'];
-      const cleanSym = s.replace('.NS', '').replace('.BO', '');
-      const isUS = usTickers.includes(cleanSym);
-
-      if (isCrypto || isForex || isUS) {
-        setActiveTab('tradingview');
-      } else {
+      if (isNSE) {
         setActiveTab('algo');
+      } else {
+        setActiveTab('tradingview');
       }
     }
-  }, [symbol]);
+  }, [symbol, isNSE]);
 
   // Load TV Widget once when symbol changes
   useEffect(() => {
+    if (isNSE) return;
+
     const script = document.createElement('script');
     script.src = 'https://s3.tradingview.com/tv.js';
     script.async = true;
@@ -170,7 +174,7 @@ export default function StockDetail() {
           enable_publishing: false,
           hide_top_toolbar: false,
           width: '100%',
-          height: 520,
+          height: 600,
           studies: ['RSI@tv-basicstudies', 'MACD@tv-basicstudies']
         });
       }
@@ -181,7 +185,7 @@ export default function StockDetail() {
         document.head.removeChild(script);
       } catch (e) {}
     };
-  }, [symbol]);
+  }, [symbol, isNSE]);
 
   // Fetch Stock History
   const fetchStockData = async (isSilent = false) => {
@@ -626,7 +630,7 @@ export default function StockDetail() {
 
   // Lightweight Charts Initialization and Synced Panning/Zooming
   useEffect(() => {
-    if (activeTab !== 'algo' || history.length === 0 || !priceChartContainerRef.current || !rsiChartContainerRef.current) {
+    if (!isNSE || history.length === 0 || !priceChartContainerRef.current || !rsiChartContainerRef.current) {
       return;
     }
 
@@ -748,12 +752,20 @@ export default function StockDetail() {
 
       if (indicators.sma20[i] !== null && !isNaN(indicators.sma20[i])) {
         formattedSma20.push({ time: timeSec, value: parseFloat(indicators.sma20[i]) });
+      } else {
+        formattedSma20.push({ time: timeSec });
       }
+
       if (indicators.sma50[i] !== null && !isNaN(indicators.sma50[i])) {
         formattedSma50.push({ time: timeSec, value: parseFloat(indicators.sma50[i]) });
+      } else {
+        formattedSma50.push({ time: timeSec });
       }
+
       if (indicators.rsi14[i] !== null && !isNaN(indicators.rsi14[i])) {
         formattedRsi.push({ time: timeSec, value: parseFloat(indicators.rsi14[i]) });
+      } else {
+        formattedRsi.push({ time: timeSec });
       }
     }
 
@@ -810,7 +822,19 @@ export default function StockDetail() {
     priceTimeScale.fitContent();
     rsiTimeScale.fitContent();
 
+    // 7. Add ResizeObserver for responsive resizing
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (entries.length === 0 || !priceChartContainerRef.current) return;
+      const width = priceChartContainerRef.current.clientWidth;
+      priceChart.resize(width, 280);
+      rsiChart.resize(width, 110);
+    });
+    if (priceChartContainerRef.current) {
+      resizeObserver.observe(priceChartContainerRef.current);
+    }
+
     return () => {
+      resizeObserver.disconnect();
       if (priceChartRef.current) {
         try { priceChartRef.current.remove(); } catch(e){}
         priceChartRef.current = null;
@@ -951,7 +975,7 @@ export default function StockDetail() {
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>LIVE SPOT PRICE</div>
             <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)', marginTop: '2px' }}>
-              ₹{stockInfo.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              {currencySymbol}{stockInfo.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -972,56 +996,9 @@ export default function StockDetail() {
         </div>
       </div>
 
-      {/* Tabs pills */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-        <button
-          onClick={() => setActiveTab('algo')}
-          style={{
-            padding: '12px 20px',
-            background: activeTab === 'algo' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-            border: `1px solid ${activeTab === 'algo' ? '#00ff88' : 'rgba(255, 255, 255, 0.08)'}`,
-            borderRadius: '8px',
-            color: activeTab === 'algo' ? '#00ff88' : 'var(--text-secondary)',
-            fontSize: '14px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: '0.2s'
-          }}
-        >
-          <BarChart2 size={16} />
-          NonStock Native Interactive Chart
-        </button>
-
-        <button
-          onClick={() => setActiveTab('tradingview')}
-          style={{
-            padding: '12px 20px',
-            background: activeTab === 'tradingview' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-            border: `1px solid ${activeTab === 'tradingview' ? '#00ff88' : 'rgba(255, 255, 255, 0.08)'}`,
-            borderRadius: '8px',
-            color: activeTab === 'tradingview' ? '#00ff88' : 'var(--text-secondary)',
-            fontSize: '14px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: '0.2s'
-          }}
-        >
-          <Settings size={16} />
-          TradingView External Widget
-        </button>
-      </div>
-
-      {/* Tab Contents: Render both but toggle visibility to prevent script remnant overlay bugs */}
-      
       {/* 1. TradingView Widget Block */}
       <div style={{
-        display: activeTab === 'tradingview' ? 'block' : 'none',
+        display: !isNSE ? 'block' : 'none',
         background: 'rgba(16, 20, 39, 0.95)',
         border: '1px solid var(--border-color)',
         borderRadius: '16px',
@@ -1029,33 +1006,11 @@ export default function StockDetail() {
         overflow: 'hidden',
         marginBottom: '24px'
       }}>
-        {/* Info Banner for Restricted symbols */}
-        <div style={{
-          background: 'rgba(0, 188, 212, 0.04)',
-          border: '1px solid rgba(0, 188, 212, 0.15)',
-          borderRadius: '10px',
-          padding: '12px 16px',
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          fontSize: '13px',
-          color: '#d1d4dc',
-          lineHeight: '1.4'
-        }}>
-          <span style={{ color: '#00bcd4', display: 'flex', alignItems: 'center' }}>
-            <HelpCircle size={18} />
-          </span>
-          <div>
-            <strong>TradingView Embed Notice:</strong> Some specific equities (like NSE SME boards, e.g., <em>C2C-SM</em>) are restricted from external widgets by TradingView. If you see a "symbol only available on TradingView" message, switch to the <strong>NonStock Algorithmic Strategy Lab</strong> tab above, which uses our native charts and fully supports this symbol!
-          </div>
-        </div>
-
-        <div id="tradingview-chart-element" ref={tvContainerRef} style={{ height: '520px', borderRadius: '8px' }}></div>
+        <div id="tradingview-chart-element" ref={tvContainerRef} style={{ height: '600px', borderRadius: '8px' }}></div>
       </div>
 
       {/* 2. Custom Strategy Lab Block */}
-      <div style={{ display: activeTab === 'algo' ? 'block' : 'none' }}>
+      <div style={{ display: isNSE ? 'block' : 'none' }}>
         
         {/* Strategy Guide Note */}
         <div style={{

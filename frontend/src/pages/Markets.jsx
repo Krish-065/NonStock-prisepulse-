@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Activity, BarChart2 } from 'lucide-react';
+import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
+import { apiClient } from '../services/api';
 
 // Symbol categories with popular options
 const SYMBOL_CATEGORIES = {
@@ -31,7 +33,7 @@ const SYMBOL_CATEGORIES = {
     { label: 'BNB',        value: 'BINANCE:BNBUSDT' },
     { label: 'Solana',     value: 'BINANCE:SOLUSDT' },
     { label: 'XRP',        value: 'BINANCE:XRPUSDT' },
-    { label: 'DOGE',       value: 'BINANCE:DOGEUSDT' },
+    { label: 'DOGE',       value: 'BINAGE:DOGEUSDT' },
     { label: 'ADA',        value: 'BINANCE:ADAUSDT' },
     { label: 'AVAX',       value: 'BINANCE:AVAXUSDT' },
     { label: 'MATIC',      value: 'BINANCE:MATICUSDT' },
@@ -90,6 +92,18 @@ export default function Markets() {
   const [chartKey, setChartKey] = useState(0);
   const searchRef = useRef();
 
+  // Dual mode tab: 'pro' (Lightweight Charts + Yahoo) or 'tradingview' (Official Script Widget)
+  const [activeTab, setActiveTab] = useState('pro');
+
+  // Pro Chart history & UI states
+  const [history, setHistory] = useState([]);
+  const [chartLoading, setChartLoading] = useState(false);
+  const [chartError, setChartError] = useState(null);
+
+  const chartContainerRef = useRef(null);
+  const chartRef = useRef(null);
+  const tvContainerRef = useRef(null);
+
   const filteredSymbols = searchQuery.length > 0
     ? ALL_SYMBOLS.filter(s =>
         s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -104,10 +118,284 @@ export default function Markets() {
     setSearchQuery('');
   }, []);
 
-  // Build TradingView widget URL
-  const widgetUrl = `https://www.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${encodeURIComponent(symbol)}&interval=${interval}&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=0&toolbarbg=131722&studies=Volume%40tv-basicstudies&theme=dark&style=1&timezone=Asia%2FKolkata&studies_overrides=%7B%7D&overrides=%7B%22paneProperties.background%22%3A%22%23131722%22%2C%22paneProperties.backgroundType%22%3A%22solid%22%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=nonstock.vercel.app`;
-
   const displayLabel = ALL_SYMBOLS.find(s => s.value === symbol)?.label || symbol;
+
+  // Smart TV symbol resolver
+  const resolveTVSymbol = (rawSymbol) => {
+    const s = rawSymbol.toUpperCase();
+    if (s.startsWith('NSE:') || s.startsWith('BSE:')) return s;
+    if (s === 'BSE:SENSEX') return 'BSE:SENSEX';
+    if (s === 'NSE:NIFTY') return 'NSE:NIFTY';
+    const clean = s.replace('.NS', '').replace('.BO', '');
+    if (s.includes(':')) return s;
+    return `NSE:${clean}`;
+  };
+
+  // Smart Backend symbol resolver (extract prefix and clean details)
+  const resolveBackendSymbol = (rawSymbol) => {
+    let clean = rawSymbol.toUpperCase();
+    if (clean.includes(':')) {
+      clean = clean.split(':')[1];
+    }
+    if (clean.endsWith('USDT')) {
+      clean = clean.replace('USDT', '');
+    }
+    return clean;
+  };
+
+  const getBackendInterval = (iv) => {
+    if (iv === '1') return '1m';
+    if (iv === '5') return '5m';
+    return '1d';
+  };
+
+  // 1. Auto-switch tab type based on symbol characteristics
+  useEffect(() => {
+    if (symbol) {
+      const s = symbol.toUpperCase();
+      const isCrypto = s.includes('BTC') || s.includes('ETH') || s.includes('BNB') || s.includes('SOL') || s.includes('XRP') || s.includes('DOGE') || s.includes('ADA') || s.includes('AVAX') || s.includes('MATIC') || s.includes('LINK') || s.includes('USDT');
+      const isForex = s.includes('USD') || s.includes('EUR') || s.includes('GBP') || s.includes('JPY') || s.includes('AUD') || s.includes('FX');
+      const isUS = s.includes('AAPL') || s.includes('MSFT') || s.includes('TSLA') || s.includes('NVDA') || s.includes('GOOG') || s.includes('AMZN') || s.includes('META') || s.includes('NFLX') || s.includes('SPX') || s.includes('NDX') || s.startsWith('NASDAQ:');
+
+      if (isCrypto || isForex || isUS) {
+        setActiveTab('tradingview');
+      } else {
+        // Indian equities and indices default to Yahoo-powered Pro Chart
+        setActiveTab('pro');
+      }
+    }
+  }, [symbol]);
+
+  // 2. Fetch history for the Pro Chart
+  useEffect(() => {
+    if (activeTab !== 'pro') return;
+
+    let isMounted = true;
+    const fetchHistory = async (isSilent = false) => {
+      if (!isSilent) {
+        setChartLoading(true);
+        setChartError(null);
+      }
+      try {
+        const backendSym = resolveBackendSymbol(symbol);
+        const backendInterval = getBackendInterval(interval);
+        const range = backendInterval === '1m' ? '1d' : backendInterval === '5m' ? '5d' : '3mo';
+        
+        const res = await apiClient.get(`/market/stock-history/${backendSym}?interval=${backendInterval}&range=${range}`);
+        
+        if (isMounted) {
+          if (res.data && res.data.length > 0) {
+            setHistory(res.data);
+          } else {
+            setChartError('No historical data returned from server.');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load history for chart:', err);
+        if (isMounted && !isSilent) {
+          setChartError('Failed to fetch historical market data.');
+        }
+      } finally {
+        if (isMounted) setChartLoading(false);
+      }
+    };
+
+    fetchHistory();
+
+    // Silent background poll for updates every 10 seconds
+    const intervalId = setInterval(() => {
+      fetchHistory(true);
+    }, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [symbol, interval, activeTab, chartKey]);
+
+  // 3. Render Pro Chart using lightweight-charts
+  useEffect(() => {
+    if (activeTab !== 'pro' || history.length === 0 || !chartContainerRef.current) {
+      return;
+    }
+
+    if (chartRef.current) {
+      try { chartRef.current.remove(); } catch (e) {}
+      chartRef.current = null;
+    }
+
+    const chart = createChart(chartContainerRef.current, {
+      layout: {
+        background: { color: '#0a0e27' },
+        textColor: '#9b9eaf',
+        fontSize: 11,
+        fontFamily: 'Inter, sans-serif',
+      },
+      grid: {
+        vertLines: { color: 'rgba(255, 255, 255, 0.02)' },
+        horzLines: { color: 'rgba(255, 255, 255, 0.02)' },
+      },
+      crosshair: {
+        mode: 0,
+      },
+      timeScale: {
+        borderVisible: false,
+        timeVisible: interval !== 'D' && interval !== 'W' && interval !== 'M',
+        secondsVisible: false,
+      },
+      rightPriceScale: {
+        borderVisible: false,
+      },
+      height: 540,
+      width: chartContainerRef.current.clientWidth || 800,
+    });
+    chartRef.current = chart;
+
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
+      upColor: '#00ff88',
+      downColor: '#ff4444',
+      borderVisible: false,
+      wickUpColor: '#00ff88',
+      wickDownColor: '#ff4444',
+    });
+
+    const sma20Series = chart.addSeries(LineSeries, {
+      color: '#00bcd4',
+      lineWidth: 1.5,
+      priceLineVisible: false,
+    });
+
+    const sma50Series = chart.addSeries(LineSeries, {
+      color: '#ffb300',
+      lineWidth: 1.5,
+      priceLineVisible: false,
+    });
+
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      color: '#26a69a',
+      priceFormat: {
+        type: 'volume',
+      },
+      priceScaleId: '', // Overlay
+    });
+    volumeSeries.priceScale().applyOptions({
+      scaleMargins: {
+        top: 0.8,
+        bottom: 0,
+      },
+    });
+
+    // Populate data
+    const sma20Data = [];
+    const sma50Data = [];
+    const volData = [];
+    const candleData = [];
+    const seenTimes = new Set();
+
+    for (let i = 0; i < history.length; i++) {
+      const bar = history[i];
+      const timeSec = Math.floor(bar.time / 1000);
+      if (seenTimes.has(timeSec)) continue;
+      seenTimes.add(timeSec);
+
+      candleData.push({
+        time: timeSec,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+      });
+
+      volData.push({
+        time: timeSec,
+        value: bar.volume,
+        color: bar.close >= bar.open ? 'rgba(0, 255, 136, 0.25)' : 'rgba(255, 68, 68, 0.25)',
+      });
+
+      // SMA 20
+      if (i >= 19) {
+        let sum = 0;
+        for (let j = 0; j < 20; j++) sum += history[i - j].close;
+        sma20Data.push({ time: timeSec, value: parseFloat((sum / 20).toFixed(2)) });
+      }
+
+      // SMA 50
+      if (i >= 49) {
+        let sum = 0;
+        for (let j = 0; j < 50; j++) sum += history[i - j].close;
+        sma50Data.push({ time: timeSec, value: parseFloat((sum / 50).toFixed(2)) });
+      }
+    }
+
+    candlestickSeries.setData(candleData);
+    volumeSeries.setData(volData);
+    sma20Series.setData(sma20Data);
+    sma50Series.setData(sma50Data);
+
+    chart.timeScale().fitContent();
+
+    const handleResize = () => {
+      if (chartContainerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (chartRef.current) {
+        try { chartRef.current.remove(); } catch (e) {}
+        chartRef.current = null;
+      }
+    };
+  }, [history, activeTab]);
+
+  // 4. Render TradingView Widget (Official Script version)
+  useEffect(() => {
+    if (activeTab !== 'tradingview') return;
+
+    const scriptId = 'tradingview-widget-script';
+    let script = document.getElementById(scriptId);
+
+    const initTVWidget = () => {
+      if (tvContainerRef.current && window.TradingView) {
+        const tvSymbol = resolveTVSymbol(symbol);
+        tvContainerRef.current.innerHTML = '';
+        new window.TradingView.widget({
+          container_id: tvContainerRef.current.id,
+          symbol: tvSymbol,
+          interval: interval === 'D' ? 'D' : interval === 'W' ? 'W' : interval === 'M' ? 'M' : '240',
+          timezone: 'Asia/Kolkata',
+          theme: 'dark',
+          style: '1',
+          locale: 'en',
+          toolbar_bg: '#101427',
+          enable_publishing: false,
+          hide_side_toolbar: false,
+          allow_symbol_change: true,
+          width: '100%',
+          height: 540,
+          studies: ['Volume@tv-basicstudies']
+        });
+      }
+    };
+
+    if (!script) {
+      script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://s3.tradingview.com/tv.js';
+      script.async = true;
+      script.onload = initTVWidget;
+      document.head.appendChild(script);
+    } else {
+      if (window.TradingView) {
+        initTVWidget();
+      } else {
+        script.onload = initTVWidget;
+      }
+    }
+  }, [symbol, interval, activeTab]);
 
   // Close search dropdown on outside click
   useEffect(() => {
@@ -231,21 +519,103 @@ export default function Markets() {
         </div>
       </div>
 
-      {/* TradingView Chart */}
-      <div style={{ flex: 1, background: '#131722', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', overflow: 'hidden', minHeight: '620px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-        <iframe
-          key={`${chartKey}-${symbol}-${interval}`}
-          id="tradingview_chart"
-          src={widgetUrl}
-          style={{ width: '100%', height: '100%', border: 'none', minHeight: '620px' }}
-          title={`TradingView Chart — ${displayLabel}`}
-          allowFullScreen
-          allow="fullscreen"
-        />
+      {/* Workspace Chart Card */}
+      <div style={{ flex: 1, background: '#0a0e27', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', overflow: 'hidden', minHeight: '620px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
+        
+        {/* Workspace Tab Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '12px 20px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              onClick={() => setActiveTab('pro')}
+              style={{
+                padding: '8px 16px',
+                background: activeTab === 'pro' ? 'rgba(0, 255, 136, 0.12)' : 'transparent',
+                border: `1px solid ${activeTab === 'pro' ? '#00ff88' : 'transparent'}`,
+                borderRadius: '6px',
+                color: activeTab === 'pro' ? '#00ff88' : '#9b9eac',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <Activity size={14} /> Pro Chart (Yahoo Live)
+            </button>
+            <button
+              onClick={() => setActiveTab('tradingview')}
+              style={{
+                padding: '8px 16px',
+                background: activeTab === 'tradingview' ? 'rgba(0, 188, 212, 0.12)' : 'transparent',
+                border: `1px solid ${activeTab === 'tradingview' ? '#00bcd4' : 'transparent'}`,
+                borderRadius: '6px',
+                color: activeTab === 'tradingview' ? '#00bcd4' : '#9b9eac',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <BarChart2 size={14} /> TradingView (Advanced)
+            </button>
+          </div>
+          
+          {/* Overlay key showing indicators on the Pro chart */}
+          {activeTab === 'pro' && (
+            <div style={{ display: 'flex', gap: '14px', fontSize: '11px', fontWeight: 600 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#00bcd4' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00bcd4' }} /> SMA 20
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ffb300' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffb300' }} /> SMA 50
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'rgba(38, 166, 154, 0.6)' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#26a69a' }} /> Volume
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Chart Viewport */}
+        <div style={{ flex: 1, position: 'relative', minHeight: '540px', background: '#0a0e27', display: 'flex', flexDirection: 'column' }}>
+          
+          {activeTab === 'pro' ? (
+            <div style={{ position: 'relative', width: '100%', height: '540px' }}>
+              {/* Loader */}
+              {chartLoading && history.length === 0 && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#0a0e27', zIndex: 10, color: '#00ff88', gap: '12px' }}>
+                  <div style={{ border: '3px solid rgba(0, 255, 136, 0.1)', borderLeftColor: '#00ff88', borderRadius: '50%', width: '32px', height: '32px', animation: 'spin 1s linear infinite' }} />
+                  <div style={{ fontSize: '13px', fontWeight: 600 }}>Loading Pro chart data...</div>
+                  <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+              )}
+              
+              {/* Error */}
+              {chartError && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#0a0e27', zIndex: 10, color: '#ff4444', gap: '8px', padding: '20px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700 }}>Chart Load Error</div>
+                  <div style={{ fontSize: '12px', color: '#9b9eac' }}>{chartError}</div>
+                  <button onClick={() => { setChartKey(k => k + 1); }} style={{ marginTop: '8px', padding: '6px 16px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#ffffff', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Retry Connection</button>
+                </div>
+              )}
+
+              {/* Chart Target Div */}
+              <div ref={chartContainerRef} style={{ width: '100%', height: '540px' }} />
+            </div>
+          ) : (
+            <div id="tradingview_chart_container" ref={tvContainerRef} style={{ width: '100%', height: '540px' }} />
+          )}
+
+        </div>
       </div>
 
       <p style={{ color: '#9b9eac', fontSize: '12px', marginTop: '10px', textAlign: 'center' }}>
-        Charts powered by <a href="https://www.tradingview.com" target="_blank" rel="noopener noreferrer" style={{ color: '#00bcd4', textDecoration: 'none' }}>TradingView</a>. Data is for informational purposes only.
+        Charts powered by <a href="https://www.tradingview.com" target="_blank" rel="noopener noreferrer" style={{ color: '#00bcd4', textDecoration: 'none' }}>TradingView</a> and Yahoo Finance. Data is for informational purposes only.
       </p>
     </div>
   );
