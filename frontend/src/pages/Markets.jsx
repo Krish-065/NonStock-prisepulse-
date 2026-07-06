@@ -93,7 +93,7 @@ export default function Markets() {
   const searchRef = useRef();
 
   // Dual mode tab: 'pro' (Lightweight Charts + Yahoo) or 'tradingview' (Official Script Widget)
-  const [activeTab, setActiveTab] = useState('pro');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('marketActiveTab') || 'tradingview');
 
   // Pro Chart history & UI states
   const [history, setHistory] = useState([]);
@@ -146,25 +146,25 @@ export default function Markets() {
   const getBackendInterval = (iv) => {
     if (iv === '1') return '1m';
     if (iv === '5') return '5m';
+    if (iv === '15') return '15m';
+    if (iv === '60') return '60m';
+    if (iv === '240') return '60m';
+    if (iv === 'D') return '1d';
+    if (iv === 'W') return '1wk';
+    if (iv === 'M') return '1mo';
     return '1d';
   };
 
-  // 1. Auto-switch tab type based on symbol characteristics
-  useEffect(() => {
-    if (symbol) {
-      const s = symbol.toUpperCase();
-      const isCrypto = s.includes('BTC') || s.includes('ETH') || s.includes('BNB') || s.includes('SOL') || s.includes('XRP') || s.includes('DOGE') || s.includes('ADA') || s.includes('AVAX') || s.includes('MATIC') || s.includes('LINK') || s.includes('USDT');
-      const isForex = s.includes('USD') || s.includes('EUR') || s.includes('GBP') || s.includes('JPY') || s.includes('AUD') || s.includes('FX');
-      const isUS = s.includes('AAPL') || s.includes('MSFT') || s.includes('TSLA') || s.includes('NVDA') || s.includes('GOOG') || s.includes('AMZN') || s.includes('META') || s.includes('NFLX') || s.includes('SPX') || s.includes('NDX') || s.startsWith('NASDAQ:');
-
-      if (isCrypto || isForex || isUS) {
-        setActiveTab('tradingview');
-      } else {
-        // Indian equities and indices default to Yahoo-powered Pro Chart
-        setActiveTab('pro');
-      }
-    }
-  }, [symbol]);
+  const getBackendRange = (iv) => {
+    if (iv === '1') return '7d';
+    if (iv === '5') return '1mo';
+    if (iv === '15') return '1mo';
+    if (iv === '60' || iv === '240') return '1y';
+    if (iv === 'D') return '2y';
+    if (iv === 'W') return '5y';
+    if (iv === 'M') return '10y';
+    return '2y';
+  };
 
   // 2. Fetch history for the Pro Chart
   useEffect(() => {
@@ -179,7 +179,7 @@ export default function Markets() {
       try {
         const backendSym = resolveBackendSymbol(symbol);
         const backendInterval = getBackendInterval(interval);
-        const range = backendInterval === '1m' ? '1d' : backendInterval === '5m' ? '5d' : '3mo';
+        const range = getBackendRange(interval);
         
         const res = await apiClient.get(`/market/stock-history/${backendSym}?interval=${backendInterval}&range=${range}`);
         
@@ -333,6 +333,52 @@ export default function Markets() {
     sma50Series.setData(sma50Data);
 
     chart.timeScale().fitContent();
+
+    const legend = document.getElementById('pro-chart-legend');
+    
+    // Set default/latest text on initialization
+    if (legend && history.length > 0) {
+      const latestBar = history[history.length - 1];
+      const dateStr = new Date(latestBar.time).toLocaleDateString('en-IN');
+      legend.innerHTML = `<span style="color: #00ff88; font-weight: 700;">LATEST</span> | Date: ${dateStr} | O: <span style="color: #ffffff">${latestBar.open?.toFixed(2) || 'N/A'}</span> | H: <span style="color: #00ff88">${latestBar.high?.toFixed(2) || 'N/A'}</span> | L: <span style="color: #ff4444">${latestBar.low?.toFixed(2) || 'N/A'}</span> | C: <span style="color: #ffffff">${latestBar.close?.toFixed(2) || 'N/A'}</span> | V: <span style="color: #00bcd4">${latestBar.volume?.toLocaleString('en-IN') || 0}</span>`;
+    }
+
+    chart.subscribeCrosshairMove(param => {
+      if (!legend) return;
+      if (
+        param.point === undefined ||
+        !param.time ||
+        param.point.x < 0 ||
+        param.point.x > (chartContainerRef.current?.clientWidth || 800) ||
+        param.point.y < 0 ||
+        param.point.y > 540
+      ) {
+        // Show latest data point when not hovering
+        const latestBar = history[history.length - 1];
+        if (latestBar) {
+          const dateStr = new Date(latestBar.time).toLocaleDateString('en-IN');
+          legend.innerHTML = `<span style="color: #00ff88; font-weight: 700;">LATEST</span> | Date: ${dateStr} | O: <span style="color: #ffffff">${latestBar.open?.toFixed(2) || 'N/A'}</span> | H: <span style="color: #00ff88">${latestBar.high?.toFixed(2) || 'N/A'}</span> | L: <span style="color: #ff4444">${latestBar.low?.toFixed(2) || 'N/A'}</span> | C: <span style="color: #ffffff">${latestBar.close?.toFixed(2) || 'N/A'}</span> | V: <span style="color: #00bcd4">${latestBar.volume?.toLocaleString('en-IN') || 0}</span>`;
+        }
+      } else {
+        const candleData = param.seriesData.get(candlestickSeries);
+        const volDataVal = param.seriesData.get(volumeSeries);
+        if (candleData) {
+          let timeVal = param.time;
+          let dateStr = '';
+          if (typeof timeVal === 'number') {
+            const dateObj = new Date(timeVal * 1000);
+            const isIntraday = interval !== 'D' && interval !== 'W' && interval !== 'M';
+            dateStr = isIntraday 
+              ? dateObj.toLocaleDateString('en-IN') + ' ' + dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+              : dateObj.toLocaleDateString('en-IN');
+          } else {
+            dateStr = JSON.stringify(timeVal);
+          }
+          
+          legend.innerHTML = `Date: ${dateStr} | O: <span style="color: #ffffff">${candleData.open?.toFixed(2) || 'N/A'}</span> | H: <span style="color: #00ff88">${candleData.high?.toFixed(2) || 'N/A'}</span> | L: <span style="color: #ff4444">${candleData.low?.toFixed(2) || 'N/A'}</span> | C: <span style="color: #ffffff">${candleData.close?.toFixed(2) || 'N/A'}</span> | V: <span style="color: #00bcd4">${volDataVal?.value?.toLocaleString('en-IN') || 0}</span>`;
+        }
+      }
+    });
 
     const handleResize = () => {
       if (chartContainerRef.current && chartRef.current) {
@@ -526,7 +572,7 @@ export default function Markets() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '12px 20px', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', gap: '6px' }}>
             <button
-              onClick={() => setActiveTab('pro')}
+              onClick={() => { setActiveTab('pro'); localStorage.setItem('marketActiveTab', 'pro'); }}
               style={{
                 padding: '8px 16px',
                 background: activeTab === 'pro' ? 'rgba(0, 255, 136, 0.12)' : 'transparent',
@@ -545,7 +591,7 @@ export default function Markets() {
               <Activity size={14} /> Pro Chart (Yahoo Live)
             </button>
             <button
-              onClick={() => setActiveTab('tradingview')}
+              onClick={() => { setActiveTab('tradingview'); localStorage.setItem('marketActiveTab', 'tradingview'); }}
               style={{
                 padding: '8px 16px',
                 background: activeTab === 'tradingview' ? 'rgba(0, 188, 212, 0.12)' : 'transparent',
@@ -565,18 +611,23 @@ export default function Markets() {
             </button>
           </div>
           
-          {/* Overlay key showing indicators on the Pro chart */}
+          {/* Overlay key showing indicators and dynamic HUD on the Pro chart */}
           {activeTab === 'pro' && (
-            <div style={{ display: 'flex', gap: '14px', fontSize: '11px', fontWeight: 600 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#00bcd4' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00bcd4' }} /> SMA 20
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ffb300' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffb300' }} /> SMA 50
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'rgba(38, 166, 154, 0.6)' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#26a69a' }} /> Volume
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+              <div id="pro-chart-legend" style={{ fontSize: '12px', color: '#9b9eac', fontFamily: 'monospace', background: 'rgba(0, 0, 0, 0.2)', padding: '4px 10px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                Move mouse over chart to inspect points
+              </div>
+              <div style={{ display: 'flex', gap: '14px', fontSize: '11px', fontWeight: 600 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#00bcd4' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00bcd4' }} /> SMA 20
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ffb300' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffb300' }} /> SMA 50
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'rgba(38, 166, 154, 0.6)' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#26a69a' }} /> Volume
+                </span>
+              </div>
             </div>
           )}
         </div>

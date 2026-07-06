@@ -136,6 +136,7 @@ export default function StockDetail() {
   };
 
   const isNSE = isNSEorBSE(symbol);
+  const currencySymbol = isNSE ? '₹' : '$';
 
   // Dynamically set default tab based on symbol type (Indian NSE/BSE vs Global/Crypto/Forex)
   useEffect(() => {

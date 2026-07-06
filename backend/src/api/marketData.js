@@ -1076,20 +1076,26 @@ router.get('/stock-history/:symbol', async (req, res) => {
       symbol = `${symbol}.NS`;
     }
 
-    // Support dynamic intervals: 1m, 5m, 1d. Default to 1d
-    const allowedIntervals = ['1m', '5m', '1d'];
+    // Support dynamic intervals: 1m, 5m, 15m, 60m, 1d, 1wk, 1mo. Default to 1d
+    const allowedIntervals = ['1m', '5m', '15m', '60m', '1d', '1wk', '1mo'];
     const interval = allowedIntervals.includes(req.query.interval) ? req.query.interval : '1d';
 
-    let range = '3mo';
+    let range = req.query.range || '1y';
+    const allowedRanges = ['1d', '5d', '7d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'max'];
+    if (!allowedRanges.includes(range)) {
+      range = '1y';
+    }
+
+    // Yahoo Finance limits range based on lower intervals:
     if (interval === '1m') {
-      const allowedRanges = ['1d', '5d', '7d'];
-      range = allowedRanges.includes(req.query.range) ? req.query.range : '1d';
-    } else if (interval === '5m') {
-      const allowedRanges = ['1d', '5d', '7d', '1mo'];
-      range = allowedRanges.includes(req.query.range) ? req.query.range : '5d';
-    } else {
-      const allowedRanges = ['1mo', '3mo', '6mo', '1y'];
-      range = allowedRanges.includes(req.query.range) ? req.query.range : '3mo';
+      // 1m data is only available for up to 7 days
+      if (!['1d', '5d', '7d'].includes(range)) range = '7d';
+    } else if (['5m', '15m'].includes(interval)) {
+      // 5m, 15m data is available for up to 60 days
+      if (!['1d', '5d', '7d', '1mo', '3mo'].includes(range)) range = '1mo';
+    } else if (interval === '60m') {
+      // 1h data is available for up to 730 days (2y)
+      if (!['1d', '5d', '7d', '1mo', '3mo', '6mo', '1y', '2y'].includes(range)) range = '1y';
     }
 
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}`;

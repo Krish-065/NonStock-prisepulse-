@@ -92,7 +92,7 @@ export default function Watchlist() {
                 <tr key={idx}>
                   <td>
                     <Link 
-                      to={`/stock/${stock.symbol.replace('.NS', '')}`} 
+                      to={`/stock/${stock.symbol}`} 
                       style={{ color: '#00ff88', textDecoration: 'none', fontWeight: '700' }}
                       onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                       onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
