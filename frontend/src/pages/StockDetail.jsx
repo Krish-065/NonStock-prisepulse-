@@ -151,8 +151,6 @@ export default function StockDetail() {
 
   // Load TV Widget once when symbol changes
   useEffect(() => {
-    if (isNSE) return;
-
     const script = document.createElement('script');
     script.src = 'https://s3.tradingview.com/tv.js';
     script.async = true;
@@ -186,7 +184,7 @@ export default function StockDetail() {
         document.head.removeChild(script);
       } catch (e) {}
     };
-  }, [symbol, isNSE]);
+  }, [symbol]);
 
   // Fetch Stock History
   const fetchStockData = async (isSilent = false) => {
@@ -631,7 +629,7 @@ export default function StockDetail() {
 
   // Lightweight Charts Initialization and Synced Panning/Zooming
   useEffect(() => {
-    if (!isNSE || history.length === 0 || !priceChartContainerRef.current || !rsiChartContainerRef.current) {
+    if (history.length === 0 || !priceChartContainerRef.current || !rsiChartContainerRef.current) {
       return;
     }
 
@@ -999,7 +997,6 @@ export default function StockDetail() {
 
       {/* 1. TradingView Widget Block */}
       <div style={{
-        display: !isNSE ? 'block' : 'none',
         background: 'rgba(16, 20, 39, 0.95)',
         border: '1px solid var(--border-color)',
         borderRadius: '16px',
@@ -1011,7 +1008,7 @@ export default function StockDetail() {
       </div>
 
       {/* 2. Custom Strategy Lab Block */}
-      <div style={{ display: isNSE ? 'block' : 'none' }}>
+      <div>
         
         {/* Strategy Guide Note */}
         <div style={{
