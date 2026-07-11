@@ -56,6 +56,26 @@ app.post('/api/auth/2fa/disable', authenticate, authRoutes.disableTwoFactor);
 // Market data
 app.use('/api/market', marketRoutes);
 
+// Paper trading
+const paperRoutes = require('./api/paperTrading');
+app.use('/api/paper', paperRoutes);
+
+// Strategy Builder & Backtester
+const strategyRoutes = require('./api/strategy');
+app.use('/api/strategy', strategyRoutes);
+
+// AI Mentor Services
+const aiMentorRoutes = require('./api/aiMentor');
+app.use('/api/ai', aiMentorRoutes);
+
+// Community Social Learning Hub
+const communityHubRoutes = require('./api/community');
+app.use('/api/community', communityHubRoutes);
+
+// Automated Multi-Channel Alerts System
+const alertsRoutes = require('./api/alerts');
+app.use('/api/alerts', alertsRoutes);
+
 // User profile & Password routes
 app.post('/api/auth/change-password', authenticate, authRoutes.changePassword);
 

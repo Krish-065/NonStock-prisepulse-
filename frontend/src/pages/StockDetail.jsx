@@ -4,8 +4,9 @@ import { apiClient } from '../services/api';
 import { createChart, CandlestickSeries, LineSeries, createSeriesMarkers } from 'lightweight-charts';
 import { 
   TrendingUp, Activity, Play, RefreshCw, BarChart2, 
-  Settings, Award, ShieldAlert, CheckCircle, ChevronRight, HelpCircle, Sparkles
+  Settings, Award, ShieldAlert, CheckCircle, ChevronRight, HelpCircle, Sparkles, Briefcase, ShoppingBag
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function StockDetail() {
   const { symbol } = useParams();
@@ -14,6 +15,12 @@ export default function StockDetail() {
   // UI Tabs: 'tradingview' or 'algo'
   const [activeTab, setActiveTab] = useState('algo');
   
+  // Paper Trading State
+  const [virtualBalance, setVirtualBalance] = useState(1000000);
+  const [tradeQty, setTradeQty] = useState(10);
+  const [executingOrder, setExecutingOrder] = useState(false);
+  const [paperPortfolioItems, setPaperPortfolioItems] = useState([]);
+
   // Historical data states
   const [history, setHistory] = useState([]);
   const [stockInfo, setStockInfo] = useState({ price: 0, changePercent: 0 });
@@ -220,15 +227,51 @@ export default function StockDetail() {
     }
   };
 
+  const fetchPaperBalance = async () => {
+    try {
+      const res = await apiClient.get('/paper/portfolio');
+      setVirtualBalance(res.data.virtualBalance || 1000000);
+      setPaperPortfolioItems(res.data.holdings || []);
+    } catch (err) {
+      console.error('Failed to fetch paper balance:', err);
+    }
+  };
+
+  const handleExecutePaperTrade = async (action) => {
+    if (!tradeQty || tradeQty <= 0) {
+      toast.error('Please enter a valid quantity');
+      return;
+    }
+    setExecutingOrder(true);
+    try {
+      const cleanSymbol = symbol.endsWith('.NS') ? symbol : `${symbol}.NS`;
+      const price = stockInfo.price;
+      const res = await apiClient.post('/paper/trade', {
+        symbol: cleanSymbol,
+        action,
+        quantity: parseFloat(tradeQty),
+        price
+      });
+      toast.success(res.data.message || `Virtually executed ${action} for ${tradeQty} shares`);
+      fetchPaperBalance();
+    } catch (err) {
+      toast.error(err.response?.data?.error || `Failed to execute virtual ${action}`);
+    } finally {
+      setExecutingOrder(false);
+    }
+  };
+
   useEffect(() => {
     // Fetch initial data
     fetchStockData();
+    fetchPaperBalance();
     setOptimizationResult(null); // reset optimization when settings/stock changes
 
-    // Start silent polling for live updates every 10 seconds
+    // Start silent polling for live updates every 5 seconds
     const intervalId = setInterval(() => {
       fetchStockData(true);
-    }, 1000);
+      fetchPaperBalance();
+    }, 5000);
 
     return () => clearInterval(intervalId);
   }, [symbol, timeRange, chartInterval]);
@@ -1418,16 +1461,17 @@ export default function StockDetail() {
             )}
           </div>
 
-          {/* Split Right: Strategy configuration Panel */}
-          <div style={{
-            background: 'var(--bg-card-glass)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '16px',
-            padding: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
-          }}>
+          {/* Split Right: Strategy configuration Panel + Paper Order Execution Desk */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '340px' }}>
+            <div style={{
+              background: 'var(--bg-card-glass)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '16px',
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
+            }}>
             <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Settings size={18} style={{ color: '#00ff88' }} />
               Strategy settings
@@ -1836,6 +1880,127 @@ export default function StockDetail() {
                     : 'Trend filter (Short only if Price < SMA50)'
                   }
                 </label>
+              </div>
+            </div>
+          </div>
+
+            {/* Simulated Paper Trading Desk Card */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(16, 20, 39, 0.95) 0%, rgba(22, 28, 59, 0.95) 100%)',
+              border: '1px solid rgba(0, 255, 136, 0.15)',
+              borderRadius: '16px',
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+            }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <ShoppingBag size={18} style={{ color: '#00ff88' }} />
+                ₹10L Paper Trading Desk
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '11px', margin: 0, lineHeight: '1.4' }}>
+                Practice simulated investing instantly. Order executions use live spot prices and impact your sandbox balance.
+              </p>
+
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Cash Balance:</span>
+                  <span style={{ fontSize: '12px', fontWeight: '800', color: '#00ff88' }}>
+                    ₹{virtualBalance.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Current Position:</span>
+                  <span style={{ fontSize: '12px', fontWeight: '800', color: '#00bcd4' }}>
+                    {(() => {
+                      const item = paperPortfolioItems.find(h => h.symbol.replace('.NS', '').toUpperCase() === symbol.replace('.NS', '').toUpperCase());
+                      return item ? `${item.quantity} Shares` : '0 Shares';
+                    })()}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase' }}>Quantity</label>
+                  <input 
+                    type="number"
+                    min="1"
+                    value={tradeQty}
+                    onChange={(e) => setTradeQty(Math.max(1, parseInt(e.target.value) || 1))}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase' }}>Execution Price</label>
+                  <div style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    color: '#9b9eac',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <span>₹{stockInfo.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    <span style={{ fontSize: '9px', background: 'rgba(0, 255, 136, 0.1)', color: '#00ff88', padding: '2px 6px', borderRadius: '4px' }}>LIVE SPOT</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '4px' }}>
+                <button
+                  onClick={() => handleExecutePaperTrade('BUY')}
+                  disabled={executingOrder}
+                  style={{
+                    background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#0a0e27',
+                    padding: '12px',
+                    fontWeight: '800',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(0, 255, 136, 0.2)',
+                    transition: '0.2s',
+                    opacity: executingOrder ? 0.6 : 1
+                  }}
+                >
+                  {executingOrder ? 'Processing...' : 'Simulate BUY'}
+                </button>
+                <button
+                  onClick={() => handleExecutePaperTrade('SELL')}
+                  disabled={executingOrder || !paperPortfolioItems.some(h => h.symbol.replace('.NS', '').toUpperCase() === symbol.replace('.NS', '').toUpperCase())}
+                  style={{
+                    background: 'linear-gradient(135deg, #ff4444 0%, #ff1111 100%)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    padding: '12px',
+                    fontWeight: '800',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(255, 68, 68, 0.2)',
+                    transition: '0.2s',
+                    opacity: (executingOrder || !paperPortfolioItems.some(h => h.symbol.replace('.NS', '').toUpperCase() === symbol.replace('.NS', '').toUpperCase())) ? 0.6 : 1
+                  }}
+                >
+                  {executingOrder ? 'Processing...' : 'Simulate SELL'}
+                </button>
               </div>
             </div>
           </div>

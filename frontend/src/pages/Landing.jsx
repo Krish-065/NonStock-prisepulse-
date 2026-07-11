@@ -46,7 +46,23 @@ export default function Landing() {
               <Logo size={120} showName={false} showTagline={false} />
             </div>
             <h1 className="hero-title">Trade Smarter with <span className="gradient-text">NonStock</span></h1>
-            <p className="hero-subtitle" style={{ fontSize: '24px', fontWeight: '800', color: '#00ff88', textShadow: '0 0 15px rgba(0, 255, 136, 0.4)', letterSpacing: '0.5px', marginBottom: '32px' }}>Be Nonstop with NonStock.</p>
+            <p className="hero-subtitle" style={{ fontSize: '22px', fontWeight: '800', color: '#00ff88', textShadow: '0 0 15px rgba(0, 255, 136, 0.4)', letterSpacing: '0.5px', marginBottom: '16px' }}>Be Nonstop with NonStock.</p>
+            <div style={{
+              background: 'rgba(10, 14, 39, 0.6)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(0, 255, 136, 0.15)',
+              borderRadius: '16px',
+              padding: '20px 24px',
+              maxWidth: '720px',
+              margin: '0 auto 32px auto',
+              color: '#ffffff',
+              fontSize: '15px',
+              lineHeight: '1.6',
+              boxShadow: '0 8px 32px rgba(0, 255, 136, 0.05)',
+              textAlign: 'center'
+            }}>
+              NonStock is an AI-first platform where beginners can learn investing, test strategies on historical data, simulate trades without risking money, and receive clear explanations before they invest through their preferred broker.
+            </div>
             <div className="hero-buttons">
               <Link to="/register" className="btn-primary-hero">Get Started →</Link>
               <Link to="/login" className="btn-secondary-hero">Sign In</Link>

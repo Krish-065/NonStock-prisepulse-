@@ -319,6 +319,7 @@ const getStockMetadata = (sym) => {
 
 export default function Portfolio() {
   const { fetchUser } = useAuth();
+  const [portfolioMode, setPortfolioMode] = useState('real'); // 'real' or 'paper'
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalValue, setTotalValue] = useState(0);
@@ -326,6 +327,10 @@ export default function Portfolio() {
   const [totalProfit, setTotalProfit] = useState(0);
   const [connectedBroker, setConnectedBroker] = useState(null);
   
+  // Paper Trading State
+  const [paperData, setPaperData] = useState({ virtualBalance: 1000000, totalHoldingsValue: 0, totalPortfolioValue: 1000000, holdings: [] });
+  const [paperLoading, setPaperLoading] = useState(false);
+
   // Broker Connect Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
@@ -335,6 +340,7 @@ export default function Portfolio() {
       setIsModalOpen(true);
     }
   }, [location]);
+  
   const [broker, setBroker] = useState('Angel One');
   const [clientCode, setClientCode] = useState('');
   const [pin, setPin] = useState('');
@@ -417,49 +423,95 @@ export default function Portfolio() {
     }
   };
 
-  const addHolding = async (symbol, quantity, buyPrice) => {
+  const fetchPaperPortfolio = async (isSilent = false) => {
+    if (!isSilent) setPaperLoading(true);
     try {
-      const cleanSymbol = symbol.endsWith('.NS') ? symbol : `${symbol}.NS`;
-      await apiClient.post('/portfolio', { symbol: cleanSymbol, quantity, buyPrice });
-      toast.success(`${symbol} added to portfolio`);
-      fetchPortfolio();
+      const res = await apiClient.get('/paper/portfolio');
+      setPaperData(res.data);
     } catch (err) {
-      toast.error('Failed to add stock');
+      console.error('Fetch paper portfolio error:', err);
+    } finally {
+      setPaperLoading(false);
     }
   };
 
-  const removeHolding = async (symbol) => {
-    // Keep reference to previous holdings for rollback
-    const previousHoldings = [...holdings];
-    const previousValue = totalValue;
-    const previousInvested = totalInvested;
-    const previousProfit = totalProfit;
-
-    // Optimistically update frontend state immediately
-    const filtered = holdings.filter(h => h.symbol !== symbol);
-    setHoldings(filtered);
-    
-    let newValue = 0;
-    let newInvested = 0;
-    filtered.forEach(item => {
-      newValue += item.currentValue;
-      newInvested += item.invested;
-    });
-    setTotalValue(newValue);
-    setTotalInvested(newInvested);
-    setTotalProfit(newValue - newInvested);
-
+  const addHolding = async (symbol, quantity, buyPrice) => {
     try {
-      await apiClient.delete(`/portfolio/${symbol}`);
-      toast.success('Holding removed');
-      fetchPortfolio(); // Sync in background to verify latest quotes
+      const cleanSymbol = symbol.endsWith('.NS') ? symbol : `${symbol}.NS`;
+      if (portfolioMode === 'real') {
+        await apiClient.post('/portfolio', { symbol: cleanSymbol, quantity, buyPrice });
+        toast.success(`${symbol} added to portfolio`);
+        fetchPortfolio();
+      } else {
+        await apiClient.post('/paper/trade', { symbol: cleanSymbol, action: 'BUY', quantity, price: buyPrice });
+        toast.success(`${symbol} bought virtually in sandbox`);
+        fetchPaperPortfolio();
+      }
     } catch (err) {
-      // Rollback on error
-      setHoldings(previousHoldings);
-      setTotalValue(previousValue);
-      setTotalInvested(previousInvested);
-      setTotalProfit(previousProfit);
-      toast.error('Failed to remove holding');
+      toast.error(err.response?.data?.error || 'Failed to add stock');
+    }
+  };
+
+  const removeHolding = async (symbol, qty = null) => {
+    if (portfolioMode === 'real') {
+      const previousHoldings = [...holdings];
+      const previousValue = totalValue;
+      const previousInvested = totalInvested;
+      const previousProfit = totalProfit;
+
+      const filtered = holdings.filter(h => h.symbol !== symbol);
+      setHoldings(filtered);
+      
+      let newValue = 0;
+      let newInvested = 0;
+      filtered.forEach(item => {
+        newValue += item.currentValue;
+        newInvested += item.invested;
+      });
+      setTotalValue(newValue);
+      setTotalInvested(newInvested);
+      setTotalProfit(newValue - newInvested);
+
+      try {
+        await apiClient.delete(`/portfolio/${symbol}`);
+        toast.success('Holding removed');
+        fetchPortfolio();
+      } catch (err) {
+        setHoldings(previousHoldings);
+        setTotalValue(previousValue);
+        setTotalInvested(previousInvested);
+        setTotalProfit(previousProfit);
+        toast.error('Failed to remove holding');
+      }
+    } else {
+      try {
+        const item = paperData.holdings.find(h => h.symbol === symbol);
+        const sellQty = qty || (item ? item.quantity : 1);
+        const sellPrice = item ? item.livePrice : 0;
+        const cleanSymbol = symbol.endsWith('.NS') ? symbol : `${symbol}.NS`;
+
+        await apiClient.post('/paper/trade', { 
+          symbol: cleanSymbol, 
+          action: 'SELL', 
+          quantity: sellQty, 
+          price: sellPrice 
+        });
+        toast.success(`Sold ${sellQty} shares of ${symbol} in sandbox`);
+        fetchPaperPortfolio();
+      } catch (err) {
+        toast.error(err.response?.data?.error || 'Failed to sell stock virtually');
+      }
+    }
+  };
+
+  const handleResetPaper = async () => {
+    if (!window.confirm('Are you sure you want to reset your paper account? This will wipe your virtual portfolio and restore your ₹10,00,000 balance.')) return;
+    try {
+      await apiClient.post('/paper/reset');
+      toast.success('Paper account reset successfully');
+      fetchPaperPortfolio();
+    } catch (err) {
+      toast.error('Failed to reset paper account');
     }
   };
 
@@ -488,20 +540,55 @@ export default function Portfolio() {
   };
 
   useEffect(() => {
-    fetchPortfolio();
+    if (portfolioMode === 'real') {
+      fetchPortfolio();
+    } else {
+      fetchPaperPortfolio();
+    }
+  }, [portfolioMode]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
-      fetchPortfolio(true);
-    }, 1000);
+      if (portfolioMode === 'real') {
+        fetchPortfolio(true);
+      } else {
+        fetchPaperPortfolio(true);
+      }
+    }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [portfolioMode, holdings, paperData]);
+
+  // Compute active variables based on portfolioMode
+  const activeHoldings = (portfolioMode === 'real' ? holdings : paperData.holdings).map(h => {
+    const meta = getStockMetadata(h.symbol);
+    return {
+      ...h,
+      currentPrice: h.currentPrice || h.livePrice || h.buyPrice,
+      invested: h.invested || (h.quantity * h.buyPrice),
+      currentValue: h.currentValue || h.currentValuation || (h.quantity * (h.livePrice || h.buyPrice)),
+      ...meta
+    };
+  });
+
+  const displayInvested = portfolioMode === 'real' 
+    ? totalInvested 
+    : activeHoldings.reduce((sum, h) => sum + h.invested, 0);
+
+  const displayValue = portfolioMode === 'real'
+    ? totalValue
+    : activeHoldings.reduce((sum, h) => sum + h.currentValue, 0);
+
+  const displayProfit = portfolioMode === 'real'
+    ? totalProfit
+    : (displayValue - displayInvested);
 
   // Compute sector allocations & quadrant risk
   const getSectorBreakdown = () => {
-    if (holdings.length === 0) return { breakdown: [], laggingWeight: 0 };
+    if (activeHoldings.length === 0) return { breakdown: [], laggingWeight: 0 };
     const sectors = {};
     let laggingAndWeakeningVal = 0;
     
-    holdings.forEach(h => {
+    activeHoldings.forEach(h => {
       const val = h.currentValue;
       if (!sectors[h.sector]) {
         sectors[h.sector] = { name: h.sector, val: 0, quad: h.zone };
@@ -514,10 +601,10 @@ export default function Portfolio() {
 
     const breakdown = Object.values(sectors).map(s => ({
       ...s,
-      pct: parseFloat(((s.val / totalValue) * 100).toFixed(1))
+      pct: parseFloat(((s.val / displayValue) * 100).toFixed(1))
     })).sort((a, b) => b.val - a.val);
 
-    const laggingWeight = totalValue > 0 ? (laggingAndWeakeningVal / totalValue) * 100 : 0;
+    const laggingWeight = displayValue > 0 ? (laggingAndWeakeningVal / displayValue) * 100 : 0;
 
     return { breakdown, laggingWeight };
   };
@@ -527,50 +614,119 @@ export default function Portfolio() {
   return (
     <Container>
       <Header>
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <Title>Portfolio Analyst & Smart Sync</Title>
           <Subtitle>Connect your demat securely in read-only mode to visualize sector rotation risk in your holdings</Subtitle>
-        </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          {connectedBroker ? (
-            <>
-              <span style={{ 
-                background: 'rgba(0, 255, 136, 0.1)', 
-                color: '#00ff88', 
-                padding: '8px 12px', 
+          
+          {/* Dual-Mode Toggle Tab */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '8px', 
+            background: 'rgba(255, 255, 255, 0.02)', 
+            padding: '4px', 
+            borderRadius: '10px', 
+            border: '1px solid rgba(255, 255, 255, 0.05)', 
+            marginTop: '12px',
+            alignSelf: 'flex-start' 
+          }}>
+            <button 
+              onClick={() => setPortfolioMode('real')}
+              style={{ 
+                padding: '8px 16px', 
+                background: portfolioMode === 'real' ? 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)' : 'transparent', 
+                border: 'none', 
+                color: portfolioMode === 'real' ? '#0a0e27' : '#ffffff', 
                 borderRadius: '8px', 
-                fontSize: '13px', 
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                border: '1px solid rgba(0, 255, 136, 0.2)'
-              }}>
-                <CheckCircle2 size={14} /> Linked: {connectedBroker}
-              </span>
-              <button 
-                onClick={handleDisconnectBroker}
-                style={{ 
-                  background: 'rgba(255, 51, 102, 0.1)', 
-                  border: '1px solid rgba(255, 51, 102, 0.2)', 
-                  color: '#ff3366', 
-                  padding: '8px 14px', 
+                fontSize: '12px', 
+                fontWeight: '800', 
+                cursor: 'pointer', 
+                transition: '0.2s' 
+              }}
+            >
+              Broker Portfolio
+            </button>
+            <button 
+              onClick={() => setPortfolioMode('paper')}
+              style={{ 
+                padding: '8px 16px', 
+                background: portfolioMode === 'paper' ? 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)' : 'transparent', 
+                border: 'none', 
+                color: portfolioMode === 'paper' ? '#0a0e27' : '#ffffff', 
+                borderRadius: '8px', 
+                fontSize: '12px', 
+                fontWeight: '800', 
+                cursor: 'pointer', 
+                transition: '0.2s' 
+              }}
+            >
+              ₹10L Paper Trading Sandbox
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {portfolioMode === 'real' ? (
+            connectedBroker ? (
+              <>
+                <span style={{ 
+                  background: 'rgba(0, 255, 136, 0.1)', 
+                  color: '#00ff88', 
+                  padding: '8px 12px', 
                   borderRadius: '8px', 
                   fontSize: '13px', 
                   fontWeight: 600,
-                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                Disconnect Demat
-              </button>
-            </>
+                  gap: '6px',
+                  border: '1px solid rgba(0, 255, 136, 0.2)'
+                }}>
+                  <CheckCircle2 size={14} /> Linked: {connectedBroker}
+                </span>
+                <button 
+                  onClick={handleDisconnectBroker}
+                  style={{ 
+                    background: 'rgba(255, 51, 102, 0.1)', 
+                    border: '1px solid rgba(255, 51, 102, 0.2)', 
+                    color: '#ff3366', 
+                    padding: '8px 14px', 
+                    borderRadius: '8px', 
+                    fontSize: '13px', 
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  Disconnect Demat
+                </button>
+              </>
+            ) : (
+              <ActionButton onClick={() => setIsModalOpen(true)}>
+                <LogIn size={16} /> Sync Broker Demat
+              </ActionButton>
+            )
           ) : (
-            <ActionButton onClick={() => setIsModalOpen(true)}>
-              <LogIn size={16} /> Sync Broker Demat
-            </ActionButton>
+            <button
+              onClick={handleResetPaper}
+              style={{
+                background: 'linear-gradient(135deg, #ff4444 0%, #ff1111 100%)',
+                border: 'none',
+                color: '#ffffff',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                fontWeight: '700',
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(255, 68, 68, 0.3)',
+                transition: '0.2s',
+              }}
+            >
+              Reset Sandbox Account
+            </button>
           )}
         </div>
       </Header>
@@ -581,29 +737,41 @@ export default function Portfolio() {
           <Info size={18} />
         </div>
         <div>
-          <strong>How this works:</strong> This is a secure, read-only analytics dashboard. By connecting your broker or manually adding stocks, NonStock scans your assets and maps them to our <strong>Institutional Flow Quadrants</strong>. This shows you whether institutions are accumulating (Leading) or liquidating (Lagging) the sectors you own, helping you manage risks proactively.
+          {portfolioMode === 'real' ? (
+            <strong>How this works:</strong>
+          ) : (
+            <strong>Paper Trading Sandbox:</strong>
+          )}{' '}
+          {portfolioMode === 'real' 
+            ? 'This is a secure, read-only analytics dashboard. By connecting your broker or manually adding stocks, NonStock scans your assets and maps them to our Institutional Flow Quadrants.'
+            : 'Test strategies with ₹10,00,000 virtual balance. Safe, interactive paper trading sandbox integrated with real-time sector concentration rotation risk analytics.'}
         </div>
       </InfoBox>
 
       {/* ─── OVERALL METRICS CARDS ─── */}
       <StatsGrid>
         <StatCard>
-          <div className="label">Invested Cost</div>
-          <div className="value">₹{totalInvested.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+          <div className="label">{portfolioMode === 'real' ? 'Invested Cost' : 'Virtual Invested'}</div>
+          <div className="value">₹{displayInvested.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
         </StatCard>
         <StatCard>
-          <div className="label">Current Wealth</div>
-          <div className="value" style={{ color: '#00bcd4' }}>₹{totalValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+          <div className="label">{portfolioMode === 'real' ? 'Current Wealth' : 'Account Equity Value'}</div>
+          <div className="value" style={{ color: '#00bcd4' }}>₹{displayValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
         </StatCard>
         <StatCard>
-          <div className="label">Net Returns (P&L)</div>
-          <div className="value" style={{ color: totalProfit >= 0 ? '#00ff88' : '#ff3366' }}>
-            ₹{totalProfit.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+          <div className="label">{portfolioMode === 'real' ? 'Net Returns (P&L)' : 'Total Simulated P&L'}</div>
+          <div className="value" style={{ color: displayProfit >= 0 ? '#00ff88' : '#ff3366' }}>
+            ₹{displayProfit.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
           </div>
         </StatCard>
         <StatCard>
-          <div className="label">Holdings Count</div>
-          <div className="value">{holdings.length} Assets</div>
+          <div className="label">{portfolioMode === 'real' ? 'Holdings Count' : 'Available Cash Balance'}</div>
+          <div className="value" style={{ color: portfolioMode === 'real' ? '#ffffff' : '#00ff88' }}>
+            {portfolioMode === 'real' 
+              ? `${displayHoldingsCount} Assets` 
+              : `₹${parseFloat(paperData.virtualBalance || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+            }
+          </div>
         </StatCard>
       </StatsGrid>
 
@@ -612,14 +780,14 @@ export default function Portfolio() {
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
             <h2 style={{ margin: 0, fontSize: '18px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Briefcase style={{ color: '#00ff88' }} /> Asset Allocation list
+              <Briefcase style={{ color: '#00ff88' }} /> {portfolioMode === 'real' ? 'Asset Allocation list' : 'Simulated Sandbox Holdings'}
             </h2>
             <div style={{ width: '280px' }}>
               <SearchWithSuggestions
-                placeholder="Search & Add Stock Manually..."
+                placeholder={portfolioMode === 'real' ? "Search & Add Stock Manually..." : "Search & Buy Virtually..."}
                 onSelect={async (stock) => {
                   const qty = prompt(`Enter quantity for ${stock.symbol}:`);
-                  const price = prompt(`Enter average buy price for ${stock.symbol}:`);
+                  const price = prompt(`Enter buy price for ${stock.symbol}:`, stock.price || '');
                   if (qty && price) {
                     addHolding(stock.symbol, parseFloat(qty), parseFloat(price));
                   }
@@ -628,13 +796,16 @@ export default function Portfolio() {
             </div>
           </div>
 
-          {loading ? (
+          {(portfolioMode === 'real' ? loading : paperLoading) ? (
             <div style={{ textAlign: 'center', padding: '30px 0', color: '#9b9eac' }}>
-              <RefreshCw style={{ animation: 'spin 1s linear infinite', marginRight: '6px' }} size={16} /> Reading your stock allocations...
+              <RefreshCw style={{ animation: 'spin 1s linear infinite', marginRight: '6px' }} size={16} /> Reading allocations...
             </div>
-          ) : holdings.length === 0 ? (
+          ) : activeHoldings.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: '#9b9eac', border: '1px dashed rgba(255,255,255,0.08)', borderRadius: '12px' }}>
-              No holdings found. Click "Sync Broker Demat" at the top to import automatically, or search and add manually.
+              {portfolioMode === 'real' 
+                ? 'No holdings found. Click "Sync Broker Demat" at the top to import automatically, or search and add manually.'
+                : 'Your virtual portfolio is empty. Search and buy stocks using the box above to start paper trading.'
+              }
             </div>
           ) : (
             <TableContainer>
@@ -653,7 +824,7 @@ export default function Portfolio() {
                   </tr>
                 </thead>
                 <tbody>
-                  {holdings.map((h, idx) => (
+                  {activeHoldings.map((h, idx) => (
                     <tr key={idx}>
                       <td style={{ fontWeight: 700, color: '#ffffff' }}>{h.symbol.replace('.NS', '')}</td>
                       <td style={{ color: '#9b9eac', fontSize: '12px' }}>{h.sector}</td>
@@ -671,6 +842,7 @@ export default function Portfolio() {
                         <button 
                           onClick={() => removeHolding(h.symbol)}
                           style={{ background: 'transparent', border: 'none', color: '#ff3366', cursor: 'pointer' }}
+                          title={portfolioMode === 'real' ? 'Remove holding' : 'Sell holding virtually'}
                         >
                           <Trash2 size={15} />
                         </button>
@@ -689,7 +861,7 @@ export default function Portfolio() {
             <PieChart style={{ color: '#00bcd4' }} /> Smart Money Exposure
           </h2>
 
-          {holdings.length === 0 ? (
+          {activeHoldings.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '30px 0', color: '#9b9eac', fontSize: '12px' }}>
               Add assets to check sector concentration.
             </div>

@@ -19,7 +19,11 @@ import {
   X,
   Activity,
   Compass,
-  Award
+  Award,
+  Sparkles,
+  MessageSquare,
+  Users,
+  Bell
 } from 'lucide-react';
 
 export default function Sidebar({ isMobile, isOpen, onClose }) {
@@ -29,6 +33,10 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={16} /> },
+    { path: '/strategy-lab', label: 'Strategy Lab', icon: <Sparkles size={16} /> },
+    { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={16} /> },
+    { path: '/alerts', label: 'Alerts Hub', icon: <Bell size={16} /> },
+    { path: '/community', label: 'Community Hub', icon: <Users size={16} /> },
     { path: '/fno', label: 'Futures & Options', icon: <Activity size={16} /> },
     { path: '/sector-rotation', label: 'Sector Rotation', icon: <Compass size={16} /> },
     { path: '/screener', label: 'Screener', icon: <Search size={16} /> },

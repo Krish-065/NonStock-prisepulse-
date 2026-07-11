@@ -30,6 +30,10 @@ import News from './pages/News';
 import Crypto from './pages/Crypto';
 import MutualFunds from './pages/MutualFunds';
 import Profile from './pages/Profile';
+import StrategyBuilder from './pages/StrategyBuilder';
+import AIMentor from './pages/AIMentor';
+import Community from './pages/Community';
+import Alerts from './pages/Alerts';
 
 function App() {
   return (
@@ -62,6 +66,11 @@ function App() {
             <Route path="/crypto" element={<PrivateRoute><Layout><Crypto /></Layout></PrivateRoute>} />
             <Route path="/mutual-funds" element={<PrivateRoute><Layout><MutualFunds /></Layout></PrivateRoute>} />
             <Route path="/profile" element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
+            
+            <Route path="/strategy-lab" element={<PrivateRoute><Layout><StrategyBuilder /></Layout></PrivateRoute>} />
+            <Route path="/ai-mentor" element={<PrivateRoute><Layout><AIMentor /></Layout></PrivateRoute>} />
+            <Route path="/alerts" element={<PrivateRoute><Layout><Alerts /></Layout></PrivateRoute>} />
+            <Route path="/community" element={<PrivateRoute><Layout><Community /></Layout></PrivateRoute>} />
           </Routes>
         </AuthProvider>
       </ThemeProvider>
