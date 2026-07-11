@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Activity, BarChart2 } from 'lucide-react';
 import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { apiClient } from '../services/api';
+import { io } from 'socket.io-client';
 
 // Symbol categories with popular options
 const SYMBOL_CATEGORIES = {
@@ -92,8 +93,22 @@ export default function Markets() {
   const [chartKey, setChartKey] = useState(0);
   const searchRef = useRef();
 
-  const activeTab = 'tradingview';
+  const [activeTab, setActiveTab] = useState(
+    (symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || activeCategory === 'Indian Stocks')
+      ? 'custom'
+      : 'tradingview'
+  );
   const tvContainerRef = useRef(null);
+  const customChartContainerRef = useRef(null);
+  const chartInstanceRef = useRef(null);
+  const candlestickSeriesRef = useRef(null);
+  const volumeSeriesRef = useRef(null);
+  const lastSymbolRef = useRef(symbol);
+
+  const [customHistory, setCustomHistory] = useState([]);
+  const [customLoading, setCustomLoading] = useState(false);
+  const [customError, setCustomError] = useState('');
+  const [liveInfo, setLiveInfo] = useState(null);
 
   const filteredSymbols = searchQuery.length > 0
     ? ALL_SYMBOLS.filter(s =>
@@ -111,19 +126,81 @@ export default function Markets() {
 
   const displayLabel = ALL_SYMBOLS.find(s => s.value === symbol)?.label || symbol;
 
+  const isIndianStock = symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || activeCategory === 'Indian Stocks';
+
+  // Automatically switch tab when a new symbol is selected
+  useEffect(() => {
+    if (symbol !== lastSymbolRef.current) {
+      const isInd = symbol.startsWith('NSE:') || symbol.startsWith('BSE:');
+      setActiveTab(isInd ? 'custom' : 'tradingview');
+      lastSymbolRef.current = symbol;
+    }
+  }, [symbol]);
+
+  // Inject spinner styles
+  useEffect(() => {
+    const styleId = 'nonstock-spinner-style';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.innerHTML = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+
   // Smart TV symbol resolver
   const resolveTVSymbol = (rawSymbol) => {
     const s = rawSymbol.toUpperCase();
-    if (s.startsWith('NSE:') || s.startsWith('BSE:')) return s;
-    if (s === 'BSE:SENSEX') return 'BSE:SENSEX';
-    if (s === 'NSE:NIFTY') return 'NSE:NIFTY';
-    const clean = s.replace('.NS', '').replace('.BO', '');
-    if (s.includes(':')) return s;
-    return `NSE:${clean}`;
+    
+    // 1. If it already has an exchange prefix
+    if (s.includes(':')) {
+      return s;
+    }
+
+    // 2. Handle known indices
+    if (s === 'NIFTY' || s === '^NSEI' || s === 'NSE:NIFTY') return 'NSE:NIFTY';
+    if (s === 'SENSEX' || s === '^BSESN' || s === 'BSE:SENSEX') return 'BSE:SENSEX';
+    if (s === 'BANKNIFTY' || s === '^NSEBANK' || s === 'NSE:BANKNIFTY') return 'NSE:BANKNIFTY';
+
+    // 3. Cryptocurrencies (e.g., BTC-USD, ETH-USD)
+    const isCrypto = s.includes('-USD') || s.includes('-USDT') || s.endsWith('USD') || s.endsWith('USDT') || ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'TRX', 'SHIB', 'AVAX', 'DOT'].includes(s);
+    if (isCrypto) {
+      const baseSymbol = s.replace('-USD', '').replace('-USDT', '').replace('USD', '').replace('USDT', '');
+      return `BINANCE:${baseSymbol}USDT`;
+    }
+
+    // 4. Forex Pairs (e.g., EURUSD=X)
+    if (s.endsWith('=X')) {
+      const cleanForex = s.replace('=X', '');
+      return `FX_IDC:${cleanForex}`;
+    }
+
+    // 5. Standard Equities
+    if (s.endsWith('.NS')) {
+      return `NSE:${s.replace('.NS', '')}`;
+    }
+    if (s.endsWith('.BO')) {
+      return `BSE:${s.replace('.BO', '')}`;
+    }
+
+    // US Equities list check
+    const usStocks = ['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOG', 'META', 'NVDA', 'NFLX'];
+    if (usStocks.includes(s)) {
+      return `NASDAQ:${s}`;
+    }
+
+    return `NSE:${s}`;
   };
 
-  // 2. Render TradingView Widget (Official Script version)
+  // 1. Render TradingView Widget (Official Script version)
   useEffect(() => {
+    if (activeTab !== 'tradingview') return;
+
     const scriptId = 'tradingview-widget-script';
     let script = document.getElementById(scriptId);
 
@@ -164,7 +241,323 @@ export default function Markets() {
         script.onload = initTVWidget;
       }
     }
-  }, [symbol, interval]);
+  }, [symbol, interval, activeTab, chartKey]);
+
+  // 2. Custom Chart Mapping and Helper Functions
+  const mapIntervalForApi = useCallback((v) => {
+    switch (v) {
+      case '1': return '1m';
+      case '5': return '5m';
+      case '15': return '15m';
+      case '60': return '60m';
+      case '240': return '60m';
+      case 'D': return '1d';
+      case 'W': return '1wk';
+      case 'M': return '1mo';
+      default: return '1d';
+    }
+  }, []);
+
+  const getRangeForInterval = useCallback((v) => {
+    switch (v) {
+      case '1': return '5d';
+      case '5': return '30d';
+      case '15': return '30d';
+      case '60': return '3mo';
+      case '240': return '6mo';
+      case 'D': return '1y';
+      case 'W': return '2y';
+      case 'M': return '5y';
+      default: return '1y';
+    }
+  }, []);
+
+  const getIntervalBarTime = useCallback((timeMs, intervalVal) => {
+    const date = new Date(timeMs);
+    if (intervalVal === 'D') {
+      date.setHours(0, 0, 0, 0);
+      return Math.floor(date.getTime() / 1000);
+    }
+    if (intervalVal === 'W') {
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      const startOfWeek = new Date(date.setDate(diff));
+      startOfWeek.setHours(0, 0, 0, 0);
+      return Math.floor(startOfWeek.getTime() / 1000);
+    }
+    if (intervalVal === 'M') {
+      date.setDate(1);
+      date.setHours(0, 0, 0, 0);
+      return Math.floor(date.getTime() / 1000);
+    }
+    const mins = parseInt(intervalVal);
+    if (!isNaN(mins)) {
+      const coeff = 1000 * 60 * mins;
+      const rounded = new Date(Math.floor(timeMs / coeff) * coeff);
+      return Math.floor(rounded.getTime() / 1000);
+    }
+    return Math.floor(timeMs / 1000);
+  }, []);
+
+  // 3. Custom Chart Renderer
+  const initCustomChart = useCallback((historyData) => {
+    if (!customChartContainerRef.current) return;
+
+    if (chartInstanceRef.current) {
+      try {
+        chartInstanceRef.current.remove();
+      } catch (e) {
+        console.error(e);
+      }
+      chartInstanceRef.current = null;
+    }
+
+    const chart = createChart(customChartContainerRef.current, {
+      width: customChartContainerRef.current.clientWidth,
+      height: 540,
+      layout: {
+        background: { color: '#0a0e27' },
+        textColor: '#9b9eaf',
+        fontSize: 12,
+        fontFamily: 'Inter, sans-serif',
+      },
+      grid: {
+        vertLines: { color: 'rgba(255, 255, 255, 0.03)' },
+        horzLines: { color: 'rgba(255, 255, 255, 0.03)' },
+      },
+      crosshair: {
+        mode: 0,
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderVisible: false,
+      },
+      rightPriceScale: {
+        borderVisible: false,
+      },
+    });
+
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
+      upColor: '#00ff88',
+      downColor: '#ff4444',
+      borderVisible: false,
+      wickUpColor: '#00ff88',
+      wickDownColor: '#ff4444',
+    });
+
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      color: '#26a69a',
+      priceFormat: {
+        type: 'volume',
+      },
+      priceScaleId: '',
+    });
+
+    volumeSeries.priceScale().applyOptions({
+      scaleMargins: {
+        top: 0.8,
+        bottom: 0,
+      },
+    });
+
+    const seenTimes = new Set();
+    const formattedCandles = [];
+    const formattedVolume = [];
+
+    historyData.forEach((candle) => {
+      const timeSec = Math.floor(candle.time / 1000);
+      if (seenTimes.has(timeSec)) return;
+      seenTimes.add(timeSec);
+
+      formattedCandles.push({
+        time: timeSec,
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+      });
+
+      const volColor = candle.close >= candle.open ? 'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)';
+      formattedVolume.push({
+        time: timeSec,
+        value: candle.volume || 0,
+        color: volColor,
+      });
+    });
+
+    candlestickSeries.setData(formattedCandles);
+    volumeSeries.setData(formattedVolume);
+
+    chartInstanceRef.current = chart;
+    candlestickSeriesRef.current = candlestickSeries;
+    volumeSeriesRef.current = volumeSeries;
+
+    chart.timeScale().fitContent();
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (entries.length === 0 || !customChartContainerRef.current) return;
+      const width = customChartContainerRef.current.clientWidth;
+      chart.resize(width, 540);
+    });
+    resizeObserver.observe(customChartContainerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+      if (chartInstanceRef.current) {
+        try {
+          chartInstanceRef.current.remove();
+        } catch (e) {}
+        chartInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // 4. Fetch Custom History Effect
+  useEffect(() => {
+    if (activeTab !== 'custom') return;
+
+    let active = true;
+    const fetchHistory = async () => {
+      setCustomLoading(true);
+      setCustomError('');
+      try {
+        const apiInterval = mapIntervalForApi(interval);
+        const apiRange = getRangeForInterval(interval);
+        const cleanSymbol = symbol.includes(':') ? symbol.split(':')[1] : symbol;
+        const res = await apiClient.get(`/market/stock-history/${cleanSymbol}?range=${apiRange}&interval=${apiInterval}`);
+        if (active) {
+          setCustomHistory(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch stock history:', err);
+        if (active) {
+          setCustomError('Failed to load historical chart data. Please try another symbol.');
+        }
+      } finally {
+        if (active) {
+          setCustomLoading(false);
+        }
+      }
+    };
+
+    fetchHistory();
+
+    return () => {
+      active = false;
+    };
+  }, [symbol, interval, activeTab, chartKey, mapIntervalForApi, getRangeForInterval]);
+
+  // 5. Initialize Custom Chart Effect
+  useEffect(() => {
+    if (activeTab !== 'custom' || customHistory.length === 0 || !customChartContainerRef.current) return;
+
+    const cleanup = initCustomChart(customHistory);
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [customHistory, activeTab, initCustomChart]);
+
+  // 6. Live WebSocket Connection and initial tick fetch
+  useEffect(() => {
+    if (activeTab !== 'custom') return;
+
+    const cleanSymbol = symbol.includes(':') ? symbol.split(':')[1] : symbol;
+
+    // Fetch initial snapshot first
+    const fetchSnapshot = async () => {
+      try {
+        const res = await apiClient.get(`/market/stock/${cleanSymbol}`);
+        setLiveInfo({
+          price: res.data.price,
+          change: res.data.change,
+          changePercent: res.data.changePercent,
+          dayHigh: res.data.dayHigh,
+          dayLow: res.data.dayLow,
+          volume: res.data.volume
+        });
+      } catch (err) {
+        console.warn('Failed to fetch initial snapshot:', err);
+      }
+    };
+    fetchSnapshot();
+
+    const socketUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
+    const token = localStorage.getItem('token');
+
+    const socket = io(socketUrl, {
+      auth: { token },
+      transports: ['websocket', 'polling']
+    });
+
+    socket.on('connect', () => {
+      console.log('🔌 Connected to live price stream');
+      socket.emit('subscribe', [cleanSymbol]);
+    });
+
+    socket.on('tick', (tick) => {
+      if (tick.symbol !== cleanSymbol) return;
+
+      const priceVal = parseFloat(tick.price);
+      if (candlestickSeriesRef.current && !isNaN(priceVal)) {
+        const barTime = getIntervalBarTime(tick.timestamp || Date.now(), interval);
+        
+        const lastCandle = customHistory[customHistory.length - 1];
+        let open = priceVal;
+        let high = priceVal;
+        let low = priceVal;
+        let close = priceVal;
+
+        if (lastCandle) {
+          const lastCandleSec = Math.floor(lastCandle.time / 1000);
+          if (barTime === lastCandleSec) {
+            open = lastCandle.open;
+            high = Math.max(lastCandle.high, priceVal);
+            low = Math.min(lastCandle.low, priceVal);
+          } else {
+            open = lastCandle.close;
+            high = Math.max(open, priceVal);
+            low = Math.min(open, priceVal);
+          }
+        }
+
+        candlestickSeriesRef.current.update({
+          time: barTime,
+          open,
+          high,
+          low,
+          close
+        });
+
+        if (volumeSeriesRef.current && tick.volume) {
+          const volColor = close >= open ? 'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)';
+          volumeSeriesRef.current.update({
+            time: barTime,
+            value: parseInt(tick.volume),
+            color: volColor
+          });
+        }
+
+        setLiveInfo({
+          price: tick.price,
+          change: tick.change,
+          changePercent: tick.changePercent,
+          dayHigh: tick.dayHigh,
+          dayLow: tick.dayLow,
+          volume: tick.volume
+        });
+      }
+    });
+
+    socket.on('connect_error', (err) => {
+      console.warn('Socket connection error:', err);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [symbol, interval, activeTab, customHistory, getIntervalBarTime]);
 
   // Close search dropdown on outside click
   useEffect(() => {
@@ -292,16 +685,127 @@ export default function Markets() {
       <div style={{ flex: 1, background: '#0a0e27', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', overflow: 'hidden', minHeight: '620px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
         
         {/* Workspace Tab Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '12px 20px', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <BarChart2 size={16} style={{ color: '#00bcd4' }} />
-            <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '14px' }}>TradingView Workspace</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '0 20px', flexWrap: 'wrap', gap: '8px', height: '48px' }}>
+          <div style={{ display: 'flex', gap: '16px', height: '100%' }}>
+            <button
+              onClick={() => setActiveTab('tradingview')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: activeTab === 'tradingview' ? '2px solid #00bcd4' : '2px solid transparent',
+                color: activeTab === 'tradingview' ? '#ffffff' : '#9b9eac',
+                padding: '0 8px',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '13px',
+                transition: 'all 0.2s',
+                height: '100%'
+              }}
+            >
+              <BarChart2 size={15} style={{ color: activeTab === 'tradingview' ? '#00bcd4' : '#9b9eac' }} />
+              TradingView Widget
+            </button>
+            <button
+              onClick={() => setActiveTab('custom')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: activeTab === 'custom' ? '2px solid #00ff88' : '2px solid transparent',
+                color: activeTab === 'custom' ? '#ffffff' : '#9b9eac',
+                padding: '0 8px',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '13px',
+                transition: 'all 0.2s',
+                height: '100%'
+              }}
+            >
+              <Activity size={15} style={{ color: activeTab === 'custom' ? '#00ff88' : '#9b9eac' }} />
+              NonStock Live Chart
+              {isIndianStock && (
+                <span style={{ fontSize: '9px', background: 'rgba(0, 255, 136, 0.15)', color: '#00ff88', padding: '2px 6px', borderRadius: '4px', marginLeft: '4px', border: '1px solid rgba(0, 255, 136, 0.2)' }}>
+                  Recommended
+                </span>
+              )}
+            </button>
+          </div>
+          
+          {/* Status Badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: activeTab === 'custom' ? '#00ff88' : '#00bcd4',
+              boxShadow: activeTab === 'custom' ? '0 0 8px #00ff88' : '0 0 8px #00bcd4'
+            }} />
+            <span style={{ color: '#9b9eac', fontSize: '11px', fontWeight: 600 }}>
+              {activeTab === 'custom' ? 'Live Canvas Engine' : 'TradingView Embed'}
+            </span>
           </div>
         </div>
 
         {/* Chart Viewport */}
         <div style={{ flex: 1, position: 'relative', minHeight: '540px', background: '#0a0e27', display: 'flex', flexDirection: 'column' }}>
-          <div id="tradingview_chart_container" ref={tvContainerRef} style={{ width: '100%', height: '540px' }} />
+          
+          {/* TradingView Container */}
+          <div style={{ display: activeTab === 'tradingview' ? 'block' : 'none', width: '100%', height: '540px' }}>
+            <div id="tradingview_chart_container" ref={tvContainerRef} style={{ width: '100%', height: '540px' }} />
+          </div>
+
+          {/* Custom NonStock Chart Container */}
+          <div style={{ display: activeTab === 'custom' ? 'block' : 'none', width: '100%', height: '540px', position: 'relative' }}>
+            {customLoading && (
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10, 14, 39, 0.8)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 10 }}>
+                <div className="spinner" style={{ border: '3px solid rgba(255,255,255,0.05)', borderTop: '3px solid #00ff88', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
+                <span style={{ color: '#ffffff', fontSize: '14px', fontWeight: 600 }}>Fetching live historical data...</span>
+              </div>
+            )}
+            {customError && (
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10, 14, 39, 0.95)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 10, padding: '24px', textAlign: 'center' }}>
+                <span style={{ color: '#ff4444', fontSize: '15px', fontWeight: 700, marginBottom: '10px' }}>{customError}</span>
+                <button onClick={() => setChartKey(k => k + 1)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ffffff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Retry connection</button>
+              </div>
+            )}
+            
+            {/* Live Info Bar inside chart */}
+            {liveInfo && (
+              <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 5, background: 'rgba(16, 20, 45, 0.85)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', display: 'flex', gap: '20px', alignItems: 'center', pointerEvents: 'none' }}>
+                <div>
+                  <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>LAST PRICE</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace' }}>
+                    ₹{parseFloat(liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>CHANGE</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: parseFloat(liveInfo.change) >= 0 ? '#00ff88' : '#ff4444', fontFamily: 'monospace' }}>
+                    {parseFloat(liveInfo.change) >= 0 ? '+' : ''}{parseFloat(liveInfo.change).toFixed(2)} ({parseFloat(liveInfo.changePercent) >= 0 ? '+' : ''}{parseFloat(liveInfo.changePercent).toFixed(2)}%)
+                  </div>
+                </div>
+                <div style={{ borderLeft: '1px solid rgba(255,255,255,0.08)', paddingLeft: '20px' }}>
+                  <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>DAY HIGH</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff', fontFamily: 'monospace' }}>
+                    ₹{parseFloat(liveInfo.dayHigh || liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>DAY LOW</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff', fontFamily: 'monospace' }}>
+                    ₹{parseFloat(liveInfo.dayLow || liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div id="nonstock_chart_container" ref={customChartContainerRef} style={{ width: '100%', height: '540px' }} />
+          </div>
         </div>
 
       </div>

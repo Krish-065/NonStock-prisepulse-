@@ -1098,37 +1098,46 @@ router.get('/stock-history/:symbol', async (req, res) => {
       if (!['1d', '5d', '7d', '1mo', '3mo', '6mo', '1y', '2y'].includes(range)) range = '1y';
     }
 
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}`;
-    const response = await fetch(url, { headers: YAHOO_HEADERS });
-    if (!response.ok) {
-      return res.status(response.status).json({ error: 'Failed to fetch stock history' });
+    let data;
+    let success = false;
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}`;
+      const response = await fetch(url, { headers: YAHOO_HEADERS });
+      if (response.ok) {
+        data = await response.json();
+        if (data?.chart?.result?.[0]) {
+          success = true;
+        }
+      }
+    } catch (e) {
+      console.warn(`[YahooFinance] Failed to fetch chart for ${symbol}:`, e.message);
     }
-    const data = await response.json();
-    const result = data?.chart?.result?.[0];
-    if (!result) {
-      return res.status(404).json({ error: 'No history found' });
-    }
-    const timestamps = result.timestamp || [];
-    const quotes = result.indicators?.quote?.[0] || {};
-    const opens   = quotes.open   || [];
-    const highs   = quotes.high   || [];
-    const lows    = quotes.low    || [];
-    const closes  = quotes.close  || [];
-    const volumes = quotes.volume || [];
 
     const history = [];
-    for (let i = 0; i < timestamps.length; i++) {
-      if (opens[i] !== null && closes[i] !== null) {
-        history.push({
-          time:   timestamps[i] * 1000,
-          open:   parseFloat(opens[i]),
-          high:   parseFloat(highs[i]),
-          low:    parseFloat(lows[i]),
-          close:  parseFloat(closes[i]),
-          volume: Math.round(volumes[i] || 0)
-        });
+    if (success) {
+      const result = data.chart.result[0];
+      const timestamps = result.timestamp || [];
+      const quotes = result.indicators?.quote?.[0] || {};
+      const opens   = quotes.open   || [];
+      const highs   = quotes.high   || [];
+      const lows    = quotes.low    || [];
+      const closes  = quotes.close  || [];
+      const volumes = quotes.volume || [];
+
+      for (let i = 0; i < timestamps.length; i++) {
+        if (opens[i] !== null && closes[i] !== null) {
+          history.push({
+            time:   timestamps[i] * 1000,
+            open:   parseFloat(opens[i]),
+            high:   parseFloat(highs[i]),
+            low:    parseFloat(lows[i]),
+            close:  parseFloat(closes[i]),
+            volume: Math.round(volumes[i] || 0)
+          });
+        }
       }
     }
+
     if (history.length < 5) {
       let livePrice = 100;
       try {
@@ -1317,4 +1326,7 @@ router.get('/mutual-funds/:schemeCode', async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = {
+  router,
+  fetchYahooQuote
+};

@@ -6,7 +6,7 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { createTables } = require('./db/schema');
 const authRoutes = require('./auth/auth.service');
-const marketRoutes = require('./api/marketData');
+const { router: marketRoutes, fetchYahooQuote } = require('./api/marketData');
 const { authenticate } = require('./middleware/auth');
 const { loginLimiter } = require('./middleware/rateLimit');
 const { query } = require('./db/index');
@@ -369,11 +369,113 @@ io.use((socket, next) => {
     next(new Error('Invalid token'));
   }
 });
+// Active Stream Manager
+const activeSymbols = new Map();
+
 io.on('connection', (socket) => {
-  console.log(`User ${socket.userId} connected`);
-  socket.on('subscribe', (symbols) => symbols.forEach(sym => socket.join(`stock:${sym}`)));
-  socket.on('disconnect', () => console.log(`User ${socket.userId} disconnected`));
+  console.log(`🔌 User ${socket.userId} connected to WebSocket (socket ID: ${socket.id})`);
+
+  socket.on('subscribe', (symbols) => {
+    if (!Array.isArray(symbols)) return;
+    symbols.forEach((sym) => {
+      const cleanSym = sym.toUpperCase();
+      socket.join(`stock:${cleanSym}`);
+      
+      if (!activeSymbols.has(cleanSym)) {
+        activeSymbols.set(cleanSym, new Set());
+      }
+      activeSymbols.get(cleanSym).add(socket.id);
+      console.log(`📡 Socket ${socket.id} subscribed to room stock:${cleanSym}`);
+    });
+  });
+
+  socket.on('unsubscribe', (symbols) => {
+    if (!Array.isArray(symbols)) return;
+    symbols.forEach((sym) => {
+      const cleanSym = sym.toUpperCase();
+      socket.leave(`stock:${cleanSym}`);
+      
+      if (activeSymbols.has(cleanSym)) {
+        activeSymbols.get(cleanSym).delete(socket.id);
+        if (activeSymbols.get(cleanSym).size === 0) {
+          activeSymbols.delete(cleanSym);
+        }
+      }
+      console.log(`📡 Socket ${socket.id} unsubscribed from stock:${cleanSym}`);
+    });
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`🔌 User ${socket.userId} disconnected (socket ID: ${socket.id})`);
+    for (const [sym, sockets] of activeSymbols.entries()) {
+      if (sockets.has(socket.id)) {
+        sockets.delete(socket.id);
+        if (sockets.size === 0) {
+          activeSymbols.delete(sym);
+        }
+      }
+    }
+  });
 });
+
+// Periodic stream tick generator (1 second interval)
+setInterval(async () => {
+  if (activeSymbols.size === 0) return;
+
+  for (const [symbol, sockets] of activeSymbols.entries()) {
+    if (sockets.size === 0) {
+      activeSymbols.delete(symbol);
+      continue;
+    }
+
+    try {
+      let resolveSymbol = symbol.toUpperCase();
+      const isIndex = ['NSEI', 'BSESN', 'NSEBANK', 'CNXIT', 'NIFTY', 'SENSEX', 'BANKNIFTY'].includes(resolveSymbol);
+      const isCrypto = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'SHIB', 'AVAX', 'TRX'].includes(resolveSymbol);
+      const isForex = resolveSymbol.includes('USD') || resolveSymbol.includes('INR');
+      const alreadySuffixed = resolveSymbol.endsWith('.NS') || resolveSymbol.endsWith('.BO') || resolveSymbol.endsWith('=X') || resolveSymbol.endsWith('-USD') || resolveSymbol.endsWith('-USDT') || resolveSymbol.startsWith('^');
+
+      if (resolveSymbol === 'NIFTY') resolveSymbol = '^NSEI';
+      else if (resolveSymbol === 'SENSEX') resolveSymbol = '^BSESN';
+      else if (resolveSymbol === 'BANKNIFTY') resolveSymbol = '^NSEBANK';
+
+      if (isCrypto && !alreadySuffixed) {
+        resolveSymbol = `${resolveSymbol}-USD`;
+      } else if (!isIndex && !isCrypto && !isForex && !alreadySuffixed) {
+        resolveSymbol = `${resolveSymbol}.NS`;
+      }
+
+      const quote = await fetchYahooQuote(resolveSymbol);
+      if (quote) {
+        const price = parseFloat(quote.price);
+        const change = parseFloat(quote.change) || 0;
+        
+        // Minor trade walk: -0.04% to +0.04% fluctuation
+        const walkPercent = (Math.random() - 0.5) * 0.0008;
+        const tickPrice = parseFloat((price * (1 + walkPercent)).toFixed(2));
+        
+        const originalPrevClose = price - change;
+        const tickChange = tickPrice - originalPrevClose;
+        const tickChangePercent = originalPrevClose ? (tickChange / originalPrevClose) * 100 : 0;
+
+        const tick = {
+          symbol,
+          price: tickPrice.toFixed(2),
+          change: tickChange.toFixed(2),
+          changePercent: tickChangePercent.toFixed(2),
+          dayHigh: Math.max(parseFloat(quote.dayHigh || price), tickPrice).toFixed(2),
+          dayLow: Math.min(parseFloat(quote.dayLow || price), tickPrice).toFixed(2),
+          volume: Math.round((quote.volume || 10000) * (1 + (Math.random() - 0.5) * 0.05)),
+          timestamp: Date.now()
+        };
+
+        io.to(`stock:${symbol}`).emit('tick', tick);
+      }
+    } catch (err) {
+      console.warn(`[StreamManager] Failed to fetch quote for ${symbol}:`, err.message);
+    }
+  }
+}, 1000);
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
