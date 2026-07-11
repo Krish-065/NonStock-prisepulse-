@@ -143,7 +143,7 @@ export default function AIMentor() {
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <span style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)' }}>
-            Powered by Gemini 1.5 Flash
+            Powered by Gemini 2.5 Flash
           </span>
         </div>
       </div>
