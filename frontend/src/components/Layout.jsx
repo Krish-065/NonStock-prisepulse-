@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import CandlestickBg from './CandlestickBg';
-import { Menu } from 'lucide-react';
+import { Menu, Star, Briefcase, Coins, LineChart, Award } from 'lucide-react';
 import { apiClient } from '../services/api';
 
 export default function Layout({ children }) {
@@ -13,6 +14,29 @@ export default function Layout({ children }) {
     banknifty: { value: '--', change: '--', percent: '--', up: true },
   });
   const [marketStatus, setMarketStatus] = useState({ status: 'Closed', label: 'Loading status...', color: '#ff4444' });
+
+  const navItems = [
+    { path: '/watchlist', label: 'Watchlist', icon: <Star size={14} /> },
+    { path: '/portfolio', label: 'Portfolio', icon: <Briefcase size={14} /> },
+    { path: '/crypto', label: 'Crypto', icon: <Coins size={14} /> },
+    { path: '/ipos', label: 'IPOs', icon: <LineChart size={14} /> },
+    { path: '/mutual-funds', label: 'Mutual Funds', icon: <Award size={14} /> },
+  ];
+
+  // Inject webkit scrollbar hiding style
+  useEffect(() => {
+    const styleId = 'layout-mobile-nav-style';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.innerHTML = `
+        .mobile-navbar-hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
 
   // Calculate market status based on Indian standard local time rules
   const updateMarketStatus = () => {
@@ -179,6 +203,56 @@ export default function Layout({ children }) {
         </div>
       )}
 
+      {/* Mobile Top Navigation Bar */}
+      {isMobile && (
+        <div 
+          className="mobile-navbar-hide-scrollbar"
+          style={{
+            position: 'fixed',
+            top: '94px',
+            left: 0,
+            right: 0,
+            height: '44px',
+            background: 'rgba(10, 14, 39, 0.95)',
+            backdropFilter: 'blur(8px)',
+            borderBottom: '1px solid rgba(0, 255, 136, 0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '0 16px',
+            overflowX: 'auto',
+            whiteSpace: 'nowrap',
+            zIndex: 880,
+            scrollbarWidth: 'none', // hide Firefox scrollbar
+          }}
+        >
+          {navItems.map(item => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              style={({ isActive }) => ({
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                color: isActive ? '#00ff88' : '#9b9eac',
+                textDecoration: 'none',
+                borderRadius: '8px',
+                background: isActive ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
+                border: isActive ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid transparent',
+                fontSize: '12px',
+                fontWeight: isActive ? '700' : '500',
+                transition: 'all 0.2s',
+                flexShrink: 0
+              })}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </div>
+      )}
+
       {/* Desktop Sticky Top Header Ticker */}
       {!isMobile && (
         <div style={{
@@ -232,6 +306,42 @@ export default function Layout({ children }) {
             </div>
           </div>
 
+          {/* Desktop Top Navbar */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            background: 'rgba(255, 255, 255, 0.02)',
+            padding: '4px 8px',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(4px)'
+          }}>
+            {navItems.map(item => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                style={({ isActive }) => ({
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  color: isActive ? '#00ff88' : '#9b9eac',
+                  textDecoration: 'none',
+                  borderRadius: '8px',
+                  background: isActive ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
+                  border: isActive ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid transparent',
+                  fontSize: '13px',
+                  fontWeight: isActive ? '700' : '500',
+                  transition: 'all 0.2s'
+                })}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </div>
+
           {/* Market Status Info Block */}
           <div style={{ 
             display: 'flex', 
@@ -281,7 +391,7 @@ export default function Layout({ children }) {
       {/* Main Content Viewport */}
       <main style={{ 
         flex: 1, 
-        padding: isMobile ? '118px 16px 24px 16px' : '94px 24px 24px 24px', 
+        padding: isMobile ? '154px 16px 24px 16px' : '94px 24px 24px 24px', 
         marginLeft: isMobile ? '0' : '260px', 
         transition: 'all 0.3s ease', 
         background: 'transparent', 

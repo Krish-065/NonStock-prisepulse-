@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
+import { io } from 'socket.io-client';
 import { 
   Users, Award, Copy, Share2, Play, Star, Sparkles, TrendingUp, 
   TrendingDown, RefreshCw, Trophy, ShieldCheck, Flame, MessageSquare,
@@ -74,6 +75,40 @@ export default function Community() {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatMessages, tab]);
+
+  useEffect(() => {
+    if (tab !== 'chats' || !activeGroupId) return;
+
+    const socketUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
+    const token = localStorage.getItem('token');
+
+    const socket = io(socketUrl, {
+      auth: { token },
+      transports: ['websocket', 'polling']
+    });
+
+    socket.on('connect', () => {
+      console.log('🔌 Connected to group chat socket');
+      socket.emit('joinGroup', activeGroupId);
+    });
+
+    socket.on('newChatMessage', (msg) => {
+      if (msg.group_id !== activeGroupId) return;
+      setChatMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+    });
+
+    socket.on('connect_error', (err) => {
+      console.warn('Chat socket connection error:', err);
+    });
+
+    return () => {
+      socket.emit('leaveGroup', activeGroupId);
+      socket.disconnect();
+    };
+  }, [tab, activeGroupId]);
 
   // Shared Strategies & Leaderboard
   const fetchSharedStrategies = async () => {

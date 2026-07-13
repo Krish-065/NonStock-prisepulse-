@@ -582,6 +582,10 @@ export default function Portfolio() {
     ? totalProfit
     : (displayValue - displayInvested);
 
+  const displayHoldingsCount = portfolioMode === 'real'
+    ? holdings.length
+    : paperData.holdings.length;
+
   // Compute sector allocations & quadrant risk
   const getSectorBreakdown = () => {
     if (activeHoldings.length === 0) return { breakdown: [], laggingWeight: 0 };

@@ -16,6 +16,8 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: { origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true },
 });
+app.set('io', io);
+
 
 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 const allowedOrigin = frontendUrl.startsWith('http') ? frontendUrl : `https://${frontendUrl}`;
@@ -407,6 +409,18 @@ io.on('connection', (socket) => {
       activeSymbols.get(cleanSym).add(socket.id);
       console.log(`📡 Socket ${socket.id} subscribed to room stock:${cleanSym}`);
     });
+  });
+
+  socket.on('joinGroup', (groupId) => {
+    if (!groupId) return;
+    socket.join(`group:${groupId}`);
+    console.log(`👥 Socket ${socket.id} joined group room: group:${groupId}`);
+  });
+
+  socket.on('leaveGroup', (groupId) => {
+    if (!groupId) return;
+    socket.leave(`group:${groupId}`);
+    console.log(`👥 Socket ${socket.id} left group room: group:${groupId}`);
   });
 
   socket.on('unsubscribe', (symbols) => {

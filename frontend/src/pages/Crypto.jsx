@@ -30,7 +30,7 @@ export default function Crypto() {
             key={coin.symbol} 
             className="index-card" 
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-            onClick={() => navigate(`/stock/${coin.symbol}`)}
+            onClick={() => navigate('/markets', { state: { selectSymbol: coin.symbol } })}
           >
             {coin.image && <img src={coin.image} alt={coin.name} style={{ width: '48px', height: '48px', borderRadius: '50%' }} />}
             <div className="crypto-symbol" style={{ fontWeight: 'bold', fontSize: '18px' }}>{coin.name}</div>

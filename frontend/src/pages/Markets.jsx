@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search, Activity, BarChart2 } from 'lucide-react';
 import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { apiClient } from '../services/api';
@@ -85,9 +86,17 @@ const INTERVALS = [
 const ALL_SYMBOLS = Object.values(SYMBOL_CATEGORIES).flat();
 
 export default function Markets() {
-  const [symbol, setSymbol] = useState('NSE:NIFTY');
+  const location = useLocation();
+  const initialSymbol = location.state?.selectSymbol || 'NSE:NIFTY';
+  const initialCategory = (initialSymbol.endsWith('-USD') || initialSymbol.includes('USDT') || initialSymbol.includes('BINANCE:')) 
+    ? 'Crypto' 
+    : (initialSymbol.startsWith('NASDAQ:') || initialSymbol.startsWith('SP:') || initialSymbol.startsWith('TVC:'))
+    ? 'US Stocks'
+    : 'Indian Stocks';
+
+  const [symbol, setSymbol] = useState(initialSymbol);
   const [interval, setInterval] = useState('D');
-  const [activeCategory, setActiveCategory] = useState('Indian Stocks');
+  const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [chartKey, setChartKey] = useState(0);
@@ -98,6 +107,26 @@ export default function Markets() {
       ? 'custom'
       : 'tradingview'
   );
+
+  useEffect(() => {
+    if (location.state && location.state.selectSymbol) {
+      const selected = location.state.selectSymbol;
+      setSymbol(selected);
+      
+      const isCrypto = selected.endsWith('-USD') || selected.includes('USDT') || selected.includes('BINANCE:');
+      if (isCrypto) {
+        setActiveCategory('Crypto');
+      } else {
+        const isUS = selected.startsWith('NASDAQ:') || selected.startsWith('SP:') || selected.startsWith('TVC:');
+        if (isUS) {
+          setActiveCategory('US Stocks');
+        } else {
+          setActiveCategory('Indian Stocks');
+        }
+      }
+    }
+  }, [location.state]);
+
   const tvContainerRef = useRef(null);
   const customChartContainerRef = useRef(null);
   const chartInstanceRef = useRef(null);

@@ -205,14 +205,24 @@ router.post('/chat/:groupId', authenticate, async (req, res) => {
       }
     }
 
+    const userRes = await query(`SELECT name FROM users WHERE id = $1`, [req.user.id]);
+    const authorName = userRes.rows[0]?.name || 'Anonymous';
+
     const msgId = crypto.randomUUID();
     await query(
       `INSERT INTO group_messages (id, group_id, user_id, author_name, message) VALUES ($1,$2,$3,$4,$5)`,
-      [msgId, groupId, req.user.id, req.user.name || 'Anonymous', message]
+      [msgId, groupId, req.user.id, authorName, message]
     );
 
     const result = await query(`SELECT * FROM group_messages WHERE id = $1`, [msgId]);
-    res.status(201).json(result.rows[0]);
+    const savedMsg = result.rows[0];
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`group:${groupId}`).emit('newChatMessage', savedMsg);
+    }
+
+    res.status(201).json(savedMsg);
   } catch (err) {
     console.error('Send group message error:', err);
     res.status(500).json({ error: 'Failed to send message' });
