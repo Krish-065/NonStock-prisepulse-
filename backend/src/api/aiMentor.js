@@ -134,7 +134,7 @@ Macroeconomic factors — including central bank decisions, FII/DII flows, and g
 // ─── POST /ask ────────────────────────────────────────────────────────────────
 router.post('/ask', authenticate, async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, history } = req.body;
     if (!message) return res.status(400).json({ error: 'Message query is required' });
 
     // Step 1: Detect symbol & fetch live Yahoo Finance technicals
@@ -191,28 +191,70 @@ router.post('/ask', authenticate, async (req, res) => {
 
     // Step 3: Try Gemini, fall back to sandbox on ANY failure
     try {
-      const prompt = `You are the "NonStock AI Mentor", a premium educational investing chatbot for beginner investors in India. Explain concepts clearly without giving direct financial advice.
+      const systemInstructionText = `You are the "NonStock AI Mentor", a premium educational investing chatbot for beginner investors in India.
+Your goal is to explain financial concepts clearly, guide users through technical analysis indicators, and help them understand stock trends.
 
-${techContext ? `Live market data: ${techContext}\n` : ''}User question: "${message}"
+Response Format Guidelines:
+- Use standard markdown headers starting with "###" for sections (e.g., "### What is RSI?") and "##" for major topics. These headers will be formatted with custom colors in the UI.
+- Use bullet points starting with "-" for lists.
+- Use bold text (surrounded by "**") to highlight key terms.
+- Avoid using code blocks (e.g., \`\`\`), tables, or HTML in your response as the custom parser in the frontend is optimized for headers, bold text, and lists.
+- At the end of your response, always append: "**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**"
 
-Reply using exactly these GitHub markdown headers:
-### 📈 Current Trend
-### 📊 RSI Analysis
-### 📈 Volume Analysis
-### 🛡️ Support & Resistance
-### 📰 Recent News & Catalysts
-### ⚠️ Risk Assessment
-### 🎯 Confidence Rating
-### 🎓 Educational Explanation
+Behavioral Guidelines:
+- Explain financial concepts with clear, simple language and Indian examples if helpful (like tea shops, local businesses, Nifty 50, Reliance).
+- If the user asks about specific stocks or indicators, check if live market data context is provided. If it is, incorporate it into your explanation of the stock's trend, RSI, support/resistance, and volume.
+- Keep your answers educational. Do NOT give direct BUY, SELL, or HOLD recommendations. Always frame insights as technical assessments and educational analysis.
+- Maintain context of the conversation. Learn from previous questions and answers in the chat history to provide intelligent follow-up responses.`;
 
-End with: **Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+      // Construct the contents list for Gemini (conversational turns)
+      const contents = [];
+
+      // Add conversational history (ensure alternating user/model roles and start with user)
+      if (Array.isArray(history)) {
+        history.forEach((item) => {
+          if (!item.text || !item.sender) return;
+          const role = item.sender === 'user' ? 'user' : 'model';
+          
+          // Skip leading model messages to guarantee starting with 'user'
+          if (contents.length === 0 && role === 'model') return;
+          
+          // Avoid consecutive duplicates
+          if (contents.length > 0 && contents[contents.length - 1].role === role) return;
+
+          contents.push({
+            role: role,
+            parts: [{ text: item.text }]
+          });
+        });
+      }
+
+      // Inject live market data context into the current query if available
+      const currentPromptText = techContext
+        ? `[Live market data context: ${techContext}]\nUser query: ${message}`
+        : message;
+
+      // Append current message
+      if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+        contents[contents.length - 1].parts[0].text += `\n\nUser query: ${currentPromptText}`;
+      } else {
+        contents.push({
+          role: 'user',
+          parts: [{ text: currentPromptText }]
+        });
+      }
 
       const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: systemInstructionText }]
+            },
+            contents: contents
+          })
         }
       );
 

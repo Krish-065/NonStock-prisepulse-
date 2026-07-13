@@ -93,7 +93,10 @@ export default function AIMentor() {
     setMessages(prev => [...prev, { sender: 'user', text }]);
 
     try {
-      const res = await apiClient.post('/ai/ask', { message: text });
+      const res = await apiClient.post('/ai/ask', {
+        message: text,
+        history: messages.map(m => ({ sender: m.sender, text: m.text }))
+      });
       
       // Append AI response
       setMessages(prev => [...prev, { sender: 'ai', text: res.data.response }]);
