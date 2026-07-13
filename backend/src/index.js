@@ -467,7 +467,7 @@ setInterval(async () => {
       const isIndex = ['NSEI', 'BSESN', 'NSEBANK', 'CNXIT', 'NIFTY', 'SENSEX', 'BANKNIFTY'].includes(resolveSymbol);
       const isCrypto = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'SHIB', 'AVAX', 'TRX'].includes(resolveSymbol);
       const isForex = resolveSymbol.includes('USD') || resolveSymbol.includes('INR');
-      const alreadySuffixed = resolveSymbol.endsWith('.NS') || resolveSymbol.endsWith('.BO') || resolveSymbol.endsWith('=X') || resolveSymbol.endsWith('-USD') || resolveSymbol.endsWith('-USDT') || resolveSymbol.startsWith('^');
+      const alreadySuffixed = resolveSymbol.endsWith('.NS') || resolveSymbol.endsWith('.BO') || resolveSymbol.endsWith('=X') || resolveSymbol.endsWith('=F') || resolveSymbol.includes('=') || resolveSymbol.endsWith('-USD') || resolveSymbol.endsWith('-USDT') || resolveSymbol.startsWith('^');
 
       if (resolveSymbol === 'NIFTY') resolveSymbol = '^NSEI';
       else if (resolveSymbol === 'SENSEX') resolveSymbol = '^BSESN';

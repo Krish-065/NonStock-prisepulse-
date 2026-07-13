@@ -96,6 +96,27 @@ export default function Markets() {
     ? 'US Stocks'
     : 'Indian Stocks';
 
+  const resolveYahooSymbol = useCallback((sym) => {
+    if (!sym) return '';
+    const s = sym.toUpperCase();
+    const mappings = {
+      'TVC:GOLD': 'GC=F',
+      'GOLD': 'GC=F',
+      'TVC:SILVER': 'SI=F',
+      'SILVER': 'SI=F',
+      'TVC:USOIL': 'CL=F',
+      'USOIL': 'CL=F',
+      'TVC:UKOIL': 'BZ=F',
+      'UKOIL': 'BZ=F',
+      'TVC:NATURALGAS': 'NG=F',
+      'NATURALGAS': 'NG=F',
+      'TVC:COPPER': 'HG=F',
+      'COPPER': 'HG=F'
+    };
+    if (mappings[s]) return mappings[s];
+    return s.includes(':') ? s.split(':')[1] : s;
+  }, []);
+
   const [symbol, setSymbol] = useState(initialSymbol);
   const [interval, setInterval] = useState('D');
   const [activeCategory, setActiveCategory] = useState(initialCategory);
@@ -105,7 +126,7 @@ export default function Markets() {
   const searchRef = useRef();
 
   const [activeTab, setActiveTab] = useState(
-    (symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || activeCategory === 'Indian Stocks')
+    (symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || activeCategory === 'Indian Stocks' || symbol.endsWith('=F') || symbol.startsWith('TVC:') || activeCategory === 'Commodities')
       ? 'custom'
       : 'tradingview'
   );
@@ -166,10 +187,11 @@ export default function Markets() {
   useEffect(() => {
     if (symbol !== lastSymbolRef.current) {
       const isInd = symbol.startsWith('NSE:') || symbol.startsWith('BSE:');
-      setActiveTab(isInd ? 'custom' : 'tradingview');
+      const isCommodity = symbol.endsWith('=F') || symbol.startsWith('TVC:') || activeCategory === 'Commodities';
+      setActiveTab((isInd || isCommodity) ? 'custom' : 'tradingview');
       lastSymbolRef.current = symbol;
     }
-  }, [symbol]);
+  }, [symbol, activeCategory]);
 
   // Inject spinner styles
   useEffect(() => {
@@ -471,7 +493,7 @@ export default function Markets() {
       try {
         const apiInterval = mapIntervalForApi(interval);
         const apiRange = getRangeForInterval(interval);
-        const cleanSymbol = symbol.includes(':') ? symbol.split(':')[1] : symbol;
+        const cleanSymbol = resolveYahooSymbol(symbol);
         const res = await apiClient.get(`/market/stock-history/${cleanSymbol}?range=${apiRange}&interval=${apiInterval}`);
         if (active) {
           setCustomHistory(res.data);
@@ -510,7 +532,7 @@ export default function Markets() {
   useEffect(() => {
     if (activeTab !== 'custom') return;
 
-    const cleanSymbol = symbol.includes(':') ? symbol.split(':')[1] : symbol;
+    const cleanSymbol = resolveYahooSymbol(symbol);
 
     // Fetch initial snapshot first
     const fetchSnapshot = async () => {
