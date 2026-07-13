@@ -732,6 +732,44 @@ router.get('/crypto', async (req, res) => {
   res.json(results);
 });
 
+router.get('/commodities', async (req, res) => {
+  const symbols = [
+    'GC=F', 'SI=F', 'CL=F', 'BZ=F', 'NG=F', 'HG=F'
+  ];
+  const fetched = await fetchBatch(symbols);
+  const results = [];
+  const names = {
+    'GC=F': 'Gold',
+    'SI=F': 'Silver',
+    'CL=F': 'Crude Oil',
+    'BZ=F': 'Brent Crude',
+    'NG=F': 'Natural Gas',
+    'HG=F': 'Copper'
+  };
+  const images = {
+    'GC=F': 'https://images.unsplash.com/photo-1610375228911-c4abdd97d7c9?w=100&auto=format&fit=crop&q=60',
+    'SI=F': 'https://images.unsplash.com/photo-1605557626697-2e87166d88f9?w=100&auto=format&fit=crop&q=60',
+    'CL=F': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=100&auto=format&fit=crop&q=60',
+    'BZ=F': 'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd?w=100&auto=format&fit=crop&q=60',
+    'NG=F': 'https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?w=100&auto=format&fit=crop&q=60',
+    'HG=F': 'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=100&auto=format&fit=crop&q=60'
+  };
+  for (const sym of symbols) {
+    const quote = fetched[sym];
+    if (quote?.price) {
+      results.push({
+        symbol: sym,
+        name: names[sym] || sym,
+        price: quote.price.toLocaleString(),
+        change: quote.changePercent.toFixed(2),
+        up: quote.change >= 0,
+        image: images[sym] || ''
+      });
+    }
+  }
+  res.json(results);
+});
+
 router.get('/futures', async (req, res) => {
   const [quote1, quote2] = await Promise.all([
     fetchWithTimeout('^NSEI'),

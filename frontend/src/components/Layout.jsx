@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import CandlestickBg from './CandlestickBg';
-import { Menu, Star, Briefcase, Coins, LineChart, Award } from 'lucide-react';
+import { Menu, Star, Briefcase, Coins, LineChart, Award, Search, Newspaper, Activity } from 'lucide-react';
 import { apiClient } from '../services/api';
 
 export default function Layout({ children }) {
@@ -18,7 +18,10 @@ export default function Layout({ children }) {
   const navItems = [
     { path: '/watchlist', label: 'Watchlist', icon: <Star size={14} /> },
     { path: '/portfolio', label: 'Portfolio', icon: <Briefcase size={14} /> },
+    { path: '/news', label: 'News Hub', icon: <Newspaper size={14} /> },
+    { path: '/screener', label: 'Screener', icon: <Search size={14} /> },
     { path: '/crypto', label: 'Crypto', icon: <Coins size={14} /> },
+    { path: '/commodities', label: 'Commodities', icon: <Activity size={14} /> },
     { path: '/ipos', label: 'IPOs', icon: <LineChart size={14} /> },
     { path: '/mutual-funds', label: 'Mutual Funds', icon: <Award size={14} /> },
   ];
@@ -260,53 +263,85 @@ export default function Layout({ children }) {
           top: 0,
           left: '260px',
           right: 0,
-          height: '70px',
+          height: '115px',
           background: 'rgba(10, 14, 39, 0.85)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(0, 255, 136, 0.12)',
           display: 'flex',
-          alignItems: 'center',
-          padding: '0 32px',
-          zIndex: 800,
-          justifyContent: 'space-between'
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '14px 32px',
+          zIndex: 800
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.5px' }}>NIFTY 50</span>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px' }}>{indices.nifty.value}</span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: indices.nifty.up ? '#00ff88' : '#ff4444' }}>
-                  {indices.nifty.up ? '▲' : '▼'} {indices.nifty.percent}%
-                </span>
+          {/* Row 1: Tickers & Status */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.5px' }}>NIFTY 50</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px' }}>{indices.nifty.value}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.nifty.up ? '#00ff88' : '#ff4444' }}>
+                    {indices.nifty.up ? '▲' : '▼'} {indices.nifty.percent}%
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ width: '1px', height: '28px', background: 'rgba(255, 255, 255, 0.08)' }}></div>
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.5px' }}>SENSEX</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px' }}>{indices.sensex.value}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.sensex.up ? '#00ff88' : '#ff4444' }}>
+                    {indices.sensex.up ? '▲' : '▼'} {indices.sensex.percent}%
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ width: '1px', height: '28px', background: 'rgba(255, 255, 255, 0.08)' }}></div>
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.5px' }}>BANK NIFTY</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px' }}>{indices.banknifty.value}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.banknifty.up ? '#00ff88' : '#ff4444' }}>
+                    {indices.banknifty.up ? '▲' : '▼'} {indices.banknifty.percent}%
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div style={{ width: '1px', height: '28px', background: 'rgba(255, 255, 255, 0.08)' }}></div>
-
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.5px' }}>SENSEX</span>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px' }}>{indices.sensex.value}</span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: indices.sensex.up ? '#00ff88' : '#ff4444' }}>
-                  {indices.sensex.up ? '▲' : '▼'} {indices.sensex.percent}%
-                </span>
-              </div>
-            </div>
-
-            <div style={{ width: '1px', height: '28px', background: 'rgba(255, 255, 255, 0.08)' }}></div>
-
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.5px' }}>BANK NIFTY</span>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px' }}>{indices.banknifty.value}</span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: indices.banknifty.up ? '#00ff88' : '#ff4444' }}>
-                  {indices.banknifty.up ? '▲' : '▼'} {indices.banknifty.percent}%
-                </span>
-              </div>
+            {/* Market Status Info Block */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px', 
+              background: 'rgba(255, 255, 255, 0.02)', 
+              padding: '6px 14px', 
+              borderRadius: '20px', 
+              border: '1px solid rgba(255, 255, 255, 0.06)' 
+            }}>
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: marketStatus.color,
+                display: 'inline-block',
+                boxShadow: `0 0 10px ${marketStatus.color}`,
+                animation: 'pulseStatus 2s infinite'
+              }} />
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                {marketStatus.label}
+              </span>
             </div>
           </div>
 
-          {/* Desktop Top Navbar */}
+          {/* Row 2: Desktop Top Navbar */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -315,7 +350,8 @@ export default function Layout({ children }) {
             padding: '4px 8px',
             borderRadius: '12px',
             border: '1px solid rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(4px)'
+            alignSelf: 'flex-start',
+            marginTop: '8px'
           }}>
             {navItems.map(item => (
               <NavLink
@@ -341,30 +377,6 @@ export default function Layout({ children }) {
               </NavLink>
             ))}
           </div>
-
-          {/* Market Status Info Block */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '10px', 
-            background: 'rgba(255, 255, 255, 0.02)', 
-            padding: '8px 16px', 
-            borderRadius: '20px', 
-            border: '1px solid rgba(255, 255, 255, 0.06)' 
-          }}>
-            <span style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: marketStatus.color,
-              display: 'inline-block',
-              boxShadow: `0 0 10px ${marketStatus.color}`,
-              animation: 'pulseStatus 2s infinite'
-            }} />
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
-              {marketStatus.label}
-            </span>
-          </div>
         </div>
       )}
 
@@ -388,10 +400,9 @@ export default function Layout({ children }) {
         />
       )}
 
-      {/* Main Content Viewport */}
       <main style={{ 
         flex: 1, 
-        padding: isMobile ? '154px 16px 24px 16px' : '94px 24px 24px 24px', 
+        padding: isMobile ? '154px 16px 24px 16px' : '139px 24px 24px 24px', 
         marginLeft: isMobile ? '0' : '260px', 
         transition: 'all 0.3s ease', 
         background: 'transparent', 

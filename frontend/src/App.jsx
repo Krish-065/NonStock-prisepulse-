@@ -28,6 +28,7 @@ import Markets from './pages/Markets';
 import Tools from './pages/Tools';
 import News from './pages/News';
 import Crypto from './pages/Crypto';
+import Commodities from './pages/Commodities';
 import MutualFunds from './pages/MutualFunds';
 import Profile from './pages/Profile';
 import StrategyBuilder from './pages/StrategyBuilder';
@@ -64,6 +65,7 @@ function App() {
             <Route path="/tools" element={<PrivateRoute><Layout><Tools /></Layout></PrivateRoute>} />
             <Route path="/news" element={<PrivateRoute><Layout><News /></Layout></PrivateRoute>} />
             <Route path="/crypto" element={<PrivateRoute><Layout><Crypto /></Layout></PrivateRoute>} />
+            <Route path="/commodities" element={<PrivateRoute><Layout><Commodities /></Layout></PrivateRoute>} />
             <Route path="/mutual-funds" element={<PrivateRoute><Layout><MutualFunds /></Layout></PrivateRoute>} />
             <Route path="/profile" element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
             

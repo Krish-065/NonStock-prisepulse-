@@ -39,8 +39,6 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
     { path: '/community', label: 'Community Hub', icon: <Users size={16} /> },
     { path: '/fno', label: 'Futures & Options', icon: <Activity size={16} /> },
     { path: '/sector-rotation', label: 'Sector Rotation', icon: <Compass size={16} /> },
-    { path: '/screener', label: 'Screener', icon: <Search size={16} /> },
-    { path: '/news', label: 'News', icon: <Newspaper size={16} /> },
     { path: '/tools', label: 'Tools', icon: <Calculator size={16} /> },
     { path: '/profile', label: 'My Profile', icon: <User size={16} /> },
   ];

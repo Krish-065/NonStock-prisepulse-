@@ -90,7 +90,9 @@ export default function Markets() {
   const initialSymbol = location.state?.selectSymbol || 'NSE:NIFTY';
   const initialCategory = (initialSymbol.endsWith('-USD') || initialSymbol.includes('USDT') || initialSymbol.includes('BINANCE:')) 
     ? 'Crypto' 
-    : (initialSymbol.startsWith('NASDAQ:') || initialSymbol.startsWith('SP:') || initialSymbol.startsWith('TVC:'))
+    : (initialSymbol.endsWith('=F') || initialSymbol.startsWith('TVC:'))
+    ? 'Commodities'
+    : (initialSymbol.startsWith('NASDAQ:') || initialSymbol.startsWith('SP:'))
     ? 'US Stocks'
     : 'Indian Stocks';
 
@@ -114,10 +116,13 @@ export default function Markets() {
       setSymbol(selected);
       
       const isCrypto = selected.endsWith('-USD') || selected.includes('USDT') || selected.includes('BINANCE:');
+      const isCommodity = selected.endsWith('=F') || selected.startsWith('TVC:');
       if (isCrypto) {
         setActiveCategory('Crypto');
+      } else if (isCommodity) {
+        setActiveCategory('Commodities');
       } else {
-        const isUS = selected.startsWith('NASDAQ:') || selected.startsWith('SP:') || selected.startsWith('TVC:');
+        const isUS = selected.startsWith('NASDAQ:') || selected.startsWith('SP:');
         if (isUS) {
           setActiveCategory('US Stocks');
         } else {
@@ -207,6 +212,19 @@ export default function Markets() {
     if (s.endsWith('=X')) {
       const cleanForex = s.replace('=X', '');
       return `FX_IDC:${cleanForex}`;
+    }
+
+    // 4b. Commodity Futures (e.g., GC=F, CL=F, SI=F)
+    if (s.endsWith('=F')) {
+      const mappings = {
+        'GC=F': 'TVC:GOLD',
+        'SI=F': 'TVC:SILVER',
+        'CL=F': 'TVC:USOIL',
+        'BZ=F': 'TVC:UKOIL',
+        'NG=F': 'TVC:NATURALGAS',
+        'HG=F': 'TVC:COPPER'
+      };
+      return mappings[s] || s;
     }
 
     // 5. Standard Equities
