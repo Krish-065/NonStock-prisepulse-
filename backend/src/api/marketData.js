@@ -1098,7 +1098,6 @@ router.get('/stock-history/:symbol', async (req, res) => {
     else if (symbol === 'CNXIT') symbol = '^CNXIT';
 
     // ─── Smart Symbol Resolver ───
-    // Do NOT blindly append .NS — only do so for real Indian equity tickers
     const isIndex = symbol.startsWith('^') ||
                     ['NSEI', 'BSESN', 'NSEBANK', 'CNXIT', 'NIFTY', 'SENSEX', 'BANKNIFTY'].includes(symbol);
     const isCrypto = symbol.endsWith('-USD') || symbol.endsWith('-USDT') ||
@@ -1106,12 +1105,9 @@ router.get('/stock-history/:symbol', async (req, res) => {
     const isForex  = symbol.endsWith('=X') || symbol.includes('USD') || (symbol.includes('INR') && !symbol.endsWith('.NS'));
     const alreadySuffixed = symbol.endsWith('.NS') || symbol.endsWith('.BO') || symbol.endsWith('=X') || symbol.endsWith('=F') || symbol.includes('=') || symbol.endsWith('-USD') || symbol.endsWith('-USDT') || symbol.startsWith('^');
 
+    let resolvedSymbol = symbol;
     if (isCrypto && !alreadySuffixed) {
-      // e.g. BTC → BTC-USD (Yahoo Finance format for crypto)
-      symbol = `${symbol}-USD`;
-    } else if (!isIndex && !isCrypto && !isForex && !alreadySuffixed) {
-      // Plain Indian equity ticker → append .NS
-      symbol = `${symbol}.NS`;
+      resolvedSymbol = `${symbol}-USD`;
     }
 
     // Support dynamic intervals: 1m, 5m, 15m, 60m, 1d, 1wk, 1mo. Default to 1d
@@ -1126,29 +1122,48 @@ router.get('/stock-history/:symbol', async (req, res) => {
 
     // Yahoo Finance limits range based on lower intervals:
     if (interval === '1m') {
-      // 1m data is only available for up to 7 days
       if (!['1d', '5d', '7d'].includes(range)) range = '7d';
     } else if (['5m', '15m'].includes(interval)) {
-      // 5m, 15m data is available for up to 60 days
       if (!['1d', '5d', '7d', '1mo', '3mo'].includes(range)) range = '1mo';
     } else if (interval === '60m') {
-      // 1h data is available for up to 730 days (2y)
       if (!['1d', '5d', '7d', '1mo', '3mo', '6mo', '1y', '2y'].includes(range)) range = '1y';
     }
 
     let data;
     let success = false;
+    
+    // Try original resolvedSymbol first (AAPL, TSLA, RS)
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}`;
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(resolvedSymbol)}?range=${range}&interval=${interval}`;
       const response = await fetch(url, { headers: YAHOO_HEADERS });
       if (response.ok) {
         data = await response.json();
         if (data?.chart?.result?.[0]) {
           success = true;
+          symbol = resolvedSymbol;
         }
       }
     } catch (e) {
-      console.warn(`[YahooFinance] Failed to fetch chart for ${symbol}:`, e.message);
+      console.warn(`Yahoo Finance chart history failed for ${resolvedSymbol}:`, e.message);
+    }
+
+    // Fallback: If not successful and plain ticker, try appending .NS (Indian Stock)
+    if (!success && !isIndex && !isCrypto && !isForex && !alreadySuffixed) {
+      const fallbackSymbol = `${symbol}.NS`;
+      try {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(fallbackSymbol)}?range=${range}&interval=${interval}`;
+        const response = await fetch(url, { headers: YAHOO_HEADERS });
+        if (response.ok) {
+          const testData = await response.json();
+          if (testData?.chart?.result?.[0]) {
+            data = testData;
+            success = true;
+            symbol = fallbackSymbol;
+          }
+        }
+      } catch (e) {
+        console.warn(`Yahoo Finance chart history fallback failed for ${fallbackSymbol}:`, e.message);
+      }
     }
 
     const history = [];

@@ -28,14 +28,14 @@ import {
 
 const POPULAR_WATCHLIST = [
   // Indian Equities
-  { symbol: 'RELIANCE', name: 'Reliance Industries', category: 'Indian Stock' },
-  { symbol: 'TCS', name: 'Tata Consultancy Services', category: 'Indian Stock' },
-  { symbol: 'INFY', name: 'Infosys Ltd', category: 'Indian Stock' },
-  { symbol: 'HDFCBANK', name: 'HDFC Bank', category: 'Indian Stock' },
+  { symbol: 'RELIANCE.NS', name: 'Reliance Industries', category: 'Indian Stock' },
+  { symbol: 'TCS.NS', name: 'Tata Consultancy Services', category: 'Indian Stock' },
+  { symbol: 'INFY.NS', name: 'Infosys Ltd', category: 'Indian Stock' },
+  { symbol: 'HDFCBANK.NS', name: 'HDFC Bank', category: 'Indian Stock' },
   // Crypto
-  { symbol: 'BTC', name: 'Bitcoin', category: 'Crypto' },
-  { symbol: 'ETH', name: 'Ethereum', category: 'Crypto' },
-  { symbol: 'SOL', name: 'Solana', category: 'Crypto' },
+  { symbol: 'BTC-USD', name: 'Bitcoin', category: 'Crypto' },
+  { symbol: 'ETH-USD', name: 'Ethereum', category: 'Crypto' },
+  { symbol: 'SOL-USD', name: 'Solana', category: 'Crypto' },
   // Forex
   { symbol: 'EURUSD=X', name: 'EUR/USD', category: 'Forex' },
   { symbol: 'GBPUSD=X', name: 'GBP/USD', category: 'Forex' },
@@ -54,6 +54,11 @@ const isIndianSymbol = (sym) => {
   return s.endsWith('.NS') || s.endsWith('.BO') || ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'NIFTY', 'SENSEX', 'BANKNIFTY', 'NSEI', 'BSESN'].includes(s);
 };
 
+const cleanSymbolName = (sym) => {
+  if (!sym) return '';
+  return sym.replace('.NS', '').replace('-USD', '').replace('=X', '').replace('=F', '');
+};
+
 const getLotMultiplier = (sym) => {
   if (!sym) return 1;
   const s = sym.toUpperCase();
@@ -69,7 +74,7 @@ const getLotMultiplier = (sym) => {
 
 export default function PaperTrading() {
   // Navigation & Page State
-  const [selectedSymbol, setSelectedSymbol] = useState('BTC');
+  const [selectedSymbol, setSelectedSymbol] = useState('BTC-USD');
   const [chartInterval, setChartInterval] = useState('1d');
   const [activeConsoleTab, setActiveConsoleTab] = useState('positions');
   const [searchQuery, setSearchQuery] = useState('');
@@ -299,12 +304,6 @@ export default function PaperTrading() {
   const fetchChartData = async () => {
     try {
       let querySymbol = selectedSymbol;
-      const popularInfo = POPULAR_WATCHLIST.find(p => p.symbol === selectedSymbol);
-      if (popularInfo && popularInfo.category === 'Indian Stock') {
-        querySymbol = `${selectedSymbol}.NS`;
-      } else if (popularInfo && popularInfo.category === 'Crypto') {
-        querySymbol = `${selectedSymbol}-USD`;
-      }
       
       const getRangeForInterval = (intv) => {
         switch (intv) {
@@ -627,63 +626,12 @@ export default function PaperTrading() {
     };
   }, [chartData, activeIndicators, drawingMode]);
 
-  // Simulated Tick Engine Loop
-  useEffect(() => {
-    if (chartData.length === 0 || !candlestickSeriesRef.current) return;
-
-    const intervalId = window.setInterval(() => {
-      const candle = lastCandleRef.current;
-      if (!candle) return;
-
-      const nowSec = Math.floor(Date.now() / 1000);
-      const stepSec = chartInterval === '1m' ? 60 : chartInterval === '5m' ? 300 : chartInterval === '15m' ? 900 : chartInterval === '60m' ? 3600 : 86400;
-
-      let activeCandle = candle;
-      if (nowSec >= candle.time + stepSec) {
-        const newTime = candle.time + stepSec;
-        const newCandle = {
-          time: newTime,
-          open: candle.close,
-          high: candle.close,
-          low: candle.close,
-          close: candle.close,
-          volume: 0
-        };
-        lastCandleRef.current = newCandle;
-        activeCandle = newCandle;
-      }
-
-      const pctChange = (Math.random() - 0.5) * 0.002;
-      const delta = activeCandle.close * pctChange;
-      const newPrice = Math.max(0.01, activeCandle.close + delta);
-
-      activeCandle.close = newPrice;
-      if (newPrice > activeCandle.high) activeCandle.high = newPrice;
-      if (newPrice < activeCandle.low) activeCandle.low = newPrice;
-
-      setLivePrice(newPrice);
-      livePriceRef.current = newPrice;
-
-      candlestickSeriesRef.current.update(activeCandle);
-
-      checkPendingOrders(newPrice);
-      checkSlTpLevels(newPrice);
-    }, 800);
-
-    return () => window.clearInterval(intervalId);
-  }, [chartData, chartInterval]);
 
   // Live Price Polling from Yahoo Finance
   useEffect(() => {
     if (!selectedSymbol) return;
 
     let querySymbol = selectedSymbol;
-    const popularInfo = POPULAR_WATCHLIST.find(p => p.symbol === selectedSymbol);
-    if (popularInfo && popularInfo.category === 'Indian Stock') {
-      querySymbol = `${selectedSymbol}.NS`;
-    } else if (popularInfo && popularInfo.category === 'Crypto') {
-      querySymbol = `${selectedSymbol}-USD`;
-    }
 
     const pollLivePrice = async () => {
       try {
@@ -1224,7 +1172,7 @@ export default function PaperTrading() {
                       <div 
                         key={res.symbol}
                         onClick={() => {
-                          setSelectedSymbol(res.symbol.replace('.NS', '').replace('-USD', ''));
+                          setSelectedSymbol(res.symbol);
                           setSearchQuery('');
                           setSearchResults([]);
                         }}
@@ -1241,7 +1189,7 @@ export default function PaperTrading() {
                         onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                       >
                         <div>
-                          <strong style={{ color: '#ffffff' }}>{res.symbol.replace('.NS', '').replace('-USD', '')}</strong>
+                          <strong style={{ color: '#ffffff' }}>{cleanSymbolName(res.symbol)}</strong>
                           <span style={{ color: '#9b9eac', marginLeft: '6px' }}>{res.name}</span>
                         </div>
                         <span style={{ fontSize: '10px', padding: '2px 6px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', color: '#9b9eac' }}>
@@ -1255,7 +1203,7 @@ export default function PaperTrading() {
 
               {/* Ticker Live info display */}
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                <span style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>{selectedSymbol}</span>
+                <span style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>{cleanSymbolName(selectedSymbol)}</span>
                 <span style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>{formatPrice(livePrice, selectedSymbol)}</span>
                 <span style={{ fontSize: '12px', fontWeight: 600, color: priceChange >= 0 ? '#00ff88' : '#ff4444' }}>
                   {priceChange >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(priceChange || 0)).toFixed(2)} ({parseFloat(priceChangePercent || 0).toFixed(2)}%)
@@ -1481,7 +1429,7 @@ export default function PaperTrading() {
                   transition: 'all 0.2s'
                 }}
               >
-                {item.symbol}
+                {cleanSymbolName(item.symbol)}
               </button>
             ))}
           </div>
