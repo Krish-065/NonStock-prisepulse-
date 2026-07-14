@@ -327,8 +327,27 @@ export default function Portfolio() {
   const [totalProfit, setTotalProfit] = useState(0);
   const [connectedBroker, setConnectedBroker] = useState(null);
   
+  // Helpers
+  const isIndianSymbol = (sym) => {
+    if (!sym) return false;
+    const s = sym.toUpperCase();
+    const isCrypto = s.endsWith('-USD') || s.endsWith('-USDT') || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA'].includes(s);
+    const isForex = s.endsWith('=X') || (s.includes('USD') && s.includes('INR')) || s.includes('EURUSD') || s.includes('GBPUSD');
+    const isCommodity = s.endsWith('=F');
+    if (isCrypto || isForex || isCommodity) return false;
+    return s.endsWith('.NS') || s.endsWith('.BO') || ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'NIFTY', 'SENSEX', 'BANKNIFTY', 'NSEI', 'BSESN'].includes(s);
+  };
+
+  const formatVal = (val, isUsd) => {
+    if (isUsd) {
+      return `$${parseFloat(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    } else {
+      return `₹${parseFloat(val).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+    }
+  };
+
   // Paper Trading State
-  const [paperData, setPaperData] = useState({ virtualBalance: 1000000, totalHoldingsValue: 0, totalPortfolioValue: 1000000, holdings: [] });
+  const [paperData, setPaperData] = useState({ virtualBalance: 50000, totalHoldingsValue: 0, totalPortfolioValue: 50000, holdings: [] });
   const [paperLoading, setPaperLoading] = useState(false);
 
   // Broker Connect Modal
@@ -505,7 +524,7 @@ export default function Portfolio() {
   };
 
   const handleResetPaper = async () => {
-    if (!window.confirm('Are you sure you want to reset your paper account? This will wipe your virtual portfolio and restore your ₹10,00,000 balance.')) return;
+    if (!window.confirm('Are you sure you want to reset your paper account? This will wipe your virtual portfolio and restore your $50,000 balance.')) return;
     try {
       await apiClient.post('/paper/reset');
       toast.success('Paper account reset successfully');
@@ -663,7 +682,7 @@ export default function Portfolio() {
                 transition: '0.2s' 
               }}
             >
-              ₹10L Paper Trading Sandbox
+              $50k Paper Trading Sandbox
             </button>
           </div>
         </div>
@@ -748,7 +767,7 @@ export default function Portfolio() {
           )}{' '}
           {portfolioMode === 'real' 
             ? 'This is a secure, read-only analytics dashboard. By connecting your broker or manually adding stocks, NonStock scans your assets and maps them to our Institutional Flow Quadrants.'
-            : 'Test strategies with ₹10,00,000 virtual balance. Safe, interactive paper trading sandbox integrated with real-time sector concentration rotation risk analytics.'}
+            : 'Test strategies with $50,000 virtual balance. Safe, interactive paper trading sandbox integrated with real-time sector concentration rotation risk analytics.'}
         </div>
       </InfoBox>
 
@@ -756,16 +775,16 @@ export default function Portfolio() {
       <StatsGrid>
         <StatCard>
           <div className="label">{portfolioMode === 'real' ? 'Invested Cost' : 'Virtual Invested'}</div>
-          <div className="value">₹{displayInvested.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+          <div className="value">{formatVal(displayInvested, portfolioMode === 'paper')}</div>
         </StatCard>
         <StatCard>
           <div className="label">{portfolioMode === 'real' ? 'Current Wealth' : 'Account Equity Value'}</div>
-          <div className="value" style={{ color: '#00bcd4' }}>₹{displayValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+          <div className="value" style={{ color: '#00bcd4' }}>{formatVal(displayValue, portfolioMode === 'paper')}</div>
         </StatCard>
         <StatCard>
           <div className="label">{portfolioMode === 'real' ? 'Net Returns (P&L)' : 'Total Simulated P&L'}</div>
           <div className="value" style={{ color: displayProfit >= 0 ? '#00ff88' : '#ff3366' }}>
-            ₹{displayProfit.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            {displayProfit >= 0 ? '+' : ''}{formatVal(displayProfit, portfolioMode === 'paper')}
           </div>
         </StatCard>
         <StatCard>
@@ -773,7 +792,7 @@ export default function Portfolio() {
           <div className="value" style={{ color: portfolioMode === 'real' ? '#ffffff' : '#00ff88' }}>
             {portfolioMode === 'real' 
               ? `${displayHoldingsCount} Assets` 
-              : `₹${parseFloat(paperData.virtualBalance || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+              : formatVal(paperData.virtualBalance || 0, true)
             }
           </div>
         </StatCard>
@@ -836,11 +855,11 @@ export default function Portfolio() {
                         <QuadrantBadge $quad={h.zone}>{h.zone}</QuadrantBadge>
                       </td>
                       <td>{h.quantity}</td>
-                      <td>₹{h.buyPrice.toFixed(2)}</td>
-                      <td>₹{h.invested.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
-                      <td>₹{h.currentValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                      <td>{portfolioMode === 'real' ? `₹${h.buyPrice.toFixed(2)}` : `${isIndianSymbol(h.symbol) ? '₹' : '$'}${parseFloat(h.buyPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      <td>{formatVal(h.invested, portfolioMode === 'paper')}</td>
+                      <td>{formatVal(h.currentValue, portfolioMode === 'paper')}</td>
                       <td style={{ color: h.pnl >= 0 ? '#00ff88' : '#ff3366', fontWeight: 600 }}>
-                        {h.pnl >= 0 ? '+' : ''}₹{h.pnl.toLocaleString('en-IN', { maximumFractionDigits: 2 })} ({h.pnlPercent.toFixed(1)}%)
+                        {h.pnl >= 0 ? '+' : ''}{formatVal(h.pnl, portfolioMode === 'paper')} ({h.pnlPercent.toFixed(1)}%)
                       </td>
                       <td>
                         <button 

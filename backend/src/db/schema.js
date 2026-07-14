@@ -108,7 +108,10 @@ async function createTables() {
   `);
 
   // Add virtual_balance column to users table
-  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS virtual_balance DECIMAL(15,2) DEFAULT 1000000.00`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS virtual_balance DECIMAL(15,2) DEFAULT 50000.00`);
+  await query(`ALTER TABLE users ALTER COLUMN virtual_balance SET DEFAULT 50000.00`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS virtual_refill_count INT DEFAULT 1`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS consecutive_sl_hits INT DEFAULT 0`);
 
   // Create paper_portfolio_items table
   await query(`
@@ -119,9 +122,14 @@ async function createTables() {
       quantity DECIMAL(15,4) NOT NULL,
       buy_price DECIMAL(15,4) NOT NULL,
       buy_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      stop_loss DECIMAL(15,4),
+      take_profit DECIMAL(15,4),
       UNIQUE(user_id, symbol)
     )
   `);
+
+  await query(`ALTER TABLE paper_portfolio_items ADD COLUMN IF NOT EXISTS stop_loss DECIMAL(15,4)`);
+  await query(`ALTER TABLE paper_portfolio_items ADD COLUMN IF NOT EXISTS take_profit DECIMAL(15,4)`);
 
   // Create paper_trades table
   await query(`
@@ -133,6 +141,36 @@ async function createTables() {
       quantity DECIMAL(15,4) NOT NULL,
       price DECIMAL(15,4) NOT NULL,
       pnl DECIMAL(15,4),
+      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await query(`ALTER TABLE paper_trades ADD COLUMN IF NOT EXISTS buy_price DECIMAL(15,4)`);
+
+  // Create paper_pending_orders table
+  await query(`
+    CREATE TABLE IF NOT EXISTS paper_pending_orders (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+      symbol VARCHAR(50) NOT NULL,
+      action VARCHAR(10) NOT NULL,
+      type VARCHAR(10) NOT NULL,
+      quantity DECIMAL(15,4) NOT NULL,
+      price DECIMAL(15,4) NOT NULL,
+      trigger_price DECIMAL(15,4),
+      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Create paper_balance_history table
+  await query(`
+    CREATE TABLE IF NOT EXISTS paper_balance_history (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+      type VARCHAR(50) NOT NULL,
+      amount DECIMAL(15,4) NOT NULL,
+      new_balance DECIMAL(15,4) NOT NULL,
+      description TEXT,
       timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);

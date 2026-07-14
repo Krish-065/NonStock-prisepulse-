@@ -17,6 +17,7 @@ import ResetPassword from './pages/ResetPassword';
 // Protected pages (authenticated users only)
 import Dashboard from './pages/Dashboard';
 import Portfolio from './pages/Portfolio';
+import PaperTrading from './pages/PaperTrading';
 import Watchlist from './pages/Watchlist';
 import Screener from './pages/Screener';
 import IPOs from './pages/IPOs';
@@ -54,6 +55,7 @@ function App() {
             {/* Protected Routes (require login) */}
             <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
             <Route path="/portfolio" element={<PrivateRoute><Layout><Portfolio /></Layout></PrivateRoute>} />
+            <Route path="/paper-trading" element={<PrivateRoute><Layout><PaperTrading /></Layout></PrivateRoute>} />
             <Route path="/watchlist" element={<PrivateRoute><Layout><Watchlist /></Layout></PrivateRoute>} />
             <Route path="/screener" element={<PrivateRoute><Layout><Screener /></Layout></PrivateRoute>} />
             <Route path="/ipos" element={<PrivateRoute><Layout><IPOs /></Layout></PrivateRoute>} />

@@ -33,6 +33,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={16} /> },
+    { path: '/paper-trading', label: 'Paper Trading', icon: <LineChart size={16} /> },
     { path: '/strategy-lab', label: 'Strategy Lab', icon: <Sparkles size={16} /> },
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={16} /> },
     { path: '/alerts', label: 'Alerts Hub', icon: <Bell size={16} /> },

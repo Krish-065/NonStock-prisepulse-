@@ -849,7 +849,7 @@ export default function Markets() {
                 <div>
                   <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>LAST PRICE</div>
                   <div style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace' }}>
-                    ₹{parseFloat(liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    {isIndianStock ? '₹' : '$'}{parseFloat(liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
                 <div>
@@ -861,13 +861,13 @@ export default function Markets() {
                 <div style={{ borderLeft: '1px solid rgba(255,255,255,0.08)', paddingLeft: '20px' }}>
                   <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>DAY HIGH</div>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff', fontFamily: 'monospace' }}>
-                    ₹{parseFloat(liveInfo.dayHigh || liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    {isIndianStock ? '₹' : '$'}{parseFloat(liveInfo.dayHigh || liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
                 <div>
                   <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>DAY LOW</div>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff', fontFamily: 'monospace' }}>
-                    ₹{parseFloat(liveInfo.dayLow || liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    {isIndianStock ? '₹' : '$'}{parseFloat(liveInfo.dayLow || liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
               </div>
