@@ -84,7 +84,7 @@ app.post('/api/auth/change-password', authenticate, authRoutes.changePassword);
 app.get('/api/user/profile', authenticate, async (req, res) => {
   try {
     const result = await query(
-      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin FROM users WHERE id = $1`, 
+      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance FROM users WHERE id = $1`, 
       [req.user.id]
     );
     if (result.rows.length === 0) {
@@ -136,13 +136,97 @@ app.put('/api/user/profile', authenticate, async (req, res) => {
     );
 
     const result = await query(
-      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin FROM users WHERE id = $1`, 
+      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance FROM users WHERE id = $1`, 
       [req.user.id]
     );
-    res.json({ message: 'Profile updated successfully', user: result.rows[0] });
+    res.json(result.rows[0]);
   } catch (error) {
     console.error('❌ Update profile error:', error);
-    res.status(500).json({ error: 'Failed to update profile due to a system error.' });
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// Submit creator verification request
+app.post('/api/user/request-verification', authenticate, async (req, res) => {
+  try {
+    const { title, proof } = req.body;
+    if (!title || !proof) {
+      return res.status(400).json({ error: 'Verification title and proof details are required' });
+    }
+
+    await query(
+      `UPDATE users 
+       SET verification_title = $1, 
+           verification_proof = $2, 
+           verification_status = 'pending' 
+       WHERE id = $3`,
+      [title, proof, req.user.id]
+    );
+
+    res.json({ success: true, message: 'Verification request submitted successfully' });
+  } catch (error) {
+    console.error('❌ Request verification error:', error);
+    res.status(500).json({ error: 'Failed to submit verification request' });
+  }
+});
+
+// Fetch pending verification requests (Admin only)
+app.get('/api/user/verification-requests', authenticate, async (req, res) => {
+  try {
+    const adminCheck = await query(`SELECT is_admin FROM users WHERE id = $1`, [req.user.id]);
+    const isAdmin = adminCheck.rows[0]?.is_admin || req.user.email.toLowerCase().startsWith('admin@');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Access denied: admin permission required' });
+    }
+
+    const result = await query(
+      `SELECT id, name, email, verification_title, verification_proof, verification_status 
+       FROM users 
+       WHERE verification_status = 'pending' 
+       ORDER BY created_at ASC`
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Fetch verification requests error:', error);
+    res.status(500).json({ error: 'Failed to retrieve requests' });
+  }
+});
+
+// Approve or reject verification request (Admin only)
+app.post('/api/user/verify/:userId', authenticate, async (req, res) => {
+  try {
+    const adminCheck = await query(`SELECT is_admin FROM users WHERE id = $1`, [req.user.id]);
+    const isAdmin = adminCheck.rows[0]?.is_admin || req.user.email.toLowerCase().startsWith('admin@');
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Access denied: admin permission required' });
+    }
+
+    const { status, title } = req.body; // status: 'approved' or 'rejected'
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid verification status' });
+    }
+
+    const isVerified = status === 'approved';
+    const finalTitle = isVerified ? (title || 'Verified Creator') : null;
+
+    const result = await query(
+      `UPDATE users 
+       SET is_verified = $1, 
+           verification_status = $2,
+           verification_title = $3
+       WHERE id = $4 RETURNING *`,
+      [isVerified, status, finalTitle, req.params.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ success: true, message: `Verification request ${status} successfully` });
+  } catch (error) {
+    console.error('❌ Verify user error:', error);
+    res.status(500).json({ error: 'Failed to process verification request' });
   }
 });
 

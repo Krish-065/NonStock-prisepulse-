@@ -41,6 +41,11 @@ export default function Community() {
   const [newContestStart, setNewContestStart] = useState('');
   const [newContestEnd, setNewContestEnd] = useState('');
   const [newContestProofs, setNewContestProofs] = useState('');
+  const [newContestIsPrivate, setNewContestIsPrivate] = useState(false);
+  const [newContestPasscode, setNewContestPasscode] = useState('');
+  const [newContestInitialCapital, setNewContestInitialCapital] = useState(1000000);
+  const [newContestAllowedAssets, setNewContestAllowedAssets] = useState('all');
+  const [newContestLeverageLimit, setNewContestLeverageLimit] = useState(1);
   const [submittingContest, setSubmittingContest] = useState(false);
 
   // Admin Pending Contests List
@@ -85,9 +90,12 @@ export default function Community() {
   const [newChannelName, setNewChannelName] = useState('');
   const [newChannelDesc, setNewChannelDesc] = useState('');
   const [newChannelAvatar, setNewChannelAvatar] = useState('');
+  const [newChannelIsPremium, setNewChannelIsPremium] = useState(false);
+  const [newChannelPrice, setNewChannelPrice] = useState(0);
   const [creatingChannel, setCreatingChannel] = useState(false);
   const [newPostImageUrl, setNewPostImageUrl] = useState('');
   const [newPostChannelId, setNewPostChannelId] = useState('');
+  const [newPostIsPremium, setNewPostIsPremium] = useState(false);
 
   // Course Playlist Upload State
   const [isPublishCourseOpen, setIsPublishCourseOpen] = useState(false);
@@ -235,13 +243,17 @@ export default function Community() {
       await apiClient.post('/community/channels', {
         name: newChannelName,
         description: newChannelDesc,
-        avatar_url: newChannelAvatar
+        avatar_url: newChannelAvatar,
+        is_premium: newChannelIsPremium,
+        price: parseFloat(newChannelPrice)
       });
       toast.success('Channel created successfully!');
       setIsCreateChannelOpen(false);
       setNewChannelName('');
       setNewChannelDesc('');
       setNewChannelAvatar('');
+      setNewChannelIsPremium(false);
+      setNewChannelPrice(0);
       fetchChannels();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to create channel');
@@ -288,13 +300,15 @@ export default function Community() {
         title: newPostTitle,
         content: newPostContent,
         image_url: newPostImageUrl,
-        channel_id: newPostChannelId || null
+        channel_id: newPostChannelId || null,
+        is_premium: newPostIsPremium
       });
       toast.success('Post published successfully!');
       setNewPostTitle('');
       setNewPostContent('');
       setNewPostImageUrl('');
       setNewPostChannelId('');
+      setNewPostIsPremium(false);
       fetchPosts(feedSubTab);
     } catch (err) {
       toast.error('Failed to publish post');
@@ -371,13 +385,22 @@ export default function Community() {
     }
   };
 
-  const handleJoinContest = async (id, title) => {
+  const handleJoinContest = async (id, title, isPrivate) => {
+    let passcode = null;
+    if (isPrivate) {
+      passcode = prompt(`This is a private contest. Please enter the passcode to join:`);
+      if (passcode === null) return; // Cancelled
+      if (!passcode) {
+        toast.error('Passcode is required to join private contests');
+        return;
+      }
+    }
     try {
-      await apiClient.post(`/community/contests/${id}/join`);
+      await apiClient.post(`/community/contests/${id}/join`, { passcode });
       toast.success(`You have successfully joined the "${title}" contest!`);
       fetchEducatorData();
     } catch (err) {
-      toast.error('Failed to join contest');
+      toast.error(err.response?.data?.error || 'Failed to join contest');
     }
   };
 
@@ -586,7 +609,12 @@ export default function Community() {
         prizePool: newContestPrize,
         startDate: newContestStart,
         endDate: newContestEnd,
-        proofs: newContestProofs
+        proofs: newContestProofs,
+        isPrivate: newContestIsPrivate,
+        passcode: newContestIsPrivate ? newContestPasscode : null,
+        initialCapital: parseFloat(newContestInitialCapital),
+        allowedAssets: newContestAllowedAssets,
+        leverageLimit: parseInt(newContestLeverageLimit)
       });
       toast.success('Contest request submitted and is pending admin approval.');
       setIsHostContestOpen(false);
@@ -596,6 +624,11 @@ export default function Community() {
       setNewContestStart('');
       setNewContestEnd('');
       setNewContestProofs('');
+      setNewContestIsPrivate(false);
+      setNewContestPasscode('');
+      setNewContestInitialCapital(1000000);
+      setNewContestAllowedAssets('all');
+      setNewContestLeverageLimit(1);
       fetchEducatorData();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to submit contest request');
@@ -1010,7 +1043,7 @@ export default function Community() {
                     return (
                       <div key={chan.id} style={{
                         background: 'var(--bg-card-glass)',
-                        border: '1px solid var(--border-color)',
+                        border: chan.is_premium ? '1px solid rgba(255, 179, 0, 0.4)' : '1px solid var(--border-color)',
                         borderRadius: '16px',
                         padding: '24px',
                         display: 'flex',
@@ -1022,11 +1055,23 @@ export default function Community() {
                           <img
                             src={chan.avatar_url || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=150&auto=format&fit=crop'}
                             alt={chan.name}
-                            style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0, 255, 136, 0.2)' }}
+                            style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: chan.is_premium ? '2px solid #ffb300' : '2px solid rgba(0, 255, 136, 0.2)' }}
                           />
                           <div>
-                            <h4 style={{ fontSize: '15px', fontWeight: '900', color: '#ffffff', margin: 0 }}>{chan.name}</h4>
-                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Owner: <strong>{chan.owner_name}</strong></span>
+                            <h4 style={{ fontSize: '15px', fontWeight: '900', color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              {chan.name}
+                              {chan.is_premium && (
+                                <span style={{ fontSize: '9px', background: 'rgba(255, 179, 0, 0.1)', color: '#ffb300', padding: '1px 5px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                  <Lock size={10} /> Premium
+                                </span>
+                              )}
+                            </h4>
+                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              Owner: <strong>{chan.owner_name}</strong>
+                              {chan.owner_is_verified && (
+                                <CheckCircle size={10} style={{ color: '#00ff88', fill: 'rgba(0,255,136,0.1)' }} title={chan.owner_verification_title || 'Verified Creator'} />
+                              )}
+                            </span>
                           </div>
                         </div>
 
@@ -1063,9 +1108,9 @@ export default function Community() {
                             <button
                               onClick={() => handleFollowChannel(chan.id)}
                               style={{
-                                background: 'rgba(0, 255, 136, 0.1)',
-                                border: '1px solid rgba(0, 255, 136, 0.25)',
-                                color: '#00ff88',
+                                background: chan.is_premium ? 'rgba(255, 179, 0, 0.1)' : 'rgba(0, 255, 136, 0.1)',
+                                border: chan.is_premium ? '1px solid rgba(255, 179, 0, 0.25)' : '1px solid rgba(0, 255, 136, 0.25)',
+                                color: chan.is_premium ? '#ffb300' : '#00ff88',
                                 padding: '6px 12px',
                                 borderRadius: '6px',
                                 fontSize: '11px',
@@ -1073,7 +1118,7 @@ export default function Community() {
                                 cursor: 'pointer'
                               }}
                             >
-                              Follow
+                              {chan.is_premium ? `Subscribe (₹${chan.price})` : 'Follow'}
                             </button>
                           )}
                         </div>
@@ -1130,6 +1175,21 @@ export default function Community() {
                           <option key={c.id} value={c.id}>📢 Channel: {c.name}</option>
                         ))}
                       </select>
+                    </div>
+                  )}
+
+                  {newPostChannelId && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0' }}>
+                      <input
+                        type="checkbox"
+                        id="isPremiumPost"
+                        checked={newPostIsPremium}
+                        onChange={(e) => setNewPostIsPremium(e.target.checked)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <label htmlFor="isPremiumPost" style={{ fontSize: '12px', color: '#ffffff', fontWeight: '750', cursor: 'pointer' }}>
+                        Locked (Premium Followers Only)
+                      </label>
                     </div>
                   )}
 
@@ -1215,7 +1275,7 @@ export default function Community() {
                   posts.map(post => (
                     <div key={post.id} style={{
                       background: 'var(--bg-card-glass)',
-                      border: '1px solid var(--border-color)',
+                      border: post.is_premium ? '1px solid rgba(255, 179, 0, 0.4)' : '1px solid var(--border-color)',
                       borderRadius: '16px',
                       padding: '24px',
                       display: 'flex',
@@ -1228,17 +1288,23 @@ export default function Community() {
                             <img
                               src={post.channel_avatar || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=100&auto=format&fit=crop'}
                               alt={post.channel_name}
-                              style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #00ff88' }}
+                              style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: post.is_premium ? '1.5px solid #ffb300' : '1.5px solid #00ff88' }}
                             />
                             <div>
                               <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 {post.channel_name}
-                                <span style={{ fontSize: '9px', background: 'rgba(0, 255, 136, 0.1)', color: '#00ff88', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
-                                  CHANNEL
+                                <span style={{ fontSize: '9px', background: post.is_premium ? 'rgba(255, 179, 0, 0.1)' : 'rgba(0, 255, 136, 0.1)', color: post.is_premium ? '#ffb300' : '#00ff88', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
+                                  {post.is_premium ? 'PREMIUM CHANNEL' : 'CHANNEL'}
                                 </span>
                               </span>
-                              <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--text-secondary)' }}>
+                              <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                                 {post.channel_followers} Followers • Posted by {post.author_name}
+                                {post.author_is_verified && (
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: '#00ff88', fontWeight: 'bold' }}>
+                                    <CheckCircle size={10} style={{ fill: 'rgba(0,255,136,0.1)' }} />
+                                    {post.author_verification_title || 'Verified'}
+                                  </span>
+                                )}
                               </span>
                             </div>
                           </div>
@@ -1248,7 +1314,12 @@ export default function Community() {
                               <Users size={14} style={{ color: 'var(--text-secondary)' }} />
                             </div>
                             <div>
-                              <span style={{ fontSize: '13px', color: '#00ff88', fontWeight: '800' }}>{post.author_name}</span>
+                              <span style={{ fontSize: '13px', color: '#00ff88', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                {post.author_name}
+                                {post.author_is_verified && (
+                                  <CheckCircle size={12} style={{ color: '#00ff88', fill: 'rgba(0,255,136,0.1)' }} title={post.author_verification_title || 'Verified Creator'} />
+                                )}
+                              </span>
                               <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--text-secondary)' }}>Individual Account</span>
                             </div>
                           </div>
@@ -1280,9 +1351,9 @@ export default function Community() {
                               <button
                                 onClick={() => handleFollowChannel(post.channel_id)}
                                 style={{
-                                  background: 'rgba(0, 255, 136, 0.1)',
-                                  border: '1px solid rgba(0, 255, 136, 0.25)',
-                                  color: '#00ff88',
+                                  background: post.channel_is_premium ? 'rgba(255, 179, 0, 0.1)' : 'rgba(0, 255, 136, 0.1)',
+                                  border: post.channel_is_premium ? '1px solid rgba(255, 179, 0, 0.25)' : '1px solid rgba(0, 255, 136, 0.25)',
+                                  color: post.channel_is_premium ? '#ffb300' : '#00ff88',
                                   padding: '4px 10px',
                                   borderRadius: '6px',
                                   fontSize: '10px',
@@ -1290,7 +1361,7 @@ export default function Community() {
                                   cursor: 'pointer'
                                 }}
                               >
-                                Follow
+                                {post.channel_is_premium ? `Subscribe (₹${post.channel_price})` : 'Follow'}
                               </button>
                             )
                           )}
@@ -1298,11 +1369,55 @@ export default function Community() {
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#ffffff', margin: 0 }}>{post.title}</h3>
-                        <p style={{ fontSize: '13px', color: '#d0d2dd', margin: 0, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{post.content}</p>
+                        <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {post.title}
+                          {post.is_premium && (
+                            <span style={{ fontSize: '9px', background: 'rgba(255, 179, 0, 0.1)', color: '#ffb300', padding: '1px 5px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                              <Lock size={10} /> Premium content
+                            </span>
+                          )}
+                        </h3>
+                        {post.is_redacted ? (
+                          <div style={{
+                            background: 'rgba(0,0,0,0.2)',
+                            border: '1px dashed rgba(255,179,0,0.3)',
+                            borderRadius: '12px',
+                            padding: '20px',
+                            textAlign: 'center',
+                            margin: '8px 0',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}>
+                            <Lock size={24} style={{ color: '#ffb300' }} />
+                            <span style={{ fontSize: '12px', fontWeight: '800', color: '#ffffff' }}>This post contains premium educator content</span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Subscribe to this channel to unlock premium insights and strategy updates.</span>
+                            {post.channel_id && (
+                              <button
+                                onClick={() => handleFollowChannel(post.channel_id)}
+                                style={{
+                                  background: 'linear-gradient(135deg, #ffb300 0%, #ff8f00 100%)',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  color: '#0a0e27',
+                                  padding: '8px 16px',
+                                  fontWeight: '800',
+                                  fontSize: '11px',
+                                  cursor: 'pointer',
+                                  marginTop: '4px'
+                                }}
+                              >
+                                Unlock for ₹{post.channel_price || 0} credits
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <p style={{ fontSize: '13px', color: '#d0d2dd', margin: 0, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{post.content}</p>
+                        )}
                       </div>
 
-                      {post.image_url && (
+                      {post.image_url && !post.is_redacted && (
                         <div style={{
                           marginTop: '8px',
                           borderRadius: '12px',
@@ -1588,7 +1703,7 @@ export default function Community() {
                 ).map(ct => (
                   <div key={ct.id} style={{
                     background: 'var(--bg-card-glass)',
-                    border: '1px solid rgba(255, 179, 0, 0.25)',
+                    border: ct.is_private ? '1px solid rgba(255, 179, 0, 0.4)' : '1px solid rgba(0, 255, 136, 0.25)',
                     borderRadius: '16px',
                     padding: '24px',
                     display: 'flex',
@@ -1597,9 +1712,19 @@ export default function Community() {
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div>
-                        <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, color: '#ffffff' }}>{ct.title}</h3>
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {ct.title}
+                          {ct.is_private && (
+                            <span style={{ fontSize: '9px', background: 'rgba(255, 179, 0, 0.1)', color: '#ffb300', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                              <Lock size={10} /> Private
+                            </span>
+                          )}
+                        </h3>
+                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           Hosted by: <strong>{ct.host_name}</strong>
+                          {ct.host_is_verified && (
+                            <CheckCircle size={10} style={{ color: '#00ff88', fill: 'rgba(0,255,136,0.1)' }} />
+                          )}
                         </span>
                       </div>
                       <span style={{ fontSize: '10px', background: ct.status === 'approved' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 179, 0, 0.1)', color: ct.status === 'approved' ? '#00ff88' : '#ffb300', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>
@@ -1617,13 +1742,21 @@ export default function Community() {
                         <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Timeline</span>
                         <strong>{ct.start_date} - {ct.end_date}</strong>
                       </div>
+                      <div>
+                        <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Initial Capital</span>
+                        <strong>₹{(parseFloat(ct.initial_capital) || 1000000).toLocaleString('en-IN')}</strong>
+                      </div>
+                      <div>
+                        <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Allowed / Leverage</span>
+                        <strong>{ct.allowed_assets ? ct.allowed_assets.toUpperCase() : 'ALL'} / {ct.leverage_limit || 1}x</strong>
+                      </div>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                       <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Participants: <strong>{ct.participants} students</strong></span>
                       {ct.status === 'approved' && (
                         <button
-                          onClick={() => handleJoinContest(ct.id, ct.title)}
+                          onClick={() => handleJoinContest(ct.id, ct.title, ct.is_private)}
                           style={{
                             background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
                             border: 'none',
@@ -2725,6 +2858,7 @@ export default function Community() {
                     outline: 'none'
                   }}
                   autoFocus
+                  required
                 />
               </div>
 
@@ -2745,6 +2879,7 @@ export default function Community() {
                     outline: 'none',
                     resize: 'none'
                   }}
+                  required
                 />
               </div>
 
@@ -2764,6 +2899,7 @@ export default function Community() {
                       fontSize: '12px',
                       outline: 'none'
                     }}
+                    required
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -2781,9 +2917,108 @@ export default function Community() {
                       fontSize: '12px',
                       outline: 'none'
                     }}
+                    required
                   />
                 </div>
               </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Initial Capital (₹)</label>
+                  <input
+                    type="number"
+                    value={newContestInitialCapital}
+                    onChange={(e) => setNewContestInitialCapital(e.target.value)}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '8px',
+                      padding: '10px 12px',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                      outline: 'none'
+                    }}
+                    required
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Leverage Limit</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={newContestLeverageLimit}
+                    onChange={(e) => setNewContestLeverageLimit(e.target.value)}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '8px',
+                      padding: '10px 12px',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                      outline: 'none'
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Allowed Assets</label>
+                <select
+                  value={newContestAllowedAssets}
+                  onChange={(e) => setNewContestAllowedAssets(e.target.value)}
+                  style={{
+                    background: 'rgba(10, 14, 39, 0.9)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="all">All Assets (Equity, Crypto, Options)</option>
+                  <option value="equity">Equity Only</option>
+                  <option value="crypto">Crypto Only</option>
+                  <option value="fno">F&O Only</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0' }}>
+                <input
+                  type="checkbox"
+                  id="isPrivate"
+                  checked={newContestIsPrivate}
+                  onChange={(e) => setNewContestIsPrivate(e.target.checked)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <label htmlFor="isPrivate" style={{ fontSize: '12px', color: '#ffffff', fontWeight: '750', cursor: 'pointer' }}>
+                  Make this contest Private (Requires passcode)
+                </label>
+              </div>
+
+              {newContestIsPrivate && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Passcode</label>
+                  <input
+                    type="text"
+                    placeholder="Enter passcode for students to join..."
+                    value={newContestPasscode}
+                    onChange={(e) => setNewContestPasscode(e.target.value)}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '8px',
+                      padding: '10px 12px',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                      outline: 'none'
+                    }}
+                    required={newContestIsPrivate}
+                  />
+                </div>
+              )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Prize Pool Details</label>
@@ -2801,6 +3036,7 @@ export default function Community() {
                     fontSize: '12px',
                     outline: 'none'
                   }}
+                  required
                 />
               </div>
 
@@ -2813,7 +3049,7 @@ export default function Community() {
                   placeholder="Provide details proving this contest is legitimate (e.g., links to your social profiles, past successful contests hosted, sponsor verification, contact info)..."
                   value={newContestProofs}
                   onChange={(e) => setNewContestProofs(e.target.value)}
-                  rows={4}
+                  rows={3}
                   style={{
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.08)',
@@ -2824,6 +3060,7 @@ export default function Community() {
                     outline: 'none',
                     resize: 'none'
                   }}
+                  required
                 />
               </div>
 
@@ -2966,6 +3203,42 @@ export default function Community() {
                   }}
                 />
               </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0' }}>
+                <input
+                  type="checkbox"
+                  id="isPremiumChannel"
+                  checked={newChannelIsPremium}
+                  onChange={(e) => setNewChannelIsPremium(e.target.checked)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <label htmlFor="isPremiumChannel" style={{ fontSize: '12px', color: '#ffffff', fontWeight: '750', cursor: 'pointer' }}>
+                  Premium Creator Channel (Paid Subscription)
+                </label>
+              </div>
+
+              {newChannelIsPremium && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Subscription Price (Virtual Balance Credits)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 50000"
+                    value={newChannelPrice}
+                    onChange={(e) => setNewChannelPrice(e.target.value)}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '8px',
+                      padding: '10px 12px',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                      outline: 'none'
+                    }}
+                    required={newChannelIsPremium}
+                  />
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
                 <button

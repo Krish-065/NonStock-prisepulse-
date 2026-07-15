@@ -26,10 +26,16 @@ router.get('/posts', async (req, res) => {
     let baseQuery = `
       SELECT p.*, 
              u.name as author_name,
+             u.is_verified as author_is_verified,
+             u.verification_title as author_verification_title,
              c.name as channel_name,
              c.avatar_url as channel_avatar,
+             c.is_premium as channel_is_premium,
+             c.price as channel_price,
+             c.owner_id as channel_owner_id,
              (SELECT COUNT(*) FROM channel_follows WHERE channel_id = p.channel_id) as channel_followers,
-             EXISTS(SELECT 1 FROM channel_follows WHERE user_id = $1 AND channel_id = p.channel_id) as is_following
+             EXISTS(SELECT 1 FROM channel_follows WHERE user_id = $1 AND channel_id = p.channel_id) as is_following,
+             EXISTS(SELECT 1 FROM channel_follows WHERE user_id = $1 AND channel_id = p.channel_id AND is_paid = true) as has_paid_subscription
       FROM community_posts p
       JOIN users u ON p.user_id = u.id
       LEFT JOIN channels c ON p.channel_id = c.id
@@ -43,12 +49,34 @@ router.get('/posts', async (req, res) => {
       baseQuery += ` WHERE p.channel_id IN (SELECT channel_id FROM channel_follows WHERE user_id = $2) ORDER BY p.created_at DESC`;
       queryParams.push(currentUserId);
     } else {
-      // Default: sequence order or random order
       baseQuery += ` ORDER BY p.created_at DESC`;
     }
 
     const result = await query(baseQuery, queryParams);
-    res.json(result.rows);
+    
+    // Redact premium posts content if not followed/purchased
+    const posts = result.rows.map(row => {
+      const isAuthor = currentUserId && row.user_id === currentUserId;
+      const isChannelOwner = currentUserId && row.channel_owner_id === currentUserId;
+      const isUnlocked = !row.is_premium && !row.channel_is_premium;
+      
+      if (!isUnlocked && !isAuthor && !isChannelOwner && !row.has_paid_subscription) {
+        return {
+          ...row,
+          content: '🔒 Premium Content Locked. Subscribe to this channel to unlock full analysis and updates.',
+          image_url: null,
+          is_locked: true,
+          is_redacted: true
+        };
+      }
+      return {
+        ...row,
+        is_locked: false,
+        is_redacted: false
+      };
+    });
+
+    res.json(posts);
   } catch (err) {
     console.error('Fetch posts error:', err);
     res.status(500).json({ error: 'Failed to retrieve community posts' });
@@ -58,7 +86,7 @@ router.get('/posts', async (req, res) => {
 // 2. Create new post
 router.post('/posts', authenticate, async (req, res) => {
   try {
-    const { title, content, image_url, channel_id } = req.body;
+    const { title, content, image_url, channel_id, is_premium = false } = req.body;
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
     }
@@ -76,14 +104,16 @@ router.post('/posts', authenticate, async (req, res) => {
 
     const postId = crypto.randomUUID();
     await query(
-      `INSERT INTO community_posts (id, user_id, title, content, image_url, channel_id, likes) 
-       VALUES ($1, $2, $3, $4, $5, $6, 0)`,
-      [postId, req.user.id, title, content, image_url || null, channel_id || null]
+      `INSERT INTO community_posts (id, user_id, title, content, image_url, channel_id, likes, is_premium) 
+       VALUES ($1, $2, $3, $4, $5, $6, 0, $7)`,
+      [postId, req.user.id, title, content, image_url || null, channel_id || null, is_premium]
     );
 
     const result = await query(`
       SELECT p.*, 
              u.name as author_name,
+             u.is_verified as author_is_verified,
+             u.verification_title as author_verification_title,
              c.name as channel_name,
              c.avatar_url as channel_avatar
       FROM community_posts p
@@ -113,7 +143,7 @@ router.post('/posts/:id/like', authenticate, async (req, res) => {
 // 4. Create Channel
 router.post('/channels', authenticate, async (req, res) => {
   try {
-    const { name, description, avatar_url } = req.body;
+    const { name, description, avatar_url, is_premium = false, price = 0.00 } = req.body;
     if (!name) {
       return res.status(400).json({ error: 'Channel name is required' });
     }
@@ -126,14 +156,15 @@ router.post('/channels', authenticate, async (req, res) => {
 
     const channelId = 'ch_' + crypto.randomBytes(8).toString('hex');
     await query(
-      `INSERT INTO channels (id, owner_id, name, description, avatar_url)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [channelId, req.user.id, name, description || '', avatar_url || '']
+      `INSERT INTO channels (id, owner_id, name, description, avatar_url, is_premium, price)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [channelId, req.user.id, name, description || '', avatar_url || '', is_premium, price]
     );
 
-    // Auto-follow own channel
+    // Auto-follow own channel as paid
     await query(
-      `INSERT INTO channel_follows (user_id, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      `INSERT INTO channel_follows (user_id, channel_id, is_paid, subscribed_at) 
+       VALUES ($1, $2, true, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING`,
       [req.user.id, channelId]
     );
 
@@ -151,7 +182,10 @@ router.get('/channels', authenticate, async (req, res) => {
       `SELECT c.*, 
               (SELECT COUNT(*) FROM channel_follows WHERE channel_id = c.id) as followers_count,
               EXISTS(SELECT 1 FROM channel_follows WHERE user_id = $1 AND channel_id = c.id) as is_following,
-              u.name as owner_name
+              EXISTS(SELECT 1 FROM channel_follows WHERE user_id = $1 AND channel_id = c.id AND is_paid = true) as has_paid_subscription,
+              u.name as owner_name,
+              u.is_verified as owner_is_verified,
+              u.verification_title as owner_verification_title
        FROM channels c
        JOIN users u ON c.owner_id = u.id
        ORDER BY followers_count DESC`,
@@ -164,21 +198,71 @@ router.get('/channels', authenticate, async (req, res) => {
   }
 });
 
-// 6. Follow Channel
+// 6. Follow Channel (Deduct points if premium)
 router.post('/channels/:id/follow', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
-    // Check channel existence
-    const channelRes = await query('SELECT id FROM channels WHERE id = $1', [id]);
+    
+    // Check channel existence and premium status
+    const channelRes = await query('SELECT owner_id, is_premium, price FROM channels WHERE id = $1', [id]);
     if (channelRes.rows.length === 0) {
       return res.status(404).json({ error: 'Channel not found' });
     }
+    const channel = channelRes.rows[0];
 
-    await query(
-      `INSERT INTO channel_follows (user_id, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-      [req.user.id, id]
-    );
-    res.json({ success: true, message: 'Followed channel successfully' });
+    // Check if already following
+    const followRes = await query('SELECT is_paid FROM channel_follows WHERE user_id = $1 AND channel_id = $2', [req.user.id, id]);
+    const alreadyFollowing = followRes.rows.length > 0;
+    const alreadyPaid = alreadyFollowing && followRes.rows[0].is_paid;
+
+    if (channel.is_premium && !alreadyPaid) {
+      if (channel.owner_id === req.user.id) {
+        // Owner doesn't pay
+        await query(
+          `INSERT INTO channel_follows (user_id, channel_id, is_paid, subscribed_at) 
+           VALUES ($1, $2, true, CURRENT_TIMESTAMP)
+           ON CONFLICT (user_id, channel_id) DO UPDATE SET is_paid = true`,
+          [req.user.id, id]
+        );
+      } else {
+        // Deduct points from follower virtual_balance, add to owner
+        const userRes = await query('SELECT virtual_balance FROM users WHERE id = $1', [req.user.id]);
+        const balance = parseFloat(userRes.rows[0]?.virtual_balance || 0);
+        const fee = parseFloat(channel.price);
+
+        if (balance < fee) {
+          return res.status(400).json({ error: `Insufficient virtual balance. Subscription requires ₹${fee.toFixed(2)}.` });
+        }
+
+        // Perform balance deduction and credit in a single transaction sequence
+        await query('BEGIN');
+        try {
+          await query('UPDATE users SET virtual_balance = virtual_balance - $1 WHERE id = $2', [fee, req.user.id]);
+          await query('UPDATE users SET virtual_balance = virtual_balance + $1 WHERE id = $2', [fee, channel.owner_id]);
+          
+          await query(
+            `INSERT INTO channel_follows (user_id, channel_id, is_paid, subscribed_at) 
+             VALUES ($1, $2, true, CURRENT_TIMESTAMP)
+             ON CONFLICT (user_id, channel_id) DO UPDATE SET is_paid = true, subscribed_at = CURRENT_TIMESTAMP`,
+            [req.user.id, id]
+          );
+          
+          await query('COMMIT');
+        } catch (txErr) {
+          await query('ROLLBACK');
+          throw txErr;
+        }
+      }
+    } else {
+      // Free channel or already paid follow
+      await query(
+        `INSERT INTO channel_follows (user_id, channel_id, is_paid, subscribed_at) 
+         VALUES ($1, $2, false, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING`,
+        [req.user.id, id]
+      );
+    }
+
+    res.json({ success: true, message: 'Subscribed to channel successfully' });
   } catch (err) {
     console.error('Follow channel error:', err);
     res.status(500).json({ error: 'Failed to follow channel' });
@@ -251,7 +335,20 @@ router.get('/contests', authenticate, async (req, res) => {
 // 5.5. Host / create a new contest request (Pending Approval)
 router.post('/contests', authenticate, async (req, res) => {
   try {
-    const { title, description, prizePool, startDate, endDate, proofs } = req.body;
+    const { 
+      title, 
+      description, 
+      prizePool, 
+      startDate, 
+      endDate, 
+      proofs,
+      isPrivate = false,
+      passcode = null,
+      initialCapital = 1000000.00,
+      allowedAssets = 'all',
+      leverageLimit = 1
+    } = req.body;
+
     if (!title || !description || !prizePool || !startDate || !endDate || !proofs) {
       return res.status(400).json({ error: 'All fields are required, including proofs/background' });
     }
@@ -264,9 +361,9 @@ router.post('/contests', authenticate, async (req, res) => {
 
     const contestId = 'ct_' + crypto.randomBytes(8).toString('hex');
     await query(
-      `INSERT INTO contests (id, title, description, prize_pool, start_date, end_date, participants, hosted_by, status, proofs)
-       VALUES ($1, $2, $3, $4, $5, $6, 0, $7, 'pending', $8)`,
-      [contestId, title, description, prizePool, startDate, endDate, req.user.id, proofs]
+      `INSERT INTO contests (id, title, description, prize_pool, start_date, end_date, participants, hosted_by, status, proofs, is_private, passcode, initial_capital, allowed_assets, leverage_limit)
+       VALUES ($1, $2, $3, $4, $5, $6, 0, $7, 'pending', $8, $9, $10, $11, $12, $13)`,
+      [contestId, title, description, prizePool, startDate, endDate, req.user.id, proofs, isPrivate, passcode, initialCapital, allowedAssets, leverageLimit]
     );
 
     // Send email notification to Admin
@@ -399,13 +496,21 @@ router.post('/contests/:id/reject', authenticate, async (req, res) => {
 // 6. Join a contest
 router.post('/contests/:id/join', authenticate, async (req, res) => {
   try {
+    const { passcode } = req.body;
     // Only join approved contests
-    const check = await query(`SELECT status FROM contests WHERE id = $1`, [req.params.id]);
+    const check = await query(`SELECT status, is_private, passcode FROM contests WHERE id = $1`, [req.params.id]);
     if (check.rows.length === 0) {
       return res.status(404).json({ error: 'Contest not found' });
     }
-    if (check.rows[0].status !== 'approved') {
+    const contest = check.rows[0];
+    if (contest.status !== 'approved') {
       return res.status(400).json({ error: 'Cannot join a contest that is not approved' });
+    }
+
+    if (contest.is_private) {
+      if (!passcode || passcode !== contest.passcode) {
+        return res.status(403).json({ error: 'Invalid or missing passcode for this private contest' });
+      }
     }
 
     await query(`UPDATE contests SET participants = participants + 1 WHERE id = $1`, [req.params.id]);
@@ -914,6 +1019,131 @@ router.post('/groups/:groupId/members/:userId/role', authenticate, async (req, r
   } catch (err) {
     console.error('Update member role error:', err);
     res.status(500).json({ error: 'Failed to update member role' });
+  }
+});
+
+// 17. Get channels owned by current user
+router.get('/my-channels', authenticate, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT c.*, 
+              (SELECT COUNT(*) FROM channel_follows WHERE channel_id = c.id) as followers_count
+       FROM channels c
+       WHERE c.owner_id = $1
+       ORDER BY c.created_at DESC`,
+      [req.user.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Fetch my channels error:', err);
+    res.status(500).json({ error: 'Failed to retrieve channels' });
+  }
+});
+
+// 18. Update channel details
+router.put('/channels/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, avatar_url, is_premium, price } = req.body;
+
+    // Check ownership
+    const channelRes = await query('SELECT owner_id, name FROM channels WHERE id = $1', [id]);
+    if (channelRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Channel not found' });
+    }
+    if (channelRes.rows[0].owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'You do not own this channel' });
+    }
+
+    // Check name uniqueness if changed
+    if (name && name.toLowerCase() !== channelRes.rows[0].name.toLowerCase()) {
+      const checkRes = await query('SELECT id FROM channels WHERE LOWER(name) = LOWER($1) AND id != $2', [name, id]);
+      if (checkRes.rows.length > 0) {
+        return res.status(400).json({ error: 'Channel name already exists' });
+      }
+    }
+
+    await query(
+      `UPDATE channels 
+       SET name = COALESCE($1, name), 
+           description = COALESCE($2, description), 
+           avatar_url = COALESCE($3, avatar_url),
+           is_premium = COALESCE($4, is_premium),
+           price = COALESCE($5, price)
+       WHERE id = $6`,
+      [name, description, avatar_url, is_premium, price, id]
+    );
+
+    res.json({ success: true, message: 'Channel updated successfully' });
+  } catch (err) {
+    console.error('Update channel error:', err);
+    res.status(500).json({ error: 'Failed to update channel' });
+  }
+});
+
+// 19. Delete channel
+router.delete('/channels/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check ownership
+    const channelRes = await query('SELECT owner_id FROM channels WHERE id = $1', [id]);
+    if (channelRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Channel not found' });
+    }
+    if (channelRes.rows[0].owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'You do not own this channel' });
+    }
+
+    await query('DELETE FROM channels WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Channel deleted successfully' });
+  } catch (err) {
+    console.error('Delete channel error:', err);
+    res.status(500).json({ error: 'Failed to delete channel' });
+  }
+});
+
+// 20. Get posts published by current user
+router.get('/my-posts', authenticate, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT p.*, 
+              u.name as author_name,
+              c.name as channel_name,
+              c.avatar_url as channel_avatar
+       FROM community_posts p
+       JOIN users u ON p.user_id = u.id
+       LEFT JOIN channels c ON p.channel_id = c.id
+       WHERE p.user_id = $1
+       ORDER BY p.created_at DESC`,
+      [req.user.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Fetch my posts error:', err);
+    res.status(500).json({ error: 'Failed to retrieve posts' });
+  }
+});
+
+// 21. Delete post
+router.delete('/posts/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check ownership
+    const postRes = await query('SELECT user_id FROM community_posts WHERE id = $1', [id]);
+    if (postRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    if (postRes.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: 'You do not own this post' });
+    }
+
+    await query('DELETE FROM community_posts WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Post deleted successfully' });
+  } catch (err) {
+    console.error('Delete post error:', err);
+    res.status(500).json({ error: 'Failed to delete post' });
   }
 });
 

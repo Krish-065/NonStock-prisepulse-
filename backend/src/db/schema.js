@@ -424,6 +424,31 @@ async function createTables() {
   await query(`CREATE INDEX IF NOT EXISTS idx_channels_owner ON channels(owner_id)`);
   await query(`CREATE INDEX IF NOT EXISTS idx_posts_channel ON community_posts(channel_id)`);
 
+  // 1. Contests table upgrades
+  await query(`ALTER TABLE contests ADD COLUMN IF NOT EXISTS is_private BOOLEAN DEFAULT FALSE`);
+  await query(`ALTER TABLE contests ADD COLUMN IF NOT EXISTS passcode VARCHAR(50)`);
+  await query(`ALTER TABLE contests ADD COLUMN IF NOT EXISTS initial_capital DECIMAL(15,2) DEFAULT 1000000.00`);
+  await query(`ALTER TABLE contests ADD COLUMN IF NOT EXISTS allowed_assets VARCHAR(100) DEFAULT 'all'`);
+  await query(`ALTER TABLE contests ADD COLUMN IF NOT EXISTS leverage_limit INT DEFAULT 1`);
+
+  // 2. Channels table upgrades
+  await query(`ALTER TABLE channels ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE`);
+  await query(`ALTER TABLE channels ADD COLUMN IF NOT EXISTS price DECIMAL(10,2) DEFAULT 0.00`);
+
+  // 3. Posts table upgrades
+  await query(`ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE`);
+
+  // 4. Followers paid subscription fields
+  await query(`ALTER TABLE channel_follows ADD COLUMN IF NOT EXISTS is_paid BOOLEAN DEFAULT FALSE`);
+  await query(`ALTER TABLE channel_follows ADD COLUMN IF NOT EXISTS subscribed_at TIMESTAMP`);
+  await query(`ALTER TABLE channel_follows ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP`);
+
+  // 5. User verification badges
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_title VARCHAR(100)`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_proof TEXT`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_status VARCHAR(50) DEFAULT 'none'`);
+
   console.log('✅ All tables created');
 }
 

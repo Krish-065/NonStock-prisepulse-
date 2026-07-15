@@ -628,6 +628,35 @@ router.get('/shared', authenticate, async (req, res) => {
   }
 });
 
+// Get specific shared strategy details by ID
+router.get('/shared/:id', authenticate, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT s.id, s.strategy_name as "strategyName", s.indicators, s.win_rate as "winRate", s.net_profit as "netProfit", 
+              s.drawdown, s.copied_count as "copiedCount", s.created_at as "createdAt", u.name as "authorName"
+       FROM shared_strategies s
+       JOIN users u ON s.user_id = u.id
+       WHERE s.id = $1`,
+      [req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Shared strategy template not found' });
+    }
+
+    const row = result.rows[0];
+    const strategy = {
+      ...row,
+      indicators: JSON.parse(row.indicators)
+    };
+
+    res.json(strategy);
+  } catch (err) {
+    console.error('Get shared strategy details error:', err);
+    res.status(500).json({ error: 'Failed to retrieve shared strategy' });
+  }
+});
+
 // Copy community strategy to user's saved list
 router.post('/copy/:id', authenticate, async (req, res) => {
   try {

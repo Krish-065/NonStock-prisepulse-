@@ -142,6 +142,79 @@ The **MACD** is a trend-following momentum indicator that shows the relationship
 
 **Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
   }
+  else if (upper.includes('OPTION') || upper.includes('CALL') || upper.includes('PUT') || upper.includes('DERIVATIVE')) {
+    responseText = `### 🎭 Introduction to Options & Derivatives
+**Options** are financial derivatives that give the buyer the right, but not the obligation, to buy or sell an underlying asset at a specified price within a specific time period.
+
+### 📈 Call Options (Bullish View)
+- A **Call Option** gives you the right to **buy** the stock at a fixed price (Strike Price).
+- You buy calls when you expect the stock price to rise significantly.
+
+### 📉 Put Options (Bearish View)
+- A **Put Option** gives you the right to **sell** the stock at a fixed Strike Price.
+- You buy puts when you expect the stock price to fall.
+
+### ⚠️ Key Risks (Time Decay)
+Unlike stocks, options have an expiration date. **Theta (Time Decay)** eats away at the option value every day, meaning option buyers can lose their entire premium if the stock does not move in their favor quickly enough.
+
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
+  else if (upper.includes('RISK') || upper.includes('STOP LOSS') || upper.includes('LEVERAGE') || upper.includes('CAPITAL')) {
+    responseText = `### 🛡️ Risk Management & Stop Losses
+Capital preservation is the single most important rule in trading. Without proper risk management, even the best strategies will lead to account liquidation.
+
+### 🛑 The Stop Loss Order
+- A **Stop Loss** is a pre-set order that automatically exits your trade once the stock hits a certain price level.
+- It caps your maximum downside and prevents a single bad trade from wiping out your portfolio.
+
+### ⚖️ The 1% Rule
+- Never risk more than **1% to 2%** of your total trading capital on a single trade.
+- For example, with a ₹1,00,000 account, your maximum loss on any trade should be capped at ₹1,000 to ₹2,000.
+
+### ⚡ The Double-Edged Sword of Leverage
+- **Leverage** allows you to trade larger positions with less money.
+- While leverage multiplies your gains, it also **multiplies your losses** at the same rate, increasing liquidation risk.
+
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
+  else if (upper.includes('EMA') || upper.includes('SMA') || upper.includes('MOVING AVERAGE') || upper.includes('CROSSOVER')) {
+    responseText = `### 📈 Understanding Moving Averages (SMA & EMA)
+**Moving Averages** smooth out price data to create a single flowing line, making it easier to identify the underlying trend direction.
+
+### ⚙️ SMA vs EMA
+- **Simple Moving Average (SMA)**: Calculates the average price over a set period. It treats all days equally.
+- **Exponential Moving Average (EMA)**: Gives more weight to recent prices. It reacts faster to recent price changes.
+
+### 🚦 Golden Cross & Death Cross
+- **Golden Cross (Bullish)**: When a short-term moving average (e.g. 50-day EMA) crosses **above** a long-term moving average (e.g. 200-day EMA).
+- **Death Cross (Bearish)**: When the 50-day EMA crosses **below** the 200-day EMA, signalling potential downward trend.
+
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
+  else if (upper.includes('PE RATIO') || upper.includes('FUNDAMENTAL') || upper.includes('EARNINGS') || upper.includes('REVENUE')) {
+    responseText = `### 🔍 Introduction to Fundamental Analysis
+**Fundamental Analysis** is the method of evaluating a stock by measuring its intrinsic value through financial statements, management capability, and economic factors.
+
+### 📊 Key Ratios to Know
+- **Price-to-Earnings (P/E) Ratio**: Compares stock price to earnings per share. High P/E might mean the stock is overvalued or has high growth expectations.
+- **Debt-to-Equity (D/E) Ratio**: Measures financial leverage. A high ratio indicates higher risk from debt interest obligations.
+- **Return on Equity (ROE)**: Measures how effectively management is using shareholders' capital to generate profits.
+
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
+  else if (upper.includes('CRYPTO') || upper.includes('BITCOIN') || upper.includes('ETHEREUM') || upper.includes('BLOCKCHAIN')) {
+    responseText = `### 🪙 Cryptocurrency & Digital Assets
+**Cryptocurrencies** are decentralized digital currencies powered by **Blockchain technology** — a secure, distributed ledger.
+
+### ₿ Major Cryptocurrencies
+- **Bitcoin (BTC)**: The first and largest cryptocurrency, often referred to as "digital gold" due to its fixed supply cap of 21 million coins.
+- **Ethereum (ETH)**: A programmable blockchain that supports smart contracts and decentralized applications (dApps).
+
+### ⚡ Volatility and Risk
+Cryptocurrencies trade 24/7 globally and are subject to extreme price volatility, regulatory changes, and technical risks. Always proceed with extreme caution.
+
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
   else if (detectedSymbol && technicals) {
     const trend = technicals.trend?.toLowerCase() ?? 'consolidating';
     const rsi = technicals.rsi ?? 50;
@@ -406,7 +479,7 @@ Behavior Guidelines:
       }
 
       const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

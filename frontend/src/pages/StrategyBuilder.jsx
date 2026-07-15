@@ -48,7 +48,33 @@ export default function StrategyBuilder() {
 
   useEffect(() => {
     fetchSavedStrategies();
+    
+    // Check if there is a shared strategy to import from URL query
+    const params = new URLSearchParams(window.location.search);
+    const importId = params.get('import');
+    if (importId) {
+      handleImportSharedStrategy(importId);
+    }
   }, []);
+
+  const handleImportSharedStrategy = async (importId) => {
+    const loadingToast = toast.loading('Importing shared strategy template...');
+    try {
+      const res = await apiClient.get(`/strategy/shared/${importId}`);
+      const shared = res.data;
+      if (shared.indicators) {
+        if (shared.indicators.buyConditions) setBuyConditions(shared.indicators.buyConditions);
+        if (shared.indicators.buyLogicGate) setBuyLogicGate(shared.indicators.buyLogicGate);
+        if (shared.indicators.sellConditions) setSellConditions(shared.indicators.sellConditions);
+        if (shared.indicators.sellLogicGate) setSellLogicGate(shared.indicators.sellLogicGate);
+        
+        toast.success(`Imported template "${shared.strategyName}" by ${shared.authorName}!`, { id: loadingToast });
+      }
+    } catch (err) {
+      console.error('Failed to import strategy:', err);
+      toast.error('Failed to import shared strategy template', { id: loadingToast });
+    }
+  };
 
   const fetchSavedStrategies = async () => {
     try {
@@ -134,7 +160,7 @@ export default function StrategyBuilder() {
     if (!shareName) return;
 
     try {
-      await apiClient.post('/strategy/share', {
+      const res = await apiClient.post('/strategy/share', {
         strategyName: shareName,
         indicators: {
           buyConditions,
@@ -146,7 +172,15 @@ export default function StrategyBuilder() {
         netProfit: backtestResult.profit,
         drawdown: backtestResult.drawdown
       });
-      toast.success('Strategy successfully published to the community feed!');
+      const sharedId = res.data.sharedId;
+      const shareUrl = `${window.location.origin}/strategy-lab?import=${sharedId}`;
+      
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Strategy shared! Shareable import link copied to clipboard.');
+      } catch (clipErr) {
+        prompt('Strategy shared! Copy this link to share:', shareUrl);
+      }
     } catch (err) {
       toast.error('Failed to publish strategy');
     }

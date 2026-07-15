@@ -621,3 +621,13 @@ th {
   .features-grid { grid-template-columns: repeat(2, 1fr); }
   .crypto-grid { grid-template-columns: 1fr; }
 }
+
+/* Spinner Animation Utility */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
