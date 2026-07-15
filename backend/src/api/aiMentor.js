@@ -79,55 +79,108 @@ function getMLEnsemble(symbol) {
 }
 
 // ─── Sandbox Response Builder (always returns 200, never crashes) ─────────────
-function buildSandboxResponse(technicals, detectedSymbol) {
-  const trend      = technicals?.trend?.toLowerCase() ?? 'consolidating';
-  const rsi        = technicals?.rsi ?? 48.5;
-  const volume     = technicals?.volume?.toLocaleString() ?? '1,450,200';
-  const support    = technicals ? `₹${technicals.support.toLocaleString('en-IN')}` : '₹2,450.00';
-  const resistance = technicals ? `₹${technicals.resistance.toLocaleString('en-IN')}` : '₹2,680.00';
-  const rsiZone    = rsi > 70 ? 'overbought (potentially overextended — consider caution)'
+function buildSandboxResponse(technicals, detectedSymbol, queryText = '') {
+  const upper = (queryText || '').toUpperCase();
+  let responseText = '';
+
+  if (upper.includes('RSI') || upper.includes('RELATIVE STRENGTH INDEX')) {
+    responseText = `### 📊 What is the Relative Strength Index (RSI)?
+The **Relative Strength Index (RSI)** is a popular momentum oscillator used in technical analysis. It measures the speed and change of price movements on a scale from **0 to 100**.
+
+### 💡 Key RSI Levels
+- **Overbought (> 70)**: Suggests the asset has experienced significant upward price pressure and may be due for a consolidation or correction.
+- **Oversold (< 30)**: Indicates the asset has experienced significant downward price pressure and may be poised for a potential bounce or reversal.
+- **Neutral (30 to 70)**: Suggests consolidation or trend continuation without extreme momentum.
+
+### 🎓 How to use RSI
+Traders use RSI to identify potential entry and exit points, detect bullish/bearish divergences (where price makes a new high/low but RSI does not), and confirm trend strength.
+
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  } 
+  else if (upper.includes('SUPPORT') || upper.includes('RESISTANCE')) {
+    responseText = `### 🛡️ Support & Resistance Explained
+**Support** and **Resistance** are fundamental concepts in technical analysis representing key price floors and ceilings.
+
+### 📉 Support (The Floor)
+- Support is the price level at which demand is strong enough to prevent the price from declining further.
+- It is visually represented as a horizontal line or zone connecting previous price lows.
+- When price approaches support, buyers are more likely to buy and sellers are less likely to sell, creating a price floor.
+
+### 📈 Resistance (The Ceiling)
+- Resistance is the price level at which selling pressure is strong enough to prevent the price from rising further.
+- It connects previous price highs.
+- When price approaches resistance, sellers are more likely to sell and buyers are less likely to buy, capping the upside.
+
+### 🔄 Role Reversal
+A key concept is that once a resistance level is broken, it often becomes a support level for future price drops, and vice versa.
+
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
+  else if (upper.includes('MACD') || upper.includes('MOVING AVERAGE CONVERGENCE')) {
+    responseText = `### 📊 Understanding MACD (Moving Average Convergence Divergence)
+The **MACD** is a trend-following momentum indicator that shows the relationship between two moving averages of an asset’s price.
+
+### ⚙️ How it is Calculated
+- **MACD Line**: The difference between the 12-day EMA and the 26-day EMA.
+- **Signal Line**: A 9-day EMA of the MACD Line.
+- **Histogram**: The difference between the MACD Line and the Signal Line, indicating momentum strength.
+
+### 🚦 Key Signals
+- **Signal Line Crossover**: Bullish when MACD crosses above the Signal Line; Bearish when it crosses below.
+- **Zero Line Crossover**: MACD above zero indicates bullish momentum; below zero indicates bearish momentum.
+
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
+  else if (upper.includes('VOLUME')) {
+    responseText = `### 📈 The Importance of Trading Volume
+**Trading Volume** is the total number of shares or contracts traded during a given period. It is one of the most critical indicators for confirming price trends.
+
+### 🔍 Key Volume Interpretations
+- **Trend Confirmation**: High volume on price rallies confirms strong buyer conviction. Low volume suggests lack of interest and warning of a potential trend reversal.
+- **Breakouts**: When a price breaks out of a consolidation pattern or support/resistance on high volume, it signals a strong, sustainable move.
+- **Climax Volume**: Extremely high volume spike after a prolonged trend can signal the exhaustion of buyers or sellers (reversal warning).
+
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
+  else if (detectedSymbol && technicals) {
+    const trend = technicals.trend?.toLowerCase() ?? 'consolidating';
+    const rsi = technicals.rsi ?? 50;
+    const volume = technicals.volume?.toLocaleString() ?? '1,450,200';
+    const support = `₹${technicals.support.toLocaleString('en-IN')}`;
+    const resistance = `₹${technicals.resistance.toLocaleString('en-IN')}`;
+    const rsiZone = rsi > 70 ? 'overbought (potentially overextended — consider caution)'
                    : rsi < 30 ? 'oversold (potential buying opportunity for patient investors)'
                    : 'neutral momentum zone (no extreme bias)';
 
-  const response = `### 📈 Current Trend
-The asset is currently showing a **${trend}** trend based on the last 30 days of price action. ${trend === 'bullish' ? 'Buyers are in control, with higher highs forming.' : 'Sellers are maintaining pressure — watch for reversal signals near resistance.'}
+    responseText = `### 📈 Technical Outlook for ${detectedSymbol}
+The asset is currently showing a **${trend}** trend based on recent price action. ${trend === 'bullish' ? 'Buyers are in control, with higher highs forming.' : 'Sellers are maintaining pressure — watch for reversal signals near resistance.'}
 
 ### 📊 RSI Analysis
-The **Relative Strength Index (RSI-14)** is at **${rsi}**, placing it in the **${rsiZone}**. RSI ranges from 0–100:
-- **Above 70** = Overbought → potential pullback risk
-- **Below 30** = Oversold → potential bounce zone
-- **40–60** = Neutral territory — no strong directional signal
+The **Relative Strength Index (RSI-14)** is at **${rsi}**, placing it in the **${rsiZone}**.
+
+### 🛡️ Key Price Levels to Monitor
+- **Support Floor**: ${support} — where buyers historically step in and prevent further declines.
+- **Resistance Ceiling**: ${resistance} — where selling pressure has historically capped upside movements.
 
 ### 📈 Volume Analysis
-Current daily volume is **${volume}** shares. Volume is a conviction indicator:
-- **High volume on green days** = strong buying interest
-- **Low volume on rallies** = weak conviction, possible reversal ahead
+Current daily volume is **${volume}** shares. Volume confirms the conviction behind the price move.
 
-### 🛡️ Support & Resistance
-Key price levels to monitor:
-- **Support Floor**: ${support} — where buyers historically step in
-- **Resistance Ceiling**: ${resistance} — where sellers have historically capped upside
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
+  else {
+    responseText = `### 👋 Welcome to NonStock AI Mentor!
+I am your interactive companion for financial learning and stock analysis. You can ask me about:
+- **Financial concepts**: e.g., "What is RSI?", "How do Support and Resistance work?", "What does Volume mean?"
+- **Stock technical analysis**: Mention any stock symbol (like TCS, RELIANCE, NIFTY) to retrieve live technical indicators.
+- **Trading strategies**: Learn about indicators, crossovers, and risk management.
 
-A breakout above resistance on high volume is bullish. A breakdown below support on high volume is bearish.
+Try asking: *"What is the RSI indicator?"* or *"Analyze Reliance"* to get started!
 
-### 📰 Recent News & Catalysts
-Macroeconomic factors — including central bank decisions, FII/DII flows, and global market sentiment — are influencing this asset's sector. Track these events on the NonStock Dashboard to stay ahead of news-driven moves.
-
-### ⚠️ Risk Assessment
-- **Sector-level risk**: Medium
-- **Volatility risk**: Monitor intraday price swings around support/resistance zones
-- **Tip**: Always test your thesis on NonStock's **Paper Trading sandbox** before using real capital!
-
-### 🛡️ Confidence Rating
-**75% Educational Confidence** — based on live technical momentum indicators.
-
-### 🎓 Educational Explanation
-**Support** is a price level where demand halts a decline — think of it as a floor. **Resistance** is where supply exceeds demand — a ceiling. When price breaks resistance convincingly, that old ceiling often becomes the new support floor. This is the foundation of trend-following strategies used by professional traders worldwide.
-
-**Disclaimer: NOT financial advice. This analysis is for educational purposes only and should not be used as a recommendation to buy or sell securities.**`;
+**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**`;
+  }
 
   return {
-    response: response.trim(),
+    response: responseText.trim(),
     technicals,
     mlEnsemble: getMLEnsemble(detectedSymbol || 'NIFTY')
   };
@@ -291,7 +344,7 @@ router.post('/ask', authenticate, async (req, res) => {
 
     if (!GEMINI_API_KEY) {
       console.log('[AI Mentor] No Gemini key — sandbox mode');
-      const sb = buildSandboxResponse(technicals, detectedSymbol);
+      const sb = buildSandboxResponse(technicals, detectedSymbol, message);
       return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
     }
 
@@ -306,7 +359,7 @@ Response Format Guidelines:
 - Avoid using code blocks (e.g., \`\`\`), tables, or HTML in your response as the custom parser in the frontend is optimized for headers, bold text, and lists.
 - At the end of your response, always append: "**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**"
 
-Behavioral Guidelines:
+Behavior Guidelines:
 - Explain financial concepts with clear, simple language and Indian examples if helpful (like tea shops, local businesses, Nifty 50, Reliance).
 - If the user asks about specific stocks or indicators, check if live market data context is provided. If it is, incorporate it into your explanation of the stock's trend, RSI, support/resistance, and volume.
 - Keep your answers educational. Do NOT give direct BUY, SELL, or HOLD recommendations. Always frame insights as technical assessments and educational analysis.
@@ -353,7 +406,7 @@ Behavioral Guidelines:
       }
 
       const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -369,7 +422,7 @@ Behavioral Guidelines:
       if (!geminiRes.ok) {
         const body = await geminiRes.text();
         console.warn(`[AI Mentor] Gemini ${geminiRes.status} — sandbox fallback. ${body.substring(0, 150)}`);
-        const sb = buildSandboxResponse(technicals, detectedSymbol);
+        const sb = buildSandboxResponse(technicals, detectedSymbol, message);
         return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
       }
 
@@ -377,7 +430,7 @@ Behavioral Guidelines:
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) {
         console.warn('[AI Mentor] Gemini empty response — sandbox fallback');
-        const sb = buildSandboxResponse(technicals, detectedSymbol);
+        const sb = buildSandboxResponse(technicals, detectedSymbol, message);
         return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
       }
 
@@ -386,7 +439,7 @@ Behavioral Guidelines:
 
     } catch (geminiErr) {
       console.warn('[AI Mentor] Gemini exception — sandbox fallback:', geminiErr.message);
-      const sb = buildSandboxResponse(technicals, detectedSymbol);
+      const sb = buildSandboxResponse(technicals, detectedSymbol, message);
       return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
     }
 
