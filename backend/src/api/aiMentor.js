@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
+const { query } = require('../db/index');
 const { authenticate } = require('../middleware/auth');
 
 // Yahoo Finance headers to avoid IP blocks
@@ -116,7 +118,7 @@ Macroeconomic factors — including central bank decisions, FII/DII flows, and g
 - **Volatility risk**: Monitor intraday price swings around support/resistance zones
 - **Tip**: Always test your thesis on NonStock's **Paper Trading sandbox** before using real capital!
 
-### 🎯 Confidence Rating
+### 🛡️ Confidence Rating
 **75% Educational Confidence** — based on live technical momentum indicators.
 
 ### 🎓 Educational Explanation
@@ -131,13 +133,97 @@ Macroeconomic factors — including central bank decisions, FII/DII flows, and g
   };
 }
 
+// ─── GET /conversations ───────────────────────────────────────────────────────
+router.get('/conversations', authenticate, async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT id, title, created_at, updated_at FROM ai_conversations WHERE user_id = $1 ORDER BY updated_at DESC',
+      [req.user.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Fetch conversations error:', err);
+    res.status(500).json({ error: 'Failed to fetch conversations' });
+  }
+});
+
+// ─── GET /conversations/:id/messages ──────────────────────────────────────────
+router.get('/conversations/:id/messages', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Verify ownership
+    const convCheck = await query(
+      'SELECT id FROM ai_conversations WHERE id = $1 AND user_id = $2',
+      [id, req.user.id]
+    );
+    if (convCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Conversation not found or access denied' });
+    }
+
+    const result = await query(
+      'SELECT id, sender, text, created_at FROM ai_messages WHERE conversation_id = $1 ORDER BY created_at ASC',
+      [id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Fetch messages error:', err);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+// ─── DELETE /conversations/:id ────────────────────────────────────────────────
+router.delete('/conversations/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(
+      'DELETE FROM ai_conversations WHERE id = $1 AND user_id = $2 RETURNING id',
+      [id, req.user.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Conversation not found or access denied' });
+    }
+    res.json({ success: true, message: 'Conversation deleted successfully' });
+  } catch (err) {
+    console.error('Delete conversation error:', err);
+    res.status(500).json({ error: 'Failed to delete conversation' });
+  }
+});
+
 // ─── POST /ask ────────────────────────────────────────────────────────────────
 router.post('/ask', authenticate, async (req, res) => {
   try {
-    const { message, history } = req.body;
+    const { message, conversationId } = req.body;
     if (!message) return res.status(400).json({ error: 'Message query is required' });
 
-    // Step 1: Detect symbol & fetch live Yahoo Finance technicals
+    let activeConversationId = conversationId;
+
+    // Verify or create conversation in DB
+    if (activeConversationId) {
+      const convCheck = await query(
+        'SELECT id FROM ai_conversations WHERE id = $1 AND user_id = $2',
+        [activeConversationId, req.user.id]
+      );
+      if (convCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'Conversation not found or access denied' });
+      }
+    } else {
+      // Auto-create a conversation
+      activeConversationId = 'conv_' + crypto.randomBytes(8).toString('hex');
+      const title = message.length > 30 ? message.substring(0, 30) + '...' : message;
+      await query(
+        'INSERT INTO ai_conversations (id, user_id, title) VALUES ($1, $2, $3)',
+        [activeConversationId, req.user.id, title]
+      );
+    }
+
+    // Save the user's message
+    const userMsgId = 'msg_' + crypto.randomBytes(8).toString('hex');
+    await query(
+      'INSERT INTO ai_messages (id, conversation_id, sender, text) VALUES ($1, $2, $3, $4)',
+      [userMsgId, activeConversationId, 'user', message]
+    );
+
+    // Detect symbol & fetch live Yahoo Finance technicals
     const detectedSymbol = extractSymbol(message);
     let techContext = '';
     let technicals  = null;
@@ -161,19 +247,19 @@ router.post('/ask', authenticate, async (req, res) => {
             if (closes.length > 0) {
               const last = closes[closes.length - 1];
               const sup  = Math.min(...closes);
-              const res  = Math.max(...closes);
+              const resVal  = Math.max(...closes);
               const rsi  = computeRSI(closes, 14);
               const vol  = volumes[volumes.length - 1] || 0;
               technicals = {
                 symbol:     detectedSymbol,
                 price:      parseFloat(last.toFixed(2)),
                 support:    parseFloat(sup.toFixed(2)),
-                resistance: parseFloat(res.toFixed(2)),
+                resistance: parseFloat(resVal.toFixed(2)),
                 rsi:        rsi || 50,
                 trend:      last >= closes[0] ? 'BULLISH' : 'BEARISH',
                 volume:     vol
               };
-              techContext = `[LIVE: ${detectedSymbol}] Price ₹${last.toFixed(2)}, Support ₹${sup.toFixed(2)}, Resistance ₹${res.toFixed(2)}, RSI ${rsi?.toFixed(1)}, Trend ${technicals.trend}, Vol ${vol.toLocaleString()}`;
+              techContext = `[LIVE: ${detectedSymbol}] Price ₹${last.toFixed(2)}, Support ₹${sup.toFixed(2)}, Resistance ₹${resVal.toFixed(2)}, RSI ${rsi?.toFixed(1)}, Trend ${technicals.trend}, Vol ${vol.toLocaleString()}`;
             }
           }
         }
@@ -182,14 +268,33 @@ router.post('/ask', authenticate, async (req, res) => {
       }
     }
 
-    // Step 2: No key → sandbox
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    
+    // helper to save model reply & send final HTTP response
+    const finalizeAndSave = async (responseText, techObj, mlObj) => {
+      const aiMsgId = 'msg_' + crypto.randomBytes(8).toString('hex');
+      await query(
+        'INSERT INTO ai_messages (id, conversation_id, sender, text) VALUES ($1, $2, $3, $4)',
+        [aiMsgId, activeConversationId, 'model', responseText]
+      );
+      await query(
+        'UPDATE ai_conversations SET updated_at = NOW() WHERE id = $1',
+        [activeConversationId]
+      );
+      return res.json({
+        response: responseText,
+        technicals: techObj,
+        mlEnsemble: mlObj,
+        conversationId: activeConversationId
+      });
+    };
+
     if (!GEMINI_API_KEY) {
       console.log('[AI Mentor] No Gemini key — sandbox mode');
-      return res.json(buildSandboxResponse(technicals, detectedSymbol));
+      const sb = buildSandboxResponse(technicals, detectedSymbol);
+      return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
     }
 
-    // Step 3: Try Gemini, fall back to sandbox on ANY failure
     try {
       const systemInstructionText = `You are the "NonStock AI Mentor", a premium educational investing chatbot for beginner investors in India.
 Your goal is to explain financial concepts clearly, guide users through technical analysis indicators, and help them understand stock trends.
@@ -207,13 +312,16 @@ Behavioral Guidelines:
 - Keep your answers educational. Do NOT give direct BUY, SELL, or HOLD recommendations. Always frame insights as technical assessments and educational analysis.
 - Maintain context of the conversation. Learn from previous questions and answers in the chat history to provide intelligent follow-up responses.`;
 
-      // Construct the contents list for Gemini (conversational turns)
-      const contents = [];
+      // Load full history from DB for Gemini
+      const dbHistory = await query(
+        'SELECT sender, text FROM ai_messages WHERE conversation_id = $1 ORDER BY created_at ASC',
+        [activeConversationId]
+      );
 
-      // Add conversational history (ensure alternating user/model roles and start with user)
-      if (Array.isArray(history)) {
-        history.forEach((item) => {
-          if (!item.text || !item.sender) return;
+      const contents = [];
+      if (dbHistory.rows.length > 0) {
+        dbHistory.rows.forEach((item) => {
+          // sender maps to either 'user' or 'model' (Gemini expects user/model)
           const role = item.sender === 'user' ? 'user' : 'model';
           
           // Skip leading model messages to guarantee starting with 'user'
@@ -229,14 +337,14 @@ Behavioral Guidelines:
         });
       }
 
-      // Inject live market data context into the current query if available
+      // Inject live market data context into the last query if available
       const currentPromptText = techContext
         ? `[Live market data context: ${techContext}]\nUser query: ${message}`
         : message;
 
-      // Append current message
+      // Ensure the last part has the live context injected
       if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
-        contents[contents.length - 1].parts[0].text += `\n\nUser query: ${currentPromptText}`;
+        contents[contents.length - 1].parts[0].text = currentPromptText;
       } else {
         contents.push({
           role: 'user',
@@ -261,25 +369,25 @@ Behavioral Guidelines:
       if (!geminiRes.ok) {
         const body = await geminiRes.text();
         console.warn(`[AI Mentor] Gemini ${geminiRes.status} — sandbox fallback. ${body.substring(0, 150)}`);
-        return res.json(buildSandboxResponse(technicals, detectedSymbol));
+        const sb = buildSandboxResponse(technicals, detectedSymbol);
+        return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
       }
 
       const data = await geminiRes.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) {
         console.warn('[AI Mentor] Gemini empty response — sandbox fallback');
-        return res.json(buildSandboxResponse(technicals, detectedSymbol));
+        const sb = buildSandboxResponse(technicals, detectedSymbol);
+        return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
       }
 
-      return res.json({
-        response: text,
-        technicals,
-        mlEnsemble: detectedSymbol ? getMLEnsemble(detectedSymbol) : null
-      });
+      const mlObj = detectedSymbol ? getMLEnsemble(detectedSymbol) : null;
+      return await finalizeAndSave(text, technicals, mlObj);
 
     } catch (geminiErr) {
       console.warn('[AI Mentor] Gemini exception — sandbox fallback:', geminiErr.message);
-      return res.json(buildSandboxResponse(technicals, detectedSymbol));
+      const sb = buildSandboxResponse(technicals, detectedSymbol);
+      return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
     }
 
   } catch (err) {

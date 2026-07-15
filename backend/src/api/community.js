@@ -3,16 +3,51 @@ const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const { query } = require('../db/index');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const { sendEmail } = require('../utils/email');
 
 // 1. Fetch community feed posts
 router.get('/posts', async (req, res) => {
   try {
-    const result = await query(`
-      SELECT p.*, u.name as author_name 
+    let currentUserId = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'Nonstock-super-secret-key-2025');
+        currentUserId = decoded.id;
+      } catch (e) {
+        // Ignore invalid token
+      }
+    }
+
+    const { tab } = req.query;
+
+    let baseQuery = `
+      SELECT p.*, 
+             u.name as author_name,
+             c.name as channel_name,
+             c.avatar_url as channel_avatar,
+             (SELECT COUNT(*) FROM channel_follows WHERE channel_id = p.channel_id) as channel_followers,
+             EXISTS(SELECT 1 FROM channel_follows WHERE user_id = $1 AND channel_id = p.channel_id) as is_following
       FROM community_posts p
       JOIN users u ON p.user_id = u.id
-      ORDER BY p.created_at DESC
-    `);
+      LEFT JOIN channels c ON p.channel_id = c.id
+    `;
+    
+    let queryParams = [currentUserId || ''];
+
+    if (tab === 'trending') {
+      baseQuery += ` ORDER BY p.likes DESC, p.created_at DESC`;
+    } else if (tab === 'following' && currentUserId) {
+      baseQuery += ` WHERE p.channel_id IN (SELECT channel_id FROM channel_follows WHERE user_id = $2) ORDER BY p.created_at DESC`;
+      queryParams.push(currentUserId);
+    } else {
+      // Default: sequence order or random order
+      baseQuery += ` ORDER BY p.created_at DESC`;
+    }
+
+    const result = await query(baseQuery, queryParams);
     res.json(result.rows);
   } catch (err) {
     console.error('Fetch posts error:', err);
@@ -23,21 +58,37 @@ router.get('/posts', async (req, res) => {
 // 2. Create new post
 router.post('/posts', authenticate, async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, image_url, channel_id } = req.body;
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
     }
 
+    if (channel_id) {
+      // Verify user owns the channel
+      const channelRes = await query('SELECT owner_id FROM channels WHERE id = $1', [channel_id]);
+      if (channelRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Channel not found' });
+      }
+      if (channelRes.rows[0].owner_id !== req.user.id) {
+        return res.status(403).json({ error: 'You do not own this channel' });
+      }
+    }
+
     const postId = crypto.randomUUID();
     await query(
-      `INSERT INTO community_posts (id, user_id, title, content, likes) VALUES ($1, $2, $3, $4, 0)`,
-      [postId, req.user.id, title, content]
+      `INSERT INTO community_posts (id, user_id, title, content, image_url, channel_id, likes) 
+       VALUES ($1, $2, $3, $4, $5, $6, 0)`,
+      [postId, req.user.id, title, content, image_url || null, channel_id || null]
     );
 
     const result = await query(`
-      SELECT p.*, u.name as author_name 
+      SELECT p.*, 
+             u.name as author_name,
+             c.name as channel_name,
+             c.avatar_url as channel_avatar
       FROM community_posts p
       JOIN users u ON p.user_id = u.id
+      LEFT JOIN channels c ON p.channel_id = c.id
       WHERE p.id = $1
     `, [postId]);
 
@@ -56,6 +107,116 @@ router.post('/posts/:id/like', authenticate, async (req, res) => {
   } catch (err) {
     console.error('Like post error:', err);
     res.status(500).json({ error: 'Failed to register like' });
+  }
+});
+
+// 4. Create Channel
+router.post('/channels', authenticate, async (req, res) => {
+  try {
+    const { name, description, avatar_url } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Channel name is required' });
+    }
+
+    // Check uniqueness of channel name
+    const checkRes = await query('SELECT id FROM channels WHERE LOWER(name) = LOWER($1)', [name]);
+    if (checkRes.rows.length > 0) {
+      return res.status(400).json({ error: 'Channel name already exists' });
+    }
+
+    const channelId = 'ch_' + crypto.randomBytes(8).toString('hex');
+    await query(
+      `INSERT INTO channels (id, owner_id, name, description, avatar_url)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [channelId, req.user.id, name, description || '', avatar_url || '']
+    );
+
+    // Auto-follow own channel
+    await query(
+      `INSERT INTO channel_follows (user_id, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [req.user.id, channelId]
+    );
+
+    res.status(201).json({ success: true, message: 'Channel created successfully', channelId });
+  } catch (err) {
+    console.error('Create channel error:', err);
+    res.status(500).json({ error: 'Failed to create channel' });
+  }
+});
+
+// 5. List Channels
+router.get('/channels', authenticate, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT c.*, 
+              (SELECT COUNT(*) FROM channel_follows WHERE channel_id = c.id) as followers_count,
+              EXISTS(SELECT 1 FROM channel_follows WHERE user_id = $1 AND channel_id = c.id) as is_following,
+              u.name as owner_name
+       FROM channels c
+       JOIN users u ON c.owner_id = u.id
+       ORDER BY followers_count DESC`,
+      [req.user.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('List channels error:', err);
+    res.status(500).json({ error: 'Failed to retrieve channels' });
+  }
+});
+
+// 6. Follow Channel
+router.post('/channels/:id/follow', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Check channel existence
+    const channelRes = await query('SELECT id FROM channels WHERE id = $1', [id]);
+    if (channelRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Channel not found' });
+    }
+
+    await query(
+      `INSERT INTO channel_follows (user_id, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [req.user.id, id]
+    );
+    res.json({ success: true, message: 'Followed channel successfully' });
+  } catch (err) {
+    console.error('Follow channel error:', err);
+    res.status(500).json({ error: 'Failed to follow channel' });
+  }
+});
+
+// 7. Unfollow Channel
+router.post('/channels/:id/unfollow', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await query(
+      `DELETE FROM channel_follows WHERE user_id = $1 AND channel_id = $2`,
+      [req.user.id, id]
+    );
+    res.json({ success: true, message: 'Unfollowed channel successfully' });
+  } catch (err) {
+    console.error('Unfollow channel error:', err);
+    res.status(500).json({ error: 'Failed to unfollow channel' });
+  }
+});
+
+// 8. Publish Course Playlist
+router.post('/courses', authenticate, async (req, res) => {
+  try {
+    const { title, description, youtube_link, category } = req.body;
+    if (!title || !description || !youtube_link) {
+      return res.status(400).json({ error: 'Title, description, and YouTube link are required' });
+    }
+    const id = 'c_' + crypto.randomBytes(8).toString('hex');
+    await query(
+      `INSERT INTO courses (id, title, description, instructor, youtube_link, category)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [id, title, description, req.user.name || 'Coaching Expert', youtube_link, category || 'General']
+    );
+    res.status(201).json({ success: true, message: 'Course playlist published successfully!' });
+  } catch (err) {
+    console.error('Publish course error:', err);
+    res.status(500).json({ error: 'Failed to publish course' });
   }
 });
 
@@ -95,12 +256,67 @@ router.post('/contests', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'All fields are required, including proofs/background' });
     }
 
+    // Get host details
+    const userRes = await query('SELECT name, email FROM users WHERE id = $1', [req.user.id]);
+    const hostUser = userRes.rows[0];
+    const hostName = hostUser?.name || 'NonStock User';
+    const hostEmail = hostUser?.email || 'N/A';
+
     const contestId = 'ct_' + crypto.randomBytes(8).toString('hex');
     await query(
       `INSERT INTO contests (id, title, description, prize_pool, start_date, end_date, participants, hosted_by, status, proofs)
        VALUES ($1, $2, $3, $4, $5, $6, 0, $7, 'pending', $8)`,
       [contestId, title, description, prizePool, startDate, endDate, req.user.id, proofs]
     );
+
+    // Send email notification to Admin
+    const frontendUrl = process.env.FRONTEND_URL || 'localhost:5173';
+    const hostUrl = frontendUrl.startsWith('http') ? frontendUrl : `https://${frontendUrl}`;
+    
+    const adminEmail = process.env.FROM_EMAIL || 'krishshah8201@gmail.com';
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 24px; border: 1px solid rgba(0, 255, 136, 0.25); border-radius: 16px; background-color: #0a0e27; color: #ffffff; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.35);">
+        <h2 style="color: #00ff88; margin-top: 0; font-size: 22px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; text-align: center;">🏆 New Contest Hosting Request</h2>
+        
+        <p style="font-size: 15px; color: #e1e3e6; line-height: 1.5;">
+          A user has requested to host a paper trading contest on the NonStock platform. Please review the details below:
+        </p>
+
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin: 20px 0;">
+          <p style="margin: 4px 0; font-size: 14px; color: #9b9eac;"><strong>Host User:</strong> ${hostName} (${hostEmail})</p>
+          <p style="margin: 4px 0; font-size: 14px; color: #9b9eac;"><strong>Contest Title:</strong> ${title}</p>
+          <p style="margin: 4px 0; font-size: 14px; color: #9b9eac;"><strong>Prize Pool:</strong> ${prizePool}</p>
+          <p style="margin: 4px 0; font-size: 14px; color: #9b9eac;"><strong>Start Date:</strong> ${startDate}</p>
+          <p style="margin: 4px 0; font-size: 14px; color: #9b9eac;"><strong>End Date:</strong> ${endDate}</p>
+        </div>
+
+        <h3 style="color: #00ff88; font-size: 16px; margin-top: 24px;">📝 Description</h3>
+        <p style="font-size: 14px; color: #e1e3e6; background: rgba(255, 255, 255, 0.02); border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 20px;">
+          ${description}
+        </p>
+
+        <h3 style="color: #00ff88; font-size: 16px; margin-top: 24px;">🔒 Verification Proofs (Anti-Fraud Check)</h3>
+        <p style="font-size: 14px; color: #e1e3e6; background: rgba(255, 255, 255, 0.02); border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 24px; white-space: pre-wrap;">
+          ${proofs}
+        </p>
+
+        <div style="text-align: center; margin-top: 32px;">
+          <p style="font-size: 12px; color: #9b9eac; margin-bottom: 16px;">
+            You can approve or reject this request directly from the Contest Host Review Panel:
+          </p>
+          <a href="${hostUrl}/community" style="background-color: #00ff88; color: #0a0e27; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Go to Admin Review Dashboard</a>
+        </div>
+      </div>
+    `;
+
+    // Asynchronously send email
+    sendEmail({
+      to: adminEmail,
+      subject: `[NonStock Admin] New Contest Request: ${title}`,
+      html: htmlContent
+    }).catch(mailErr => {
+      console.error('❌ Failed to send contest request email:', mailErr.message);
+    });
 
     res.status(201).json({ success: true, message: 'Contest request submitted successfully and is pending admin approval.' });
   } catch (err) {

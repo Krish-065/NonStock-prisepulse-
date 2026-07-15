@@ -375,6 +375,55 @@ async function createTables() {
     }
   }
 
+  // Create AI Mentor conversation tables
+  await query(`
+    CREATE TABLE IF NOT EXISTS ai_conversations (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS ai_messages (
+      id VARCHAR(255) PRIMARY KEY,
+      conversation_id VARCHAR(255) NOT NULL REFERENCES ai_conversations(id) ON DELETE CASCADE,
+      sender VARCHAR(50) NOT NULL,
+      text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await query(`CREATE INDEX IF NOT EXISTS idx_ai_conversations_user ON ai_conversations(user_id)`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_ai_messages_conv ON ai_messages(conversation_id)`);
+
+  // Create Channels and follows tables
+  await query(`
+    CREATE TABLE IF NOT EXISTS channels (
+      id VARCHAR(255) PRIMARY KEY,
+      owner_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name VARCHAR(255) UNIQUE NOT NULL,
+      description TEXT,
+      avatar_url VARCHAR(500),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS channel_follows (
+      user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      channel_id VARCHAR(255) NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+      PRIMARY KEY (user_id, channel_id)
+    )
+  `);
+
+  await query(`ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS image_url VARCHAR(500)`);
+  await query(`ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS channel_id VARCHAR(255) REFERENCES channels(id) ON DELETE CASCADE`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_channels_owner ON channels(owner_id)`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_posts_channel ON community_posts(channel_id)`);
+
   console.log('✅ All tables created');
 }
 

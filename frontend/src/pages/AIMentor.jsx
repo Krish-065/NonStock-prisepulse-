@@ -3,7 +3,8 @@ import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { 
   Send, Sparkles, MessageSquare, AlertTriangle, Play, HelpCircle, 
-  TrendingUp, TrendingDown, RefreshCw, BarChart2, ShieldAlert
+  TrendingUp, TrendingDown, RefreshCw, BarChart2, ShieldAlert,
+  Plus, Trash2
 } from 'lucide-react';
 
 const SUGGESTED_PROMPTS = [
@@ -75,12 +76,76 @@ export default function AIMentor() {
   const [sending, setSending] = useState(false);
   const [activeTechnicals, setActiveTechnicals] = useState(null);
   const [activeMLEnsemble, setActiveMLEnsemble] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState(null);
   
   const chatEndRef = useRef(null);
+
+  const fetchConversations = async () => {
+    try {
+      const res = await apiClient.get('/ai/conversations');
+      setConversations(res.data);
+    } catch (err) {
+      console.error('Failed to fetch conversations:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchConversations();
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const handleNewChat = () => {
+    setActiveConversationId(null);
+    setMessages([
+      {
+        sender: 'ai',
+        text: 'Hello! I am your NonStock AI Mentor. Ask me any investing questions, ask about specific indicators (e.g. RSI, SMA), or check setup trend details like **"Should I buy Reliance?"**'
+      }
+    ]);
+    setActiveTechnicals(null);
+    setActiveMLEnsemble(null);
+  };
+
+  const handleSelectConversation = async (convId) => {
+    try {
+      setSending(true);
+      const res = await apiClient.get(`/ai/conversations/${convId}/messages`);
+      const mapped = res.data.map(m => ({
+        sender: m.sender === 'model' ? 'ai' : m.sender,
+        text: m.text
+      }));
+      setMessages(mapped.length > 0 ? mapped : [
+        { sender: 'ai', text: 'Conversation is empty. Ask me any investing questions!' }
+      ]);
+      setActiveConversationId(convId);
+      setActiveTechnicals(null);
+      setActiveMLEnsemble(null);
+    } catch (err) {
+      toast.error('Failed to load messages');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleDeleteConversation = async (e, convId) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this conversation?')) return;
+
+    try {
+      await apiClient.delete(`/ai/conversations/${convId}`);
+      toast.success('Conversation deleted');
+      fetchConversations();
+      if (activeConversationId === convId) {
+        handleNewChat();
+      }
+    } catch (err) {
+      toast.error('Failed to delete conversation');
+    }
+  };
 
   const handleSendMessage = async (textToSend) => {
     const text = textToSend || inputText;
@@ -95,12 +160,17 @@ export default function AIMentor() {
     try {
       const res = await apiClient.post('/ai/ask', {
         message: text,
-        history: messages.map(m => ({ sender: m.sender, text: m.text }))
+        conversationId: activeConversationId
       });
       
       // Append AI response
       setMessages(prev => [...prev, { sender: 'ai', text: res.data.response }]);
       
+      if (!activeConversationId && res.data.conversationId) {
+        setActiveConversationId(res.data.conversationId);
+      }
+      fetchConversations();
+
       // Update Technical context sidebar if found
       if (res.data.technicals) {
         setActiveTechnicals(res.data.technicals);
@@ -151,8 +221,129 @@ export default function AIMentor() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px', alignItems: 'stretch' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 340px', gap: '24px', alignItems: 'stretch' }}>
         
+        {/* Left Sidebar: Chat History */}
+        <div style={{
+          background: 'var(--bg-card-glass)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          height: '620px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+        }}>
+          <button
+            onClick={handleNewChat}
+            style={{
+              background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 255, 136, 0.05) 100%)',
+              border: '1px solid rgba(0, 255, 136, 0.3)',
+              borderRadius: '8px',
+              color: '#00ff88',
+              padding: '12px',
+              fontWeight: '800',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(0, 255, 136, 0.22)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(0, 255, 136, 0.15)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <Plus size={16} />
+            New Conversation
+          </button>
+
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', margin: '4px 0' }} />
+
+          <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Recent Chats
+          </span>
+
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+            {conversations.length === 0 ? (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '12px', textAlign: 'center', padding: '24px 0', fontStyle: 'italic' }}>
+                No past conversations.
+              </div>
+            ) : (
+              conversations.map(conv => {
+                const isActive = activeConversationId === conv.id;
+                return (
+                  <div
+                    key={conv.id}
+                    onClick={() => handleSelectConversation(conv.id)}
+                    style={{
+                      background: isActive ? 'rgba(0, 255, 136, 0.08)' : 'rgba(255,255,255,0.02)',
+                      border: isActive ? '1px solid rgba(0, 255, 136, 0.3)' : '1px solid rgba(255,255,255,0.04)',
+                      borderRadius: '8px',
+                      padding: '10px 12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      position: 'relative'
+                    }}
+                    onMouseEnter={e => {
+                      if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    }}
+                    onMouseLeave={e => {
+                      if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', flex: 1 }}>
+                      <MessageSquare size={14} style={{ color: isActive ? '#00ff88' : 'var(--text-secondary)', flexShrink: 0 }} />
+                      <span style={{
+                        fontSize: '12px',
+                        fontWeight: isActive ? '750' : '500',
+                        color: isActive ? '#ffffff' : '#d0d2dd',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        flex: 1
+                      }}>
+                        {conv.title}
+                      </span>
+                    </div>
+                    
+                    <button
+                      onClick={(e) => handleDeleteConversation(e, conv.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        padding: '2px',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#ff4444'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
         {/* Chat Canvas Section */}
         <div style={{
           background: 'var(--bg-card-glass)',

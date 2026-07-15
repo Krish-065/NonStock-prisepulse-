@@ -77,6 +77,26 @@ export default function Community() {
   const [groupMembers, setGroupMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
 
+  // Channel Upgrade State
+  const [feedSubTab, setFeedSubTab] = useState('all'); // all | trending | following | channels
+  const [channels, setChannels] = useState([]);
+  const [loadingChannels, setLoadingChannels] = useState(false);
+  const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
+  const [newChannelName, setNewChannelName] = useState('');
+  const [newChannelDesc, setNewChannelDesc] = useState('');
+  const [newChannelAvatar, setNewChannelAvatar] = useState('');
+  const [creatingChannel, setCreatingChannel] = useState(false);
+  const [newPostImageUrl, setNewPostImageUrl] = useState('');
+  const [newPostChannelId, setNewPostChannelId] = useState('');
+
+  // Course Playlist Upload State
+  const [isPublishCourseOpen, setIsPublishCourseOpen] = useState(false);
+  const [newCourseTitle, setNewCourseTitle] = useState('');
+  const [newCourseDesc, setNewCourseDesc] = useState('');
+  const [newCourseYoutubeLink, setNewCourseYoutubeLink] = useState('');
+  const [newCourseCategory, setNewCourseCategory] = useState('General');
+  const [publishingCourse, setPublishingCourse] = useState(false);
+
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -85,7 +105,10 @@ export default function Community() {
       fetchSharedStrategies();
       fetchLeaderboard();
     } else if (tab === 'feed') {
-      fetchPosts();
+      fetchChannels();
+      if (feedSubTab !== 'channels') {
+        fetchPosts(feedSubTab);
+      }
     } else if (tab === 'educator') {
       fetchEducatorData();
     } else if (tab === 'chats') {
@@ -93,7 +116,7 @@ export default function Community() {
       fetchInvitations();
       fetchChatMessages(activeGroupId);
     }
-  }, [tab, activeGroupId]);
+  }, [tab, feedSubTab, activeGroupId]);
 
   useEffect(() => {
     if (tab === 'chats' && activeGroupId && isManageGroupOpen) {
@@ -177,15 +200,79 @@ export default function Community() {
   };
 
   // Discussion Feed API Call
-  const fetchPosts = async () => {
+  const fetchPosts = async (subTab = 'all') => {
     setLoadingPosts(true);
     try {
-      const res = await apiClient.get('/community/posts');
+      const res = await apiClient.get(`/community/posts?tab=${subTab}`);
       setPosts(res.data);
     } catch (err) {
       console.error('Failed to fetch posts:', err);
     } finally {
       setLoadingPosts(false);
+    }
+  };
+
+  const fetchChannels = async () => {
+    setLoadingChannels(true);
+    try {
+      const res = await apiClient.get('/community/channels');
+      setChannels(res.data);
+    } catch (err) {
+      console.error('Failed to fetch channels:', err);
+    } finally {
+      setLoadingChannels(false);
+    }
+  };
+
+  const handleCreateChannel = async (e) => {
+    e.preventDefault();
+    if (!newChannelName.trim()) {
+      toast.error('Channel name is required');
+      return;
+    }
+    setCreatingChannel(true);
+    try {
+      await apiClient.post('/community/channels', {
+        name: newChannelName,
+        description: newChannelDesc,
+        avatar_url: newChannelAvatar
+      });
+      toast.success('Channel created successfully!');
+      setIsCreateChannelOpen(false);
+      setNewChannelName('');
+      setNewChannelDesc('');
+      setNewChannelAvatar('');
+      fetchChannels();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to create channel');
+    } finally {
+      setCreatingChannel(false);
+    }
+  };
+
+  const handleFollowChannel = async (channelId) => {
+    try {
+      await apiClient.post(`/community/channels/${channelId}/follow`);
+      toast.success('Followed channel!');
+      fetchChannels();
+      if (feedSubTab !== 'channels') {
+        fetchPosts(feedSubTab);
+      }
+    } catch (err) {
+      toast.error('Failed to follow channel');
+    }
+  };
+
+  const handleUnfollowChannel = async (channelId) => {
+    try {
+      await apiClient.post(`/community/channels/${channelId}/unfollow`);
+      toast.success('Unfollowed channel');
+      fetchChannels();
+      if (feedSubTab !== 'channels') {
+        fetchPosts(feedSubTab);
+      }
+    } catch (err) {
+      toast.error('Failed to unfollow channel');
     }
   };
 
@@ -199,16 +286,48 @@ export default function Community() {
     try {
       await apiClient.post('/community/posts', {
         title: newPostTitle,
-        content: newPostContent
+        content: newPostContent,
+        image_url: newPostImageUrl,
+        channel_id: newPostChannelId || null
       });
-      toast.success('Post published to Market Feed!');
+      toast.success('Post published successfully!');
       setNewPostTitle('');
       setNewPostContent('');
-      fetchPosts();
+      setNewPostImageUrl('');
+      setNewPostChannelId('');
+      fetchPosts(feedSubTab);
     } catch (err) {
       toast.error('Failed to publish post');
     } finally {
       setPosting(false);
+    }
+  };
+
+  const handlePublishCourse = async (e) => {
+    e.preventDefault();
+    if (!newCourseTitle.trim() || !newCourseDesc.trim() || !newCourseYoutubeLink.trim()) {
+      toast.error('Please fill out all fields');
+      return;
+    }
+    setPublishingCourse(true);
+    try {
+      await apiClient.post('/community/courses', {
+        title: newCourseTitle,
+        description: newCourseDesc,
+        youtube_link: newCourseYoutubeLink,
+        category: newCourseCategory
+      });
+      toast.success('Course playlist published successfully!');
+      setIsPublishCourseOpen(false);
+      setNewCourseTitle('');
+      setNewCourseDesc('');
+      setNewCourseYoutubeLink('');
+      setNewCourseCategory('General');
+      fetchEducatorData();
+    } catch (err) {
+      toast.error('Failed to publish course');
+    } finally {
+      setPublishingCourse(false);
     }
   };
 
@@ -790,129 +909,457 @@ export default function Community() {
         </div>
       )}
 
-      {tab === 'feed' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '24px', alignItems: 'start' }}>
-          {/* Create Post Card */}
+           {tab === 'feed' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', alignItems: 'start' }}>
+          
+          {/* Top Sub navigation header spanning across all columns */}
           <div style={{
+            gridColumn: '1 / -1',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             background: 'var(--bg-card-glass)',
             border: '1px solid var(--border-color)',
+            padding: '12px 24px',
             borderRadius: '16px',
-            padding: '24px',
-            position: 'sticky',
-            top: '24px'
+            gap: '16px',
+            flexWrap: 'wrap',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
           }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '800', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#00ff88' }}>
-              <PlusCircle size={18} />
-              Write Market Post
-            </h3>
-            <form onSubmit={handleCreatePost} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Post Title</label>
-                <input
-                  type="text"
-                  value={newPostTitle}
-                  onChange={(e) => setNewPostTitle(e.target.value)}
-                  placeholder="e.g. Reliance breakout setup"
-                  style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: '#ffffff', fontSize: '13px' }}
-                />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Content Explanation</label>
-                <textarea
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                  placeholder="Explain your technical indicators, target price, and logic..."
-                  rows={6}
-                  style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: '#ffffff', fontSize: '13px', resize: 'none' }}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={posting}
-                style={{
-                  background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#0a0e27',
-                  padding: '12px',
-                  fontWeight: '800',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  opacity: posting ? 0.6 : 1
-                }}
-              >
-                {posting ? 'Publishing...' : 'Publish Post'}
-              </button>
-            </form>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[
+                { id: 'all', name: 'All Posts', icon: <Globe size={14} /> },
+                { id: 'trending', name: 'Trending 🔥', icon: <TrendingUp size={14} /> },
+                { id: 'following', name: 'Following Channels', icon: <Users size={14} /> },
+                { id: 'channels', name: 'Explore Channels 📺', icon: <ExternalLink size={14} /> }
+              ].map(sub => (
+                <button
+                  key={sub.id}
+                  onClick={() => setFeedSubTab(sub.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    background: feedSubTab === sub.id ? 'rgba(0, 255, 136, 0.12)' : 'transparent',
+                    border: feedSubTab === sub.id ? '1px solid rgba(0, 255, 136, 0.25)' : '1px solid transparent',
+                    color: feedSubTab === sub.id ? '#00ff88' : 'var(--text-secondary)',
+                    fontWeight: feedSubTab === sub.id ? '850' : '500',
+                    fontSize: '12.5px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {sub.icon}
+                  {sub.name}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setIsCreateChannelOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                borderRadius: '8px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                color: '#0a0e27',
+                fontWeight: '900',
+                fontSize: '12px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0, 255, 136, 0.2)'
+              }}
+            >
+              <PlusCircle size={14} />
+              Create Channel
+            </button>
           </div>
 
-          {/* Feed Posts */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <MessageSquare size={20} style={{ color: '#00bcd4' }} />
-              Market Discussion Feed
-            </h2>
-
-            {loadingPosts ? (
-              <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                <RefreshCw className="animate-spin" />
+          {feedSubTab === 'channels' ? (
+            <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
+                  <Users size={20} style={{ color: '#00ff88' }} />
+                  Discover Creator Channels
+                </h2>
               </div>
-            ) : posts.length === 0 ? (
+
+              {loadingChannels ? (
+                <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  <RefreshCw className="animate-spin" /> Loading channels...
+                </div>
+              ) : channels.length === 0 ? (
+                <div style={{
+                  background: 'var(--bg-card-glass)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '16px',
+                  padding: '48px',
+                  textAlign: 'center',
+                  color: 'var(--text-secondary)'
+                }}>
+                  No channels created yet. Click "Create Channel" to start the first one!
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                  {channels.map(chan => {
+                    const isOwn = chan.owner_id === user?.id;
+                    return (
+                      <div key={chan.id} style={{
+                        background: 'var(--bg-card-glass)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        position: 'relative'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <img
+                            src={chan.avatar_url || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=150&auto=format&fit=crop'}
+                            alt={chan.name}
+                            style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0, 255, 136, 0.2)' }}
+                          />
+                          <div>
+                            <h4 style={{ fontSize: '15px', fontWeight: '900', color: '#ffffff', margin: 0 }}>{chan.name}</h4>
+                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Owner: <strong>{chan.owner_name}</strong></span>
+                          </div>
+                        </div>
+
+                        <p style={{ fontSize: '12px', color: '#d0d2dd', margin: 0, height: '48px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', lineHeight: '1.4' }}>
+                          {chan.description || 'No description provided.'}
+                        </p>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: '800' }}>
+                            {chan.followers_count} Followers
+                          </span>
+
+                          {isOwn ? (
+                            <span style={{ fontSize: '10px', background: 'rgba(0, 255, 136, 0.1)', color: '#00ff88', padding: '4px 10px', borderRadius: '6px', fontWeight: '800' }}>
+                              My Channel
+                            </span>
+                          ) : chan.is_following ? (
+                            <button
+                              onClick={() => handleUnfollowChannel(chan.id)}
+                              style={{
+                                background: 'rgba(255, 68, 68, 0.1)',
+                                border: '1px solid rgba(255, 68, 68, 0.25)',
+                                color: '#ff4444',
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: '800',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Unfollow
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleFollowChannel(chan.id)}
+                              style={{
+                                background: 'rgba(0, 255, 136, 0.1)',
+                                border: '1px solid rgba(0, 255, 136, 0.25)',
+                                color: '#00ff88',
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: '800',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Follow
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Left Column: Create Post Form */}
               <div style={{
                 background: 'var(--bg-card-glass)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '16px',
-                padding: '48px',
-                textAlign: 'center',
-                color: 'var(--text-secondary)'
+                padding: '24px',
+                position: 'sticky',
+                top: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
               }}>
-                No market posts yet. Write your thoughts and post it!
-              </div>
-            ) : (
-              posts.map(post => (
-                <div key={post.id} style={{
-                  background: 'var(--bg-card-glass)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '16px',
-                  padding: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', color: '#00ff88', fontWeight: '800' }}>{post.author_name}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                      {new Date(post.created_at).toLocaleDateString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#ffffff', margin: 0 }}>{post.title}</h3>
-                  <p style={{ fontSize: '13px', color: '#d0d2dd', margin: 0, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{post.content}</p>
-                  
-                  <div style={{ display: 'flex', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '4px' }}>
-                    <button
-                      onClick={() => handleLikePost(post.id)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'var(--text-secondary)',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        transition: '0.2s'
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.color = '#00ff88'}
-                      onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-                    >
-                      <ThumbsUp size={14} />
-                      Like ({post.likes})
-                    </button>
-                  </div>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#00ff88' }}>
+                    <PlusCircle size={18} />
+                    Write Market Post
+                  </h3>
+                  <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+                    Post a market setup, technical charts, or analysis for the community.
+                  </p>
                 </div>
-              ))
-            )}
-          </div>
+
+                <form onSubmit={handleCreatePost} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  
+                  {channels.filter(c => c.owner_id === user?.id).length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Post As</label>
+                      <select
+                        value={newPostChannelId}
+                        onChange={(e) => setNewPostChannelId(e.target.value)}
+                        style={{
+                          background: 'rgba(10, 14, 39, 0.6)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          color: '#ffffff',
+                          fontSize: '12px',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">My Profile ({user?.name || 'User'})</option>
+                        {channels.filter(c => c.owner_id === user?.id).map(c => (
+                          <option key={c.id} value={c.id}>📢 Channel: {c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Post Title</label>
+                    <input
+                      type="text"
+                      value={newPostTitle}
+                      onChange={(e) => setNewPostTitle(e.target.value)}
+                      placeholder="e.g. Nifty Breakout Setup"
+                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: '#ffffff', fontSize: '12px', outline: 'none' }}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Content Explanation</label>
+                    <textarea
+                      value={newPostContent}
+                      onChange={(e) => setNewPostContent(e.target.value)}
+                      placeholder="Explain your technical indicators, target price, and trading logic..."
+                      rows={5}
+                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: '#ffffff', fontSize: '12px', resize: 'none', outline: 'none' }}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Image URL (Optional)</label>
+                    <input
+                      type="url"
+                      value={newPostImageUrl}
+                      onChange={(e) => setNewPostImageUrl(e.target.value)}
+                      placeholder="https://example.com/chart.png"
+                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: '#ffffff', fontSize: '12px', outline: 'none' }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={posting}
+                    style={{
+                      background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#0a0e27',
+                      padding: '12px',
+                      fontWeight: '800',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      opacity: posting ? 0.6 : 1,
+                      marginTop: '4px'
+                    }}
+                  >
+                    {posting ? 'Publishing...' : 'Publish Post'}
+                  </button>
+                </form>
+              </div>
+
+              {/* Right Column: Feed Posts list */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MessageSquare size={20} style={{ color: '#00bcd4' }} />
+                  {feedSubTab === 'trending' ? 'Trending Discussion posts' : feedSubTab === 'following' ? 'My Subscribed Channels' : 'Market Discussion Feed'}
+                </h2>
+
+                {loadingPosts ? (
+                  <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    <RefreshCw className="animate-spin" />
+                  </div>
+                ) : posts.length === 0 ? (
+                  <div style={{
+                    background: 'var(--bg-card-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '16px',
+                    padding: '48px',
+                    textAlign: 'center',
+                    color: 'var(--text-secondary)'
+                  }}>
+                    {feedSubTab === 'following' ? 'No posts from followed channels. Go to "Explore Channels" to follow your favorite educators!' : 'No posts found in this tab. Write your thoughts and post it!'}
+                  </div>
+                ) : (
+                  posts.map(post => (
+                    <div key={post.id} style={{
+                      background: 'var(--bg-card-glass)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {post.channel_id ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <img
+                              src={post.channel_avatar || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=100&auto=format&fit=crop'}
+                              alt={post.channel_name}
+                              style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #00ff88' }}
+                            />
+                            <div>
+                              <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                {post.channel_name}
+                                <span style={{ fontSize: '9px', background: 'rgba(0, 255, 136, 0.1)', color: '#00ff88', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
+                                  CHANNEL
+                                </span>
+                              </span>
+                              <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--text-secondary)' }}>
+                                {post.channel_followers} Followers • Posted by {post.author_name}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
+                              <Users size={14} style={{ color: 'var(--text-secondary)' }} />
+                            </div>
+                            <div>
+                              <span style={{ fontSize: '13px', color: '#00ff88', fontWeight: '800' }}>{post.author_name}</span>
+                              <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--text-secondary)' }}>Individual Account</span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                            {new Date(post.created_at).toLocaleDateString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          
+                          {post.channel_id && post.user_id !== user?.id && (
+                            post.is_following ? (
+                              <button
+                                onClick={() => handleUnfollowChannel(post.channel_id)}
+                                style={{
+                                  background: 'rgba(255, 68, 68, 0.1)',
+                                  border: '1px solid rgba(255, 68, 68, 0.25)',
+                                  color: '#ff4444',
+                                  padding: '4px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '10px',
+                                  fontWeight: '800',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Unfollow
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleFollowChannel(post.channel_id)}
+                                style={{
+                                  background: 'rgba(0, 255, 136, 0.1)',
+                                  border: '1px solid rgba(0, 255, 136, 0.25)',
+                                  color: '#00ff88',
+                                  padding: '4px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '10px',
+                                  fontWeight: '800',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Follow
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#ffffff', margin: 0 }}>{post.title}</h3>
+                        <p style={{ fontSize: '13px', color: '#d0d2dd', margin: 0, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{post.content}</p>
+                      </div>
+
+                      {post.image_url && (
+                        <div style={{
+                          marginTop: '8px',
+                          borderRadius: '12px',
+                          overflow: 'hidden',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                          maxHeight: '320px',
+                          background: 'rgba(0,0,0,0.2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <img
+                            src={post.image_url}
+                            alt={post.title}
+                            style={{
+                              maxWidth: '100%',
+                              maxHeight: '320px',
+                              objectFit: 'cover',
+                              transition: 'transform 0.3s ease'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                            onError={(e) => {
+                              // If image fails to load, hide container
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      
+                      <div style={{ display: 'flex', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '4px' }}>
+                        <button
+                          onClick={() => handleLikePost(post.id)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: '0.2s'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.color = '#00ff88'}
+                          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                        >
+                          <ThumbsUp size={14} />
+                          Like ({post.likes})
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}      {tab === 'educator' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -940,29 +1387,55 @@ export default function Community() {
               />
             </div>
             
-            <button
-              onClick={() => setIsHostContestOpen(true)}
-              style={{
-                background: 'linear-gradient(135deg, #ffb300 0%, #ff8f00 100%)',
-                border: 'none',
-                borderRadius: '8px',
-                color: '#0a0e27',
-                padding: '12px 24px',
-                fontWeight: '800',
-                fontSize: '13px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 15px rgba(255, 179, 0, 0.25)',
-                transition: '0.2s'
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-            >
-              <Trophy size={16} />
-              Host a Contest
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setIsPublishCourseOpen(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#0a0e27',
+                  padding: '12px 24px',
+                  fontWeight: '800',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 15px rgba(0, 255, 136, 0.25)',
+                  transition: '0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <BookOpen size={16} />
+                Publish Course
+              </button>
+
+              <button
+                onClick={() => setIsHostContestOpen(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #ffb300 0%, #ff8f00 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#0a0e27',
+                  padding: '12px 24px',
+                  fontWeight: '800',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 15px rgba(255, 179, 0, 0.25)',
+                  transition: '0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <Trophy size={16} />
+                Host a Contest
+              </button>
+            </div>
           </div>
 
           {/* Admin Pending Requests Dashboard */}
@@ -2389,6 +2862,311 @@ export default function Community() {
                   }}
                 >
                   Submit Request
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Channel Modal Overlay */}
+      {isCreateChannelOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(10, 14, 39, 0.8)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #11152a 0%, #171c3b 100%)',
+            border: '1px solid rgba(0, 255, 136, 0.3)',
+            borderRadius: '16px',
+            padding: '28px',
+            width: '450px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+          }}>
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: '950', margin: '0 0 6px 0', color: '#00ff88', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <PlusCircle size={18} />
+                Create Creator Channel
+              </h3>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>
+                Establish a verified channel to post technical concepts, alerts, and gather followers.
+              </p>
+            </div>
+            
+            <form onSubmit={handleCreateChannel} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Channel Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. PriceAction Wizards"
+                  value={newChannelName}
+                  onChange={(e) => setNewChannelName(e.target.value)}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    outline: 'none'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Description</label>
+                <textarea
+                  placeholder="What is your channel about? e.g. Daily analysis of Reliance and Nifty setups..."
+                  value={newChannelDesc}
+                  onChange={(e) => setNewChannelDesc(e.target.value)}
+                  rows={3}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    outline: 'none',
+                    resize: 'none'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Avatar Image Link</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/avatar.jpg"
+                  value={newChannelAvatar}
+                  onChange={(e) => setNewChannelAvatar(e.target.value)}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateChannelOpen(false)}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    padding: '10px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingChannel}
+                  style={{
+                    flex: 1,
+                    background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#0a0e27',
+                    padding: '10px',
+                    fontSize: '12px',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    opacity: creatingChannel ? 0.6 : 1
+                  }}
+                >
+                  {creatingChannel ? 'Creating...' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Publish Course Modal Overlay */}
+      {isPublishCourseOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(10, 14, 39, 0.8)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #11152a 0%, #171c3b 100%)',
+            border: '1px solid rgba(0, 255, 136, 0.3)',
+            borderRadius: '16px',
+            padding: '28px',
+            width: '450px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+          }}>
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: '950', margin: '0 0 6px 0', color: '#00ff88', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BookOpen size={18} />
+                Publish Course Playlist
+              </h3>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>
+                Link a course you have already published on YouTube, Coursera, or other platforms.
+              </p>
+            </div>
+            
+            <form onSubmit={handlePublishCourse} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Course Title</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Masterclass in Technical Analysis"
+                  value={newCourseTitle}
+                  onChange={(e) => setNewCourseTitle(e.target.value)}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    outline: 'none'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Description</label>
+                <textarea
+                  placeholder="Provide a comprehensive outline of the lessons covered..."
+                  value={newCourseDesc}
+                  onChange={(e) => setNewCourseDesc(e.target.value)}
+                  rows={3}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    outline: 'none',
+                    resize: 'none'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>YouTube / Playlist Link</label>
+                <input
+                  type="url"
+                  placeholder="https://www.youtube.com/playlist?list=..."
+                  value={newCourseYoutubeLink}
+                  onChange={(e) => setNewCourseYoutubeLink(e.target.value)}
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    outline: 'none'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Category</label>
+                <select
+                  value={newCourseCategory}
+                  onChange={(e) => setNewCourseCategory(e.target.value)}
+                  style={{
+                    background: 'rgba(10, 14, 39, 0.9)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="General">General Trading</option>
+                  <option value="Technical Analysis">Technical Analysis</option>
+                  <option value="Futures & Options">Futures & Options</option>
+                  <option value="Crypto & Blockchain">Crypto & Blockchain</option>
+                  <option value="Fundamental Analysis">Fundamental Analysis</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsPublishCourseOpen(false)}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    padding: '10px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={publishingCourse}
+                  style={{
+                    flex: 1,
+                    background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#0a0e27',
+                    padding: '10px',
+                    fontSize: '12px',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    opacity: publishingCourse ? 0.6 : 1
+                  }}
+                >
+                  {publishingCourse ? 'Publishing...' : 'Publish'}
                 </button>
               </div>
             </form>
