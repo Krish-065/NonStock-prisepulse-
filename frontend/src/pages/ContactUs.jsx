@@ -129,7 +129,7 @@ export default function ContactUs() {
                 </div>
                 <div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>Headquarters</div>
-                  <div style={{ fontSize: '14px', color: '#ffffff', fontWeight: 600 }}>Mumbai, Maharashtra, India</div>
+                  <div style={{ fontSize: '14px', color: '#ffffff', fontWeight: 600 }}>Gujarat, India</div>
                 </div>
               </div>
             </div>
