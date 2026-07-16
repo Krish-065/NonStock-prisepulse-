@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createChart, CandlestickSeries, LineSeries } from 'lightweight-charts';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -73,6 +74,8 @@ const getLotMultiplier = (sym) => {
 };
 
 export default function PaperTrading() {
+  const { user } = useAuth();
+  const isPro = user?.is_pro || false;
   // Navigation & Page State
   const [selectedSymbol, setSelectedSymbol] = useState('BTC-USD');
   const [chartInterval, setChartInterval] = useState('1d');
@@ -90,6 +93,7 @@ export default function PaperTrading() {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [balanceHistory, setBalanceHistory] = useState([]);
+  const [bots, setBots] = useState([]);
   
   // Form State
   const [isBuy, setIsBuy] = useState(true);
@@ -239,6 +243,39 @@ export default function PaperTrading() {
     }
   };
 
+  const fetchBots = async () => {
+    try {
+      const res = await apiClient.get('/strategy/bots');
+      setBots(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch deployed bots:', err);
+    }
+  };
+
+  const handleToggleBotStatus = async (id, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'active' ? 'paused' : 'active';
+      const res = await apiClient.patch(`/strategy/bots/${id}/status`, { status: newStatus });
+      toast.success(res.data.message);
+      fetchBots();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to toggle bot status');
+    }
+  };
+
+  const handleRemoveBot = async (id) => {
+    if (!window.confirm('Are you sure you want to stop and remove this trading bot?')) {
+      return;
+    }
+    try {
+      const res = await apiClient.delete(`/strategy/bots/${id}`);
+      toast.success(res.data.message);
+      fetchBots();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to remove bot');
+    }
+  };
+
   const handleResetPortfolio = async () => {
     if (!window.confirm('Are you sure you want to reset your simulated portfolio? All holdings and trade history will be deleted.')) {
       return;
@@ -366,6 +403,7 @@ export default function PaperTrading() {
     fetchLeaderboard();
     fetchPendingOrders();
     fetchBalanceHistory();
+    fetchBots();
 
     const historyIntervalId = window.setInterval(fetchChartData, 60000);
     return () => window.clearInterval(historyIntervalId);
@@ -1042,13 +1080,13 @@ export default function PaperTrading() {
             {/* Refill Button */}
             <button
               onClick={handleRefillAccount}
-              disabled={refillCount >= 2}
+              disabled={!isPro && refillCount >= 2}
               style={{
-                background: refillCount >= 2 ? 'rgba(255,255,255,0.02)' : 'rgba(0, 255, 136, 0.08)',
-                border: `1px solid ${refillCount >= 2 ? 'rgba(255,255,255,0.05)' : 'rgba(0, 255, 136, 0.25)'}`,
+                background: (!isPro && refillCount >= 2) ? 'rgba(255,255,255,0.02)' : 'rgba(0, 255, 136, 0.08)',
+                border: `1px solid ${(!isPro && refillCount >= 2) ? 'rgba(255,255,255,0.05)' : 'rgba(0, 255, 136, 0.25)'}`,
                 borderRadius: '8px',
-                color: refillCount >= 2 ? '#666' : '#00ff88',
-                cursor: refillCount >= 2 ? 'not-allowed' : 'pointer',
+                color: (!isPro && refillCount >= 2) ? '#666' : '#00ff88',
+                cursor: (!isPro && refillCount >= 2) ? 'not-allowed' : 'pointer',
                 padding: '8px 12px',
                 display: 'flex',
                 alignItems: 'center',
@@ -1057,11 +1095,11 @@ export default function PaperTrading() {
                 fontWeight: 700,
                 transition: 'all 0.2s'
               }}
-              onMouseOver={e => { if (refillCount < 2) e.currentTarget.style.background = 'rgba(0, 255, 136, 0.16)'; }}
-              onMouseOut={e => { if (refillCount < 2) e.currentTarget.style.background = 'rgba(0, 255, 136, 0.08)'; }}
+              onMouseOver={e => { if (isPro || refillCount < 2) e.currentTarget.style.background = 'rgba(0, 255, 136, 0.16)'; }}
+              onMouseOut={e => { if (isPro || refillCount < 2) e.currentTarget.style.background = 'rgba(0, 255, 136, 0.08)'; }}
             >
               <ArrowDownCircle size={14} /> 
-              {refillCount >= 2 ? 'Refill Limit Reached' : 'Refill ($50k)'}
+              {(!isPro && refillCount >= 2) ? 'Refill Limit Reached' : isPro ? 'Refill ($1M)' : 'Refill ($50k)'}
             </button>
             
             {/* Reset Button */}
@@ -1690,6 +1728,7 @@ export default function PaperTrading() {
             { id: 'pending', label: `Pending Orders (${pendingOrders.length})`, icon: <Plus size={14} /> },
             { id: 'history', label: 'Order History', icon: <History size={14} /> },
             { id: 'balance', label: 'Balance History', icon: <TrendingUp size={14} /> },
+            { id: 'bots', label: `Automated Bots (${bots.length})`, icon: <Activity size={14} /> },
             { id: 'leaderboard', label: 'Rankings Leaderboard', icon: <Award size={14} /> }
           ].map(t => (
             <button
@@ -2002,6 +2041,126 @@ export default function PaperTrading() {
                         </tr>
                       );
                     })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {/* Automated Bots Tab */}
+          {activeConsoleTab === 'bots' && (
+            <div style={{ overflowX: 'auto' }}>
+              {!isPro ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px 20px',
+                  background: 'rgba(255, 179, 0, 0.03)',
+                  border: '1px dashed rgba(255, 179, 0, 0.2)',
+                  borderRadius: '12px',
+                  color: '#9b9eac'
+                }}>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#ffb300', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    🔒 Pro-Exclusive Simulator Feature
+                  </div>
+                  <div>Upgrade to NonStock Pro to deploy, pause, and remove automated algorithmic bots simulating trades in real-time.</div>
+                  <button 
+                    onClick={() => window.location.href = '/upgrade-pro'}
+                    style={{
+                      marginTop: '16px',
+                      background: '#ffb300',
+                      color: '#0a0e27',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    Upgrade to NonStock Pro
+                  </button>
+                </div>
+              ) : bots.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px 0', color: '#9b9eac' }}>
+                  No automated trading bots deployed. Use the <strong style={{ color: '#00ff88', cursor: 'pointer' }} onClick={() => window.location.href = '/strategy-builder'}>Strategy Builder</strong> to design and deploy automated algorithmic bots.
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#9b9eac', fontSize: '11px', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '12px' }}>Bot Strategy</th>
+                      <th style={{ padding: '12px' }}>Symbol</th>
+                      <th style={{ padding: '12px' }}>Allocated Capital</th>
+                      <th style={{ padding: '12px' }}>Stop Loss</th>
+                      <th style={{ padding: '12px' }}>Take Profit</th>
+                      <th style={{ padding: '12px' }}>Created At</th>
+                      <th style={{ padding: '12px' }}>Status</th>
+                      <th style={{ padding: '12px', textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bots.map((bot) => (
+                      <tr key={bot.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: '13px', color: '#ffffff' }}>
+                        <td style={{ padding: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: bot.status === 'active' ? '#00ff88' : '#ff4444' }} />
+                          {bot.strategy_name}
+                        </td>
+                        <td style={{ padding: '12px', fontWeight: 600 }}>{bot.symbol}</td>
+                        <td style={{ padding: '12px' }}>${parseFloat(bot.capital || 0).toLocaleString()}</td>
+                        <td style={{ padding: '12px' }}>{bot.stop_loss ? `${bot.stop_loss}%` : 'None'}</td>
+                        <td style={{ padding: '12px' }}>{bot.take_profit ? `${bot.take_profit}%` : 'None'}</td>
+                        <td style={{ padding: '12px', color: '#9b9eac' }}>{new Date(bot.created_at).toLocaleDateString()}</td>
+                        <td style={{ padding: '12px' }}>
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            background: bot.status === 'active' ? 'rgba(0, 255, 136, 0.08)' : 'rgba(255, 68, 68, 0.08)',
+                            color: bot.status === 'active' ? '#00ff88' : '#ff4444',
+                            border: `1px solid ${bot.status === 'active' ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)'}`
+                          }}>
+                            {bot.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px', textAlign: 'right' }}>
+                          <button
+                            onClick={() => handleToggleBotStatus(bot.id, bot.status)}
+                            style={{
+                              background: bot.status === 'active' ? 'rgba(255, 152, 0, 0.08)' : 'rgba(0, 255, 136, 0.08)',
+                              border: `1px solid ${bot.status === 'active' ? 'rgba(255, 152, 0, 0.2)' : 'rgba(0, 255, 136, 0.2)'}`,
+                              color: bot.status === 'active' ? '#ff9800' : '#00ff88',
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              marginRight: '8px',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {bot.status === 'active' ? 'Pause' : 'Resume'}
+                          </button>
+                          <button
+                            onClick={() => handleRemoveBot(bot.id)}
+                            style={{
+                              background: 'rgba(255, 68, 68, 0.08)',
+                              border: '1px solid rgba(255, 68, 68, 0.2)',
+                              color: '#ff4444',
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               )}

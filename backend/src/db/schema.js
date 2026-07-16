@@ -457,9 +457,25 @@ async function createTables() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_status VARCHAR(50) DEFAULT 'none'`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_pending_plan VARCHAR(50)`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_pending_ref VARCHAR(50)`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20)`);
 
   // 7. Initialize admin user as Pro member automatically
   await query(`UPDATE users SET is_pro = true, pro_plan = 'lifetime' WHERE email = 'krishshah8201@gmail.com'`);
+
+  // 8. Strategy Deploy Bots table
+  await query(`
+    CREATE TABLE IF NOT EXISTS deployed_bots (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+      strategy_name VARCHAR(255) NOT NULL,
+      symbol VARCHAR(50) NOT NULL,
+      capital DECIMAL(15,2) NOT NULL,
+      stop_loss DECIMAL(5,2) NOT NULL,
+      take_profit DECIMAL(5,2) NOT NULL,
+      status VARCHAR(50) DEFAULT 'active',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
   console.log('✅ All tables created');
 }

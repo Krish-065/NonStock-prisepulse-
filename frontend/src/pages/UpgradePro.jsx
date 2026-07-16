@@ -8,6 +8,7 @@ export default function UpgradePro() {
   const { user, fetchUser } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [referenceId, setReferenceId] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [step, setStep] = useState('select'); // 'select', 'checkout', 'verifying', 'success'
   const [verifyStatus, setVerifyStatus] = useState('');
 
@@ -65,6 +66,10 @@ export default function UpgradePro() {
 
   const handleVerifyPayment = async (e) => {
     e.preventDefault();
+    if (!phoneNumber || phoneNumber.trim().length < 10) {
+      toast.error('Please enter a valid WhatsApp number (minimum 10 digits)');
+      return;
+    }
     if (!referenceId || referenceId.trim().length < 8) {
       toast.error('Please enter a valid 12-digit transaction reference ID (UTR)');
       return;
@@ -86,7 +91,8 @@ export default function UpgradePro() {
     try {
       const res = await apiClient.post('/user/upgrade-pro', {
         plan: selectedPlan,
-        referenceId: referenceId.trim()
+        referenceId: referenceId.trim(),
+        phoneNumber: phoneNumber.trim()
       });
       if (res.data.success && res.data.pending) {
         await fetchUser(false);
@@ -218,6 +224,11 @@ export default function UpgradePro() {
             <div style={{ fontSize: '13px', color: '#e5dec9', margin: '4px 0' }}>
               <strong>Reference UTR:</strong> <span style={{ fontFamily: 'monospace', color: '#00ff88', fontWeight: 700 }}>{user?.pro_pending_ref || referenceId}</span>
             </div>
+            {(user?.phone_number || phoneNumber) && (
+              <div style={{ fontSize: '13px', color: '#e5dec9', margin: '4px 0' }}>
+                <strong>WhatsApp Number:</strong> <span style={{ color: '#00ff88', fontWeight: 700 }}>{user?.phone_number || phoneNumber}</span>
+              </div>
+            )}
             <div style={{ fontSize: '13px', color: '#e5dec9', margin: '4px 0' }}>
               <strong>Status:</strong> <span style={{ color: '#ffb300', fontWeight: 700 }}>Awaiting Admin Approval</span>
             </div>
@@ -451,6 +462,29 @@ export default function UpgradePro() {
           </div>
 
           <form onSubmit={handleVerifyPayment} style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
+                WhatsApp Number (with Country Code, e.g. +919876543210)
+              </label>
+              <input 
+                type="text" 
+                placeholder="e.g. +919876543210"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255,179,0,0.25)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: 600
+                }}
+                required
+              />
+            </div>
+
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
                 UPI UTR / Transaction Reference ID (12 Digits)

@@ -689,4 +689,106 @@ router.post('/copy/:id', authenticate, async (req, res) => {
   }
 });
 
+// POST /api/strategy/bots - Deploy a new strategy bot
+router.post('/bots', authenticate, async (req, res) => {
+  try {
+    // 1. Verify if user is Pro
+    const userRes = await query('SELECT is_pro, pro_plan FROM users WHERE id = $1', [req.user.id]);
+    const userObj = userRes.rows[0];
+    if (!userObj || !userObj.is_pro) {
+      return res.status(403).json({ error: 'Gated Premium Feature: Please upgrade to Pro to deploy live automated bots!' });
+    }
+
+    const { strategyName, symbol, capital, stopLoss, takeProfit } = req.body;
+    if (!strategyName || !symbol || !capital) {
+      return res.status(400).json({ error: 'Strategy name, symbol, and capital are required' });
+    }
+
+    // 2. Limit check based on plan
+    const botsRes = await query('SELECT COUNT(*) FROM deployed_bots WHERE user_id = $1 AND status = \'active\'', [req.user.id]);
+    const activeCount = parseInt(botsRes.rows[0].count);
+
+    const planLimits = {
+      monthly: 2,
+      annually: 10,
+      three_year: 9999,
+      lifetime: 9999
+    };
+    const limit = planLimits[userObj.pro_plan] || 0;
+    if (activeCount >= limit) {
+      return res.status(400).json({ error: `You have reached the maximum active bots limit (${limit}) for your ${userObj.pro_plan} plan.` });
+    }
+
+    const id = crypto.randomUUID();
+    await query(
+      `INSERT INTO deployed_bots (id, user_id, strategy_name, symbol, capital, stop_loss, take_profit, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'active')`,
+      [id, req.user.id, strategyName, symbol, capital, stopLoss || 0.00, takeProfit || 0.00]
+    );
+
+    res.status(201).json({ success: true, message: 'Automated Bot deployed successfully to your sandbox account!', botId: id });
+  } catch (err) {
+    console.error('Deploy bot error:', err);
+    res.status(500).json({ error: 'Failed to deploy bot' });
+  }
+});
+
+// GET /api/strategy/bots - Retrieve user's deployed bots
+router.get('/bots', authenticate, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT id, strategy_name as "strategyName", symbol, capital, stop_loss as "stopLoss", take_profit as "takeProfit", status, created_at as "createdAt"
+       FROM deployed_bots WHERE user_id = $1 ORDER BY created_at DESC`,
+      [req.user.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get deployed bots error:', err);
+    res.status(500).json({ error: 'Failed to retrieve active bots' });
+  }
+});
+
+// PATCH /api/strategy/bots/:id/status - Toggle/pause/resume bot
+router.patch('/bots/:id/status', authenticate, async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['active', 'paused'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be active or paused' });
+    }
+
+    const result = await query(
+      `UPDATE deployed_bots SET status = $1 WHERE id = $2 AND user_id = $3 RETURNING id`,
+      [status, req.params.id, req.user.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Bot not found or not owned by you' });
+    }
+
+    res.json({ success: true, message: `Bot status updated to ${status}.` });
+  } catch (err) {
+    console.error('Update bot status error:', err);
+    res.status(500).json({ error: 'Failed to update bot status' });
+  }
+});
+
+// DELETE /api/strategy/bots/:id - Remove/stop a bot
+router.delete('/bots/:id', authenticate, async (req, res) => {
+  try {
+    const result = await query(
+      `DELETE FROM deployed_bots WHERE id = $1 AND user_id = $2 RETURNING id`,
+      [req.params.id, req.user.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Bot not found' });
+    }
+
+    res.json({ success: true, message: 'Automated Bot stopped and removed successfully.' });
+  } catch (err) {
+    console.error('Delete bot error:', err);
+    res.status(500).json({ error: 'Failed to delete bot' });
+  }
+});
+
 module.exports = router;

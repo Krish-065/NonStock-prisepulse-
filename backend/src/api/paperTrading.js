@@ -32,11 +32,18 @@ async function getUsdInrRate() {
 // GET /api/paper/portfolio - Fetch virtual balance, holdings, value (all values denominated in USD)
 router.get('/portfolio', authenticate, async (req, res) => {
   try {
-    const userRes = await query('SELECT virtual_balance, virtual_refill_count, consecutive_sl_hits FROM users WHERE id = $1', [req.user.id]);
+    const userRes = await query('SELECT virtual_balance, virtual_refill_count, consecutive_sl_hits, is_pro FROM users WHERE id = $1', [req.user.id]);
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const virtualBalance = parseFloat(userRes.rows[0].virtual_balance || 50000.00);
+    const isPro = userRes.rows[0].is_pro || false;
+    let virtualBalance = parseFloat(userRes.rows[0].virtual_balance || 50000.00);
+    
+    // Auto upgrade Pro users to $1,000,000 virtual balance
+    if (isPro && virtualBalance <= 50000.00) {
+      virtualBalance = 1000000.00;
+      await query('UPDATE users SET virtual_balance = $1 WHERE id = $2', [virtualBalance, req.user.id]);
+    }
     const refillCount = parseInt(userRes.rows[0].virtual_refill_count || 1);
     const consecutiveSlHits = parseInt(userRes.rows[0].consecutive_sl_hits || 0);
 
@@ -313,21 +320,23 @@ router.post('/set-sltp', authenticate, async (req, res) => {
   }
 });
 
-// POST /api/paper/refill - Request a virtual $50,000 balance refill (Max twice per account)
+// POST /api/paper/refill - Request a virtual $50,000 balance refill (Max twice per account for standard users)
 router.post('/refill', authenticate, async (req, res) => {
   try {
-    const userRes = await query('SELECT virtual_balance, virtual_refill_count FROM users WHERE id = $1', [req.user.id]);
+    const userRes = await query('SELECT virtual_balance, virtual_refill_count, is_pro FROM users WHERE id = $1', [req.user.id]);
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
+    const isPro = userRes.rows[0].is_pro || false;
     const currentBalance = parseFloat(userRes.rows[0].virtual_balance || 0);
     const refillCount = parseInt(userRes.rows[0].virtual_refill_count || 1);
 
-    if (refillCount >= 2) {
+    if (!isPro && refillCount >= 2) {
       return res.status(400).json({ error: 'Maximum virtual refill limit reached. You can only refill your account twice.' });
     }
 
-    const newBalance = currentBalance + 50000.00;
+    const refillAmount = isPro ? 1000000.00 : 50000.00;
+    const newBalance = currentBalance + refillAmount;
     const newRefillCount = refillCount + 1;
 
     await query(
@@ -342,7 +351,7 @@ router.post('/refill', authenticate, async (req, res) => {
         crypto.randomUUID(),
         req.user.id,
         'REFILL',
-        50000.00,
+        refillAmount,
         newBalance,
         'Virtual account refill deposit'
       ]
@@ -350,7 +359,9 @@ router.post('/refill', authenticate, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Your account has been refilled with another $50,000! Warning: This is your final chance—make it a learned opportunity!',
+      message: isPro 
+        ? 'Your Pro account has been refilled with another $1,000,000!' 
+        : 'Your account has been refilled with another $50,000! Warning: This is your final chance—make it a learned opportunity!',
       newBalance,
       refillCount: newRefillCount
     });
@@ -374,10 +385,14 @@ router.get('/history', authenticate, async (req, res) => {
   }
 });
 
-// POST /api/paper/reset - Reset simulated capital to $50,000
+// POST /api/paper/reset - Reset simulated capital to $50,000 (or $1,000,000 for Pro)
 router.post('/reset', authenticate, async (req, res) => {
   try {
-    await query('UPDATE users SET virtual_balance = 50000.00, consecutive_sl_hits = 0 WHERE id = $1', [req.user.id]);
+    const userRes = await query('SELECT is_pro FROM users WHERE id = $1', [req.user.id]);
+    const isPro = userRes.rows[0]?.is_pro || false;
+    const resetBalance = isPro ? 1000000.00 : 50000.00;
+
+    await query('UPDATE users SET virtual_balance = $1, consecutive_sl_hits = 0 WHERE id = $2', [resetBalance, req.user.id]);
     await query('DELETE FROM paper_portfolio_items WHERE user_id = $1', [req.user.id]);
     await query('DELETE FROM paper_trades WHERE user_id = $1', [req.user.id]);
     await query('DELETE FROM paper_pending_orders WHERE user_id = $1', [req.user.id]);
@@ -390,13 +405,13 @@ router.post('/reset', authenticate, async (req, res) => {
         crypto.randomUUID(),
         req.user.id,
         'RESET',
-        50000.00,
-        50000.00,
+        resetBalance,
+        resetBalance,
         'Simulated portfolio reset and initial deposit'
       ]
     );
 
-    res.json({ success: true, message: 'Simulated portfolio reset to $50,000 successfully.' });
+    res.json({ success: true, message: `Simulated portfolio reset to $${resetBalance.toLocaleString()} successfully.` });
   } catch (error) {
     console.error('❌ Reset paper portfolio error:', error);
     res.status(500).json({ error: 'Failed to reset virtual portfolio' });

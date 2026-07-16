@@ -71,7 +71,8 @@ async function runTest() {
       },
       body: JSON.stringify({
         plan: 'annually',
-        referenceId: referenceId
+        referenceId: referenceId,
+        phoneNumber: '+919876543210'
       })
     });
     

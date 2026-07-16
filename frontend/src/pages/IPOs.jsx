@@ -3,9 +3,11 @@ import styled from 'styled-components';
 import { apiClient } from '../services/api';
 import { 
   Calendar, Users, Percent, ExternalLink, Calculator, 
-  TrendingUp, Award, Layers, CheckCircle2, Search, ArrowUpRight 
+  TrendingUp, Award, Layers, CheckCircle2, Search, ArrowUpRight,
+  Sparkles, Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 
 // ─── STYLED COMPONENTS ───
 const Container = styled.div`
@@ -240,10 +242,15 @@ const ProgressBar = styled.div`
   background: rgba(255, 255, 255, 0.05);
   border-radius: 3px;
   overflow: hidden;
+  position: relative;
   
-  .fill {
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
     height: 100%;
-    width: ${props => Math.min(100, props.$value * 4)}%;
+    width: ${props => Math.min(100, props.$value * (props.$isPercentage ? 1 : 4))}%;
     background: ${props => props.$color || '#00ff88'};
     border-radius: 3px;
   }
@@ -322,7 +329,154 @@ const ActionButton = styled.button`
   }
 `;
 
+const ProSection = styled.div`
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 179, 0, 0.03), rgba(0, 230, 118, 0.03));
+  border: 1px solid rgba(255, 179, 0, 0.15);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+`;
+
+const ProHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #ffb300;
+  letter-spacing: 0.5px;
+`;
+
+const ProbabilityWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  
+  .prob-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    
+    .label { color: #ffffff; }
+    .pct { color: #00ff88; }
+  }
+`;
+
+const LmGrid = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  padding-top: 10px;
+  
+  .lm-title {
+    font-size: 11px;
+    color: #9b9eac;
+    text-transform: uppercase;
+  }
+`;
+
+const LmRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 11px;
+  
+  .lm-name {
+    color: #ffffff;
+    font-weight: 600;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .lm-stats {
+    display: flex;
+    gap: 10px;
+    
+    span {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      
+      .lbl {
+        font-size: 8px;
+        color: #9b9eac;
+        text-transform: uppercase;
+      }
+      .val {
+        font-weight: 700;
+        color: #00bcd4;
+      }
+    }
+  }
+`;
+
+const ProLockOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 14, 39, 0.9);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+  z-index: 2;
+  
+  .lock-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #ffb300;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: uppercase;
+  }
+  
+  .lock-desc {
+    font-size: 10px;
+    color: #9b9eac;
+    line-height: 1.4;
+  }
+  
+  .lock-btn {
+    background: #ffb300;
+    color: #0a0e27;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    
+    &:hover {
+      box-shadow: 0 0 10px rgba(255, 179, 0, 0.4);
+    }
+  }
+`;
+
 export default function IPOs() {
+  const { user } = useAuth();
+  const isPro = user?.is_pro || false;
   const [ipos, setIpos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -551,6 +705,54 @@ export default function IPOs() {
                     <div style={{ fontSize: '11px', color: '#9b9eac' }}>Est. Listing: ₹{estListingPrice}</div>
                   </div>
                 </GmpBox>
+
+                {/* ─── PRO MEMBER EXCLUSIVE: IPO INTELLIGENCE MODEL ─── */}
+                <ProSection>
+                  {!isPro && (
+                    <ProLockOverlay>
+                      <span className="lock-title"><Lock size={12} /> Pro Feature</span>
+                      <span className="lock-desc">Unlock Listing Probability Models & underwriter track records.</span>
+                      <button className="lock-btn" onClick={() => window.location.href = '/upgrade-pro'}>Upgrade to Pro</button>
+                    </ProLockOverlay>
+                  )}
+
+                  <ProHeader>
+                    <Sparkles size={12} /> Predictive Analytics Model
+                  </ProHeader>
+
+                  <ProbabilityWrapper>
+                    <div className="prob-header">
+                      <span className="label">Listing Success Probability</span>
+                      <span className="pct" style={{ color: (ipo.probabilityModel || 50) > 75 ? '#00ff88' : (ipo.probabilityModel || 50) > 50 ? '#ffb300' : '#ff3366' }}>
+                        {isPro ? `${ipo.probabilityModel || 50}%` : 'XX%'}
+                      </span>
+                    </div>
+                    <ProgressBar $value={isPro ? (ipo.probabilityModel || 50) : 40} $isPercentage={true} $color={(ipo.probabilityModel || 50) > 75 ? '#00ff88' : (ipo.probabilityModel || 50) > 50 ? '#ffb300' : '#ff3366'} />
+                  </ProbabilityWrapper>
+
+                  <LmGrid>
+                    <span className="lm-title">Underwriter Track Record</span>
+                    {(ipo.underwriterMetrics || []).map((lm, idx) => (
+                      <LmRow key={idx}>
+                        <span className="lm-name">{lm.name}</span>
+                        <div className="lm-stats">
+                          <span>
+                            <span className="lbl">Avg Listing Gain</span>
+                            <span className="val" style={{ color: '#00ff88' }}>{isPro ? lm.avgGain : 'XX.X%'}</span>
+                          </span>
+                          <span>
+                            <span className="lbl">Success Rate</span>
+                            <span className="val">{isPro ? lm.successRate : 'XX%'}</span>
+                          </span>
+                          <span>
+                            <span className="lbl">Score</span>
+                            <span className="val" style={{ color: '#ffb300' }}>{isPro ? lm.rating : 'X.X/10'}</span>
+                          </span>
+                        </div>
+                      </LmRow>
+                    ))}
+                  </LmGrid>
+                </ProSection>
 
                 {/* ─── EXPANDABLE CALCULATOR ─── */}
                 {calculatorOpen[ipo.id] ? (

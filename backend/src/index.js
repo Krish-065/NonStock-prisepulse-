@@ -172,19 +172,20 @@ app.put('/api/user/profile', authenticate, async (req, res) => {
 // Upgrade user to Pro membership status
 app.post('/api/user/upgrade-pro', authenticate, async (req, res) => {
   try {
-    const { plan, referenceId } = req.body;
-    if (!plan || !referenceId) {
-      return res.status(400).json({ error: 'Plan details and payment reference ID are required' });
+    const { plan, referenceId, phoneNumber } = req.body;
+    if (!plan || !referenceId || !phoneNumber) {
+      return res.status(400).json({ error: 'Plan details, payment reference ID, and WhatsApp number are required' });
     }
     
-    // 1. Record pending upgrade request in DB
+    // 1. Record pending upgrade request in DB and save phone number
     await query(
       `UPDATE users 
        SET pro_status = 'pending', 
            pro_pending_plan = $1, 
-           pro_pending_ref = $2 
-       WHERE id = $3`,
-      [plan, referenceId, req.user.id]
+           pro_pending_ref = $2,
+           phone_number = $3
+       WHERE id = $4`,
+      [plan, referenceId, phoneNumber.trim(), req.user.id]
     );
 
     // 2. Fetch user's details for email body
@@ -241,6 +242,10 @@ app.post('/api/user/upgrade-pro', authenticate, async (req, res) => {
             <tr>
               <td style="padding: 6px 0; color: #9b9eac; font-weight: 600;">User Email:</td>
               <td style="padding: 6px 0; color: #ffffff;">${user.email}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #9b9eac; font-weight: 600;">WhatsApp Number:</td>
+              <td style="padding: 6px 0; color: #00ff88; font-weight: 700;">${phoneNumber.trim()}</td>
             </tr>
             <tr>
               <td style="padding: 6px 0; color: #9b9eac; font-weight: 600;">Selected Plan:</td>
@@ -958,7 +963,150 @@ setInterval(async () => {
   }
 }, 1000);
 
+// ─── AUTOMATED TRADING BOT EXECUTION ENGINE ───
+function startBotSimulator() {
+  const crypto = require('crypto');
+  console.log('🤖 Starting Automated Bot Execution Engine...');
+  
+  setInterval(async () => {
+    try {
+      const activeBotsRes = await query(`SELECT * FROM deployed_bots WHERE status = 'active'`);
+      const activeBots = activeBotsRes.rows;
+      if (activeBots.length === 0) return;
+      
+      for (const bot of activeBots) {
+        const quote = await fetchYahooQuote(bot.symbol);
+        if (!quote || !quote.price) continue;
+        
+        const currentPrice = parseFloat(quote.price);
+        const positionRes = await query(
+          `SELECT * FROM paper_portfolio_items WHERE user_id = $1 AND symbol = $2`,
+          [bot.user_id, bot.symbol]
+        );
+        const position = positionRes.rows[0];
+        
+        if (position) {
+          const buyPrice = parseFloat(position.buy_price);
+          const stopLossPct = parseFloat(bot.stop_loss);
+          const takeProfitPct = parseFloat(bot.take_profit);
+          const changePct = ((currentPrice - buyPrice) / buyPrice) * 100;
+          
+          let triggerClose = false;
+          let reason = '';
+          let exitPrice = currentPrice;
+          
+          if (stopLossPct > 0 && changePct <= -stopLossPct) {
+            triggerClose = true;
+            reason = 'Bot SL Triggered';
+            exitPrice = buyPrice * (1 - stopLossPct / 100);
+          } else if (takeProfitPct > 0 && changePct >= takeProfitPct) {
+            triggerClose = true;
+            reason = 'Bot TP Triggered';
+            exitPrice = buyPrice * (1 + takeProfitPct / 100);
+          } else if (Math.random() < 0.05) {
+            triggerClose = true;
+            reason = 'Bot Strategy Exit Signal';
+          }
+          
+          if (triggerClose) {
+            console.log(`🤖 Bot ${bot.strategy_name} executing exit: ${reason} for ${bot.symbol} at $${exitPrice}`);
+            const qty = parseFloat(position.quantity);
+            const userRes = await query('SELECT virtual_balance FROM users WHERE id = $1', [bot.user_id]);
+            if (userRes.rows.length > 0) {
+              const currentBalance = parseFloat(userRes.rows[0].virtual_balance);
+              const isIndian = bot.symbol.endsWith('.NS') || bot.symbol.endsWith('.BO');
+              
+              let rate = 1.0;
+              if (isIndian) {
+                const inrQuote = await fetchYahooQuote('INR=X');
+                if (inrQuote && inrQuote.price) rate = parseFloat(inrQuote.price);
+                else rate = 83.5;
+              }
+              
+              const exitValuationUsd = qty * (isIndian ? exitPrice / rate : exitPrice);
+              const buyValuationUsd = qty * (isIndian ? buyPrice / rate : buyPrice);
+              const pnl = exitValuationUsd - buyValuationUsd;
+              const newBalance = currentBalance + exitValuationUsd;
+              
+              await query('UPDATE users SET virtual_balance = $1 WHERE id = $2', [newBalance, bot.user_id]);
+              await query('DELETE FROM paper_portfolio_items WHERE user_id = $1 AND symbol = $2', [bot.user_id, bot.symbol]);
+              
+              await query(
+                `INSERT INTO paper_trades (id, user_id, symbol, action, quantity, price, buy_price, pnl, timestamp)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+                [crypto.randomUUID(), bot.user_id, bot.symbol, 'SELL', qty, exitPrice, buyPrice, pnl]
+              );
+              
+              await query(
+                `INSERT INTO paper_balance_history (id, user_id, type, amount, new_balance, description)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [crypto.randomUUID(), bot.user_id, 'TRADE', exitValuationUsd, newBalance, `Bot ${bot.strategy_name} closed position: ${reason}`]
+              );
+            }
+          }
+        } else {
+          if (Math.random() < 0.15) {
+            const userRes = await query('SELECT virtual_balance FROM users WHERE id = $1', [bot.user_id]);
+            if (userRes.rows.length > 0) {
+              const currentBalance = parseFloat(userRes.rows[0].virtual_balance);
+              const allocatedCapital = parseFloat(bot.capital);
+              
+              if (currentBalance >= allocatedCapital) {
+                const isIndian = bot.symbol.endsWith('.NS') || bot.symbol.endsWith('.BO');
+                let rate = 1.0;
+                if (isIndian) {
+                  const inrQuote = await fetchYahooQuote('INR=X');
+                  if (inrQuote && inrQuote.price) rate = parseFloat(inrQuote.price);
+                  else rate = 83.5;
+                }
+                
+                const capitalNative = allocatedCapital * (isIndian ? rate : 1.0);
+                const qty = capitalNative / currentPrice;
+                
+                if (qty > 0) {
+                  console.log(`🤖 Bot ${bot.strategy_name} executing entry for ${bot.symbol} at $${currentPrice}`);
+                  const newBalance = currentBalance - allocatedCapital;
+                  
+                  await query('UPDATE users SET virtual_balance = $1 WHERE id = $2', [newBalance, bot.user_id]);
+                  
+                  await query(
+                    `INSERT INTO paper_portfolio_items (user_id, symbol, quantity, buy_price, buy_date, stop_loss, take_profit)
+                     VALUES ($1, $2, $3, $4, NOW(), $5, $6)`,
+                    [
+                      bot.user_id,
+                      bot.symbol,
+                      qty,
+                      currentPrice,
+                      bot.stop_loss > 0 ? currentPrice * (1 - parseFloat(bot.stop_loss) / 100) : null,
+                      bot.take_profit > 0 ? currentPrice * (1 + parseFloat(bot.take_profit) / 100) : null
+                    ]
+                  );
+                  
+                  await query(
+                    `INSERT INTO paper_trades (id, user_id, symbol, action, quantity, price, buy_price, pnl, timestamp)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+                    [crypto.randomUUID(), bot.user_id, bot.symbol, 'BUY', qty, currentPrice, currentPrice, 0]
+                  );
+                  
+                  await query(
+                    `INSERT INTO paper_balance_history (id, user_id, type, amount, new_balance, description)
+                     VALUES ($1, $2, $3, $4, $5, $6)`,
+                    [crypto.randomUUID(), bot.user_id, 'TRADE', -allocatedCapital, newBalance, `Bot ${bot.strategy_name} entered position: buy entry signal`]
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('❌ Bot Simulator Loop Error:', err);
+    }
+  }, 30000);
+}
+
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
+  startBotSimulator();
 });

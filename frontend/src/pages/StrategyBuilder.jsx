@@ -24,13 +24,28 @@ export default function StrategyBuilder() {
   const { user } = useAuth();
   const [symbol, setSymbol] = useState('RELIANCE');
 
-  const handleDeployBot = () => {
+  const handleDeployBot = async () => {
     if (!user?.is_pro) {
       toast.error('Gated Premium Feature: Please upgrade to Pro to deploy live automated bots!');
       window.location.href = '/upgrade-pro';
       return;
     }
-    toast.success('🤖 Automated Bot successfully deployed to your sandbox account! It is now monitoring live market streams.');
+    try {
+      const isGoldenCross = buyConditions.length > 0 && buyConditions[0].indicator === 'EMA20';
+      const strategyName = isGoldenCross ? 'Golden Cross (PRO)' : 'Custom Indicator Strategy';
+      const res = await apiClient.post('/strategy/bots', {
+        strategyName,
+        symbol,
+        capital,
+        stopLoss: stopLossPct,
+        takeProfit: takeProfitPct
+      });
+      if (res.data.success) {
+        toast.success('🤖 Automated Bot successfully deployed to your sandbox account! It is now monitoring live market streams.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to deploy bot');
+    }
   };
 
   const [timeRange, setTimeRange] = useState('1y');
