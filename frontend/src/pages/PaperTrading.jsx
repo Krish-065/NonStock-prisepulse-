@@ -181,7 +181,7 @@ export default function PaperTrading() {
     bollinger: false,
     stochRsi: false,
     ichimoku: false,
-    superTrend: false,
+    pivotPoints: false,
     vwap: false,
     sar: false
   });
@@ -659,9 +659,9 @@ export default function PaperTrading() {
       if (activeIndicators.bollinger) studies.push("BB@tv-basicstudies");
       if (activeIndicators.stochRsi) studies.push("StochasticRSI@tv-basicstudies");
       if (activeIndicators.ichimoku) studies.push("IchimokuCloud@tv-basicstudies");
-      if (activeIndicators.superTrend) studies.push("SuperTrend@tv-basicstudies");
+      if (activeIndicators.pivotPoints) studies.push("PivotPointsStandard@tv-basicstudies");
       if (activeIndicators.vwap) studies.push("VWAP@tv-basicstudies");
-      if (activeIndicators.sar) studies.push("ParabolicSAR@tv-basicstudies");
+      if (activeIndicators.sar) studies.push("PSAR@tv-basicstudies");
 
       let tvInterval = 'D';
       if (chartInterval === '1m') tvInterval = '1';
@@ -1335,8 +1335,8 @@ export default function PaperTrading() {
                     { id: 'bollinger', label: 'BB', color: '#ffeb3b' },
                     { id: 'stochRsi', label: 'Stoch RSI', color: '#ff5722' },
                     { id: 'ichimoku', label: 'Ichimoku', color: '#e91e63' },
-                    { id: 'superTrend', label: 'SuperTrend', color: '#9c27b0' },
-                    { id: 'vwap', label: 'VWAP', color: '#3f51b5' },
+                    { id: 'pivotPoints', label: 'Pivot Points', color: '#9c27b0' },
+                    { id: 'vwap', color: '#3f51b5', label: 'VWAP' },
                     { id: 'sar', label: 'Parabolic SAR', color: '#009688' }
                   ].map(ind => {
                     const isActivated = activeIndicators[ind.id];
