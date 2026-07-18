@@ -990,26 +990,28 @@ export default function Community() {
               ))}
             </div>
 
-            <button
-              onClick={() => setIsCreateChannelOpen(true)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 18px',
-                borderRadius: '8px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
-                color: '#0a0e27',
-                fontWeight: '900',
-                fontSize: '12px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0, 255, 136, 0.2)'
-              }}
-            >
-              <PlusCircle size={14} />
-              Create Channel
-            </button>
+            {!channels.some(ch => ch.owner_id === user?.id) && (
+              <button
+                onClick={() => setIsCreateChannelOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                  color: '#0a0e27',
+                  fontWeight: '900',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(0, 255, 136, 0.2)'
+                }}
+              >
+                <PlusCircle size={14} />
+                Create Channel
+              </button>
+            )}
           </div>
 
           {feedSubTab === 'channels' ? (
@@ -3107,7 +3109,7 @@ export default function Community() {
       )}
 
       {/* Create Channel Modal Overlay */}
-      {isCreateChannelOpen && (
+      {isCreateChannelOpen && !channels.some(ch => ch.owner_id === user?.id) && (
         <div style={{
           position: 'fixed',
           top: 0,

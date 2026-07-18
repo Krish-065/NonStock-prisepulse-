@@ -938,13 +938,13 @@ export default function Profile() {
                 My Creator Channels
               </h3>
               {!showCreateChannel ? (
-                <EditButton onClick={() => setShowCreateChannel(true)}>Create Channel</EditButton>
+                myChannels.length === 0 && <EditButton onClick={() => setShowCreateChannel(true)}>Create Channel</EditButton>
               ) : (
                 <CancelButton onClick={() => setShowCreateChannel(false)}>Back</CancelButton>
               )}
             </CardHeader>
 
-            {showCreateChannel && (
+            {showCreateChannel && myChannels.length === 0 && (
               <div style={{ marginBottom: '24px', padding: '16px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '12px', border: '1px solid rgba(0, 255, 136, 0.2)' }}>
                 <h4 style={{ margin: '0 0 16px 0', color: '#ffffff', fontSize: '15px' }}>Start a New Channel</h4>
                 <Form onSubmit={handleCreateChannel}>
