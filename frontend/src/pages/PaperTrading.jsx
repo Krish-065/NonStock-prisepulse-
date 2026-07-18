@@ -158,6 +158,8 @@ export default function PaperTrading() {
   const [limitPrice, setLimitPrice] = useState('');
   const [triggerPrice, setTriggerPrice] = useState('');
   const [tradeMode, setTradeMode] = useState('units'); // units, lots
+  const [formStopLoss, setFormStopLoss] = useState('');
+  const [formTakeProfit, setFormTakeProfit] = useState('');
   
   // Position SL/TP inputs state
   const [slInputs, setSlInputs] = useState({});
@@ -185,6 +187,23 @@ export default function PaperTrading() {
   const pendingOrdersRef = useRef([]);
   const holdingsRef = useRef([]);
 
+  const lastDraggedPriceRef = useRef(0);
+  const slInputsRef = useRef({});
+  const tpInputsRef = useRef({});
+
+  useEffect(() => {
+    slInputsRef.current = slInputs;
+  }, [slInputs]);
+
+  useEffect(() => {
+    tpInputsRef.current = tpInputs;
+  }, [tpInputs]);
+
+  useEffect(() => {
+    setFormStopLoss('');
+    setFormTakeProfit('');
+  }, [selectedSymbol]);
+
   // Sync refs to access inside simulated tick loop
   useEffect(() => {
     pendingOrdersRef.current = pendingOrders;
@@ -193,6 +212,78 @@ export default function PaperTrading() {
   useEffect(() => {
     holdingsRef.current = holdings;
   }, [holdings]);
+
+  const getPriceYPercent = (price, basePrice) => {
+    if (!basePrice || !price) return 50;
+    const pctDiff = (price - basePrice) / basePrice;
+    const clampedDiff = Math.max(-0.10, Math.min(0.10, pctDiff));
+    // map +10% to 15% (top portion) and -10% to 85% (bottom portion)
+    return 50 - (clampedDiff / 0.10) * 35;
+  };
+
+  const getYPercentPrice = (yPercent, basePrice) => {
+    if (!basePrice) return 0;
+    const pctDiff = ((50 - yPercent) / 35) * 0.10;
+    return basePrice * (1 + pctDiff);
+  };
+
+  const handleDragStart = (e, type, activeHolding) => {
+    e.preventDefault();
+    const trackElement = e.currentTarget.parentElement;
+    const rect = trackElement.getBoundingClientRect();
+    
+    // Initialize lastDraggedPriceRef to current value to prevent resetting if user just clicks without moving
+    if (activeHolding) {
+      lastDraggedPriceRef.current = type === 'sl' 
+        ? (slInputsRef.current[selectedSymbol] || activeHolding.stopLoss) 
+        : (tpInputsRef.current[selectedSymbol] || activeHolding.takeProfit);
+    } else {
+      lastDraggedPriceRef.current = type === 'sl' ? formStopLoss : formTakeProfit;
+    }
+    
+    const handleMouseMove = (moveEvent) => {
+      const y = moveEvent.clientY - rect.top;
+      const clampedY = Math.max(0, Math.min(rect.height, y));
+      const yPercent = (clampedY / rect.height) * 100;
+      
+      const basePrice = activeHolding ? parseFloat(activeHolding.buyPrice) : livePriceRef.current;
+      if (!basePrice) return;
+      
+      const draggedPrice = parseFloat(getYPercentPrice(yPercent, basePrice).toFixed(4));
+      lastDraggedPriceRef.current = draggedPrice;
+      
+      if (activeHolding) {
+        if (type === 'sl') {
+          setSlInputs(prev => ({ ...prev, [selectedSymbol]: draggedPrice }));
+        } else {
+          setTpInputs(prev => ({ ...prev, [selectedSymbol]: draggedPrice }));
+        }
+      } else {
+        if (type === 'sl') {
+          setFormStopLoss(draggedPrice);
+        } else {
+          setFormTakeProfit(draggedPrice);
+        }
+      }
+    };
+    
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      
+      if (activeHolding) {
+        const finalPrice = lastDraggedPriceRef.current;
+        if (type === 'sl') {
+          handleSaveSlTp(selectedSymbol, finalPrice, tpInputsRef.current[selectedSymbol]);
+        } else {
+          handleSaveSlTp(selectedSymbol, slInputsRef.current[selectedSymbol], finalPrice);
+        }
+      }
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
 
   // Format price based on symbol context
   const formatPrice = (val, symbol) => {
@@ -221,19 +312,24 @@ export default function PaperTrading() {
       const res = await apiClient.get('/paper/portfolio');
       setVirtualBalance(parseFloat(res.data.virtualBalance));
       setTotalHoldingsValue(parseFloat(res.data.totalHoldingsValue));
-      setHoldings(res.data.holdings || []);
+      const freshHoldings = res.data.holdings || [];
+      setHoldings(freshHoldings);
+      holdingsRef.current = freshHoldings;
       setRefillCount(parseInt(res.data.refillCount || 1));
       setConsecutiveSlHits(parseInt(res.data.consecutiveSlHits || 0));
 
       // Preset SL/TP inputs
       const sls = {};
       const tps = {};
-      res.data.holdings?.forEach(h => {
+      freshHoldings.forEach(h => {
         sls[h.symbol] = h.stopLoss || '';
         tps[h.symbol] = h.takeProfit || '';
       });
       setSlInputs(sls);
       setTpInputs(tps);
+
+      // Check SL/TP levels across all holdings
+      checkSlTpLevels();
     } catch (err) {
       console.error('Failed to fetch paper portfolio:', err);
     }
@@ -420,6 +516,40 @@ export default function PaperTrading() {
     setQuantity(newVal);
   };
 
+  const handleWheelFormSlInput = (e) => {
+    e.preventDefault();
+    const direction = e.deltaY < 0 ? 1 : -1;
+    const parsedVal = parseFloat(formStopLoss) || parseFloat(livePriceRef.current || 0);
+    
+    let step = 1;
+    if (parsedVal > 10000) step = 50;
+    else if (parsedVal > 1000) step = 5;
+    else if (parsedVal > 100) step = 1;
+    else if (parsedVal > 10) step = 0.5;
+    else if (parsedVal > 1) step = 0.05;
+    else step = 0.005;
+
+    const newVal = parseFloat((parsedVal + direction * step).toFixed(4));
+    setFormStopLoss(Math.max(0, newVal));
+  };
+
+  const handleWheelFormTpInput = (e) => {
+    e.preventDefault();
+    const direction = e.deltaY < 0 ? 1 : -1;
+    const parsedVal = parseFloat(formTakeProfit) || parseFloat(livePriceRef.current || 0);
+    
+    let step = 1;
+    if (parsedVal > 10000) step = 50;
+    else if (parsedVal > 1000) step = 5;
+    else if (parsedVal > 100) step = 1;
+    else if (parsedVal > 10) step = 0.5;
+    else if (parsedVal > 1) step = 0.05;
+    else step = 0.005;
+
+    const newVal = parseFloat((parsedVal + direction * step).toFixed(4));
+    setFormTakeProfit(Math.max(0, newVal));
+  };
+
   // Search symbols
   const handleSearch = async (val) => {
     setSearchQuery(val);
@@ -467,7 +597,10 @@ export default function PaperTrading() {
     fetchBalanceHistory();
     fetchBots();
 
-    const intervalId = window.setInterval(fetchLivePrice, 5000);
+    const intervalId = window.setInterval(() => {
+      fetchLivePrice();
+      fetchPaperPortfolio();
+    }, 5000);
     return () => window.clearInterval(intervalId);
   }, [selectedSymbol]);
 
@@ -579,15 +712,19 @@ export default function PaperTrading() {
   };
 
   // Check Stop Loss & Take Profit limits of current holdings
-  const checkSlTpLevels = (currentPrice) => {
+  const checkSlTpLevels = (currentPrice = null) => {
     const activeHoldings = [...holdingsRef.current];
     if (activeHoldings.length === 0) return;
 
     for (const holding of activeHoldings) {
-      if (holding.symbol !== selectedSymbol) continue;
+      const priceToUse = holding.symbol === selectedSymbol 
+        ? (currentPrice || livePriceRef.current || holding.livePrice) 
+        : holding.livePrice;
+
+      if (!priceToUse) continue;
 
       // 1. Stop Loss check (exiting at loss)
-      if (holding.stopLoss && currentPrice <= holding.stopLoss) {
+      if (holding.stopLoss && priceToUse <= holding.stopLoss) {
         executeSimulatedOrder(
           holding.symbol, 
           'SELL', 
@@ -599,7 +736,7 @@ export default function PaperTrading() {
       }
       
       // 2. Take Profit check (exiting at profit)
-      if (holding.takeProfit && currentPrice >= holding.takeProfit) {
+      if (holding.takeProfit && priceToUse >= holding.takeProfit) {
         executeSimulatedOrder(
           holding.symbol, 
           'SELL', 
@@ -613,7 +750,7 @@ export default function PaperTrading() {
   };
 
   // Execute Simulated Order
-  const executeSimulatedOrder = async (symbol, action, qty, executionPrice, typeLabel, triggerReason = null, pendingOrderId = null) => {
+  const executeSimulatedOrder = async (symbol, action, qty, executionPrice, typeLabel, triggerReason = null, pendingOrderId = null, stopLoss = null, takeProfit = null) => {
     try {
       const res = await apiClient.post('/paper/trade', {
         symbol,
@@ -621,7 +758,9 @@ export default function PaperTrading() {
         quantity: qty,
         price: executionPrice,
         triggerReason,
-        pendingOrderId
+        pendingOrderId,
+        stopLoss,
+        takeProfit
       });
       if (res.data.success) {
         toast.success(`Filled: ${typeLabel.toUpperCase()} ${action} ${qty} units of ${symbol} at ${formatPrice(executionPrice, symbol)}`);
@@ -666,7 +805,9 @@ export default function PaperTrading() {
           action,
           type: 'limit',
           quantity: qty,
-          price: limit
+          price: limit,
+          stopLoss: formStopLoss ? parseFloat(formStopLoss) : null,
+          takeProfit: formTakeProfit ? parseFloat(formTakeProfit) : null
         });
         if (res.data.success) {
           toast.success(`Limit ${action} order placed at ${formatPrice(limit, selectedSymbol)}`);
@@ -674,6 +815,8 @@ export default function PaperTrading() {
           fetchPaperPortfolio();
           fetchBalanceHistory();
           setLimitPrice('');
+          setFormStopLoss('');
+          setFormTakeProfit('');
         }
       } catch (err) {
         toast.error(`Order Failed: ${err.response?.data?.error || 'Unknown error'}`);
@@ -696,7 +839,9 @@ export default function PaperTrading() {
           type: 'stop',
           quantity: qty,
           price: limit,
-          triggerPrice: stop
+          triggerPrice: stop,
+          stopLoss: formStopLoss ? parseFloat(formStopLoss) : null,
+          takeProfit: formTakeProfit ? parseFloat(formTakeProfit) : null
         });
         if (res.data.success) {
           toast.success(`Stop ${action} order placed (Trigger: ${formatPrice(stop, selectedSymbol)})`);
@@ -705,6 +850,8 @@ export default function PaperTrading() {
           fetchBalanceHistory();
           setTriggerPrice('');
           setLimitPrice('');
+          setFormStopLoss('');
+          setFormTakeProfit('');
         }
       } catch (err) {
         toast.error(`Order Failed: ${err.response?.data?.error || 'Unknown error'}`);
@@ -714,7 +861,19 @@ export default function PaperTrading() {
 
     // Market Order
     const executionPrice = livePriceRef.current;
-    await executeSimulatedOrder(selectedSymbol, action, qty, executionPrice, 'market');
+    await executeSimulatedOrder(
+      selectedSymbol, 
+      action, 
+      qty, 
+      executionPrice, 
+      'market', 
+      null, 
+      null,
+      formStopLoss ? parseFloat(formStopLoss) : null,
+      formTakeProfit ? parseFloat(formTakeProfit) : null
+    );
+    setFormStopLoss('');
+    setFormTakeProfit('');
   };
 
   const handleCancelPendingOrder = async (id) => {
@@ -1182,7 +1341,7 @@ export default function PaperTrading() {
           </div>
 
           {/* Drawings and Chart Wrapper */}
-          <div style={{ display: 'flex', position: 'relative', width: '100%' }}>
+          <div style={{ display: 'flex', position: 'relative', width: '100%', gap: '10px' }}>
             {/* Chart Container */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
               <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '520px' }} />
@@ -1383,6 +1542,153 @@ export default function PaperTrading() {
                         Close Position
                       </button>
                     </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Draggable SL/TP Side Ruler */}
+            <div style={{
+              width: '80px',
+              height: '520px',
+              background: 'rgba(10, 14, 39, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '8px',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              userSelect: 'none',
+              overflow: 'hidden'
+            }}>
+              {/* Vertical Scale Line */}
+              <div style={{
+                position: 'absolute',
+                top: '10%',
+                bottom: '10%',
+                width: '2px',
+                background: 'rgba(255,255,255,0.1)',
+                left: '50%',
+                transform: 'translateX(-50%)'
+              }} />
+              
+              {/* Tick Marks */}
+              {[...Array(9)].map((_, i) => (
+                <div key={i} style={{
+                  position: 'absolute',
+                  top: `${10 + i * 10}%`,
+                  width: '10px',
+                  height: '1px',
+                  background: 'rgba(255,255,255,0.2)',
+                  left: 'calc(50% - 5px)'
+                }} />
+              ))}
+              
+              {/* Base Price Line (Middle) */}
+              {(() => {
+                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+                return (
+                  <>
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: 0,
+                      right: 0,
+                      height: '1px',
+                      borderTop: '1px dashed #00bcd4',
+                      zIndex: 5
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '52%',
+                      left: '2px',
+                      fontSize: '9px',
+                      color: '#00bcd4',
+                      fontWeight: 700,
+                      zIndex: 5
+                    }}>
+                      {activeHolding ? 'ENTRY' : 'PRICE'}
+                    </div>
+                  </>
+                );
+              })()}
+              
+              {/* Stop Loss (SL) Draggable Handle */}
+              {(() => {
+                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+                const basePrice = activeHolding ? parseFloat(activeHolding.buyPrice) : livePrice;
+                const slValue = activeHolding ? slInputs[selectedSymbol] : formStopLoss;
+                const hasSL = slValue !== undefined && slValue !== '' && slValue !== null;
+                const yPct = hasSL ? getPriceYPercent(parseFloat(slValue), basePrice) : 80;
+                
+                return (
+                  <div 
+                    onMouseDown={(e) => handleDragStart(e, 'sl', activeHolding)}
+                    style={{
+                      position: 'absolute',
+                      top: `${yPct}%`,
+                      left: '4px',
+                      right: '4px',
+                      transform: 'translateY(-50%)',
+                      height: '34px',
+                      background: hasSL ? 'rgba(255, 68, 68, 0.25)' : 'rgba(255, 68, 68, 0.05)',
+                      border: `1px solid ${hasSL ? '#ff4444' : 'rgba(255, 68, 68, 0.3)'}`,
+                      borderRadius: '4px',
+                      cursor: 'ns-resize',
+                      zIndex: 10,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 68, 68, 0.35)'}
+                    onMouseOut={e => e.currentTarget.style.background = hasSL ? 'rgba(255, 68, 68, 0.25)' : 'rgba(255, 68, 68, 0.05)'}
+                  >
+                    <span style={{ fontSize: '8px', fontWeight: 800, color: '#ff4444' }}>SL</span>
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: '#ffffff' }}>
+                      {hasSL ? parseFloat(slValue).toFixed(1) : 'Drag'}
+                    </span>
+                  </div>
+                );
+              })()}
+              
+              {/* Take Profit (TP) Draggable Handle */}
+              {(() => {
+                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+                const basePrice = activeHolding ? parseFloat(activeHolding.buyPrice) : livePrice;
+                const tpValue = activeHolding ? tpInputs[selectedSymbol] : formTakeProfit;
+                const hasTP = tpValue !== undefined && tpValue !== '' && tpValue !== null;
+                const yPct = hasTP ? getPriceYPercent(parseFloat(tpValue), basePrice) : 20;
+                
+                return (
+                  <div 
+                    onMouseDown={(e) => handleDragStart(e, 'tp', activeHolding)}
+                    style={{
+                      position: 'absolute',
+                      top: `${yPct}%`,
+                      left: '4px',
+                      right: '4px',
+                      transform: 'translateY(-50%)',
+                      height: '34px',
+                      background: hasTP ? 'rgba(0, 255, 136, 0.25)' : 'rgba(0, 255, 136, 0.05)',
+                      border: `1px solid ${hasTP ? '#00ff88' : 'rgba(0, 255, 136, 0.3)'}`,
+                      borderRadius: '4px',
+                      cursor: 'ns-resize',
+                      zIndex: 10,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseOver={e => e.currentTarget.style.background = 'rgba(0, 255, 136, 0.35)'}
+                    onMouseOut={e => e.currentTarget.style.background = hasTP ? 'rgba(0, 255, 136, 0.25)' : 'rgba(0, 255, 136, 0.05)'}
+                  >
+                    <span style={{ fontSize: '8px', fontWeight: 800, color: '#00ff88' }}>TP</span>
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: '#ffffff' }}>
+                      {hasTP ? parseFloat(tpValue).toFixed(1) : 'Drag'}
+                    </span>
                   </div>
                 );
               })()}
@@ -1622,6 +1928,62 @@ export default function PaperTrading() {
                 />
               </div>
             )}
+
+            {/* Form Stop Loss Input */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label style={{ fontSize: '11px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Stop Loss (SL) ({isIndian ? '₹' : '$'})
+                </label>
+                <span style={{ fontSize: '9px', color: '#ff4444' }}>Scroll wheel to modify</span>
+              </div>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={formStopLoss}
+                placeholder="Optional SL Price"
+                onChange={e => setFormStopLoss(e.target.value)}
+                onWheel={handleWheelFormSlInput}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  color: 'white',
+                  fontSize: '14px',
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            {/* Form Take Profit Input */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label style={{ fontSize: '11px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Take Profit (TP) ({isIndian ? '₹' : '$'})
+                </label>
+                <span style={{ fontSize: '9px', color: '#00ff88' }}>Scroll wheel to modify</span>
+              </div>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={formTakeProfit}
+                placeholder="Optional TP Price"
+                onChange={e => setFormTakeProfit(e.target.value)}
+                onWheel={handleWheelFormTpInput}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  color: 'white',
+                  fontSize: '14px',
+                  outline: 'none'
+                }}
+              />
+            </div>
 
             {/* Order Cost Estimate (Shows USD conversion if Indian) */}
             <div style={{

@@ -162,6 +162,9 @@ async function createTables() {
     )
   `);
 
+  await query(`ALTER TABLE paper_pending_orders ADD COLUMN IF NOT EXISTS stop_loss DECIMAL(15,4)`);
+  await query(`ALTER TABLE paper_pending_orders ADD COLUMN IF NOT EXISTS take_profit DECIMAL(15,4)`);
+
   // Create paper_balance_history table
   await query(`
     CREATE TABLE IF NOT EXISTS paper_balance_history (

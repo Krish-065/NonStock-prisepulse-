@@ -40,7 +40,7 @@ import UpgradePro from './pages/UpgradePro';
 import ContactUs from './pages/ContactUs';
 
 function App() {
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "416992875765-gdh7ncmsipfgnh3o8vrc95igg6ifdio1.apps.googleusercontent.com";
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <BrowserRouter>

@@ -148,6 +148,12 @@ router.post('/channels', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Channel name is required' });
     }
 
+    // Enforce one channel per account limit
+    const userChannelCheck = await query('SELECT id FROM channels WHERE owner_id = $1', [req.user.id]);
+    if (userChannelCheck.rows.length > 0) {
+      return res.status(400).json({ error: 'You can only create one channel per account' });
+    }
+
     // Check uniqueness of channel name
     const checkRes = await query('SELECT id FROM channels WHERE LOWER(name) = LOWER($1)', [name]);
     if (checkRes.rows.length > 0) {

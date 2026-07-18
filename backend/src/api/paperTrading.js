@@ -117,7 +117,7 @@ router.get('/portfolio', authenticate, async (req, res) => {
 
 // POST /api/paper/trade - Execute simulated buy/sell order
 router.post('/trade', authenticate, async (req, res) => {
-  const { symbol, action, quantity, price, triggerReason, pendingOrderId } = req.body;
+  const { symbol, action, quantity, price, triggerReason, pendingOrderId, stopLoss, takeProfit } = req.body;
 
   if (!symbol || !action || !quantity || !price) {
     return res.status(400).json({ error: 'Missing parameters: symbol, action, quantity, price' });
@@ -141,14 +141,22 @@ router.post('/trade', authenticate, async (req, res) => {
     const usdInrRate = await getUsdInrRate();
     let costUsd = isIndian ? (qty * prc) / usdInrRate : (qty * prc);
     let isPendingOrderFill = false;
+    let targetStopLoss = stopLoss !== undefined && stopLoss !== '' && stopLoss !== null ? parseFloat(stopLoss) : null;
+    let targetTakeProfit = takeProfit !== undefined && takeProfit !== '' && takeProfit !== null ? parseFloat(takeProfit) : null;
 
     if (pendingOrderId) {
-      const pendingRes = await query('SELECT id, action FROM paper_pending_orders WHERE id = $1 AND user_id = $2', [pendingOrderId, req.user.id]);
+      const pendingRes = await query('SELECT id, action, stop_loss, take_profit FROM paper_pending_orders WHERE id = $1 AND user_id = $2', [pendingOrderId, req.user.id]);
       if (pendingRes.rows.length > 0) {
         isPendingOrderFill = true;
         // For BUY, funds were already reserved/deducted when placing order
         if (action.toUpperCase() === 'BUY') {
           costUsd = 0;
+        }
+        if (pendingRes.rows[0].stop_loss !== null) {
+          targetStopLoss = parseFloat(pendingRes.rows[0].stop_loss);
+        }
+        if (pendingRes.rows[0].take_profit !== null) {
+          targetTakeProfit = parseFloat(pendingRes.rows[0].take_profit);
         }
         await query('DELETE FROM paper_pending_orders WHERE id = $1 AND user_id = $2', [pendingOrderId, req.user.id]);
       }
@@ -161,7 +169,7 @@ router.post('/trade', authenticate, async (req, res) => {
 
       // Check existing holding
       const existingRes = await query(
-        'SELECT id, quantity, buy_price FROM paper_portfolio_items WHERE user_id = $1 AND symbol = $2',
+        'SELECT id, quantity, buy_price, stop_loss, take_profit FROM paper_portfolio_items WHERE user_id = $1 AND symbol = $2',
         [req.user.id, symbol]
       );
 
@@ -173,14 +181,17 @@ router.post('/trade', authenticate, async (req, res) => {
         const newQty = existingQty + qty;
         const newBuyPrice = (existingQty * existingBuyPrice + qty * prc) / newQty;
 
+        const slVal = targetStopLoss !== null ? targetStopLoss : (existing.stop_loss ? parseFloat(existing.stop_loss) : null);
+        const tpVal = targetTakeProfit !== null ? targetTakeProfit : (existing.take_profit ? parseFloat(existing.take_profit) : null);
+
         await query(
-          'UPDATE paper_portfolio_items SET quantity = $1, buy_price = $2 WHERE id = $3',
-          [newQty, newBuyPrice, existing.id]
+          'UPDATE paper_portfolio_items SET quantity = $1, buy_price = $2, stop_loss = $3, take_profit = $4 WHERE id = $5',
+          [newQty, newBuyPrice, slVal, tpVal, existing.id]
         );
       } else {
         await query(
-          'INSERT INTO paper_portfolio_items (id, user_id, symbol, quantity, buy_price) VALUES ($1, $2, $3, $4, $5)',
-          [crypto.randomUUID(), req.user.id, symbol, qty, prc]
+          'INSERT INTO paper_portfolio_items (id, user_id, symbol, quantity, buy_price, stop_loss, take_profit) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          [crypto.randomUUID(), req.user.id, symbol, qty, prc, targetStopLoss, targetTakeProfit]
         );
       }
 
@@ -420,7 +431,7 @@ router.post('/reset', authenticate, async (req, res) => {
 
 // POST /api/paper/orders - Place a pending limit/stop order
 router.post('/orders', authenticate, async (req, res) => {
-  const { symbol, action, type, quantity, price, triggerPrice } = req.body;
+  const { symbol, action, type, quantity, price, triggerPrice, stopLoss, takeProfit } = req.body;
 
   if (!symbol || !action || !type || !quantity || !price) {
     return res.status(400).json({ error: 'Missing parameters: symbol, action, type, quantity, price' });
@@ -429,6 +440,8 @@ router.post('/orders', authenticate, async (req, res) => {
   const qty = parseFloat(quantity);
   const prc = parseFloat(price);
   const trig = triggerPrice ? parseFloat(triggerPrice) : null;
+  const slVal = stopLoss !== undefined && stopLoss !== '' && stopLoss !== null ? parseFloat(stopLoss) : null;
+  const tpVal = takeProfit !== undefined && takeProfit !== '' && takeProfit !== null ? parseFloat(takeProfit) : null;
 
   if (isNaN(qty) || qty <= 0 || isNaN(prc) || prc <= 0) {
     return res.status(400).json({ error: 'Invalid quantity or price' });
@@ -480,14 +493,14 @@ router.post('/orders', authenticate, async (req, res) => {
 
     const orderId = 'ord_' + crypto.randomBytes(4).toString('hex');
     await query(
-      'INSERT INTO paper_pending_orders (id, user_id, symbol, action, type, quantity, price, trigger_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-      [orderId, req.user.id, symbol, action.toUpperCase(), type.toLowerCase(), qty, prc, trig]
+      'INSERT INTO paper_pending_orders (id, user_id, symbol, action, type, quantity, price, trigger_price, stop_loss, take_profit) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+      [orderId, req.user.id, symbol, action.toUpperCase(), type.toLowerCase(), qty, prc, trig, slVal, tpVal]
     );
 
     res.json({
       success: true,
       message: `Pending ${action} order placed successfully.`,
-      order: { id: orderId, symbol, action, type, quantity: qty, price: prc, triggerPrice: trig }
+      order: { id: orderId, symbol, action, type, quantity: qty, price: prc, triggerPrice: trig, stopLoss: slVal, takeProfit: tpVal }
     });
   } catch (error) {
     console.error('❌ Place pending order error:', error);
@@ -499,7 +512,7 @@ router.post('/orders', authenticate, async (req, res) => {
 router.get('/orders', authenticate, async (req, res) => {
   try {
     const ordersRes = await query(
-      'SELECT id, symbol, action, type, quantity, price, trigger_price as "triggerPrice", timestamp FROM paper_pending_orders WHERE user_id = $1 ORDER BY timestamp DESC',
+      'SELECT id, symbol, action, type, quantity, price, trigger_price as "triggerPrice", stop_loss as "stopLoss", take_profit as "takeProfit", timestamp FROM paper_pending_orders WHERE user_id = $1 ORDER BY timestamp DESC',
       [req.user.id]
     );
     res.json({ orders: ordersRes.rows });

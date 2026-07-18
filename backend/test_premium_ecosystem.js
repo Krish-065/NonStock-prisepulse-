@@ -115,6 +115,21 @@ async function runTest() {
     if (createChan.status !== 200 && createChan.status !== 201) throw new Error('Failed to create premium channel');
     const channelId = createChan.json.channelId;
 
+    // Try to create a second channel (should fail)
+    console.log('\n--- Step 4b: Attempt to Create Second Channel (Should Fail) ---');
+    const createSecondChan = await makeReq(creatorToken, 'POST', '/api/community/channels', {
+      name: 'Titan Equity Alerts',
+      description: 'Gated premium weekly equity analysis',
+      avatar_url: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3',
+      is_premium: true,
+      price: 200.00
+    });
+    console.log('Create Second Channel Status (expecting 400):', createSecondChan.status, createSecondChan.json);
+    if (createSecondChan.status !== 400) {
+      throw new Error('Allowed to create more than one channel per account!');
+    }
+    console.log('✅ Successfully blocked second channel creation.');
+
     // Creator publishes a premium post
     console.log('\n--- Step 5: Publish Post under Premium Channel ---');
     const createPost = await makeReq(creatorToken, 'POST', '/api/community/posts', {

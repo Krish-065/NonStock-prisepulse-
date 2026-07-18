@@ -591,10 +591,11 @@ async function googleLogin(req, res) {
       return res.status(400).json({ error: 'Google Credential is required' });
     }
 
-    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const clientId = process.env.GOOGLE_CLIENT_ID || '416992875765-gdh7ncmsipfgnh3o8vrc95igg6ifdio1.apps.googleusercontent.com';
+    const client = new OAuth2Client(clientId);
     const ticket = await client.verifyIdToken({
       idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID
+      audience: clientId
     });
 
     const payload = ticket.getPayload();
