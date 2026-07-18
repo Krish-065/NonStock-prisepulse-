@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { createChart, CandlestickSeries, LineSeries } from 'lightweight-charts';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -73,6 +72,63 @@ const getLotMultiplier = (sym) => {
   return 100; // Stocks: 100 shares (Standard Lot)
 };
 
+const resolveTVSymbol = (rawSymbol) => {
+  if (!rawSymbol) return 'BINANCE:BTCUSDT';
+  const s = rawSymbol.toUpperCase();
+
+  // Indian Indices
+  if (s === '^NSEI' || s === 'NSEI' || s === 'NIFTY' || s === 'NIFTY50') return 'NSE:NIFTY';
+  if (s === '^BSESN' || s === 'BSESN' || s === 'SENSEX') return 'BSE:SENSEX';
+  if (s === '^NSEBANK' || s === 'NSEBANK' || s === 'BANKNIFTY') return 'NSE:BANKNIFTY';
+  if (s === '^CNXIT' || s === 'CNXIT' || s === 'NIFTYIT') return 'NSE:CNXIT';
+
+  // Crypto
+  const cryptoBase = s.replace('-USD', '').replace('-USDT', '');
+  const cryptoMap = {
+    'BTC': 'BINANCE:BTCUSDT', 'ETH': 'BINANCE:ETHUSDT',
+    'BNB': 'BINANCE:BNBUSDT', 'SOL': 'BINANCE:SOLUSDT',
+    'XRP': 'BINANCE:XRPUSDT', 'DOGE': 'BINANCE:DOGEUSDT',
+    'ADA': 'BINANCE:ADAUSDT', 'SHIB': 'BINANCE:SHIBUSDT',
+    'AVAX': 'BINANCE:AVAXUSDT', 'TRX': 'BINANCE:TRXUSDT',
+  };
+  if (cryptoMap[cryptoBase]) return cryptoMap[cryptoBase];
+  if (s.includes('USD') && (s.includes('-') || s.includes('USDT'))) {
+    return `BINANCE:${cryptoBase}USDT`;
+  }
+
+  // Forex
+  if (s.endsWith('=X') || s.endsWith('USD') || s.endsWith('INR') || s.includes('USD') || s.includes('EUR') || s.includes('GBP')) {
+    const pair = s.replace('=X', '').replace('-', '').replace('/', '');
+    if (pair.length === 6) {
+      return `FX:${pair}`;
+    }
+  }
+
+  // Commodities
+  if (s === 'GC=F' || s === 'GC') return 'COMEX:GC1!';
+  if (s === 'CL=F' || s === 'CL') return 'NYMEX:CL1!';
+  if (s === 'SI=F' || s === 'SI') return 'COMEX:SI1!';
+  if (s === 'NG=F' || s === 'NG') return 'NYMEX:NG1!';
+  if (s === 'HG=F' || s === 'HG') return 'COMEX:HG1!';
+
+  // US Equities
+  const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'GOOGL', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR'];
+  const cleanSym = s.replace('.NS', '').replace('.BO', '');
+  if (usTickers.includes(cleanSym)) {
+    return `NASDAQ:${cleanSym}`;
+  }
+
+  if (rawSymbol.endsWith('.BO')) {
+    if (/^\d+$/.test(cleanSym)) {
+      return `BSE:${cleanSym}`;
+    }
+    return `NSE:${cleanSym}`;
+  }
+
+  // Default: Indian NSE equity
+  return `NSE:${cleanSym}`;
+};
+
 export default function PaperTrading() {
   const { user } = useAuth();
   const isPro = user?.is_pro || false;
@@ -111,11 +167,9 @@ export default function PaperTrading() {
   const [livePrice, setLivePrice] = useState(0);
   const [priceChange, setPriceChange] = useState(0);
   const [priceChangePercent, setPriceChangePercent] = useState(0);
-  const [chartData, setChartData] = useState([]);
   const [usdInrRate, setUsdInrRate] = useState(83.5);
   
   // Chart Drawings & Indicators State
-  const [drawingMode, setDrawingMode] = useState('none');
   const [activeIndicators, setActiveIndicators] = useState({
     sma20: false,
     ema50: false,
@@ -125,30 +179,8 @@ export default function PaperTrading() {
   
   // Chart Refs
   const chartContainerRef = useRef(null);
-  const chartRef = useRef(null);
-  const candlestickSeriesRef = useRef(null);
-  const sma20SeriesRef = useRef(null);
-  const ema50SeriesRef = useRef(null);
-  const bbUpperSeriesRef = useRef(null);
-  const bbLowerSeriesRef = useRef(null);
-  const bbBasisSeriesRef = useRef(null);
-  
-  // Sub-chart RSI Ref
-  const rsiContainerRef = useRef(null);
-  const rsiChartRef = useRef(null);
-  const rsiSeriesRef = useRef(null);
-  
-  // Chart levels refs
-  const avgPriceLineRef = useRef(null);
-  const slPriceLineRef = useRef(null);
-  const tpPriceLineRef = useRef(null);
-  
-  // Drawing Tools Click Tracking
-  const drawingClicksRef = useRef([]);
-  const drawnLinesRef = useRef([]);
   
   // Live Tick Simulation Ref
-  const lastCandleRef = useRef(null);
   const livePriceRef = useRef(0);
   const pendingOrdersRef = useRef([]);
   const holdingsRef = useRef([]);
@@ -335,69 +367,33 @@ export default function PaperTrading() {
     } catch (err) {
       console.error('Error searching symbols:', err);
     }
-  };
-
-  // Fetch history & setup chart
-  const fetchChartData = async () => {
+  };  // Fetch history & setup chart
+  const fetchLivePrice = async () => {
     try {
-      let querySymbol = selectedSymbol;
-      
-      const getRangeForInterval = (intv) => {
-        switch (intv) {
-          case '1m': return '5d';
-          case '5m': return '5d';
-          case '15m': return '5d';
-          case '60m': return '1mo';
-          case '1d': return '1y';
-          default: return '1y';
-        }
-      };
-      const range = getRangeForInterval(chartInterval);
-      const res = await apiClient.get(`/market/stock-history/${querySymbol}`, {
-        params: { interval: chartInterval, range }
-      });
-      
-      if (res.data && res.data.length > 0) {
-        const formatted = res.data.map(d => ({
-          time: Math.floor((d.time ? d.time : (d.date ? new Date(d.date).getTime() : Date.now())) / 1000),
-          open: parseFloat(d.open),
-          high: parseFloat(d.high),
-          low: parseFloat(d.low),
-          close: parseFloat(d.close),
-          volume: parseFloat(d.volume)
-        }));
+      const res = await apiClient.get(`/market/stock/${selectedSymbol}`);
+      if (res.data && res.data.price) {
+        const realPrice = parseFloat(res.data.price);
         
-        formatted.sort((a, b) => a.time - b.time);
-        
-        const uniqueFormatted = [];
-        const seenTimes = new Set();
-        for (const candle of formatted) {
-          if (!seenTimes.has(candle.time)) {
-            seenTimes.add(candle.time);
-            uniqueFormatted.push(candle);
-          }
-        }
+        setLivePrice(realPrice);
+        livePriceRef.current = realPrice;
 
-        setChartData(uniqueFormatted);
-        
-        const latest = uniqueFormatted[uniqueFormatted.length - 1];
-        setLivePrice(latest.close);
-        livePriceRef.current = latest.close;
-        
-        const quoteRes = await apiClient.get(`/market/stock/${querySymbol}`).catch(() => null);
-        if (quoteRes && quoteRes.data) {
-          setPriceChange(quoteRes.data.change || 0);
-          setPriceChangePercent(quoteRes.data.changePercent || 0);
+        checkPendingOrders(realPrice);
+        checkSlTpLevels(realPrice);
+
+        if (res.data.change !== undefined) {
+          setPriceChange(parseFloat(res.data.change));
+        }
+        if (res.data.changePercent !== undefined) {
+          setPriceChangePercent(parseFloat(res.data.changePercent));
         }
       }
     } catch (err) {
-      console.error('Failed to fetch chart history:', err);
-      toast.error('Error fetching stock data');
+      console.warn('Live price polling error:', err.message);
     }
   };
 
   useEffect(() => {
-    fetchChartData();
+    fetchLivePrice();
     fetchPaperPortfolio();
     fetchOrderHistory();
     fetchLeaderboard();
@@ -405,311 +401,73 @@ export default function PaperTrading() {
     fetchBalanceHistory();
     fetchBots();
 
-    const historyIntervalId = window.setInterval(fetchChartData, 60000);
-    return () => window.clearInterval(historyIntervalId);
-  }, [selectedSymbol, chartInterval]);
+    const intervalId = window.setInterval(fetchLivePrice, 5000);
+    return () => window.clearInterval(intervalId);
+  }, [selectedSymbol]);
 
-  // Main Chart Creation & Update
+  // TradingView Widget Loader & Update Effect
   useEffect(() => {
-    if (!chartContainerRef.current || chartData.length === 0) return;
-
-    if (chartRef.current) {
-      chartRef.current.remove();
-    }
-    if (rsiChartRef.current) {
-      rsiChartRef.current.remove();
-    }
-    drawnLinesRef.current = [];
-
-    const chartTheme = {
-      layout: {
-        background: { color: 'rgba(10, 14, 39, 0.4)' },
-        textColor: '#9b9eac',
-      },
-      grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.04)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.04)' },
-      },
-      crosshair: {
-        mode: 1,
-        vertLine: { color: '#00ff88', width: 0.5, style: 3 },
-        horzLine: { color: '#00ff88', width: 0.5, style: 3 },
-      },
-      rightPriceScale: {
-        borderColor: 'rgba(0, 255, 136, 0.15)',
-      },
-    };
-
-    const chart = createChart(chartContainerRef.current, {
-      ...chartTheme,
-      height: 400,
-      timeScale: {
-        visible: !activeIndicators.rsi,
-        borderColor: 'rgba(0, 255, 136, 0.15)',
-      },
-    });
-    chartRef.current = chart;
-
-    const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#00ff88',
-      downColor: '#ff4444',
-      borderVisible: false,
-      wickUpColor: '#00ff88',
-      wickDownColor: '#ff4444',
-    });
-    candlestickSeries.setData(chartData);
-    candlestickSeriesRef.current = candlestickSeries;
-    chart.timeScale().fitContent();
-
-    lastCandleRef.current = { ...chartData[chartData.length - 1] };
-
-    // Indicators Setup
-    if (activeIndicators.sma20) {
-      const smaData = calculateSMA(chartData, 20);
-      const smaSeries = chart.addSeries(LineSeries, { color: '#00bcd4', lineWidth: 1.5, title: 'SMA 20' });
-      smaSeries.setData(smaData);
-      sma20SeriesRef.current = smaSeries;
-    }
-
-    if (activeIndicators.ema50) {
-      const emaData = calculateEMA(chartData, 50);
-      const emaSeries = chart.addSeries(LineSeries, { color: '#ff9800', lineWidth: 1.5, title: 'EMA 50' });
-      emaSeries.setData(emaData);
-      ema50SeriesRef.current = emaSeries;
-    }
-
-    if (activeIndicators.bollinger) {
-      const { basis, upper, lower } = calculateBollingerBands(chartData, 20, 2);
-      const basisSeries = chart.addSeries(LineSeries, { color: 'rgba(156, 39, 176, 0.6)', lineWidth: 1, title: 'BB Basis' });
-      basisSeries.setData(basis);
-      bbBasisSeriesRef.current = basisSeries;
-
-      const upperSeries = chart.addSeries(LineSeries, { color: 'rgba(0, 230, 118, 0.4)', lineWidth: 1, title: 'BB Upper' });
-      upperSeries.setData(upper);
-      bbUpperSeriesRef.current = upperSeries;
-
-      const lowerSeries = chart.addSeries(LineSeries, { color: 'rgba(255, 23, 68, 0.4)', lineWidth: 1, title: 'BB Lower' });
-      lowerSeries.setData(lower);
-      bbLowerSeriesRef.current = lowerSeries;
-    }
-
-    // RSI setup
-    if (activeIndicators.rsi) {
-      const rsiChart = createChart(rsiContainerRef.current, {
-        ...chartTheme,
-        height: 120,
-        timeScale: { visible: true, borderColor: 'rgba(0, 255, 136, 0.15)' },
-      });
-      rsiChartRef.current = rsiChart;
-
-      const rsiLineSeries = rsiChart.addSeries(LineSeries, { color: '#e040fb', lineWidth: 1.5, title: 'RSI 14' });
-      const rsiData = calculateRSI(chartData, 14);
-      rsiLineSeries.setData(rsiData);
-      rsiSeriesRef.current = rsiLineSeries;
-      rsiChart.timeScale().fitContent();
-
-      rsiLineSeries.createPriceLine({ price: 70, color: 'rgba(255, 68, 68, 0.3)', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: 'Overbought' });
-      rsiLineSeries.createPriceLine({ price: 30, color: 'rgba(0, 255, 136, 0.3)', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: 'Oversold' });
-
-      chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-        rsiChart.timeScale().setVisibleLogicalRange(range);
-      });
-      rsiChart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-        chart.timeScale().setVisibleLogicalRange(range);
-      });
-    }
-
-    // Average Price, Stop Loss, and Take Profit lines
-    const symbolHolding = holdings.find(h => h.symbol === selectedSymbol);
-    if (symbolHolding) {
-      const avgPrice = parseFloat(symbolHolding.buyPrice || 0);
-      const slPrice = symbolHolding.stopLoss ? parseFloat(symbolHolding.stopLoss) : null;
-      const tpPrice = symbolHolding.takeProfit ? parseFloat(symbolHolding.takeProfit) : null;
-
-      // 1. Avg Buy Price line
-      if (avgPrice > 0) {
-        avgPriceLineRef.current = candlestickSeries.createPriceLine({
-          price: avgPrice,
-          color: '#00ff88',
-          lineWidth: 1.5,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          title: `Avg Buy: ${avgPrice.toFixed(2)}`
-        });
-      }
-
-      // 2. Stop Loss line
-      if (slPrice && slPrice > 0) {
-        slPriceLineRef.current = candlestickSeries.createPriceLine({
-          price: slPrice,
-          color: '#ff4444',
-          lineWidth: 1.5,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          title: `SL: ${slPrice.toFixed(2)}`
-        });
-      }
-
-      // 3. Take Profit line
-      if (tpPrice && tpPrice > 0) {
-        tpPriceLineRef.current = candlestickSeries.createPriceLine({
-          price: tpPrice,
-          color: '#2196f3',
-          lineWidth: 1.5,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          title: `TP: ${tpPrice.toFixed(2)}`
-        });
-      }
-    }
-
-    // Historical Trade execution markers snapped to chart candle times
-    const findClosestCandleTime = (targetSec) => {
-      if (chartData.length === 0) return targetSec;
-      let closest = chartData[0].time;
-      let minDiff = Math.abs(targetSec - closest);
-      for (const candle of chartData) {
-        const diff = Math.abs(targetSec - candle.time);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closest = candle.time;
-        }
-      }
-      return closest;
-    };
-
-    const markers = orderHistory
-      .filter(trade => trade.symbol === selectedSymbol)
-      .map(trade => {
-        const tradeTime = Math.floor(new Date(trade.timestamp).getTime() / 1000);
-        const snappedTime = findClosestCandleTime(tradeTime);
-        return {
-          time: snappedTime,
-          position: trade.action === 'BUY' ? 'belowBar' : 'aboveBar',
-          color: trade.action === 'BUY' ? '#00ff88' : '#ff4444',
-          shape: trade.action === 'BUY' ? 'arrowUp' : 'arrowDown',
-          text: `${trade.action} ${parseFloat(trade.quantity)}`
-        };
-      });
+    let script = document.getElementById('tradingview-widget-script');
     
-    markers.sort((a, b) => a.time - b.time);
-    if (markers.length > 0) {
-      candlestickSeries.setMarkers(markers);
-    }
-
-    // Click Subscription for drawings
-    chart.subscribeClick((param) => {
-      if (drawingMode === 'none' || !param.point || !param.time) return;
+    const initWidget = () => {
+      if (!chartContainerRef.current) return;
       
-      const price = candlestickSeries.coordinateToPrice(param.point.y);
-      if (!price) return;
+      const tvSymbol = resolveTVSymbol(selectedSymbol);
+      chartContainerRef.current.innerHTML = '';
+      
+      const studies = [];
+      if (activeIndicators.sma20) studies.push("MASimple@tv-basicstudies");
+      if (activeIndicators.ema50) studies.push("MAExponential@tv-basicstudies");
+      if (activeIndicators.bollinger) studies.push("BB@tv-basicstudies");
+      if (activeIndicators.rsi) studies.push("RSI@tv-basicstudies");
 
-      if (drawingMode === 'horizontal') {
-        const horLineSeries = chart.addSeries(LineSeries, { color: '#e91e63', lineWidth: 1.5 });
-        const horData = chartData.map(c => ({ time: c.time, value: price }));
-        horLineSeries.setData(horData);
-        drawnLinesRef.current.push(horLineSeries);
-        toast.success('Horizontal support line plotted');
-        setDrawingMode('none');
-      } else if (drawingMode === 'trendline') {
-        drawingClicksRef.current.push({ time: param.time, price });
-        
-        if (drawingClicksRef.current.length === 1) {
-          toast('Click second point to draw Trendline');
-        } else if (drawingClicksRef.current.length === 2) {
-          const [p1, p2] = drawingClicksRef.current;
-          const t1 = p1.time;
-          const t2 = p2.time;
-          const pr1 = p1.price;
-          const pr2 = p2.price;
+      let tvInterval = 'D';
+      if (chartInterval === '1m') tvInterval = '1';
+      else if (chartInterval === '5m') tvInterval = '5';
+      else if (chartInterval === '15m') tvInterval = '15';
+      else if (chartInterval === '60m') tvInterval = '60';
 
-          const trendLineSeries = chart.addSeries(LineSeries, { color: '#2196f3', lineWidth: 2 });
-          const trendData = chartData.map(c => {
-            if (c.time >= Math.min(t1, t2) && c.time <= Math.max(t1, t2)) {
-              const tDiff = t2 - t1;
-              const ratio = tDiff !== 0 ? (c.time - t1) / tDiff : 0;
-              const val = pr1 + ratio * (pr2 - pr1);
-              return { time: c.time, value: val };
-            }
-            return null;
-          }).filter(x => x !== null);
-
-          trendLineSeries.setData(trendData);
-          drawnLinesRef.current.push(trendLineSeries);
-          toast.success('Trendline plotted');
-          
-          drawingClicksRef.current = [];
-          setDrawingMode('none');
-        }
+      if (window.TradingView) {
+        new window.TradingView.widget({
+          container_id: chartContainerRef.current.id,
+          symbol: tvSymbol,
+          interval: tvInterval,
+          timezone: 'Asia/Kolkata',
+          theme: 'dark',
+          style: '1',
+          locale: 'en',
+          toolbar_bg: '#101427',
+          enable_publishing: false,
+          hide_side_toolbar: false,
+          allow_symbol_change: true,
+          width: '100%',
+          height: 520,
+          studies: studies
+        });
       }
-    });
+    };
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      if (entries.length === 0) return;
-      const { width } = entries[0].contentRect;
-      chart.resize(width, 400);
-      if (rsiChartRef.current) {
-        rsiChartRef.current.resize(width, 120);
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'tradingview-widget-script';
+      script.src = 'https://s3.tradingview.com/tv.js';
+      script.async = true;
+      script.onload = initWidget;
+      document.head.appendChild(script);
+    } else {
+      if (window.TradingView) {
+        initWidget();
+      } else {
+        script.addEventListener('load', initWidget);
       }
-    });
-    resizeObserver.observe(chartContainerRef.current);
+    }
 
     return () => {
-      resizeObserver.disconnect();
-      if (chartRef.current) {
-        chartRef.current.remove();
-        chartRef.current = null;
-      }
-      if (rsiChartRef.current) {
-        rsiChartRef.current.remove();
-        rsiChartRef.current = null;
+      if (script) {
+        script.removeEventListener('load', initWidget);
       }
     };
-  }, [chartData, activeIndicators, drawingMode]);
-
-
-  // Live Price Polling from Yahoo Finance
-  useEffect(() => {
-    if (!selectedSymbol) return;
-
-    let querySymbol = selectedSymbol;
-
-    const pollLivePrice = async () => {
-      try {
-        const res = await apiClient.get(`/market/stock/${querySymbol}`);
-        if (res.data && res.data.price) {
-          const realPrice = parseFloat(res.data.price);
-          
-          setLivePrice(realPrice);
-          livePriceRef.current = realPrice;
-
-          // Update chart last candle if present
-          if (candlestickSeriesRef.current && lastCandleRef.current) {
-            const candle = lastCandleRef.current;
-            candle.close = realPrice;
-            if (realPrice > candle.high) candle.high = realPrice;
-            if (realPrice < candle.low) candle.low = realPrice;
-            candlestickSeriesRef.current.update(candle);
-          }
-
-          checkPendingOrders(realPrice);
-          checkSlTpLevels(realPrice);
-
-          if (res.data.change !== undefined) {
-            setPriceChange(parseFloat(res.data.change));
-          }
-          if (res.data.changePercent !== undefined) {
-            setPriceChangePercent(parseFloat(res.data.changePercent));
-          }
-        }
-      } catch (err) {
-        console.warn('Live price polling error:', err.message);
-      }
-    };
-
-    const intervalId = window.setInterval(pollLivePrice, 5000);
-    return () => window.clearInterval(intervalId);
-  }, [selectedSymbol, chartInterval]);
+  }, [selectedSymbol, chartInterval, activeIndicators]);
 
   // Check Limit/Stop Loss pending orders
   const checkPendingOrders = (currentPrice) => {
@@ -1159,6 +917,13 @@ export default function PaperTrading() {
                   placeholder="Search Asset..."
                   value={searchQuery}
                   onChange={e => handleSearch(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && searchQuery.trim()) {
+                      setSelectedSymbol(searchQuery.trim().toUpperCase());
+                      setSearchQuery('');
+                      setSearchResults([]);
+                    }
+                  }}
                   style={{
                     background: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -1175,7 +940,7 @@ export default function PaperTrading() {
                 />
                 
                 {/* Search Results Dropdown */}
-                {searchResults.length > 0 && (
+                {(searchResults.length > 0 || searchQuery.trim().length > 0) && (
                   <div style={{
                     position: 'absolute',
                     top: '100%',
@@ -1190,6 +955,32 @@ export default function PaperTrading() {
                     zIndex: 100,
                     boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
                   }}>
+                    {searchQuery.trim().length > 0 && (
+                      <div 
+                        onClick={() => {
+                          setSelectedSymbol(searchQuery.trim().toUpperCase());
+                          setSearchQuery('');
+                          setSearchResults([]);
+                        }}
+                        style={{
+                          padding: '10px 14px',
+                          borderBottom: '1px solid rgba(255,255,255,0.05)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: '12px',
+                          background: 'rgba(0, 255, 136, 0.05)'
+                        }}
+                        onMouseOver={e => e.currentTarget.style.background = 'rgba(0, 255, 136, 0.1)'}
+                        onMouseOut={e => e.currentTarget.style.background = 'rgba(0, 255, 136, 0.05)'}
+                      >
+                        <div>
+                          <strong style={{ color: '#00ff88' }}>Load: "{searchQuery.trim().toUpperCase()}"</strong>
+                          <span style={{ color: '#9b9eac', marginLeft: '6px' }}>Press enter to load custom ticker</span>
+                        </div>
+                      </div>
+                    )}
                     {searchResults.map(res => (
                       <div 
                         key={res.symbol}
@@ -1233,191 +1024,102 @@ export default function PaperTrading() {
               </div>
             </div>
 
-            {/* Interval Toggles */}
-            <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              {['1m', '5m', '15m', '60m', '1d'].map(i => (
+            {/* Controls Toggles */}
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Indicator Toggles */}
+              <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', gap: '4px' }}>
                 <button
-                  key={i}
-                  onClick={() => setChartInterval(i)}
+                  onClick={() => setActiveIndicators({ ...activeIndicators, sma20: !activeIndicators.sma20 })}
                   style={{
-                    background: chartInterval === i ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
+                    background: activeIndicators.sma20 ? '#00bcd4' : 'transparent',
+                    color: activeIndicators.sma20 ? '#ffffff' : '#9b9eac',
                     border: 'none',
-                    color: chartInterval === i ? '#00ff88' : '#9b9eac',
-                    padding: '6px 12px',
                     borderRadius: '6px',
+                    padding: '6px 10px',
                     fontSize: '11px',
                     fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    cursor: 'pointer'
                   }}
                 >
-                  {i}
+                  SMA
                 </button>
-              ))}
+                <button
+                  onClick={() => setActiveIndicators({ ...activeIndicators, ema50: !activeIndicators.ema50 })}
+                  style={{
+                    background: activeIndicators.ema50 ? '#ff9800' : 'transparent',
+                    color: activeIndicators.ema50 ? '#ffffff' : '#9b9eac',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  EMA
+                </button>
+                <button
+                  onClick={() => setActiveIndicators({ ...activeIndicators, bollinger: !activeIndicators.bollinger })}
+                  style={{
+                    background: activeIndicators.bollinger ? 'rgba(156, 39, 176, 0.8)' : 'transparent',
+                    color: activeIndicators.bollinger ? '#ffffff' : '#9b9eac',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  BB
+                </button>
+                <button
+                  onClick={() => setActiveIndicators({ ...activeIndicators, rsi: !activeIndicators.rsi })}
+                  style={{
+                    background: activeIndicators.rsi ? '#e040fb' : 'transparent',
+                    color: activeIndicators.rsi ? '#ffffff' : '#9b9eac',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  RSI
+                </button>
+              </div>
+
+              {/* Interval Toggles */}
+              <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                {['1m', '5m', '15m', '60m', '1d'].map(i => (
+                  <button
+                    key={i}
+                    onClick={() => setChartInterval(i)}
+                    style={{
+                      background: chartInterval === i ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
+                      border: 'none',
+                      color: chartInterval === i ? '#00ff88' : '#9b9eac',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {i}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Drawings and Chart Wrapper */}
           <div style={{ display: 'flex', position: 'relative', width: '100%' }}>
-            
-            {/* Left drawing toolbar */}
-            <div style={{
-              width: '48px',
-              borderRight: '1px solid rgba(255, 255, 255, 0.06)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              padding: '12px 0',
-              gap: '12px',
-              background: 'rgba(10, 14, 39, 0.2)'
-            }}>
-              <button
-                title="Cursor / Navigate"
-                onClick={() => setDrawingMode('none')}
-                style={{
-                  background: drawingMode === 'none' ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
-                  border: drawingMode === 'none' ? '1px solid rgba(0, 255, 136, 0.2)' : '1px solid transparent',
-                  borderRadius: '8px',
-                  color: drawingMode === 'none' ? '#00ff88' : '#9b9eac',
-                  padding: '6px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <MousePointer size={16} />
-              </button>
-              <button
-                title="Draw Trendline"
-                onClick={() => setDrawingMode('trendline')}
-                style={{
-                  background: drawingMode === 'trendline' ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
-                  border: drawingMode === 'trendline' ? '1px solid rgba(0, 255, 136, 0.2)' : '1px solid transparent',
-                  borderRadius: '8px',
-                  color: drawingMode === 'trendline' ? '#00ff88' : '#9b9eac',
-                  padding: '6px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <PenTool size={16} />
-              </button>
-              <button
-                title="Horizontal Support/Resistance Line"
-                onClick={() => setDrawingMode('horizontal')}
-                style={{
-                  background: drawingMode === 'horizontal' ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
-                  border: drawingMode === 'horizontal' ? '1px solid rgba(0, 255, 136, 0.2)' : '1px solid transparent',
-                  borderRadius: '8px',
-                  color: drawingMode === 'horizontal' ? '#00ff88' : '#9b9eac',
-                  padding: '6px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Layers size={16} />
-              </button>
-              <div style={{ height: '1px', width: '20px', background: 'rgba(255,255,255,0.06)' }}></div>
-              <button
-                title="Clear Drawings"
-                onClick={clearDrawings}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#ff4444',
-                  padding: '6px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
             {/* Chart Container */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-              <div style={{
-                position: 'absolute',
-                top: '12px',
-                left: '20px',
-                zIndex: 10,
-                display: 'flex',
-                gap: '8px',
-                flexWrap: 'wrap'
-              }}>
-                <button
-                  onClick={() => setActiveIndicators({ ...activeIndicators, sma20: !activeIndicators.sma20 })}
-                  style={{
-                    background: activeIndicators.sma20 ? '#00bcd4' : 'rgba(10, 14, 39, 0.8)',
-                    color: activeIndicators.sma20 ? '#ffffff' : '#9b9eac',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  SMA (20)
-                </button>
-                <button
-                  onClick={() => setActiveIndicators({ ...activeIndicators, ema50: !activeIndicators.ema50 })}
-                  style={{
-                    background: activeIndicators.ema50 ? '#ff9800' : 'rgba(10, 14, 39, 0.8)',
-                    color: activeIndicators.ema50 ? '#ffffff' : '#9b9eac',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  EMA (50)
-                </button>
-                <button
-                  onClick={() => setActiveIndicators({ ...activeIndicators, bollinger: !activeIndicators.bollinger })}
-                  style={{
-                    background: activeIndicators.bollinger ? 'rgba(156, 39, 176, 0.8)' : 'rgba(10, 14, 39, 0.8)',
-                    color: activeIndicators.bollinger ? '#ffffff' : '#9b9eac',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Bollinger Bands
-                </button>
-                <button
-                  onClick={() => setActiveIndicators({ ...activeIndicators, rsi: !activeIndicators.rsi })}
-                  style={{
-                    background: activeIndicators.rsi ? '#e040fb' : 'rgba(10, 14, 39, 0.8)',
-                    color: activeIndicators.rsi ? '#ffffff' : '#9b9eac',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  RSI (14)
-                </button>
-              </div>
-
-              <div ref={chartContainerRef} style={{ width: '100%', height: '400px' }} />
-              {activeIndicators.rsi && (
-                <div ref={rsiContainerRef} style={{ width: '100%', height: '120px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }} />
-              )}
+              <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '520px' }} />
             </div>
           </div>
 
