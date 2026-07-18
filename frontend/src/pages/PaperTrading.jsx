@@ -199,9 +199,12 @@ export default function PaperTrading() {
     tpInputsRef.current = tpInputs;
   }, [tpInputs]);
 
+  const [rulerRangeMultiplier, setRulerRangeMultiplier] = useState(1);
+
   useEffect(() => {
     setFormStopLoss('');
     setFormTakeProfit('');
+    setRulerRangeMultiplier(1);
   }, [selectedSymbol]);
 
   // Sync refs to access inside simulated tick loop
@@ -213,17 +216,36 @@ export default function PaperTrading() {
     holdingsRef.current = holdings;
   }, [holdings]);
 
+  const getRulerRange = (symbol) => {
+    let baseRange = 0.05;
+    if (symbol) {
+      const s = symbol.toUpperCase();
+      if (s.endsWith('=X') || (s.includes('USD') && s.includes('INR')) || s.includes('EUR') || s.includes('GBP') || s.includes('JPY')) {
+        baseRange = 0.01; // 1% range for Forex
+      } else if (['NIFTY', 'SENSEX', 'BANKNIFTY', '^NSEI', '^BSESN', '^NSEBANK', 'NSEI', 'BSESN'].includes(s)) {
+        baseRange = 0.03; // 3% range for Indices
+      } else if (s.endsWith('-USD') || s.endsWith('-USDT') || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE'].includes(s)) {
+        baseRange = 0.10; // 10% range for Crypto
+      } else if (s.endsWith('=F')) {
+        baseRange = 0.05; // 5% range for Commodities
+      }
+    }
+    return baseRange * rulerRangeMultiplier;
+  };
+
   const getPriceYPercent = (price, basePrice) => {
     if (!basePrice || !price) return 50;
+    const range = getRulerRange(selectedSymbol);
     const pctDiff = (price - basePrice) / basePrice;
-    const clampedDiff = Math.max(-0.10, Math.min(0.10, pctDiff));
-    // map +10% to 15% (top portion) and -10% to 85% (bottom portion)
-    return 50 - (clampedDiff / 0.10) * 35;
+    const clampedDiff = Math.max(-range, Math.min(range, pctDiff));
+    // map +range to 15% (top portion) and -range to 85% (bottom portion)
+    return 50 - (clampedDiff / range) * 35;
   };
 
   const getYPercentPrice = (yPercent, basePrice) => {
     if (!basePrice) return 0;
-    const pctDiff = ((50 - yPercent) / 35) * 0.10;
+    const range = getRulerRange(selectedSymbol);
+    const pctDiff = ((50 - yPercent) / 35) * range;
     return basePrice * (1 + pctDiff);
   };
 
@@ -283,6 +305,12 @@ export default function PaperTrading() {
     
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleWheelRulerRange = (e) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 0.95 : 1.05; // 5% steps for smooth zooming
+    setRulerRangeMultiplier(prev => Math.max(0.1, Math.min(10, prev * factor)));
   };
 
   // Format price based on symbol context
@@ -1548,41 +1576,102 @@ export default function PaperTrading() {
             </div>
 
             {/* Draggable SL/TP Side Ruler */}
-            <div style={{
-              width: '80px',
-              height: '520px',
-              background: 'rgba(10, 14, 39, 0.5)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '8px',
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              userSelect: 'none',
-              overflow: 'hidden'
-            }}>
+            <div 
+              onWheel={handleWheelRulerRange}
+              title="Scroll here to zoom/adjust price scale range"
+              style={{
+                width: '80px',
+                height: '520px',
+                background: 'rgba(10, 14, 39, 0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '8px',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                userSelect: 'none',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Range Info Header */}
+              <div style={{
+                position: 'absolute',
+                top: '4px',
+                fontSize: '8px',
+                color: 'rgba(255, 255, 255, 0.45)',
+                fontWeight: 700,
+                zIndex: 10,
+                textTransform: 'uppercase',
+                pointerEvents: 'none',
+                background: 'rgba(10, 14, 39, 0.75)',
+                padding: '1px 4px',
+                borderRadius: '3px',
+                border: '1px solid rgba(255, 255, 255, 0.05)'
+              }}>
+                ±{(getRulerRange(selectedSymbol) * 100).toFixed(1)}%
+              </div>
+
               {/* Vertical Scale Line */}
               <div style={{
                 position: 'absolute',
-                top: '10%',
-                bottom: '10%',
+                top: '12%',
+                bottom: '12%',
                 width: '2px',
-                background: 'rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.08)',
                 left: '50%',
                 transform: 'translateX(-50%)'
               }} />
               
-              {/* Tick Marks */}
-              {[...Array(9)].map((_, i) => (
-                <div key={i} style={{
-                  position: 'absolute',
-                  top: `${10 + i * 10}%`,
-                  width: '10px',
-                  height: '1px',
-                  background: 'rgba(255,255,255,0.2)',
-                  left: 'calc(50% - 5px)'
-                }} />
-              ))}
+              {/* Calibrated Ticks & Price Labels */}
+              {(() => {
+                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+                const basePrice = activeHolding ? parseFloat(activeHolding.buyPrice) : livePrice;
+                if (!basePrice) return null;
+                
+                return [...Array(9)].map((_, i) => {
+                  const tickPct = 15 + i * 8.75; // distributed from 15% to 85%
+                  const tickPrice = getYPercentPrice(tickPct, basePrice);
+                  
+                  return (
+                    <div key={i} style={{
+                      position: 'absolute',
+                      top: `${tickPct}%`,
+                      left: 0,
+                      right: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0 4px',
+                      height: '1px',
+                      zIndex: 2,
+                      pointerEvents: 'none'
+                    }}>
+                      {/* Left tick mark */}
+                      <div style={{ width: i % 2 === 0 ? '6px' : '3px', height: '1px', background: 'rgba(255,255,255,0.15)' }} />
+                      
+                      {/* Price label (only show for even tick indices to avoid clutter) */}
+                      {i % 2 === 0 ? (
+                        <span style={{ 
+                          fontSize: '8px', 
+                          color: 'rgba(255, 255, 255, 0.4)', 
+                          fontFamily: 'monospace',
+                          background: '#0a0e27', // cover the vertical line
+                          padding: '0 2px',
+                          borderRadius: '2px',
+                          fontWeight: 500
+                        }}>
+                          {parseFloat(tickPrice).toFixed(selectedSymbol.toUpperCase().endsWith('=X') ? 4 : 0)}
+                        </span>
+                      ) : (
+                        <div style={{ width: '4px' }} />
+                      )}
+                      
+                      {/* Right tick mark */}
+                      <div style={{ width: i % 2 === 0 ? '6px' : '3px', height: '1px', background: 'rgba(255,255,255,0.15)' }} />
+                    </div>
+                  );
+                });
+              })()}
               
               {/* Base Price Line (Middle) */}
               {(() => {
