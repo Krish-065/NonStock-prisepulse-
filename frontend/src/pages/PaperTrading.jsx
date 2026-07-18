@@ -354,6 +354,72 @@ export default function PaperTrading() {
     }
   };
 
+  const handleWheelPriceInput = (e, symbol, type, currentVal) => {
+    e.preventDefault();
+    const direction = e.deltaY < 0 ? 1 : -1;
+    const parsedVal = parseFloat(currentVal) || parseFloat(livePriceRef.current || 0);
+    
+    // Choose step dynamically based on asset price magnitude
+    let step = 1;
+    if (parsedVal > 10000) step = 50;     // e.g. BTC
+    else if (parsedVal > 1000) step = 5;  // e.g. NIFTY
+    else if (parsedVal > 100) step = 1;
+    else if (parsedVal > 10) step = 0.5;
+    else if (parsedVal > 1) step = 0.05;
+    else step = 0.005;
+
+    const newVal = parseFloat((parsedVal + direction * step).toFixed(4));
+    const finalVal = Math.max(0, newVal);
+
+    if (type === 'sl') {
+      setSlInputs(prev => ({ ...prev, [symbol]: finalVal }));
+    } else if (type === 'tp') {
+      setTpInputs(prev => ({ ...prev, [symbol]: finalVal }));
+    }
+  };
+
+  const modifySlTpViaButton = (type, direction) => {
+    const symbol = selectedSymbol;
+    const currentVal = type === 'sl' ? slInputs[symbol] : tpInputs[symbol];
+    const parsedVal = parseFloat(currentVal) || parseFloat(livePriceRef.current || 0);
+
+    let step = 1;
+    if (parsedVal > 10000) step = 50;
+    else if (parsedVal > 1000) step = 5;
+    else if (parsedVal > 100) step = 1;
+    else if (parsedVal > 10) step = 0.5;
+    else if (parsedVal > 1) step = 0.05;
+    else step = 0.005;
+
+    const newVal = parseFloat((parsedVal + direction * step).toFixed(4));
+    const finalVal = Math.max(0, newVal);
+
+    if (type === 'sl') {
+      setSlInputs(prev => ({ ...prev, [symbol]: finalVal }));
+    } else if (type === 'tp') {
+      setTpInputs(prev => ({ ...prev, [symbol]: finalVal }));
+    }
+  };
+
+  const handleWheelQtyInput = (e) => {
+    e.preventDefault();
+    const direction = e.deltaY < 0 ? 1 : -1;
+    const parsedVal = parseFloat(quantity) || 0;
+    
+    let step = 1;
+    if (tradeMode === 'lots') {
+      step = 1; // 1 lot step
+    } else {
+      const lotMult = getLotMultiplier(selectedSymbol);
+      if (lotMult > 1000) step = 1000;
+      else if (lotMult >= 100) step = 100;
+      else step = 10;
+    }
+
+    const newVal = Math.max(0, parsedVal + direction * step);
+    setQuantity(newVal);
+  };
+
   // Search symbols
   const handleSearch = async (val) => {
     setSearchQuery(val);
@@ -1120,6 +1186,206 @@ export default function PaperTrading() {
             {/* Chart Container */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
               <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '520px' }} />
+
+              {/* Floating Position Control Bracket */}
+              {(() => {
+                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+                if (!activeHolding) return null;
+
+                const isInd = isIndianSymbol(selectedSymbol);
+                const curPrice = livePrice;
+                const valuationUsd = parseFloat(activeHolding.quantity || 0) * (isInd ? parseFloat(curPrice || 0) / usdInrRate : parseFloat(curPrice || 0));
+                const costUsd = parseFloat(activeHolding.quantity || 0) * (isInd ? parseFloat(activeHolding.buyPrice || 0) / usdInrRate : parseFloat(activeHolding.buyPrice || 0));
+                const pnlUsd = valuationUsd - costUsd;
+
+                return (
+                  <div style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '60px',
+                    zIndex: 20,
+                    width: '280px',
+                    background: 'rgba(10, 14, 39, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(0, 255, 136, 0.25)',
+                    borderRadius: '12px',
+                    padding: '14px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#00ff88' }}>
+                        Position: {parseFloat(activeHolding.quantity).toLocaleString()} {cleanSymbolName(selectedSymbol)}
+                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: pnlUsd >= 0 ? '#00ff88' : '#ff4444' }}>
+                        {pnlUsd >= 0 ? '+' : ''}${pnlUsd.toFixed(2)}
+                      </span>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>
+                        <span>Stop Loss (SL)</span>
+                        <span style={{ color: '#ff4444' }}>Scroll wheel to modify</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => modifySlTpViaButton('sl', -1)}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: 'none',
+                            color: '#fff',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          step="any"
+                          value={slInputs[selectedSymbol] ?? ''}
+                          onChange={e => setSlInputs({ ...slInputs, [selectedSymbol]: e.target.value })}
+                          onWheel={e => handleWheelPriceInput(e, selectedSymbol, 'sl', slInputs[selectedSymbol])}
+                          style={{
+                            flex: 1,
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '6px',
+                            padding: '6px 8px',
+                            color: 'white',
+                            fontSize: '12px',
+                            outline: 'none',
+                            textAlign: 'center'
+                          }}
+                          placeholder="None"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => modifySlTpViaButton('sl', 1)}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: 'none',
+                            color: '#fff',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>
+                        <span>Take Profit (TP)</span>
+                        <span style={{ color: '#00ff88' }}>Scroll wheel to modify</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => modifySlTpViaButton('tp', -1)}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: 'none',
+                            color: '#fff',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          step="any"
+                          value={tpInputs[selectedSymbol] ?? ''}
+                          onChange={e => setTpInputs({ ...tpInputs, [selectedSymbol]: e.target.value })}
+                          onWheel={e => handleWheelPriceInput(e, selectedSymbol, 'tp', tpInputs[selectedSymbol])}
+                          style={{
+                            flex: 1,
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '6px',
+                            padding: '6px 8px',
+                            color: 'white',
+                            fontSize: '12px',
+                            outline: 'none',
+                            textAlign: 'center'
+                          }}
+                          placeholder="None"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => modifySlTpViaButton('tp', 1)}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: 'none',
+                            color: '#fff',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveSlTp(selectedSymbol, slInputs[selectedSymbol], tpInputs[selectedSymbol])}
+                        style={{
+                          flex: 1,
+                          background: '#00ff88',
+                          color: '#0a0e27',
+                          border: 'none',
+                          padding: '6px 0',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Save Brackets
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleClosePosition(activeHolding)}
+                        style={{
+                          flex: 1,
+                          background: 'rgba(255, 68, 68, 0.1)',
+                          border: '1px solid rgba(255, 68, 68, 0.3)',
+                          color: '#ff4444',
+                          padding: '6px 0',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Close Position
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -1289,6 +1555,7 @@ export default function PaperTrading() {
                 step="any"
                 value={quantity}
                 onChange={e => setQuantity(parseFloat(e.target.value) || '')}
+                onWheel={handleWheelQtyInput}
                 style={{
                   background: 'rgba(255, 255, 255, 0.03)',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -1508,6 +1775,7 @@ export default function PaperTrading() {
                               value={slInputs[h.symbol] ?? ''}
                               placeholder="Set SL price"
                               onChange={e => setSlInputs({ ...slInputs, [h.symbol]: e.target.value })}
+                              onWheel={e => handleWheelPriceInput(e, h.symbol, 'sl', slInputs[h.symbol])}
                               style={{
                                 width: '100px',
                                 background: 'rgba(255,255,255,0.02)',
@@ -1529,6 +1797,7 @@ export default function PaperTrading() {
                               value={tpInputs[h.symbol] ?? ''}
                               placeholder="Set TP target"
                               onChange={e => setTpInputs({ ...tpInputs, [h.symbol]: e.target.value })}
+                              onWheel={e => handleWheelPriceInput(e, h.symbol, 'tp', tpInputs[h.symbol])}
                               style={{
                                 width: '100px',
                                 background: 'rgba(255,255,255,0.02)',
