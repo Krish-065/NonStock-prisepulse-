@@ -175,8 +175,15 @@ export default function PaperTrading() {
   const [activeIndicators, setActiveIndicators] = useState({
     sma20: false,
     ema50: false,
+    rsi: false,
+    macd: false,
+    // Pro Exclusive Indicators & Strategies
     bollinger: false,
-    rsi: false
+    stochRsi: false,
+    ichimoku: false,
+    superTrend: false,
+    vwap: false,
+    sar: false
   });
   
   // Chart Refs
@@ -645,8 +652,16 @@ export default function PaperTrading() {
       const studies = [];
       if (activeIndicators.sma20) studies.push("MASimple@tv-basicstudies");
       if (activeIndicators.ema50) studies.push("MAExponential@tv-basicstudies");
-      if (activeIndicators.bollinger) studies.push("BB@tv-basicstudies");
       if (activeIndicators.rsi) studies.push("RSI@tv-basicstudies");
+      if (activeIndicators.macd) studies.push("MACD@tv-basicstudies");
+      
+      // Pro indicators & strategies
+      if (activeIndicators.bollinger) studies.push("BB@tv-basicstudies");
+      if (activeIndicators.stochRsi) studies.push("StochasticRSI@tv-basicstudies");
+      if (activeIndicators.ichimoku) studies.push("IchimokuCloud@tv-basicstudies");
+      if (activeIndicators.superTrend) studies.push("SuperTrend@tv-basicstudies");
+      if (activeIndicators.vwap) studies.push("VWAP@tv-basicstudies");
+      if (activeIndicators.sar) studies.push("ParabolicSAR@tv-basicstudies");
 
       let tvInterval = 'D';
       if (chartInterval === '1m') tvInterval = '1';
@@ -1278,69 +1293,85 @@ export default function PaperTrading() {
             </div>
 
             {/* Controls Toggles */}
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-              {/* Indicator Toggles */}
-              <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', gap: '4px' }}>
-                <button
-                  onClick={() => setActiveIndicators({ ...activeIndicators, sma20: !activeIndicators.sma20 })}
-                  style={{
-                    background: activeIndicators.sma20 ? '#00bcd4' : 'transparent',
-                    color: activeIndicators.sma20 ? '#ffffff' : '#9b9eac',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '6px 10px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  SMA
-                </button>
-                <button
-                  onClick={() => setActiveIndicators({ ...activeIndicators, ema50: !activeIndicators.ema50 })}
-                  style={{
-                    background: activeIndicators.ema50 ? '#ff9800' : 'transparent',
-                    color: activeIndicators.ema50 ? '#ffffff' : '#9b9eac',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '6px 10px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  EMA
-                </button>
-                <button
-                  onClick={() => setActiveIndicators({ ...activeIndicators, bollinger: !activeIndicators.bollinger })}
-                  style={{
-                    background: activeIndicators.bollinger ? 'rgba(156, 39, 176, 0.8)' : 'transparent',
-                    color: activeIndicators.bollinger ? '#ffffff' : '#9b9eac',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '6px 10px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  BB
-                </button>
-                <button
-                  onClick={() => setActiveIndicators({ ...activeIndicators, rsi: !activeIndicators.rsi })}
-                  style={{
-                    background: activeIndicators.rsi ? '#e040fb' : 'transparent',
-                    color: activeIndicators.rsi ? '#ffffff' : '#9b9eac',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '6px 10px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
-                >
-                  RSI
-                </button>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Standard Indicators Group */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '9px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Standard Indicators</span>
+                <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', gap: '4px' }}>
+                  {[
+                    { id: 'sma20', label: 'SMA', color: '#00bcd4' },
+                    { id: 'ema50', label: 'EMA', color: '#ff9800' },
+                    { id: 'rsi', label: 'RSI', color: '#e040fb' },
+                    { id: 'macd', label: 'MACD', color: '#00e676' }
+                  ].map(ind => (
+                    <button
+                      key={ind.id}
+                      onClick={() => setActiveIndicators({ ...activeIndicators, [ind.id]: !activeIndicators[ind.id] })}
+                      style={{
+                        background: activeIndicators[ind.id] ? ind.color : 'transparent',
+                        color: activeIndicators[ind.id] ? '#0a0e27' : '#9b9eac',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 10px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {ind.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pro Exclusive Strategies/Indicators Group */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '9px', color: '#ffb300', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  👑 Pro Strategies
+                </span>
+                <div style={{ display: 'flex', background: 'rgba(255, 179, 0, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255, 179, 0, 0.1)', gap: '4px' }}>
+                  {[
+                    { id: 'bollinger', label: 'BB', color: '#ffeb3b' },
+                    { id: 'stochRsi', label: 'Stoch RSI', color: '#ff5722' },
+                    { id: 'ichimoku', label: 'Ichimoku', color: '#e91e63' },
+                    { id: 'superTrend', label: 'SuperTrend', color: '#9c27b0' },
+                    { id: 'vwap', label: 'VWAP', color: '#3f51b5' },
+                    { id: 'sar', label: 'Parabolic SAR', color: '#009688' }
+                  ].map(ind => {
+                    const isActivated = activeIndicators[ind.id];
+                    return (
+                      <button
+                        key={ind.id}
+                        onClick={() => {
+                          if (!isPro) {
+                            toast.error(`👑 ${ind.label} is a NonStock Pro exclusive strategy. Upgrade to unlock!`);
+                            return;
+                          }
+                          setActiveIndicators({ ...activeIndicators, [ind.id]: !activeIndicators[ind.id] });
+                        }}
+                        style={{
+                          background: isActivated ? ind.color : 'transparent',
+                          color: isActivated ? '#0a0e27' : '#ffb300',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 10px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          opacity: isPro ? 1 : 0.65,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {!isPro && <span style={{ fontSize: '10px' }}>🔒</span>}
+                        {ind.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Interval Toggles */}
