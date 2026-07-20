@@ -38,6 +38,7 @@ import Community from './pages/Community';
 import Alerts from './pages/Alerts';
 import UpgradePro from './pages/UpgradePro';
 import ContactUs from './pages/ContactUs';
+import Terms from './pages/Terms';
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "416992875765-gdh7ncmsipfgnh3o8vrc95igg6ifdio1.apps.googleusercontent.com";
@@ -54,8 +55,10 @@ function App() {
               <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
               <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
               <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+              <Route path="/terms" element={<Terms />} />
 
               {/* Protected Routes (require login) */}
+
               <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
               <Route path="/portfolio" element={<PrivateRoute><Layout><Portfolio /></Layout></PrivateRoute>} />
               <Route path="/paper-trading" element={<PrivateRoute><Layout><PaperTrading /></Layout></PrivateRoute>} />

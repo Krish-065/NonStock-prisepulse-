@@ -83,6 +83,17 @@ export default function AIMentor() {
   
   const chatEndRef = useRef(null);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [mobileTab, setMobileTab] = useState('chat');
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const fetchConversations = async () => {
     try {
       const res = await apiClient.get('/ai/conversations');
@@ -239,7 +250,24 @@ export default function AIMentor() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 340px', gap: '24px', alignItems: 'stretch' }}>
+      {/* Mobile Tab Selectors */}
+      {isMobile && (
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <button type="button" onClick={() => setMobileTab('history')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: 'pointer', background: mobileTab === 'history' ? '#10142d' : 'transparent', color: mobileTab === 'history' ? '#00ff88' : '#9b9eac', transition: 'all 0.2s' }}>
+              History
+            </button>
+            <button type="button" onClick={() => setMobileTab('chat')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: 'pointer', background: mobileTab === 'chat' ? '#10142d' : 'transparent', color: mobileTab === 'chat' ? '#00ff88' : '#9b9eac', transition: 'all 0.2s' }}>
+              AI Chat
+            </button>
+            <button type="button" onClick={() => setMobileTab('technicals')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: 'pointer', background: mobileTab === 'technicals' ? '#10142d' : 'transparent', color: mobileTab === 'technicals' ? '#00ff88' : '#9b9eac', transition: 'all 0.2s' }}>
+              Technicals
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="responsive-grid-stack" style={{ display: 'grid', gridTemplateColumns: '280px 1fr 340px', gap: '24px', alignItems: 'stretch' }}>
         
         {/* Left Sidebar: Chat History */}
         <div style={{
@@ -247,7 +275,7 @@ export default function AIMentor() {
           border: '1px solid var(--border-color)',
           borderRadius: '16px',
           padding: '20px',
-          display: 'flex',
+          display: isMobile && mobileTab !== 'history' ? 'none' : 'flex',
           flexDirection: 'column',
           gap: '16px',
           height: '620px',
@@ -368,7 +396,7 @@ export default function AIMentor() {
           border: '1px solid var(--border-color)',
           borderRadius: '16px',
           padding: '24px',
-          display: 'flex',
+          display: isMobile && mobileTab !== 'chat' ? 'none' : 'flex',
           flexDirection: 'column',
           height: '620px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
@@ -488,7 +516,7 @@ export default function AIMentor() {
         </div>
 
         {/* Right Sidebar: Real-Time Technical Insights */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: isMobile && mobileTab !== 'technicals' ? 'none' : 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Real-Time Tech Widget */}
           <div style={{

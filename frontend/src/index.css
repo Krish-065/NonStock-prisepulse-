@@ -809,3 +809,92 @@ body.pro-mode-active {
 .pro-mode-active tr:hover td {
   background: rgba(255, 179, 0, 0.04) !important;
 }
+
+/* Premium Mobile Responsive Helper Classes */
+@media (max-width: 1024px) {
+  .responsive-grid-stack {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .mobile-full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-reduced-height-chart {
+    height: 340px !important;
+    min-height: 340px !important;
+  }
+
+  .mobile-reduced-height {
+    height: 420px !important;
+    min-height: 420px !important;
+  }
+
+  .mobile-scroll-x {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-scroll-x::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .mobile-hide {
+    display: none !important;
+  }
+
+  .mobile-show {
+    display: block !important;
+  }
+
+  /* Make containers fit exactly within the mobile viewport */
+  main {
+    padding: 154px 12px 88px 12px !important;
+  }
+
+  /* Ensure card margins do not overflow */
+  .section-card {
+    padding: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .two-column {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .mobile-relative-position-bracket {
+    position: relative !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    margin-top: 12px !important;
+    box-shadow: none !important;
+    border-radius: 12px !important;
+  }
+
+  .tools-nav-scroll {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 8px !important;
+    scrollbar-width: none !important;
+  }
+
+  .tools-nav-scroll::-webkit-scrollbar {
+    display: none !important;
+  }
+}

@@ -2008,7 +2008,7 @@ export default function PaperTrading() {
       </div>
 
       {/* Main Workspace Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px', alignItems: 'start' }}>
+      <div className="responsive-grid-stack" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px', alignItems: 'start' }}>
         
         {/* Chart Window */}
         <div style={{
@@ -2302,12 +2302,12 @@ export default function PaperTrading() {
             {/* Chart Container */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
               {/* TradingView Widget Container */}
-              <div style={{ display: chartType === 'tradingview' ? 'block' : 'none', width: '100%', height: '520px' }}>
-                <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '520px' }} />
+              <div className="mobile-reduced-height-chart" style={{ display: chartType === 'tradingview' ? 'block' : 'none', width: '100%', height: '520px' }}>
+                <div id="tradingview_paper_chart" className="mobile-reduced-height-chart" ref={chartContainerRef} style={{ width: '100%', height: '520px' }} />
               </div>
 
               {/* Custom Candlestick Chart Container */}
-              <div style={{ display: chartType === 'custom' ? 'block' : 'none', width: '100%', height: '520px', position: 'relative' }}>
+              <div className="mobile-reduced-height-chart" style={{ display: chartType === 'custom' ? 'block' : 'none', width: '100%', height: '520px', position: 'relative' }}>
                 {customLoading && (
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(10, 14, 39, 0.8)', zIndex: 10 }}>
                     <div style={{ color: '#00ff88', fontSize: '14px', fontWeight: 600 }}>Loading custom chart data...</div>
@@ -2318,7 +2318,7 @@ export default function PaperTrading() {
                     <div style={{ color: '#ff4444', fontSize: '14px', fontWeight: 600 }}>{customError}</div>
                   </div>
                 )}
-                <div ref={customChartContainerRef} style={{ width: '100%', height: '520px' }} />
+                <div ref={customChartContainerRef} className="mobile-reduced-height-chart" style={{ width: '100%', height: '520px' }} />
               </div>
 
               {/* Floating Position Control Bracket */}
@@ -2333,7 +2333,7 @@ export default function PaperTrading() {
                 const pnlUsd = valuationUsd - costUsd;
 
                 return (
-                  <div style={{
+                  <div className="mobile-relative-position-bracket" style={{
                     position: 'absolute',
                     top: '12px',
                     right: '60px',

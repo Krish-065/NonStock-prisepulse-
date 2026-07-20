@@ -1268,7 +1268,7 @@ export default function Markets() {
       </div>
 
       {/* Controls Row */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
+      <div className="mobile-stack" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
 
         {/* Symbol Search */}
         <div ref={searchRef} style={{ position: 'relative' }}>
@@ -1280,7 +1280,7 @@ export default function Markets() {
           </button>
 
           {showSearch && (
-            <div style={{ position: 'absolute', top: '44px', left: 0, width: '340px', background: '#0d1128', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 16px 40px rgba(0,0,0,0.6)', zIndex: 100, overflow: 'hidden' }}>
+            <div className="mobile-full-width" style={{ position: 'absolute', top: '44px', left: 0, width: '100%', minWidth: '280px', maxWidth: '340px', background: '#0d1128', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 16px 40px rgba(0,0,0,0.6)', zIndex: 100, overflow: 'hidden' }}>
               <div style={{ padding: '10px' }}>
                 <input
                   autoFocus
@@ -1359,10 +1359,10 @@ export default function Markets() {
       </div>
 
       {/* Workspace Chart Card */}
-      <div style={{ flex: 1, background: '#0a0e27', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', overflow: 'hidden', minHeight: '620px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
+      <div className="mobile-reduced-height" style={{ flex: 1, background: '#0a0e27', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', overflow: 'hidden', minHeight: '620px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
         
         {/* Workspace Tab Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '0 20px', flexWrap: 'wrap', gap: '8px', height: '48px' }}>
+        <div className="mobile-scroll-x" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '0 20px', flexWrap: 'nowrap', gap: '8px', height: '48px' }}>
           <div style={{ display: 'flex', gap: '16px', height: '100%' }}>
             <button
               onClick={() => setActiveTab('tradingview')}
@@ -1430,7 +1430,7 @@ export default function Markets() {
 
         {/* Indicators Overlay Sub-Header for Custom Chart */}
         {activeTab === 'custom' && (
-          <div style={{
+          <div className="mobile-scroll-x" style={{
             display: 'flex',
             gap: '16px',
             alignItems: 'center',
@@ -1438,7 +1438,7 @@ export default function Markets() {
             backdropFilter: 'blur(10px)',
             borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
             padding: '8px 20px',
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
             zIndex: 6
           }}>
             <span style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Standard:</span>
@@ -1512,15 +1512,15 @@ export default function Markets() {
         )}
 
         {/* Chart Viewport */}
-        <div style={{ flex: 1, position: 'relative', minHeight: '540px', background: '#0a0e27', display: 'flex', flexDirection: 'column' }}>
+        <div className="mobile-reduced-height-chart" style={{ flex: 1, position: 'relative', minHeight: '540px', background: '#0a0e27', display: 'flex', flexDirection: 'column' }}>
           
           {/* TradingView Container */}
-          <div style={{ display: activeTab === 'tradingview' ? 'block' : 'none', width: '100%', height: '540px' }}>
-            <div id="tradingview_chart_container" ref={tvContainerRef} style={{ width: '100%', height: '540px' }} />
+          <div className="mobile-reduced-height-chart" style={{ display: activeTab === 'tradingview' ? 'block' : 'none', width: '100%', height: '540px' }}>
+            <div id="tradingview_chart_container" className="mobile-reduced-height-chart" ref={tvContainerRef} style={{ width: '100%', height: '540px' }} />
           </div>
 
           {/* Custom NonStock Chart Container */}
-          <div style={{ display: activeTab === 'custom' ? 'block' : 'none', width: '100%', height: '540px', position: 'relative' }}>
+          <div className="mobile-reduced-height-chart" style={{ display: activeTab === 'custom' ? 'block' : 'none', width: '100%', height: '540px', position: 'relative' }}>
             {customLoading && (
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10, 14, 39, 0.8)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 10 }}>
                 <div className="spinner" style={{ border: '3px solid rgba(255,255,255,0.05)', borderTop: '3px solid #00ff88', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
@@ -1564,7 +1564,7 @@ export default function Markets() {
               </div>
             )}
             
-            <div id="nonstock_chart_container" ref={customChartContainerRef} style={{ width: '100%', height: '540px' }} />
+            <div id="nonstock_chart_container" className="mobile-reduced-height-chart" ref={customChartContainerRef} style={{ width: '100%', height: '540px' }} />
           </div>
         </div>
 

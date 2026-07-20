@@ -15,10 +15,16 @@ export default function Register() {
   const [requiresVerification, setRequiresVerification] = useState(false);
   const [otp, setOtp] = useState('');
 
+  const [agreed, setAgreed] = useState(false);
+
   const { register, verifyEmail, googleLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleGoogleSuccess = async (credentialResponse) => {
+    if (!agreed) {
+      toast.error('Please agree to the Terms & Conditions and disclaimer first.');
+      return;
+    }
     setLoading(true);
     const result = await googleLogin(credentialResponse.credential);
     setLoading(false);
@@ -33,7 +39,10 @@ export default function Register() {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    loading; // placeholder
+    if (!agreed) {
+      toast.error('You must agree to the Terms & Conditions and disclaimer to register.');
+      return;
+    }
     setLoading(true);
     const result = await register(email, password, name);
     setLoading(false);
@@ -45,6 +54,7 @@ export default function Register() {
       }
     }
   };
+
 
   const handleVerifySubmit = async (e) => {
     e.preventDefault();
@@ -81,6 +91,19 @@ export default function Register() {
               <AlertCircle size={14} style={{ color: '#00bcd4', flexShrink: 0, marginTop: '2px' }} />
               <span>Password must be 8+ characters, with at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&amp;).</span>
             </p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '20px', marginTop: '-10px' }}>
+              <input 
+                type="checkbox" 
+                id="termsCheckbox" 
+                checked={agreed} 
+                onChange={(e) => setAgreed(e.target.checked)} 
+                required 
+                style={{ marginTop: '2px', cursor: 'pointer', width: 'auto', height: 'auto' }}
+              />
+              <label htmlFor="termsCheckbox" style={{ fontSize: '11px', color: '#9b9eac', lineHeight: '1.4', cursor: 'pointer', textAlign: 'left' }}>
+                I agree to the <Link to="/terms" style={{ color: '#00ff88', textDecoration: 'underline', fontWeight: '600' }}>Terms &amp; Conditions</Link> and acknowledge the educational simulated nature of the platform.
+              </label>
+            </div>
             <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg, #00ff88, #00bcd4)', border: 'none', color: '#0a0e27', padding: '14px', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', transition: 'transform 0.2s, box-shadow 0.2s', width: '100%' }}>
               {loading ? 'Creating Account...' : 'Register'}
             </button>

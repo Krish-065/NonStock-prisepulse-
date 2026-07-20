@@ -361,10 +361,10 @@ export default function Tools() {
         </h1>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', alignItems: 'start' }}>
+      <div className="responsive-grid-stack" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', alignItems: 'start' }}>
         {/* Navigation Sidebar */}
-        <div style={{ background: '#0a0e27', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <h3 style={{ margin: '0 0 12px 6px', fontSize: '11px', fontWeight: 800, color: '#9b9eac', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Available Calculators</h3>
+        <div className="tools-nav-scroll" style={{ background: '#0a0e27', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <h3 className="mobile-hide" style={{ margin: '0 0 12px 6px', fontSize: '11px', fontWeight: 800, color: '#9b9eac', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Available Calculators</h3>
           {calculatorsList.map(item => (
             <button 
               key={item.id} 
@@ -382,7 +382,8 @@ export default function Tools() {
                 fontWeight: calc === item.id ? '700' : '500',
                 fontSize: '13px',
                 textAlign: 'left',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                flexShrink: 0
               }}
               onMouseOver={(e) => {
                 if (calc !== item.id) e.target.style.background = 'rgba(255,255,255,0.02)';
@@ -400,8 +401,8 @@ export default function Tools() {
         </div>
 
         {/* Calculation Panel */}
-        <div style={{ background: '#0a0e27', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '32px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '36px' }}>
+        <div className="section-card" style={{ background: '#0a0e27', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '32px' }}>
+          <div className="responsive-grid-stack" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '36px' }}>
             
             {/* Input Controls */}
             <div>

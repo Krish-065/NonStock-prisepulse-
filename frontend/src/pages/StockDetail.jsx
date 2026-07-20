@@ -1094,7 +1094,7 @@ export default function StockDetail() {
         </div>
 
         {/* Algo workspace layout grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px', alignItems: 'stretch', marginBottom: '24px' }}>
+        <div className="responsive-grid-stack" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px', alignItems: 'stretch', marginBottom: '24px' }}>
           
           {/* Split Left: SVG Interactive Chart */}
           <div style={{
@@ -1484,7 +1484,7 @@ export default function StockDetail() {
           </div>
 
           {/* Split Right: Strategy configuration Panel + Paper Order Execution Desk */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '340px' }}>
+          <div className="mobile-full-width" style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '340px' }}>
             <div style={{
               background: 'var(--bg-card-glass)',
               border: '1px solid var(--border-color)',
