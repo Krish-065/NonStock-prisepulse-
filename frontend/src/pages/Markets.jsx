@@ -4,6 +4,8 @@ import { Search, Activity, BarChart2 } from 'lucide-react';
 import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { apiClient } from '../services/api';
 import { io } from 'socket.io-client';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 // Symbol categories with popular options
 const SYMBOL_CATEGORIES = {
@@ -85,8 +87,233 @@ const INTERVALS = [
 
 const ALL_SYMBOLS = Object.values(SYMBOL_CATEGORIES).flat();
 
+// Heuristic indicator computation helpers for lightweight-charts
+const calculateSMA = (data, period) => {
+  const sma = [];
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) {
+      sma.push({ time: data[i].time });
+    } else {
+      let sum = 0;
+      for (let j = 0; j < period; j++) {
+        sum += data[i - j].close;
+      }
+      sma.push({ time: data[i].time, value: sum / period });
+    }
+  }
+  return sma;
+};
+
+const calculateEMA = (data, period) => {
+  const ema = [];
+  if (data.length === 0) return ema;
+  const k = 2 / (period + 1);
+  let sum = 0;
+  for (let i = 0; i < Math.min(period, data.length); i++) {
+    sum += data[i].close;
+  }
+  let prevEma = sum / Math.min(period, data.length);
+
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) {
+      ema.push({ time: data[i].time });
+    } else if (i === period - 1) {
+      ema.push({ time: data[i].time, value: prevEma });
+    } else {
+      const val = data[i].close * k + prevEma * (1 - k);
+      ema.push({ time: data[i].time, value: val });
+      prevEma = val;
+    }
+  }
+  return ema;
+};
+
+const calculateBollingerBands = (data, period = 20, multiplier = 2) => {
+  const upper = [];
+  const lower = [];
+  const middle = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) {
+      upper.push({ time: data[i].time });
+      lower.push({ time: data[i].time });
+      middle.push({ time: data[i].time });
+    } else {
+      let sum = 0;
+      for (let j = 0; j < period; j++) {
+        sum += data[i - j].close;
+      }
+      const mean = sum / period;
+      middle.push({ time: data[i].time, value: mean });
+
+      let varianceSum = 0;
+      for (let j = 0; j < period; j++) {
+        varianceSum += Math.pow(data[i - j].close - mean, 2);
+      }
+      const sd = Math.sqrt(varianceSum / period);
+      upper.push({ time: data[i].time, value: mean + multiplier * sd });
+      lower.push({ time: data[i].time, value: mean - multiplier * sd });
+    }
+  }
+  return { upper, lower, middle };
+};
+
+const calculateVWAP = (data) => {
+  const vwap = [];
+  let cumPV = 0;
+  let cumV = 0;
+  let lastDateStr = '';
+
+  for (let i = 0; i < data.length; i++) {
+    const bar = data[i];
+    const barDate = new Date(bar.time * 1000);
+    const dateStr = barDate.toDateString();
+    if (lastDateStr && dateStr !== lastDateStr) {
+      cumPV = 0;
+      cumV = 0;
+    }
+    lastDateStr = dateStr;
+
+    const p = (bar.open + bar.high + bar.low + bar.close) / 4;
+    const v = bar.volume || 1;
+    cumPV += p * v;
+    cumV += v;
+    vwap.push({ time: bar.time, value: cumPV / cumV });
+  }
+  return vwap;
+};
+
+const calculateRSISignals = (data) => {
+  const rsi = [];
+  const period = 14;
+  if (data.length <= period) return [];
+
+  let gains = 0;
+  let losses = 0;
+
+  for (let i = 1; i <= period; i++) {
+    const diff = data[i].close - data[i - 1].close;
+    if (diff > 0) gains += diff;
+    else losses -= diff;
+  }
+
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  rsi[period] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+
+  for (let i = period + 1; i < data.length; i++) {
+    const diff = data[i].close - data[i - 1].close;
+    const gain = diff > 0 ? gain : 0;
+    const loss = diff < 0 ? -diff : 0;
+
+    avgGain = (avgGain * 13 + gain) / 14;
+    avgLoss = (avgLoss * 13 + loss) / 14;
+
+    rsi[i] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+  }
+
+  const markers = [];
+  for (let i = period + 1; i < data.length; i++) {
+    const prev = rsi[i - 1];
+    const curr = rsi[i];
+    if (prev >= 30 && curr < 30) {
+      markers.push({
+        time: data[i].time,
+        position: 'belowBar',
+        color: '#00ff88',
+        shape: 'arrowUp',
+        text: 'RSI BUY'
+      });
+    } else if (prev <= 70 && curr > 70) {
+      markers.push({
+        time: data[i].time,
+        position: 'aboveBar',
+        color: '#ff4444',
+        shape: 'arrowDown',
+        text: 'RSI SELL'
+      });
+    }
+  }
+  return markers;
+};
+
+const calculateMACDSignals = (data) => {
+  if (data.length < 26) return [];
+  const prices = data.map(d => d.close);
+  
+  const computeEMAVal = (pricesList, period) => {
+    const ema = [];
+    const k = 2 / (period + 1);
+    let sum = 0;
+    for (let i = 0; i < Math.min(period, pricesList.length); i++) sum += pricesList[i];
+    let prev = sum / Math.min(period, pricesList.length);
+    for (let i = 0; i < pricesList.length; i++) {
+      if (i < period - 1) ema.push(null);
+      else if (i === period - 1) ema.push(prev);
+      else {
+        const val = pricesList[i] * k + prev * (1 - k);
+        ema.push(val);
+        prev = val;
+      }
+    }
+    return ema;
+  };
+
+  const ema12 = computeEMAVal(prices, 12);
+  const ema26 = computeEMAVal(prices, 26);
+  const macdLine = [];
+  for (let i = 0; i < prices.length; i++) {
+    if (ema12[i] === null || ema26[i] === null) macdLine.push(null);
+    else macdLine.push(ema12[i] - ema26[i]);
+  }
+
+  const validIndex = macdLine.findIndex(x => x !== null);
+  const validMacd = macdLine.slice(validIndex);
+  const signalEMA = computeEMAVal(validMacd, 9);
+  const signalLine = new Array(validIndex).fill(null).concat(signalEMA);
+
+  const markers = [];
+  for (let i = validIndex + 1; i < data.length; i++) {
+    const prevM = macdLine[i - 1];
+    const prevS = signalLine[i - 1];
+    const currM = macdLine[i];
+    const currS = signalLine[i];
+
+    if (prevM !== null && prevS !== null && currM !== null && currS !== null) {
+      if (prevM <= prevS && currM > currS) {
+        markers.push({
+          time: data[i].time,
+          position: 'belowBar',
+          color: '#00ff88',
+          shape: 'arrowUp',
+          text: 'MACD BUY'
+        });
+      } else if (prevM >= prevS && currM < currS) {
+        markers.push({
+          time: data[i].time,
+          position: 'aboveBar',
+          color: '#ff4444',
+          shape: 'arrowDown',
+          text: 'MACD SELL'
+        });
+      }
+    }
+  }
+  return markers;
+};
+
 export default function Markets() {
   const location = useLocation();
+  const { user } = useAuth();
+  const isPro = user?.is_pro || false;
+  const [activeIndicators, setActiveIndicators] = useState({
+    sma20: false,
+    ema50: false,
+    rsi: false,
+    macd: false,
+    bollinger: false,
+    vwap: false,
+  });
   const initialSymbol = location.state?.selectSymbol || 'NSE:NIFTY';
   const initialCategory = (initialSymbol.endsWith('-USD') || initialSymbol.includes('USDT') || initialSymbol.includes('BINANCE:')) 
     ? 'Crypto' 
@@ -480,6 +707,74 @@ export default function Markets() {
     candlestickSeries.setData(formattedCandles);
     volumeSeries.setData(formattedVolume);
 
+    // Render Indicators based on activeIndicators state
+    if (activeIndicators.sma20) {
+      const smaSeries = chart.addSeries(LineSeries, {
+        color: '#00bcd4',
+        lineWidth: 1.5,
+        title: 'SMA 20',
+      });
+      const smaData = calculateSMA(formattedCandles, 20).filter(d => d.value !== undefined);
+      smaSeries.setData(smaData);
+    }
+
+    if (activeIndicators.ema50) {
+      const emaSeries = chart.addSeries(LineSeries, {
+        color: '#ff9800',
+        lineWidth: 1.5,
+        title: 'EMA 50',
+      });
+      const emaData = calculateEMA(formattedCandles, 50).filter(d => d.value !== undefined);
+      emaSeries.setData(emaData);
+    }
+
+    if (activeIndicators.bollinger) {
+      const bbUpper = chart.addSeries(LineSeries, {
+        color: 'rgba(255, 235, 59, 0.4)',
+        lineWidth: 1.2,
+        title: 'BB Upper',
+        lineStyle: 1,
+      });
+      const bbLower = chart.addSeries(LineSeries, {
+        color: 'rgba(255, 235, 59, 0.4)',
+        lineWidth: 1.2,
+        title: 'BB Lower',
+        lineStyle: 1,
+      });
+      const bbMiddle = chart.addSeries(LineSeries, {
+        color: 'rgba(255, 235, 59, 0.25)',
+        lineWidth: 1,
+        title: 'BB Middle',
+      });
+
+      const { upper, lower, middle } = calculateBollingerBands(formattedCandles);
+      bbUpper.setData(upper.filter(d => d.value !== undefined));
+      bbLower.setData(lower.filter(d => d.value !== undefined));
+      bbMiddle.setData(middle.filter(d => d.value !== undefined));
+    }
+
+    if (activeIndicators.vwap) {
+      const vwapSeries = chart.addSeries(LineSeries, {
+        color: '#3f51b5',
+        lineWidth: 1.5,
+        title: 'VWAP',
+      });
+      const vwapData = calculateVWAP(formattedCandles).filter(d => d.value !== undefined);
+      vwapSeries.setData(vwapData);
+    }
+
+    let markers = [];
+    if (activeIndicators.rsi) {
+      markers = markers.concat(calculateRSISignals(formattedCandles));
+    }
+    if (activeIndicators.macd) {
+      markers = markers.concat(calculateMACDSignals(formattedCandles));
+    }
+    if (markers.length > 0) {
+      markers.sort((a, b) => a.time - b.time);
+      candlestickSeries.setMarkers(markers);
+    }
+
     chartInstanceRef.current = chart;
     candlestickSeriesRef.current = candlestickSeries;
     volumeSeriesRef.current = volumeSeries;
@@ -502,7 +797,7 @@ export default function Markets() {
         chartInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [activeIndicators]);
 
   // 4. Fetch Custom History Effect
   useEffect(() => {
@@ -843,6 +1138,85 @@ export default function Markets() {
             </span>
           </div>
         </div>
+
+        {/* Indicators Overlay Sub-Header for Custom Chart */}
+        {activeTab === 'custom' && (
+          <div style={{
+            display: 'flex',
+            gap: '16px',
+            alignItems: 'center',
+            background: 'rgba(14, 18, 43, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+            padding: '8px 20px',
+            flexWrap: 'wrap',
+            zIndex: 6
+          }}>
+            <span style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Standard:</span>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {[
+                { id: 'sma20', label: 'SMA 20', color: '#00bcd4' },
+                { id: 'ema50', label: 'EMA 50', color: '#ff9800' },
+                { id: 'rsi', label: 'RSI Signals', color: '#e040fb' },
+                { id: 'macd', label: 'MACD Signals', color: '#00e676' }
+              ].map(ind => (
+                <button
+                  key={ind.id}
+                  onClick={() => setActiveIndicators(prev => ({ ...prev, [ind.id]: !prev[ind.id] }))}
+                  style={{
+                    background: activeIndicators[ind.id] ? ind.color : 'rgba(255,255,255,0.02)',
+                    color: activeIndicators[ind.id] ? '#0a0e27' : '#9b9eac',
+                    border: activeIndicators[ind.id] ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {ind.label}
+                </button>
+              ))}
+            </div>
+
+            <span style={{ fontSize: '10px', color: '#ffb300', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginLeft: '12px', display: 'flex', alignItems: 'center', gap: '2px' }}>
+              👑 Pro Overlay:
+            </span>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {[
+                { id: 'bollinger', label: 'Bollinger Bands', color: '#ffeb3b' },
+                { id: 'vwap', label: 'VWAP', color: '#3f51b5' }
+              ].map(ind => (
+                <button
+                  key={ind.id}
+                  onClick={() => {
+                    if (!isPro) {
+                      toast.error(`👑 ${ind.label} is a NonStock Pro exclusive strategy. Upgrade to unlock!`);
+                      return;
+                    }
+                    setActiveIndicators(prev => ({ ...prev, [ind.id]: !prev[ind.id] }));
+                  }}
+                  style={{
+                    background: activeIndicators[ind.id] ? ind.color : 'rgba(255,255,255,0.02)',
+                    color: activeIndicators[ind.id] ? '#0a0e27' : '#ffb300',
+                    border: activeIndicators[ind.id] ? 'none' : '1px solid rgba(255,179,0,0.15)',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    opacity: isPro ? 1 : 0.65,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {!isPro && <span style={{ marginRight: '4px' }}>🔒</span>}
+                  {ind.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Chart Viewport */}
         <div style={{ flex: 1, position: 'relative', minHeight: '540px', background: '#0a0e27', display: 'flex', flexDirection: 'column' }}>
