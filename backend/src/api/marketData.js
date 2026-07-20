@@ -797,21 +797,12 @@ router.get('/stock/:symbol', async (req, res) => {
       basePrice = (charSum % 400) + 10;
     }
 
-    // Add a small daily random fluctuation based on symbol name and current time
-    let seed = Date.now() / 60000; // changes every minute
-    let charSum = 0;
-    for (let i = 0; i < cleanSym.length; i++) charSum += cleanSym.charCodeAt(i);
-    const randomVal = Math.sin(seed + charSum) * 0.02; // max 2% change
-    const price = basePrice * (1 + randomVal);
-    const change = price * randomVal;
-    const changePercent = randomVal * 100;
-
     quote = {
-      price,
-      change,
-      changePercent,
-      dayHigh: price * 1.01,
-      dayLow: price * 0.99,
+      price: basePrice,
+      change: 0,
+      changePercent: 0,
+      dayHigh: basePrice,
+      dayLow: basePrice,
       volume: 1500000
     };
   }

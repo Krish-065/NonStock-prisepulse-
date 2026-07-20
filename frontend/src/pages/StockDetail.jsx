@@ -137,7 +137,7 @@ export default function StockDetail() {
   const isNSEorBSE = (sym) => {
     if (!sym) return false;
     const s = sym.toUpperCase();
-    return s.endsWith('.NS') || s.endsWith('.BO') || 
+    return s.includes('.NS') || s.includes('.BO') || 
            s.startsWith('NSE:') || s.startsWith('BSE:') ||
            ['^NSEI', 'NSEI', 'NIFTY', 'NIFTY50', '^BSESN', 'BSESN', 'SENSEX', '^NSEBANK', 'NSEBANK', 'BANKNIFTY', '^CNXIT', 'CNXIT', 'NIFTYIT'].includes(s);
   };
@@ -1039,16 +1039,38 @@ export default function StockDetail() {
       </div>
 
       {/* 1. TradingView Widget Block */}
-      <div style={{
-        background: 'rgba(16, 20, 39, 0.95)',
-        border: '1px solid var(--border-color)',
-        borderRadius: '16px',
-        padding: '16px',
-        overflow: 'hidden',
-        marginBottom: '24px'
-      }}>
-        <div id="tradingview-chart-element" ref={tvContainerRef} style={{ height: '600px', borderRadius: '8px' }}></div>
-      </div>
+      {!isNSE ? (
+        <div style={{
+          background: 'rgba(16, 20, 39, 0.95)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '16px',
+          overflow: 'hidden',
+          marginBottom: '24px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ color: '#00bcd4', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>TradingView Widget (International Only)</span>
+          </div>
+          <div id="tradingview-chart-element" ref={tvContainerRef} style={{ height: '600px', borderRadius: '8px' }}></div>
+        </div>
+      ) : (
+        <div style={{
+          background: 'rgba(255, 68, 68, 0.05)',
+          border: '1px solid rgba(255, 68, 68, 0.25)',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '24px',
+          color: '#ff4444',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+          <strong style={{ fontSize: '15px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>⚠️ TradingView Domain Restrictions</strong>
+          <span style={{ fontSize: '13px', color: '#9b9eac', lineHeight: '1.6' }}>
+            TradingView restricts data licensing for Indian market equities on external host domains. NonStock has automatically configured the **NonStock Live Chart / Strategy Backtester** below to pull live rates and full historical charts from AngelOne.
+          </span>
+        </div>
+      )}
 
       {/* 2. Custom Strategy Lab Block */}
       <div>

@@ -233,6 +233,22 @@ async function fetchAngelHistory(symbol, range, interval) {
     default: fromDate.setDate(toDate.getDate() - 365);
   }
 
+  // Constrain requested dates to AngelOne API maximum query limitations
+  const maxDays = {
+    'ONE_MINUTE': 30,
+    'THREE_MINUTE': 30,
+    'FIVE_MINUTE': 30,
+    'FIFTEEN_MINUTE': 30,
+    'THIRTY_MINUTE': 30,
+    'ONE_HOUR': 30,
+    'ONE_DAY': 2000
+  };
+  const allowedMaxDays = maxDays[angelInterval] || 365;
+  const requestedDays = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
+  if (requestedDays > allowedMaxDays) {
+    fromDate.setTime(toDate.getTime() - allowedMaxDays * 24 * 60 * 60 * 1000);
+  }
+
   const payload = {
     exchange: inst.exchange,
     symboltoken: inst.token,

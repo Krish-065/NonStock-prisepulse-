@@ -203,12 +203,12 @@ export default function Markets() {
 
   const displayLabel = ALL_SYMBOLS.find(s => s.value === symbol)?.label || symbol;
 
-  const isIndianStock = symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || activeCategory === 'Indian Stocks';
+  const isIndianStock = symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || symbol.includes('.NS') || symbol.includes('.BO') || activeCategory === 'Indian Stocks';
 
   // Automatically switch tab when a new symbol is selected
   useEffect(() => {
     if (symbol !== lastSymbolRef.current) {
-      const isInd = symbol.startsWith('NSE:') || symbol.startsWith('BSE:');
+      const isInd = symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || symbol.includes('.NS') || symbol.includes('.BO');
       const isCommodity = symbol.endsWith('=F') || symbol.startsWith('TVC:') || activeCategory === 'Commodities';
       setActiveTab((isInd || isCommodity) ? 'custom' : 'tradingview');
       lastSymbolRef.current = symbol;
@@ -839,7 +839,7 @@ export default function Markets() {
               boxShadow: activeTab === 'custom' ? '0 0 8px #00ff88' : '0 0 8px #00bcd4'
             }} />
             <span style={{ color: '#9b9eac', fontSize: '11px', fontWeight: 600 }}>
-              {activeTab === 'custom' ? 'Live Canvas Engine' : 'TradingView Embed'}
+              {activeTab === 'custom' ? 'NonStock Live (Indian Stocks)' : 'TradingView Widget (Intl Only)'}
             </span>
           </div>
         </div>

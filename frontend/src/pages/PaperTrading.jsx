@@ -1664,7 +1664,9 @@ export default function PaperTrading() {
 
               {/* Chart Source Toggles */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '9px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Chart Engine</span>
+                <span style={{ fontSize: '9px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Chart Engine <span style={{ color: '#00bcd4', textTransform: 'none', fontWeight: 500 }}>(TradingView: Intl | NonStock Live: Indian)</span>
+                </span>
                 <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', gap: '4px' }}>
                   <button
                     type="button"
