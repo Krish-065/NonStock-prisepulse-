@@ -139,7 +139,7 @@ export default function PaperTrading() {
   const [activeConsoleTab, setActiveConsoleTab] = useState('positions');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedMarket, setSelectedMarket] = useState('All');
+  const selectedMarket = 'All';
 
   const filteredPopularWatchlist = POPULAR_WATCHLIST.filter(item => {
     const isIndian = isIndianSymbol(item.symbol);
@@ -811,12 +811,12 @@ export default function PaperTrading() {
 
   const getRangeForInterval = (v) => {
     switch (v) {
-      case '1m': return '1d';
-      case '5m': return '5d';
-      case '15m': return '1mo';
-      case '60m': return '1mo';
-      case '1d': return '1y';
-      default: return '1y';
+      case '1m': return '7d';
+      case '5m': return '1mo';
+      case '15m': return '3mo';
+      case '60m': return '2y';
+      case '1d': return '5y';
+      default: return '5y';
     }
   };
 
@@ -911,6 +911,8 @@ export default function PaperTrading() {
 
     customChartInstanceRef.current = chart;
     candlestickSeriesRef.current = candlestickSeries;
+
+    chart.timeScale().fitContent();
 
     // Handle responsive resize
     const handleResize = () => {
@@ -1462,32 +1464,7 @@ export default function PaperTrading() {
             gap: '12px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
-              {/* Market Selector Toggle */}
-              <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '2px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)', gap: '2px' }}>
-                {[
-                  { label: 'All 🌐', value: 'All' },
-                  { label: 'India 🇮🇳', value: 'Indian' },
-                  { label: 'Intl 🌎', value: 'International' }
-                ].map(m => (
-                  <button
-                    key={m.value}
-                    onClick={() => setSelectedMarket(m.value)}
-                    style={{
-                      background: selectedMarket === m.value ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
-                      border: 'none',
-                      color: selectedMarket === m.value ? '#00ff88' : '#9b9eac',
-                      padding: '4px 8px',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
+
 
               <div style={{ position: 'relative' }}>
                 <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9b9eac' }} />

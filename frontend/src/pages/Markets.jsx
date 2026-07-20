@@ -125,7 +125,7 @@ export default function Markets() {
   const [chartKey, setChartKey] = useState(0);
   const searchRef = useRef();
 
-  const [selectedMarket, setSelectedMarket] = useState('All');
+  const selectedMarket = 'All';
 
   const allowedCategories = Object.keys(SYMBOL_CATEGORIES).filter(cat => {
     if (selectedMarket === 'Indian') return cat === 'Indian Stocks';
@@ -351,15 +351,15 @@ export default function Markets() {
 
   const getRangeForInterval = useCallback((v) => {
     switch (v) {
-      case '1': return '5d';
-      case '5': return '30d';
-      case '15': return '30d';
-      case '60': return '3mo';
-      case '240': return '6mo';
-      case 'D': return '1y';
-      case 'W': return '2y';
-      case 'M': return '5y';
-      default: return '1y';
+      case '1': return '7d';
+      case '5': return '1mo';
+      case '15': return '3mo';
+      case '60': return '2y';
+      case '240': return '2y';
+      case 'D': return '5y';
+      case 'W': return '5y';
+      case 'M': return '10y';
+      default: return '5y';
     }
   }, []);
 
@@ -685,33 +685,6 @@ export default function Markets() {
 
       {/* Controls Row */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
-
-        {/* Market Selector Toggle */}
-        <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)', gap: '4px' }}>
-          {[
-            { label: 'All Markets 🌐', value: 'All' },
-            { label: 'Indian Markets 🇮🇳', value: 'Indian' },
-            { label: 'International Markets 🌎', value: 'International' }
-          ].map(m => (
-            <button
-              key={m.value}
-              onClick={() => setSelectedMarket(m.value)}
-              style={{
-                background: selectedMarket === m.value ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
-                border: 'none',
-                color: selectedMarket === m.value ? '#00ff88' : '#9b9eac',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
 
         {/* Symbol Search */}
         <div ref={searchRef} style={{ position: 'relative' }}>
