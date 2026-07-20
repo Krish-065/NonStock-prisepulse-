@@ -203,7 +203,7 @@ const calculateRSISignals = (data) => {
 
   for (let i = period + 1; i < data.length; i++) {
     const diff = data[i].close - data[i - 1].close;
-    const gain = diff > 0 ? gain : 0;
+    const gain = diff > 0 ? diff : 0;
     const loss = diff < 0 ? -diff : 0;
 
     avgGain = (avgGain * 13 + gain) / 14;

@@ -821,7 +821,7 @@ export default function PaperTrading() {
   };
 
   // Heuristic indicator computation helpers for lightweight-charts
-  const calculateSMA = (data, period) => {
+  const chartCalculateSMA = (data, period) => {
     const sma = [];
     for (let i = 0; i < data.length; i++) {
       if (i < period - 1) {
@@ -837,7 +837,7 @@ export default function PaperTrading() {
     return sma;
   };
 
-  const calculateEMA = (data, period) => {
+  const chartCalculateEMA = (data, period) => {
     const ema = [];
     if (data.length === 0) return ema;
     const k = 2 / (period + 1);
@@ -861,7 +861,7 @@ export default function PaperTrading() {
     return ema;
   };
 
-  const calculateBollingerBands = (data, period = 20, multiplier = 2) => {
+  const chartCalculateBollingerBands = (data, period = 20, multiplier = 2) => {
     const upper = [];
     const lower = [];
     const middle = [];
@@ -891,7 +891,7 @@ export default function PaperTrading() {
     return { upper, lower, middle };
   };
 
-  const calculateVWAP = (data) => {
+  const chartCalculateVWAP = (data) => {
     const vwap = [];
     let cumPV = 0;
     let cumV = 0;
@@ -916,7 +916,7 @@ export default function PaperTrading() {
     return vwap;
   };
 
-  const calculateRSISignals = (data) => {
+  const chartCalculateRSISignals = (data) => {
     const rsi = [];
     const period = 14;
     if (data.length <= period) return [];
@@ -970,7 +970,7 @@ export default function PaperTrading() {
     return markers;
   };
 
-  const calculateMACDSignals = (data) => {
+  const chartCalculateMACDSignals = (data) => {
     if (data.length < 26) return [];
     const prices = data.map(d => d.close);
     
@@ -1131,7 +1131,7 @@ export default function PaperTrading() {
         lineWidth: 1.5,
         title: 'SMA 20',
       });
-      const smaData = calculateSMA(formattedCandles, 20).filter(d => d.value !== undefined);
+      const smaData = chartCalculateSMA(formattedCandles, 20).filter(d => d.value !== undefined);
       smaSeries.setData(smaData);
     }
 
@@ -1141,7 +1141,7 @@ export default function PaperTrading() {
         lineWidth: 1.5,
         title: 'EMA 50',
       });
-      const emaData = calculateEMA(formattedCandles, 50).filter(d => d.value !== undefined);
+      const emaData = chartCalculateEMA(formattedCandles, 50).filter(d => d.value !== undefined);
       emaSeries.setData(emaData);
     }
 
@@ -1164,7 +1164,7 @@ export default function PaperTrading() {
         title: 'BB Middle',
       });
 
-      const { upper, lower, middle } = calculateBollingerBands(formattedCandles);
+      const { upper, lower, middle } = chartCalculateBollingerBands(formattedCandles);
       bbUpper.setData(upper.filter(d => d.value !== undefined));
       bbLower.setData(lower.filter(d => d.value !== undefined));
       bbMiddle.setData(middle.filter(d => d.value !== undefined));
@@ -1176,16 +1176,16 @@ export default function PaperTrading() {
         lineWidth: 1.5,
         title: 'VWAP',
       });
-      const vwapData = calculateVWAP(formattedCandles).filter(d => d.value !== undefined);
+      const vwapData = chartCalculateVWAP(formattedCandles).filter(d => d.value !== undefined);
       vwapSeries.setData(vwapData);
     }
 
     let markers = [];
     if (activeIndicators.rsi) {
-      markers = markers.concat(calculateRSISignals(formattedCandles));
+      markers = markers.concat(chartCalculateRSISignals(formattedCandles));
     }
     if (activeIndicators.macd) {
-      markers = markers.concat(calculateMACDSignals(formattedCandles));
+      markers = markers.concat(chartCalculateMACDSignals(formattedCandles));
     }
     if (markers.length > 0) {
       markers.sort((a, b) => a.time - b.time);
