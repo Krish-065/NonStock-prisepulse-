@@ -144,8 +144,8 @@ export default function Dashboard() {
               <Sparkles size={20} />
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>Unlock All Premium Features with NonStock Pro</div>
-              <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>Gain access to real-time Option Greeks, Automated Trading Bots & instant SMS/WhatsApp alerts.</div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>Unlock All Premium Features with NonStock Pro</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Gain access to real-time Option Greeks, Automated Trading Bots & instant SMS/WhatsApp alerts.</div>
             </div>
           </div>
           <button style={{
@@ -166,7 +166,7 @@ export default function Dashboard() {
 
       {/* "What are you looking for today?" Intent Grid */}
       <div style={{ marginBottom: '40px' }}>
-        <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px', color: '#ffffff' }}>What are you looking for today?</h3>
+        <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px', color: 'var(--text-primary)' }}>What are you looking for today?</h3>
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
@@ -201,7 +201,7 @@ export default function Dashboard() {
               <Search size={22} />
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Stock Discovery</div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Stock Discovery</div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Screen NSE stocks dynamically</div>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function Dashboard() {
               <Activity size={22} />
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Option Chain</div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Option Chain</div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Analyze Call/Put open interest</div>
             </div>
           </div>
@@ -269,7 +269,7 @@ export default function Dashboard() {
               <TrendingUp size={22} />
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Interactive Charts</div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Interactive Charts</div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Analyze technical stock charts</div>
             </div>
           </div>
@@ -303,7 +303,7 @@ export default function Dashboard() {
               <Briefcase size={22} />
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Track Portfolio</div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Track Portfolio</div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Manage holdings and net worth</div>
             </div>
           </div>

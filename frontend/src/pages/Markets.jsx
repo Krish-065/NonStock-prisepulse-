@@ -302,6 +302,237 @@ const calculateMACDSignals = (data) => {
   return markers;
 };
 
+const chartCalculateStochRSI = (data, period = 14) => {
+  if (data.length <= period * 2) return [];
+  const rsiValues = [];
+  let gains = 0;
+  let losses = 0;
+
+  for (let i = 1; i <= period; i++) {
+    const diff = data[i].close - data[i - 1].close;
+    if (diff > 0) gains += diff;
+    else losses -= diff;
+  }
+
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  rsiValues[period] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+
+  for (let i = period + 1; i < data.length; i++) {
+    const diff = data[i].close - data[i - 1].close;
+    const gain = diff > 0 ? diff : 0;
+    const loss = diff < 0 ? -diff : 0;
+    avgGain = (avgGain * 13 + gain) / 14;
+    avgLoss = (avgLoss * 13 + loss) / 14;
+    rsiValues[i] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+  }
+
+  const stochRsi = [];
+  for (let i = 0; i < data.length; i++) {
+    if (i < period * 2 - 1) {
+      stochRsi.push(null);
+    } else {
+      let minRsi = 100;
+      let maxRsi = 0;
+      for (let j = 0; j < period; j++) {
+        const val = rsiValues[i - j];
+        if (val < minRsi) minRsi = val;
+        if (val > maxRsi) maxRsi = val;
+      }
+      const denom = maxRsi - minRsi;
+      const val = denom === 0 ? 0.5 : (rsiValues[i] - minRsi) / denom;
+      stochRsi.push(val * 100);
+    }
+  }
+
+  const markers = [];
+  for (let i = period * 2; i < data.length; i++) {
+    const prev = stochRsi[i - 1];
+    const curr = stochRsi[i];
+    if (prev !== null && curr !== null) {
+      if (prev <= 20 && curr > 20) {
+        markers.push({
+          time: data[i].time,
+          position: 'belowBar',
+          color: '#00e676',
+          shape: 'arrowUp',
+          text: 'STOCH RSI BUY'
+        });
+      } else if (prev >= 80 && curr < 80) {
+        markers.push({
+          time: data[i].time,
+          position: 'aboveBar',
+          color: '#ff1744',
+          shape: 'arrowDown',
+          text: 'STOCH RSI SELL'
+        });
+      }
+    }
+  }
+  return markers;
+};
+
+const chartCalculateIchimoku = (data) => {
+  const tenkan = [];
+  const kijun = [];
+  const markers = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (i < 8) {
+      tenkan.push({ time: data[i].time });
+    } else {
+      let highestHigh = data[i].high;
+      let lowestLow = data[i].low;
+      for (let j = 1; j < 9; j++) {
+        if (data[i - j].high > highestHigh) highestHigh = data[i - j].high;
+        if (data[i - j].low < lowestLow) lowestLow = data[i - j].low;
+      }
+      tenkan.push({ time: data[i].time, value: (highestHigh + lowestLow) / 2 });
+    }
+
+    if (i < 25) {
+      kijun.push({ time: data[i].time });
+    } else {
+      let highestHigh = data[i].high;
+      let lowestLow = data[i].low;
+      for (let j = 1; j < 26; j++) {
+        if (data[i - j].high > highestHigh) highestHigh = data[i - j].high;
+        if (data[i - j].low < lowestLow) lowestLow = data[i - j].low;
+      }
+      kijun.push({ time: data[i].time, value: (highestHigh + lowestLow) / 2 });
+    }
+  }
+
+  for (let i = 26; i < data.length; i++) {
+    const prevT = tenkan[i - 1].value;
+    const prevK = kijun[i - 1].value;
+    const currT = tenkan[i].value;
+    const currK = kijun[i].value;
+
+    if (prevT && prevK && currT && currK) {
+      if (prevT <= prevK && currT > currK) {
+        markers.push({
+          time: data[i].time,
+          position: 'belowBar',
+          color: '#00e5ff',
+          shape: 'arrowUp',
+          text: 'ICHIMOKU BUY'
+        });
+      } else if (prevT >= prevK && currT < currK) {
+        markers.push({
+          time: data[i].time,
+          position: 'aboveBar',
+          color: '#d500f9',
+          shape: 'arrowDown',
+          text: 'ICHIMOKU SELL'
+        });
+      }
+    }
+  }
+
+  return { tenkan, kijun, markers };
+};
+
+const chartCalculatePivotPoints = (data) => {
+  const pData = [];
+  const r1Data = [];
+  const s1Data = [];
+  const r2Data = [];
+  const s2Data = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (i === 0) {
+      pData.push({ time: data[i].time });
+      r1Data.push({ time: data[i].time });
+      s1Data.push({ time: data[i].time });
+      r2Data.push({ time: data[i].time });
+      s2Data.push({ time: data[i].time });
+    } else {
+      const prev = data[i - 1];
+      const p = (prev.high + prev.low + prev.close) / 3;
+      const r1 = 2 * p - prev.low;
+      const s1 = 2 * p - prev.high;
+      const r2 = p + (prev.high - prev.low);
+      const s2 = p - (prev.high - prev.low);
+
+      pData.push({ time: data[i].time, value: p });
+      r1Data.push({ time: data[i].time, value: r1 });
+      s1Data.push({ time: data[i].time, value: s1 });
+      r2Data.push({ time: data[i].time, value: r2 });
+      s2Data.push({ time: data[i].time, value: s2 });
+    }
+  }
+
+  return { pData, r1Data, s1Data, r2Data, s2Data };
+};
+
+const chartCalculateSAR = (data, step = 0.02, maxStep = 0.20) => {
+  const sar = [];
+  if (data.length === 0) return { sar, markers: [] };
+
+  const markers = [];
+  let isBullish = true;
+  let ep = data[0].high;
+  let af = step;
+  let prevSar = data[0].low;
+
+  sar.push({ time: data[0].time, value: prevSar });
+
+  for (let i = 1; i < data.length; i++) {
+    const bar = data[i];
+    let currentSar = prevSar + af * (ep - prevSar);
+
+    if (isBullish) {
+      if (bar.low < currentSar) {
+        isBullish = false;
+        currentSar = ep;
+        ep = bar.low;
+        af = step;
+        markers.push({
+          time: bar.time,
+          position: 'aboveBar',
+          color: '#ff4444',
+          shape: 'arrowDown',
+          text: 'SAR SELL'
+        });
+      } else {
+        if (bar.high > ep) {
+          ep = bar.high;
+          af = Math.min(af + step, maxStep);
+        }
+        const minPastTwo = Math.min(data[i].low, data[i - 1].low);
+        if (currentSar > minPastTwo) currentSar = minPastTwo;
+      }
+    } else {
+      if (bar.high > currentSar) {
+        isBullish = true;
+        currentSar = ep;
+        ep = bar.high;
+        af = step;
+        markers.push({
+          time: bar.time,
+          position: 'belowBar',
+          color: '#00ff88',
+          shape: 'arrowUp',
+          text: 'SAR BUY'
+        });
+      } else {
+        if (bar.low < ep) {
+          ep = bar.low;
+          af = Math.min(af + step, maxStep);
+        }
+        const maxPastTwo = Math.max(data[i].high, data[i - 1].high);
+        if (currentSar < maxPastTwo) currentSar = maxPastTwo;
+      }
+    }
+
+    sar.push({ time: bar.time, value: currentSar });
+    prevSar = currentSar;
+  }
+
+  return { sar, markers };
+};
+
 export default function Markets() {
   const location = useLocation();
   const { user } = useAuth();
@@ -312,7 +543,11 @@ export default function Markets() {
     rsi: false,
     macd: false,
     bollinger: false,
+    stochRsi: false,
+    ichimoku: false,
+    pivotPoints: false,
     vwap: false,
+    sar: false
   });
   const initialSymbol = location.state?.selectSymbol || 'NSE:NIFTY';
   const initialCategory = (initialSymbol.endsWith('-USD') || initialSymbol.includes('USDT') || initialSymbol.includes('BINANCE:')) 
@@ -763,6 +998,48 @@ export default function Markets() {
       vwapSeries.setData(vwapData);
     }
 
+    if (activeIndicators.ichimoku) {
+      const tenkanSeries = chart.addSeries(LineSeries, {
+        color: '#29b6f6',
+        lineWidth: 1.2,
+        title: 'Tenkan-sen',
+      });
+      const kijunSeries = chart.addSeries(LineSeries, {
+        color: '#ef5350',
+        lineWidth: 1.2,
+        title: 'Kijun-sen',
+      });
+      const { tenkan, kijun } = chartCalculateIchimoku(formattedCandles);
+      tenkanSeries.setData(tenkan.filter(d => d.value !== undefined));
+      kijunSeries.setData(kijun.filter(d => d.value !== undefined));
+    }
+
+    if (activeIndicators.pivotPoints) {
+      const pSeries = chart.addSeries(LineSeries, { color: '#ffeb3b', lineWidth: 1, title: 'Pivot P', lineStyle: 1 });
+      const r1Series = chart.addSeries(LineSeries, { color: '#ff5252', lineWidth: 1, title: 'Pivot R1', lineStyle: 2 });
+      const s1Series = chart.addSeries(LineSeries, { color: '#00e676', lineWidth: 1, title: 'Pivot S1', lineStyle: 2 });
+      const r2Series = chart.addSeries(LineSeries, { color: '#d50000', lineWidth: 1, title: 'Pivot R2', lineStyle: 2 });
+      const s2Series = chart.addSeries(LineSeries, { color: '#00c853', lineWidth: 1, title: 'Pivot S2', lineStyle: 2 });
+
+      const { pData, r1Data, s1Data, r2Data, s2Data } = chartCalculatePivotPoints(formattedCandles);
+      pSeries.setData(pData.filter(d => d.value !== undefined));
+      r1Series.setData(r1Data.filter(d => d.value !== undefined));
+      s1Series.setData(s1Data.filter(d => d.value !== undefined));
+      r2Series.setData(r2Data.filter(d => d.value !== undefined));
+      s2Series.setData(s2Data.filter(d => d.value !== undefined));
+    }
+
+    if (activeIndicators.sar) {
+      const sarSeries = chart.addSeries(LineSeries, {
+        color: '#e040fb',
+        lineWidth: 1,
+        title: 'Parabolic SAR',
+        lineStyle: 3, // Dotted
+      });
+      const { sar } = chartCalculateSAR(formattedCandles);
+      sarSeries.setData(sar.filter(d => d.value !== undefined));
+    }
+
     let markers = [];
     if (activeIndicators.rsi) {
       markers = markers.concat(calculateRSISignals(formattedCandles));
@@ -770,6 +1047,18 @@ export default function Markets() {
     if (activeIndicators.macd) {
       markers = markers.concat(calculateMACDSignals(formattedCandles));
     }
+    if (activeIndicators.stochRsi) {
+      markers = markers.concat(chartCalculateStochRSI(formattedCandles));
+    }
+    if (activeIndicators.ichimoku) {
+      const { markers: ichiMarkers } = chartCalculateIchimoku(formattedCandles);
+      markers = markers.concat(ichiMarkers);
+    }
+    if (activeIndicators.sar) {
+      const { markers: sarMarkers } = chartCalculateSAR(formattedCandles);
+      markers = markers.concat(sarMarkers);
+    }
+
     if (markers.length > 0) {
       markers.sort((a, b) => a.time - b.time);
       candlestickSeries.setMarkers(markers);
@@ -1183,10 +1472,14 @@ export default function Markets() {
             <span style={{ fontSize: '10px', color: '#ffb300', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginLeft: '12px', display: 'flex', alignItems: 'center', gap: '2px' }}>
               👑 Pro Overlay:
             </span>
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {[
-                { id: 'bollinger', label: 'Bollinger Bands', color: '#ffeb3b' },
-                { id: 'vwap', label: 'VWAP', color: '#3f51b5' }
+                { id: 'bollinger', label: 'BB', color: '#ffeb3b' },
+                { id: 'stochRsi', label: 'Stoch RSI', color: '#00e676' },
+                { id: 'ichimoku', label: 'Ichimoku', color: '#29b6f6' },
+                { id: 'pivotPoints', label: 'Pivot Points', color: '#ffeb3b' },
+                { id: 'vwap', label: 'VWAP', color: '#3f51b5' },
+                { id: 'sar', label: 'Parabolic SAR', color: '#e040fb' }
               ].map(ind => (
                 <button
                   key={ind.id}

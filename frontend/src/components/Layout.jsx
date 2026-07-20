@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import CandlestickBg from './CandlestickBg';
-import { Menu, Star, Briefcase, Coins, LineChart, Award, Search, Newspaper, Activity } from 'lucide-react';
+import { Menu, Star, Briefcase, Coins, LineChart, Award, Search, Newspaper, Activity, TrendingUp, LayoutDashboard, MessageSquare } from 'lucide-react';
 import { apiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function Layout({ children }) {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [indices, setIndices] = useState({
@@ -162,9 +165,9 @@ export default function Layout({ children }) {
           left: 0,
           right: 0,
           height: '60px',
-          background: 'rgba(10, 14, 39, 0.95)',
+          background: isDark ? 'rgba(10, 14, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(0, 255, 136, 0.15)',
+          borderBottom: isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)',
           display: 'flex',
           alignItems: 'center',
           padding: '0 20px',
@@ -173,7 +176,7 @@ export default function Layout({ children }) {
         }}>
           <button 
             onClick={() => setSidebarOpen(true)} 
-            style={{ background: 'transparent', border: 'none', color: '#00ff88', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+            style={{ background: 'transparent', border: 'none', color: isDark ? '#00ff88' : '#00796b', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
           >
             <Menu size={24} />
           </button>
@@ -192,9 +195,9 @@ export default function Layout({ children }) {
           left: 0,
           right: 0,
           height: '34px',
-          background: 'rgba(10, 14, 39, 0.92)',
+          background: isDark ? 'rgba(10, 14, 39, 0.92)' : 'rgba(240, 242, 245, 0.95)',
           backdropFilter: 'blur(8px)',
-          borderBottom: '1px solid rgba(0, 255, 136, 0.12)',
+          borderBottom: isDark ? '1px solid rgba(0, 255, 136, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -212,9 +215,9 @@ export default function Layout({ children }) {
             boxShadow: `0 0 6px ${marketStatus.color}`,
             animation: 'pulseStatus 2s infinite'
           }} />
-          <span style={{ color: '#ffffff' }}>{marketStatus.status}</span>
-          <span style={{ color: 'rgba(255, 255, 255, 0.15)' }}>|</span>
-          <span style={{ color: indices.nifty.up ? '#00ff88' : '#ff4444' }}>
+          <span style={{ color: isDark ? '#ffffff' : '#1a1a1a' }}>{marketStatus.status}</span>
+          <span style={{ color: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)' }}>|</span>
+          <span style={{ color: indices.nifty.up ? (isDark ? '#00ff88' : '#2e7d32') : (isDark ? '#ff4444' : '#c62828') }}>
             NIFTY: {indices.nifty.value} ({indices.nifty.percent}%)
           </span>
         </div>
@@ -230,9 +233,9 @@ export default function Layout({ children }) {
             left: 0,
             right: 0,
             height: '44px',
-            background: 'rgba(10, 14, 39, 0.95)',
+            background: isDark ? 'rgba(10, 14, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(8px)',
-            borderBottom: '1px solid rgba(0, 255, 136, 0.12)',
+            borderBottom: isDark ? '1px solid rgba(0, 255, 136, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)',
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
@@ -252,11 +255,11 @@ export default function Layout({ children }) {
                 alignItems: 'center',
                 gap: '6px',
                 padding: '6px 12px',
-                color: isActive ? '#00ff88' : '#9b9eac',
+                color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
                 textDecoration: 'none',
                 borderRadius: '8px',
-                background: isActive ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
-                border: isActive ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid transparent',
+                background: isActive ? (isDark ? 'rgba(0, 255, 136, 0.08)' : 'rgba(0, 121, 107, 0.08)') : 'transparent',
+                border: isActive ? (isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 121, 107, 0.15)') : '1px solid transparent',
                 fontSize: '12px',
                 fontWeight: isActive ? '700' : '500',
                 transition: 'all 0.2s',
@@ -278,9 +281,9 @@ export default function Layout({ children }) {
           left: '260px',
           right: 0,
           height: '115px',
-          background: 'rgba(10, 14, 39, 0.85)',
+          background: isDark ? 'rgba(10, 14, 39, 0.85)' : 'rgba(255, 255, 255, 0.9)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(0, 255, 136, 0.12)',
+          borderBottom: isDark ? '1px solid rgba(0, 255, 136, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -296,34 +299,34 @@ export default function Layout({ children }) {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.5px' }}>NIFTY 50</span>
+                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#5a6a85', fontWeight: 700, letterSpacing: '0.5px' }}>NIFTY 50</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px' }}>{indices.nifty.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.nifty.up ? '#00ff88' : '#ff4444' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#1a1a1a' }}>{indices.nifty.value}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.nifty.up ? (isDark ? '#00ff88' : '#2e7d32') : (isDark ? '#ff4444' : '#c62828') }}>
                     {indices.nifty.up ? '▲' : '▼'} {indices.nifty.percent}%
                   </span>
                 </div>
               </div>
 
-              <div style={{ width: '1px', height: '28px', background: 'rgba(255, 255, 255, 0.08)' }}></div>
+              <div style={{ width: '1px', height: '28px', background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }}></div>
 
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.5px' }}>SENSEX</span>
+                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#5a6a85', fontWeight: 700, letterSpacing: '0.5px' }}>SENSEX</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px' }}>{indices.sensex.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.sensex.up ? '#00ff88' : '#ff4444' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#1a1a1a' }}>{indices.sensex.value}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.sensex.up ? (isDark ? '#00ff88' : '#2e7d32') : (isDark ? '#ff4444' : '#c62828') }}>
                     {indices.sensex.up ? '▲' : '▼'} {indices.sensex.percent}%
                   </span>
                 </div>
               </div>
 
-              <div style={{ width: '1px', height: '28px', background: 'rgba(255, 255, 255, 0.08)' }}></div>
+              <div style={{ width: '1px', height: '28px', background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }}></div>
 
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, letterSpacing: '0.5px' }}>BANK NIFTY</span>
+                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#5a6a85', fontWeight: 700, letterSpacing: '0.5px' }}>BANK NIFTY</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px' }}>{indices.banknifty.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.banknifty.up ? '#00ff88' : '#ff4444' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#1a1a1a' }}>{indices.banknifty.value}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.banknifty.up ? (isDark ? '#00ff88' : '#2e7d32') : (isDark ? '#ff4444' : '#c62828') }}>
                     {indices.banknifty.up ? '▲' : '▼'} {indices.banknifty.percent}%
                   </span>
                 </div>
@@ -335,10 +338,10 @@ export default function Layout({ children }) {
               display: 'flex', 
               alignItems: 'center', 
               gap: '10px', 
-              background: 'rgba(255, 255, 255, 0.02)', 
+              background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', 
               padding: '6px 14px', 
               borderRadius: '20px', 
-              border: '1px solid rgba(255, 255, 255, 0.06)' 
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.08)' 
             }}>
               <span style={{
                 width: '8px',
@@ -349,7 +352,7 @@ export default function Layout({ children }) {
                 boxShadow: `0 0 10px ${marketStatus.color}`,
                 animation: 'pulseStatus 2s infinite'
               }} />
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: isDark ? '#ffffff' : '#1a1a1a' }}>
                 {marketStatus.label}
               </span>
             </div>
@@ -360,10 +363,10 @@ export default function Layout({ children }) {
             display: 'flex', 
             alignItems: 'center', 
             gap: '8px',
-            background: 'rgba(255, 255, 255, 0.02)',
+            background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
             padding: '4px 8px',
             borderRadius: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
+            border: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(0, 0, 0, 0.06)',
             alignSelf: 'flex-start',
             marginTop: '8px'
           }}>
@@ -376,11 +379,11 @@ export default function Layout({ children }) {
                   alignItems: 'center',
                   gap: '6px',
                   padding: '6px 12px',
-                  color: isActive ? '#00ff88' : '#9b9eac',
+                  color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
                   textDecoration: 'none',
                   borderRadius: '8px',
-                  background: isActive ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
-                  border: isActive ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid transparent',
+                  background: isActive ? (isDark ? 'rgba(0, 255, 136, 0.08)' : 'rgba(0, 121, 107, 0.08)') : 'transparent',
+                  border: isActive ? (isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 121, 107, 0.15)') : '1px solid transparent',
                   fontSize: '13px',
                   fontWeight: isActive ? '700' : '500',
                   transition: 'all 0.2s'
@@ -416,7 +419,7 @@ export default function Layout({ children }) {
 
       <main style={{ 
         flex: 1, 
-        padding: isMobile ? '154px 16px 24px 16px' : '139px 24px 24px 24px', 
+        padding: isMobile ? '154px 16px 88px 16px' : '139px 24px 24px 24px', 
         marginLeft: isMobile ? '0' : '260px', 
         transition: 'all 0.3s ease', 
         background: 'transparent', 
@@ -434,6 +437,129 @@ export default function Layout({ children }) {
           {children}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation Bar */}
+      {isMobile && (
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '64px',
+          background: isDark ? 'rgba(12, 16, 42, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(20px)',
+          borderTop: isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)',
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          zIndex: 900,
+          paddingBottom: 'safe-area-inset-bottom',
+          boxShadow: isDark ? '0 -4px 20px rgba(0, 0, 0, 0.4)' : '0 -4px 20px rgba(0, 0, 0, 0.08)'
+        }}>
+          {/* Dashboard */}
+          <NavLink
+            to="/dashboard"
+            style={({ isActive }) => ({
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
+              textDecoration: 'none',
+              gap: '4px',
+              fontSize: '10px',
+              fontWeight: 700,
+              flex: 1
+            })}
+          >
+            <LayoutDashboard size={20} />
+            <span>Home</span>
+          </NavLink>
+
+          {/* Markets */}
+          <NavLink
+            to="/markets"
+            style={({ isActive }) => ({
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
+              textDecoration: 'none',
+              gap: '4px',
+              fontSize: '10px',
+              fontWeight: 700,
+              flex: 1
+            })}
+          >
+            <TrendingUp size={20} />
+            <span>Markets</span>
+          </NavLink>
+
+          {/* Paper Trading */}
+          <NavLink
+            to="/paper-trading"
+            style={({ isActive }) => ({
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
+              textDecoration: 'none',
+              gap: '4px',
+              fontSize: '10px',
+              fontWeight: 700,
+              flex: 1
+            })}
+          >
+            <LineChart size={20} />
+            <span>Trade</span>
+          </NavLink>
+
+          {/* AI Mentor */}
+          <NavLink
+            to="/ai-mentor"
+            style={({ isActive }) => ({
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
+              textDecoration: 'none',
+              gap: '4px',
+              fontSize: '10px',
+              fontWeight: 700,
+              flex: 1
+            })}
+          >
+            <MessageSquare size={20} />
+            <span>AI Mentor</span>
+          </NavLink>
+
+          {/* More menu drawer trigger */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: sidebarOpen ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
+              background: 'transparent',
+              border: 'none',
+              gap: '4px',
+              fontSize: '10px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              flex: 1,
+              padding: 0
+            }}
+          >
+            <Menu size={20} />
+            <span>More</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

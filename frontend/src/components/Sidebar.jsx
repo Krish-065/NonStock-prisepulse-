@@ -56,6 +56,17 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
     });
   }
 
+  const isDark = theme === 'dark';
+  const sidebarBg = isDark 
+    ? (user?.is_pro ? 'rgba(14, 11, 4, 0.98)' : 'rgba(10, 14, 39, 0.98)')
+    : (user?.is_pro ? 'rgba(252, 248, 237, 0.98)' : '#ffffff');
+  const sidebarBorderRight = isDark
+    ? (user?.is_pro ? '1px solid rgba(255, 179, 0, 0.2)' : '1px solid rgba(0, 255, 136, 0.15)')
+    : (user?.is_pro ? '1px solid rgba(255, 179, 0, 0.25)' : '1px solid rgba(0, 0, 0, 0.08)');
+  const sidebarBorderBottom = isDark
+    ? (user?.is_pro ? '1px solid rgba(255, 179, 0, 0.15)' : '1px solid rgba(0, 255, 136, 0.15)')
+    : (user?.is_pro ? '1px solid rgba(255, 179, 0, 0.25)' : '1px solid rgba(0, 0, 0, 0.08)');
+
   return (
     <aside style={{
       position: 'fixed',
@@ -63,18 +74,18 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
       top: 0,
       width: '260px',
       height: '100vh',
-      background: user?.is_pro ? 'rgba(14, 11, 4, 0.98)' : 'rgba(10, 14, 39, 0.98)',
+      background: sidebarBg,
       backdropFilter: 'blur(16px)',
-      borderRight: user?.is_pro ? '1px solid rgba(255, 179, 0, 0.2)' : '1px solid rgba(0, 255, 136, 0.15)',
+      borderRight: sidebarBorderRight,
       display: 'flex',
       flexDirection: 'column',
       zIndex: 1000,
       transition: 'all 0.3s ease',
-      boxShadow: isOpen ? '4px 0 24px rgba(0, 0, 0, 0.5)' : '4px 0 24px rgba(0, 0, 0, 0.3)'
+      boxShadow: isOpen ? '4px 0 24px rgba(0, 0, 0, 0.25)' : 'none'
     }}>
       <div style={{ 
         padding: '24px 20px', 
-        borderBottom: `1px solid ${user?.is_pro ? 'rgba(255, 179, 0, 0.15)' : 'rgba(0, 255, 136, 0.15)'}`, 
+        borderBottom: sidebarBorderBottom, 
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center'
@@ -83,7 +94,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
         {isMobile && (
           <button 
             onClick={onClose} 
-            style={{ background: 'transparent', border: 'none', color: '#9b9eac', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            style={{ background: 'transparent', border: 'none', color: isDark ? '#9b9eac' : '#4a5568', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
             <X size={18} />
           </button>
@@ -97,15 +108,24 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
             to={item.path}
             onClick={isMobile ? onClose : undefined}
             style={({ isActive }) => {
-              const activeColor = item.isSpecial ? '#ffb300' : '#00ff88';
-              const activeBg = item.isSpecial ? 'rgba(255, 179, 0, 0.08)' : 'rgba(0, 255, 136, 0.05)';
-              const activeBorder = item.isSpecial ? '1px solid rgba(255, 179, 0, 0.3)' : '1px solid rgba(0, 255, 136, 0.15)';
+              const activeColor = item.isSpecial 
+                ? '#ffb300' 
+                : (isDark ? '#00ff88' : '#00796b');
+              const activeBg = item.isSpecial 
+                ? 'rgba(255, 179, 0, 0.08)' 
+                : (isDark ? 'rgba(0, 255, 136, 0.05)' : 'rgba(0, 121, 107, 0.06)');
+              const activeBorder = item.isSpecial 
+                ? '1px solid rgba(255, 179, 0, 0.3)' 
+                : (isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 121, 107, 0.15)');
+              const defaultColor = item.isSpecial 
+                ? '#ffb300' 
+                : (isDark ? '#9b9eac' : '#4a5568');
               return {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
                 padding: '8px 12px',
-                color: isActive ? activeColor : (item.isSpecial ? '#ffb300' : '#9b9eac'),
+                color: isActive ? activeColor : defaultColor,
                 textDecoration: 'none',
                 borderRadius: '10px',
                 background: isActive ? activeBg : 'transparent',
@@ -116,13 +136,15 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
             }}
           >
             {({ isActive }) => {
-              const iconColor = item.isSpecial ? '#ffb300' : '#00ff88';
+              const iconColor = item.isSpecial 
+                ? '#ffb300' 
+                : (isDark ? '#00ff88' : '#00796b');
               const iconBg = isActive 
-                ? (item.isSpecial ? 'rgba(255, 179, 0, 0.15)' : 'rgba(0, 255, 136, 0.12)') 
-                : (item.isSpecial ? 'rgba(255, 179, 0, 0.04)' : 'rgba(255, 255, 255, 0.03)');
+                ? (item.isSpecial ? 'rgba(255, 179, 0, 0.15)' : (isDark ? 'rgba(0, 255, 136, 0.12)' : 'rgba(0, 121, 107, 0.1)')) 
+                : (item.isSpecial ? 'rgba(255, 179, 0, 0.04)' : (isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)'));
               const iconBorder = isActive
-                ? `1px solid ${item.isSpecial ? 'rgba(255, 179, 0, 0.35)' : 'rgba(0, 255, 136, 0.25)'}`
-                : `1px solid ${item.isSpecial ? 'rgba(255, 179, 0, 0.15)' : 'rgba(255, 255, 255, 0.08)'}`;
+                ? `1px solid ${item.isSpecial ? 'rgba(255, 179, 0, 0.35)' : (isDark ? 'rgba(0, 255, 136, 0.25)' : 'rgba(0, 121, 107, 0.2)')}`
+                : `1px solid ${item.isSpecial ? 'rgba(255, 179, 0, 0.15)' : (isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)')}`;
               return (
                 <>
                   <span style={{ 
@@ -134,8 +156,8 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
                     borderRadius: '8px',
                     background: iconBg,
                     border: iconBorder,
-                    color: isActive ? iconColor : (item.isSpecial ? '#ffb300' : '#9b9eac'),
-                    boxShadow: isActive ? `0 0 10px ${item.isSpecial ? 'rgba(255, 179, 0, 0.25)' : 'rgba(0, 255, 136, 0.2)'}` : 'none',
+                    color: isActive ? iconColor : (item.isSpecial ? '#ffb300' : (isDark ? '#9b9eac' : '#4a5568')),
+                    boxShadow: isActive ? `0 0 10px ${item.isSpecial ? 'rgba(255, 179, 0, 0.25)' : (isDark ? 'rgba(0, 255, 136, 0.2)' : 'rgba(0, 121, 107, 0.15)')}` : 'none',
                     transition: 'all 0.2s'
                   }}>
                     {item.icon}
@@ -150,7 +172,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
       
       <div style={{ 
         padding: '16px 12px', 
-        borderTop: `1px solid ${user?.is_pro ? 'rgba(255, 179, 0, 0.15)' : 'rgba(0, 255, 136, 0.15)'}`, 
+        borderTop: sidebarBorderBottom, 
         display: 'flex', 
         flexDirection: 'column', 
         gap: '8px' 
@@ -180,9 +202,9 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
             style={{ 
               padding: '10px 12px', 
               borderRadius: '8px', 
-              background: 'rgba(255, 179, 0, 0.05)',
-              border: '1px dashed rgba(255, 179, 0, 0.25)',
-              color: '#d1c9b8',
+              background: isDark ? 'rgba(255, 179, 0, 0.05)' : 'rgba(255, 179, 0, 0.08)',
+              border: isDark ? '1px dashed rgba(255, 179, 0, 0.25)' : '1px dashed rgba(255, 179, 0, 0.4)',
+              color: isDark ? '#d1c9b8' : '#5d4037',
               fontSize: '11px',
               cursor: 'pointer',
               display: 'flex',
@@ -192,22 +214,22 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
               marginBottom: '8px'
             }}
             onMouseOver={(e) => { e.currentTarget.style.borderColor = '#ffb300'; e.currentTarget.style.background = 'rgba(255,179,0,0.1)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255,179,0,0.25)'; e.currentTarget.style.background = 'rgba(255,179,0,0.05)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = isDark ? 'rgba(255,179,0,0.25)' : 'rgba(255,179,0,0.4)'; e.currentTarget.style.background = isDark ? 'rgba(255,179,0,0.05)' : 'rgba(255,179,0,0.08)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, color: '#ffb300' }}>
               <Sparkles size={12} /> Unlock Pro Features
             </div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>Get Option Greeks, Automated Bots & Signal alerts.</div>
+            <div style={{ fontSize: '10px', color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.55)', marginTop: '2px' }}>Get Option Greeks, Automated Bots & Signal alerts.</div>
           </div>
         )}
 
         <button 
           onClick={toggleTheme} 
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.2s' }}
-          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = user?.is_pro ? 'rgba(255,179,0,0.3)' : 'rgba(0,255,136,0.3)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)', borderRadius: '8px', color: isDark ? 'white' : '#1a1a1a', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.2s' }}
+          onMouseOver={(e) => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'; e.currentTarget.style.borderColor = user?.is_pro ? 'rgba(255,179,0,0.3)' : 'rgba(0,255,136,0.3)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'; }}
         >
-          {theme === 'dark' ? <><Sun size={14} style={{ color: '#00ff88' }} /> Light Mode</> : <><Moon size={14} style={{ color: '#00bcd4' }} /> Dark Mode</>}
+          {isDark ? <><Sun size={14} style={{ color: '#00ff88' }} /> Light Mode</> : <><Moon size={14} style={{ color: '#00bcd4' }} /> Dark Mode</>}
         </button>
         <button 
           onClick={logout} 

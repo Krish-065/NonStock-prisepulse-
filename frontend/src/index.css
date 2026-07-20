@@ -35,10 +35,13 @@
   --bg-elevated: #f0f2f5;
   --text-primary: #1a1a1a;
   --text-secondary: #666666;
-  --border-color: #e0e0e0;
+  --border-color: #dcdfe6;
+  --accent-green: #1b5e20;
+  --accent-red: #c62828;
+  --accent-cyan: #00838f;
   --bg-card-glass: rgba(255, 255, 255, 0.9);
   --bg-glass-heavy: rgba(255, 255, 255, 0.95);
-  --bg-glass-light: rgba(0, 0, 0, 0.05);
+  --bg-glass-light: rgba(0, 0, 0, 0.04);
   --gradient-bg: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 50%, #f5f7fa 100%);
   --pattern-opacity: 0.15;
 }
@@ -320,8 +323,8 @@ body {
   font-weight: 600;
 }
 
-.positive { color: #00ff88; }
-.negative { color: #ff4444; }
+.positive { color: var(--accent-green); }
+.negative { color: var(--accent-red); }
 
 /* Two column layout */
 .two-column {
