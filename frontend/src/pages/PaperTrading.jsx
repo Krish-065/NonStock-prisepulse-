@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -204,6 +205,15 @@ export default function PaperTrading() {
   // Chart Refs
   const chartContainerRef = useRef(null);
   
+  // Custom Chart States & Refs
+  const [chartType, setChartType] = useState('tradingview'); // 'tradingview' or 'custom'
+  const [customHistory, setCustomHistory] = useState([]);
+  const [customLoading, setCustomLoading] = useState(false);
+  const [customError, setCustomError] = useState('');
+  const customChartContainerRef = useRef(null);
+  const customChartInstanceRef = useRef(null);
+  const candlestickSeriesRef = useRef(null);
+
   // Live Tick Simulation Ref
   const livePriceRef = useRef(0);
   const pendingOrdersRef = useRef([]);
@@ -688,8 +698,14 @@ export default function PaperTrading() {
     return () => window.clearInterval(intervalId);
   }, [selectedSymbol]);
 
+  useEffect(() => {
+    const isInd = isIndianSymbol(selectedSymbol);
+    setChartType(isInd ? 'custom' : 'tradingview');
+  }, [selectedSymbol]);
+
   // TradingView Widget Loader & Update Effect
   useEffect(() => {
+    if (chartType !== 'tradingview') return;
     let script = document.getElementById('tradingview-widget-script');
     
     const initWidget = () => {
@@ -758,7 +774,226 @@ export default function PaperTrading() {
         script.removeEventListener('load', initWidget);
       }
     };
-  }, [selectedSymbol, chartInterval, activeIndicators]);
+  }, [selectedSymbol, chartInterval, activeIndicators, chartType]);
+
+  // ─── Custom Lightweight Charts Helpers & Effects ───
+  const resolveYahooSymbol = (sym) => {
+    if (!sym) return '';
+    const s = sym.toUpperCase();
+    const mappings = {
+      'TVC:GOLD': 'GC=F',
+      'GOLD': 'GC=F',
+      'TVC:SILVER': 'SI=F',
+      'SILVER': 'SI=F',
+      'TVC:USOIL': 'CL=F',
+      'USOIL': 'CL=F',
+      'TVC:UKOIL': 'BZ=F',
+      'UKOIL': 'BZ=F',
+      'TVC:NATURALGAS': 'NG=F',
+      'NATURALGAS': 'NG=F',
+      'TVC:COPPER': 'HG=F',
+      'COPPER': 'HG=F'
+    };
+    if (mappings[s]) return mappings[s];
+    return s.includes(':') ? s.split(':')[1] : s;
+  };
+
+  const mapIntervalForApi = (v) => {
+    switch (v) {
+      case '1m': return '1m';
+      case '5m': return '5m';
+      case '15m': return '15m';
+      case '60m': return '60m';
+      case '1d': return '1d';
+      default: return '1d';
+    }
+  };
+
+  const getRangeForInterval = (v) => {
+    switch (v) {
+      case '1m': return '1d';
+      case '5m': return '5d';
+      case '15m': return '1mo';
+      case '60m': return '1mo';
+      case '1d': return '1y';
+      default: return '1y';
+    }
+  };
+
+  const initCustomChart = (historyData) => {
+    if (!customChartContainerRef.current) return;
+
+    if (customChartInstanceRef.current) {
+      try {
+        customChartInstanceRef.current.remove();
+      } catch (e) {
+        console.error(e);
+      }
+      customChartInstanceRef.current = null;
+    }
+
+    const chart = createChart(customChartContainerRef.current, {
+      width: customChartContainerRef.current.clientWidth,
+      height: 520,
+      layout: {
+        background: { color: '#0a0e27' },
+        textColor: '#9b9eaf',
+        fontSize: 12,
+        fontFamily: 'Inter, sans-serif',
+      },
+      grid: {
+        vertLines: { color: 'rgba(255, 255, 255, 0.03)' },
+        horzLines: { color: 'rgba(255, 255, 255, 0.03)' },
+      },
+      crosshair: {
+        mode: 0,
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderVisible: false,
+      },
+      rightPriceScale: {
+        borderVisible: false,
+      },
+    });
+
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
+      upColor: '#00ff88',
+      downColor: '#ff4444',
+      borderVisible: false,
+      wickUpColor: '#00ff88',
+      wickDownColor: '#ff4444',
+    });
+
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      color: '#26a69a',
+      priceFormat: {
+        type: 'volume',
+      },
+      priceScaleId: '',
+    });
+
+    volumeSeries.priceScale().applyOptions({
+      scaleMargins: {
+        top: 0.8,
+        bottom: 0,
+      },
+    });
+
+    const seenTimes = new Set();
+    const formattedCandles = [];
+    const formattedVolume = [];
+
+    historyData.forEach((candle) => {
+      const timeSec = Math.floor(candle.time / 1000);
+      if (seenTimes.has(timeSec)) return;
+      seenTimes.add(timeSec);
+
+      formattedCandles.push({
+        time: timeSec,
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+      });
+
+      const volColor = candle.close >= candle.open ? 'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)';
+      formattedVolume.push({
+        time: timeSec,
+        value: candle.volume || 0,
+        color: volColor,
+      });
+    });
+
+    candlestickSeries.setData(formattedCandles);
+    volumeSeries.setData(formattedVolume);
+
+    customChartInstanceRef.current = chart;
+    candlestickSeriesRef.current = candlestickSeries;
+
+    // Handle responsive resize
+    const handleResize = () => {
+      if (customChartContainerRef.current && customChartInstanceRef.current) {
+        customChartInstanceRef.current.resize(customChartContainerRef.current.clientWidth, 520);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      try {
+        chart.remove();
+      } catch (e) {}
+      if (customChartInstanceRef.current === chart) {
+        customChartInstanceRef.current = null;
+        candlestickSeriesRef.current = null;
+      }
+    };
+  };
+
+  // Fetch stock history for custom chart
+  useEffect(() => {
+    if (chartType !== 'custom') return;
+
+    let active = true;
+    const fetchHistory = async () => {
+      setCustomLoading(true);
+      setCustomError('');
+      try {
+        const apiInterval = mapIntervalForApi(chartInterval);
+        const apiRange = getRangeForInterval(chartInterval);
+        const cleanSymbol = resolveYahooSymbol(selectedSymbol);
+        const res = await apiClient.get(`/market/stock-history/${cleanSymbol}?range=${apiRange}&interval=${apiInterval}`);
+        if (active) {
+          setCustomHistory(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch stock history:', err);
+        if (active) {
+          setCustomError('Failed to load historical chart data.');
+        }
+      } finally {
+        if (active) {
+          setCustomLoading(false);
+        }
+      }
+    };
+
+    fetchHistory();
+
+    return () => {
+      active = false;
+    };
+  }, [selectedSymbol, chartInterval, chartType]);
+
+  // Render custom chart on data change
+  useEffect(() => {
+    if (chartType !== 'custom' || customHistory.length === 0 || !customChartContainerRef.current) return;
+    const cleanup = initCustomChart(customHistory);
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [customHistory, chartType]);
+
+  // Update last candle in custom chart on live price updates
+  useEffect(() => {
+    if (chartType === 'custom' && customChartInstanceRef.current && livePrice && customHistory.length > 0) {
+      const lastBar = customHistory[customHistory.length - 1];
+      if (lastBar && candlestickSeriesRef.current) {
+        const timeSec = Math.floor(lastBar.time / 1000);
+        const updatedHigh = Math.max(lastBar.high, livePrice);
+        const updatedLow = Math.min(lastBar.low, livePrice);
+        candlestickSeriesRef.current.update({
+          time: timeSec,
+          open: lastBar.open,
+          high: updatedHigh,
+          low: updatedLow,
+          close: livePrice
+        });
+      }
+    }
+  }, [livePrice, chartType, customHistory]);
 
   // Check Limit/Stop Loss pending orders
   const checkPendingOrders = (currentPrice) => {
@@ -1450,6 +1685,47 @@ export default function PaperTrading() {
                 </div>
               </div>
 
+              {/* Chart Source Toggles */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '9px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Chart Engine</span>
+                <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', gap: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setChartType('tradingview')}
+                    style={{
+                      background: chartType === 'tradingview' ? 'rgba(0, 188, 212, 0.15)' : 'transparent',
+                      border: 'none',
+                      color: chartType === 'tradingview' ? '#00bcd4' : '#9b9eac',
+                      borderRadius: '6px',
+                      padding: '6px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    TradingView
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChartType('custom')}
+                    style={{
+                      background: chartType === 'custom' ? 'rgba(0, 255, 136, 0.15)' : 'transparent',
+                      border: 'none',
+                      color: chartType === 'custom' ? '#00ff88' : '#9b9eac',
+                      borderRadius: '6px',
+                      padding: '6px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    NonStock Live {isIndianSymbol(selectedSymbol) && '⭐'}
+                  </button>
+                </div>
+              </div>
+
               {/* Interval Toggles */}
               <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
                 {['1m', '5m', '15m', '60m', '1d'].map(i => (
@@ -1479,7 +1755,25 @@ export default function PaperTrading() {
           <div style={{ display: 'flex', position: 'relative', width: '100%', gap: '10px' }}>
             {/* Chart Container */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-              <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '520px' }} />
+              {/* TradingView Widget Container */}
+              <div style={{ display: chartType === 'tradingview' ? 'block' : 'none', width: '100%', height: '520px' }}>
+                <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '520px' }} />
+              </div>
+
+              {/* Custom Candlestick Chart Container */}
+              <div style={{ display: chartType === 'custom' ? 'block' : 'none', width: '100%', height: '520px', position: 'relative' }}>
+                {customLoading && (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(10, 14, 39, 0.8)', zIndex: 10 }}>
+                    <div style={{ color: '#00ff88', fontSize: '14px', fontWeight: 600 }}>Loading custom chart data...</div>
+                  </div>
+                )}
+                {customError && (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(10, 14, 39, 0.8)', zIndex: 10 }}>
+                    <div style={{ color: '#ff4444', fontSize: '14px', fontWeight: 600 }}>{customError}</div>
+                  </div>
+                )}
+                <div ref={customChartContainerRef} style={{ width: '100%', height: '520px' }} />
+              </div>
 
               {/* Floating Position Control Bracket */}
               {(() => {
