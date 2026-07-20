@@ -4,23 +4,29 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 :root {
-  --bg-primary: #0a0e27;
-  --bg-card: #1e222d;
-  --bg-elevated: #131722;
+  --bg-primary: #05081a;
+  --bg-card: #0c102e;
+  --bg-elevated: #0f133d;
   --text-primary: #ffffff;
   --text-secondary: #9b9eac;
-  --border-color: #2a2e39;
+  --border-color: rgba(0, 255, 136, 0.12);
   --accent-green: #00ff88;
   --accent-red: #ff4444;
   --accent-blue: #2962ff;
   --accent-cyan: #00bcd4;
-  --bg-card-glass: rgba(19, 23, 34, 0.9);
-  --bg-glass-heavy: rgba(10, 14, 39, 0.95);
-  --bg-glass-light: rgba(255, 255, 255, 0.03);
-  --gradient-bg: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+  --bg-card-glass: rgba(12, 16, 42, 0.65);
+  --bg-glass-heavy: rgba(7, 10, 31, 0.95);
+  --bg-glass-light: rgba(0, 255, 136, 0.03);
+  --gradient-bg: linear-gradient(135deg, #05081a 0%, #0c1033 50%, #05081a 100%);
 }
 
 [data-theme="light"] {
@@ -281,17 +287,18 @@ body {
 
 .index-card {
   background: var(--bg-card-glass);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 255, 136, 0.15);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 255, 136, 0.12);
   border-radius: 16px;
   padding: 24px 20px;
-  transition: 0.2s;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .index-card:hover {
   border-color: #00ff88;
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 255, 136, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 255, 136, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .index-name {
@@ -332,11 +339,12 @@ body {
 
 .section-card {
   background: var(--bg-card-glass);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(16px);
   border: 1px solid rgba(0, 255, 136, 0.1);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .section-header {

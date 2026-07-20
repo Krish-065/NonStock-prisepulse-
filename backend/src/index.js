@@ -1115,4 +1115,28 @@ const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
   startBotSimulator();
+
+  // Render self-ping routine to prevent free-tier cold starts
+  const selfPingUrl = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL;
+  if (selfPingUrl) {
+    const https = require('https');
+    const http = require('http');
+    
+    const ping = () => {
+      const url = `${selfPingUrl}/api/health`;
+      console.log(`[Self-Ping] Pinging health check at: ${url}`);
+      const client = url.startsWith('https') ? https : http;
+      client.get(url, (res) => {
+        console.log(`[Self-Ping] Response Status: ${res.statusCode}`);
+      }).on('error', (err) => {
+        console.error('[Self-Ping] Error pinging backend:', err.message);
+      });
+    };
+
+    // Ping after 10 seconds, then every 10 minutes
+    setTimeout(ping, 10000);
+    setInterval(ping, 10 * 60 * 1000);
+  } else {
+    console.log('[Self-Ping] No RENDER_EXTERNAL_URL or BACKEND_URL configured; skipping self-ping.');
+  }
 });

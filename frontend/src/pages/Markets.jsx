@@ -125,6 +125,24 @@ export default function Markets() {
   const [chartKey, setChartKey] = useState(0);
   const searchRef = useRef();
 
+  const [selectedMarket, setSelectedMarket] = useState('All');
+
+  const allowedCategories = Object.keys(SYMBOL_CATEGORIES).filter(cat => {
+    if (selectedMarket === 'Indian') return cat === 'Indian Stocks';
+    if (selectedMarket === 'International') return cat !== 'Indian Stocks';
+    return true;
+  });
+
+  const isSymbolIndian = (s) => {
+    return s.value.startsWith('NSE:') || s.value.startsWith('BSE:') || s.value.endsWith('.NS') || s.value.endsWith('.BO');
+  };
+
+  useEffect(() => {
+    if (!allowedCategories.includes(activeCategory) && allowedCategories.length > 0) {
+      setActiveCategory(allowedCategories[0]);
+    }
+  }, [selectedMarket, activeCategory]);
+
   const [activeTab, setActiveTab] = useState(
     (symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || activeCategory === 'Indian Stocks' || symbol.endsWith('=F') || symbol.startsWith('TVC:') || activeCategory === 'Commodities')
       ? 'custom'
@@ -166,10 +184,14 @@ export default function Markets() {
   const [liveInfo, setLiveInfo] = useState(null);
 
   const filteredSymbols = searchQuery.length > 0
-    ? ALL_SYMBOLS.filter(s =>
-        s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.value.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? ALL_SYMBOLS.filter(s => {
+        const matchesQuery = s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             s.value.toLowerCase().includes(searchQuery.toLowerCase());
+        if (!matchesQuery) return false;
+        if (selectedMarket === 'Indian') return isSymbolIndian(s);
+        if (selectedMarket === 'International') return !isSymbolIndian(s);
+        return true;
+      })
     : SYMBOL_CATEGORIES[activeCategory] || [];
 
   const selectSymbol = useCallback((val) => {
@@ -664,6 +686,33 @@ export default function Markets() {
       {/* Controls Row */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
 
+        {/* Market Selector Toggle */}
+        <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)', gap: '4px' }}>
+          {[
+            { label: 'All Markets 🌐', value: 'All' },
+            { label: 'Indian Markets 🇮🇳', value: 'Indian' },
+            { label: 'International Markets 🌎', value: 'International' }
+          ].map(m => (
+            <button
+              key={m.value}
+              onClick={() => setSelectedMarket(m.value)}
+              style={{
+                background: selectedMarket === m.value ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
+                border: 'none',
+                color: selectedMarket === m.value ? '#00ff88' : '#9b9eac',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
         {/* Symbol Search */}
         <div ref={searchRef} style={{ position: 'relative' }}>
           <button
@@ -688,7 +737,7 @@ export default function Markets() {
               {/* Category Tabs */}
               {!searchQuery && (
                 <div style={{ display: 'flex', gap: '4px', padding: '0 10px 10px', flexWrap: 'wrap' }}>
-                  {Object.keys(SYMBOL_CATEGORIES).map(cat => (
+                  {allowedCategories.map(cat => (
                     <button
                       key={cat}
                       onClick={() => setActiveCategory(cat)}
@@ -736,17 +785,19 @@ export default function Markets() {
 
         {/* Quick-jump category row */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginLeft: 'auto' }}>
-          {Object.entries(SYMBOL_CATEGORIES).map(([cat, syms]) => (
-            <button
-              key={cat}
-              onClick={() => { setActiveCategory(cat); setShowSearch(true); }}
-              style={{ padding: '7px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: '#9b9eac', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s' }}
-              onMouseOver={e => { e.currentTarget.style.color = '#00bcd4'; e.currentTarget.style.borderColor = '#00bcd4'; }}
-              onMouseOut={e => { e.currentTarget.style.color = '#9b9eac'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; }}
-            >
-              {cat}
-            </button>
-          ))}
+          {Object.entries(SYMBOL_CATEGORIES)
+            .filter(([cat]) => allowedCategories.includes(cat))
+            .map(([cat, syms]) => (
+              <button
+                key={cat}
+                onClick={() => { setActiveCategory(cat); setShowSearch(true); }}
+                style={{ padding: '7px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: '#9b9eac', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s' }}
+                onMouseOver={e => { e.currentTarget.style.color = '#00bcd4'; e.currentTarget.style.borderColor = '#00bcd4'; }}
+                onMouseOut={e => { e.currentTarget.style.color = '#9b9eac'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; }}
+              >
+                {cat}
+              </button>
+            ))}
         </div>
       </div>
 

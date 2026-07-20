@@ -138,6 +138,21 @@ export default function PaperTrading() {
   const [activeConsoleTab, setActiveConsoleTab] = useState('positions');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedMarket, setSelectedMarket] = useState('All');
+
+  const filteredPopularWatchlist = POPULAR_WATCHLIST.filter(item => {
+    const isIndian = isIndianSymbol(item.symbol);
+    if (selectedMarket === 'Indian') return isIndian;
+    if (selectedMarket === 'International') return !isIndian;
+    return true;
+  });
+
+  const filteredSearchResults = searchResults.filter(res => {
+    const isIndian = isIndianSymbol(res.symbol);
+    if (selectedMarket === 'Indian') return isIndian;
+    if (selectedMarket === 'International') return !isIndian;
+    return true;
+  });
   
   // Virtual Portfolio State
   const [virtualBalance, setVirtualBalance] = useState(50000);
@@ -195,6 +210,8 @@ export default function PaperTrading() {
   const holdingsRef = useRef([]);
 
   const lastDraggedPriceRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const saveSlTpTimeoutRef = useRef({});
   const slInputsRef = useRef({});
   const tpInputsRef = useRef({});
 
@@ -258,6 +275,7 @@ export default function PaperTrading() {
 
   const handleDragStart = (e, type, activeHolding) => {
     e.preventDefault();
+    isDraggingRef.current = true;
     const trackElement = e.currentTarget.parentElement;
     const rect = trackElement.getBoundingClientRect();
     
@@ -299,6 +317,7 @@ export default function PaperTrading() {
     const handleMouseUp = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      isDraggingRef.current = false;
       
       if (activeHolding) {
         const finalPrice = lastDraggedPriceRef.current;
@@ -353,15 +372,17 @@ export default function PaperTrading() {
       setRefillCount(parseInt(res.data.refillCount || 1));
       setConsecutiveSlHits(parseInt(res.data.consecutiveSlHits || 0));
 
-      // Preset SL/TP inputs
-      const sls = {};
-      const tps = {};
-      freshHoldings.forEach(h => {
-        sls[h.symbol] = h.stopLoss || '';
-        tps[h.symbol] = h.takeProfit || '';
-      });
-      setSlInputs(sls);
-      setTpInputs(tps);
+      // Preset SL/TP inputs (skip if actively dragging or modifying to prevent resetting values)
+      if (!isDraggingRef.current) {
+        const sls = {};
+        const tps = {};
+        freshHoldings.forEach(h => {
+          sls[h.symbol] = h.stopLoss || '';
+          tps[h.symbol] = h.takeProfit || '';
+        });
+        setSlInputs(sls);
+        setTpInputs(tps);
+      }
 
       // Check SL/TP levels across all holdings
       checkSlTpLevels();
@@ -485,6 +506,30 @@ export default function PaperTrading() {
     }
   };
 
+  const debouncedSaveSlTp = (symbol, slVal, tpVal) => {
+    isDraggingRef.current = true;
+    if (saveSlTpTimeoutRef.current[symbol]) {
+      clearTimeout(saveSlTpTimeoutRef.current[symbol]);
+    }
+    saveSlTpTimeoutRef.current[symbol] = setTimeout(async () => {
+      try {
+        const res = await apiClient.post('/paper/set-sltp', {
+          symbol,
+          stopLoss: slVal ? parseFloat(slVal) : null,
+          takeProfit: tpVal ? parseFloat(tpVal) : null
+        });
+        if (res.data.success) {
+          toast.success(`SL/TP updated for ${symbol}`);
+        }
+      } catch (err) {
+        toast.error('Failed to update SL/TP levels');
+      } finally {
+        isDraggingRef.current = false;
+        fetchPaperPortfolio();
+      }
+    }, 1000);
+  };
+
   const handleWheelPriceInput = (e, symbol, type, currentVal) => {
     e.preventDefault();
     const direction = e.deltaY < 0 ? 1 : -1;
@@ -504,8 +549,10 @@ export default function PaperTrading() {
 
     if (type === 'sl') {
       setSlInputs(prev => ({ ...prev, [symbol]: finalVal }));
+      debouncedSaveSlTp(symbol, finalVal, tpInputs[symbol]);
     } else if (type === 'tp') {
       setTpInputs(prev => ({ ...prev, [symbol]: finalVal }));
+      debouncedSaveSlTp(symbol, slInputs[symbol], finalVal);
     }
   };
 
@@ -527,8 +574,10 @@ export default function PaperTrading() {
 
     if (type === 'sl') {
       setSlInputs(prev => ({ ...prev, [symbol]: finalVal }));
+      debouncedSaveSlTp(symbol, finalVal, tpInputs[symbol]);
     } else if (type === 'tp') {
       setTpInputs(prev => ({ ...prev, [symbol]: finalVal }));
+      debouncedSaveSlTp(symbol, slInputs[symbol], finalVal);
     }
   };
 
@@ -1178,6 +1227,33 @@ export default function PaperTrading() {
             gap: '12px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
+              {/* Market Selector Toggle */}
+              <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '2px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)', gap: '2px' }}>
+                {[
+                  { label: 'All 🌐', value: 'All' },
+                  { label: 'India 🇮🇳', value: 'Indian' },
+                  { label: 'Intl 🌎', value: 'International' }
+                ].map(m => (
+                  <button
+                    key={m.value}
+                    onClick={() => setSelectedMarket(m.value)}
+                    style={{
+                      background: selectedMarket === m.value ? 'rgba(0, 255, 136, 0.08)' : 'transparent',
+                      border: 'none',
+                      color: selectedMarket === m.value ? '#00ff88' : '#9b9eac',
+                      padding: '4px 8px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+
               <div style={{ position: 'relative' }}>
                 <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9b9eac' }} />
                 <input 
@@ -1208,7 +1284,7 @@ export default function PaperTrading() {
                 />
                 
                 {/* Search Results Dropdown */}
-                {(searchResults.length > 0 || searchQuery.trim().length > 0) && (
+                {(filteredSearchResults.length > 0 || searchQuery.trim().length > 0) && (
                   <div style={{
                     position: 'absolute',
                     top: '100%',
@@ -1249,7 +1325,7 @@ export default function PaperTrading() {
                         </div>
                       </div>
                     )}
-                    {searchResults.map(res => (
+                    {filteredSearchResults.map(res => (
                       <div 
                         key={res.symbol}
                         onClick={() => {
@@ -1765,6 +1841,37 @@ export default function PaperTrading() {
                     onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 68, 68, 0.35)'}
                     onMouseOut={e => e.currentTarget.style.background = hasSL ? 'rgba(255, 68, 68, 0.25)' : 'rgba(255, 68, 68, 0.05)'}
                   >
+                    {hasSL && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (activeHolding) {
+                            handleSaveSlTp(selectedSymbol, null, tpInputs[selectedSymbol]);
+                          } else {
+                            setFormStopLoss('');
+                          }
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '2px',
+                          right: '6px',
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#ff8888',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          zIndex: 12
+                        }}
+                        title="Remove Stop Loss"
+                      >
+                        ✕
+                      </button>
+                    )}
                     <span style={{ fontSize: '8px', fontWeight: 800, color: '#ff4444' }}>SL</span>
                     <span style={{ fontSize: '9px', fontWeight: 700, color: '#ffffff' }}>
                       {hasSL ? parseFloat(slValue).toFixed(1) : 'Drag'}
@@ -1805,6 +1912,37 @@ export default function PaperTrading() {
                     onMouseOver={e => e.currentTarget.style.background = 'rgba(0, 255, 136, 0.35)'}
                     onMouseOut={e => e.currentTarget.style.background = hasTP ? 'rgba(0, 255, 136, 0.25)' : 'rgba(0, 255, 136, 0.05)'}
                   >
+                    {hasTP && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (activeHolding) {
+                            handleSaveSlTp(selectedSymbol, slInputs[selectedSymbol], null);
+                          } else {
+                            setFormTakeProfit('');
+                          }
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '2px',
+                          right: '6px',
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#a3ffd6',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          zIndex: 12
+                        }}
+                        title="Remove Take Profit"
+                      >
+                        ✕
+                      </button>
+                    )}
                     <span style={{ fontSize: '8px', fontWeight: 800, color: '#00ff88' }}>TP</span>
                     <span style={{ fontSize: '9px', fontWeight: 700, color: '#ffffff' }}>
                       {hasTP ? parseFloat(tpValue).toFixed(1) : 'Drag'}
@@ -1828,7 +1966,7 @@ export default function PaperTrading() {
             <span style={{ fontSize: '11px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase', flexShrink: 0 }}>
               Quick Watchlist:
             </span>
-            {POPULAR_WATCHLIST.map(item => (
+            {filteredPopularWatchlist.map(item => (
               <button
                 key={item.symbol}
                 onClick={() => setSelectedSymbol(item.symbol)}
