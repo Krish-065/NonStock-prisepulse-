@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { fetchAngelHistory, isAngelConfigured } = require('../services/angelApi');
 
 // Yahoo Finance headers to avoid IP blocks
 const YAHOO_HEADERS = {
@@ -1304,13 +1305,38 @@ router.get('/stock-history/:symbol', async (req, res) => {
       if (!['1d', '5d', '7d', '1mo', '3mo', '6mo', '1y', '2y'].includes(range)) range = '1y';
     }
 
+    // ─── Try AngelOne SmartAPI if configured & Indian market symbol ───
+    const isIndian = resolvedSymbol.endsWith('.NS') || 
+                     resolvedSymbol.endsWith('.BO') || 
+                     resolvedSymbol.startsWith('NSE:') || 
+                     resolvedSymbol.startsWith('BSE:') || 
+                     ['NIFTY', 'BANKNIFTY', 'SENSEX', 'NSEI', 'BSESN', 'NSEBANK', 'CNXIT'].includes(resolvedSymbol) ||
+                     (!isIndex && !isCrypto && !isForex && !alreadySuffixed);
+
+    if (isIndian && isAngelConfigured()) {
+      try {
+        console.log(`[stock-history] Fetching ${resolvedSymbol} from AngelOne API...`);
+        const angelHistory = await fetchAngelHistory(resolvedSymbol, range, interval);
+        if (angelHistory && angelHistory.length > 0) {
+          console.log(`[stock-history] Successfully loaded ${angelHistory.length} bars from AngelOne for ${resolvedSymbol}`);
+          return res.json(angelHistory);
+        }
+      } catch (err) {
+        console.warn(`[stock-history] AngelOne historical fetch failed for ${resolvedSymbol}, falling back to Yahoo Finance:`, err.message);
+      }
+    }
+
     let data;
     let success = false;
     
     // Try original resolvedSymbol first (AAPL, TSLA, RS)
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(resolvedSymbol)}?range=${range}&interval=${interval}`;
-      const response = await fetch(url, { headers: YAHOO_HEADERS });
+      let response = await fetch(url, { headers: YAHOO_HEADERS });
+      if (!response.ok) {
+        const url2 = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(resolvedSymbol)}?range=${range}&interval=${interval}`;
+        response = await fetch(url2, { headers: YAHOO_HEADERS });
+      }
       if (response.ok) {
         data = await response.json();
         if (data?.chart?.result?.[0]) {
@@ -1327,7 +1353,11 @@ router.get('/stock-history/:symbol', async (req, res) => {
       const fallbackSymbol = `${symbol}.NS`;
       try {
         const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(fallbackSymbol)}?range=${range}&interval=${interval}`;
-        const response = await fetch(url, { headers: YAHOO_HEADERS });
+        let response = await fetch(url, { headers: YAHOO_HEADERS });
+        if (!response.ok) {
+          const url2 = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(fallbackSymbol)}?range=${range}&interval=${interval}`;
+          response = await fetch(url2, { headers: YAHOO_HEADERS });
+        }
         if (response.ok) {
           const testData = await response.json();
           if (testData?.chart?.result?.[0]) {
