@@ -695,7 +695,7 @@ export default function Community() {
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px 0', background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Users size={28} style={{ color: '#00ff88' }} />
-            NonStock Community Hub
+            Trader Lounge
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
             Clone high-performing community strategies, view ranking leaderboard stats, and discuss setup results.
@@ -869,7 +869,7 @@ export default function Community() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Trophy size={20} style={{ color: '#ffb300' }} />
-              Sandbox Leaderboards
+              Hall of Gains
             </h2>
 
             <div style={{

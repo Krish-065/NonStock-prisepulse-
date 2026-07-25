@@ -237,7 +237,7 @@ export default function AIMentor() {
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px 0', background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Sparkles size={28} style={{ color: '#00ff88' }} />
-            AI Investing Mentor
+            The Oracle
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
             Learn technical concepts, ask details about specific stocks, and understand setups using live data charts.

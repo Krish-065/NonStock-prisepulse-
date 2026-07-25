@@ -300,7 +300,7 @@ export default function UpgradePro() {
               <span>NONSTOCK PRO</span>
             </div>
             <h1 style={{ fontSize: '36px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.5px' }}>
-              Level Up Your Financial Intelligence
+              Level Up
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginTop: '8px', maxWidth: '600px', margin: '8px auto 0 auto' }}>
               Unlock elite options analytics, automated sandbox bots, instant SMS alerts, and personalized AI Mentor coaching.

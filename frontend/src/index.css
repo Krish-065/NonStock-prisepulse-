@@ -816,37 +816,61 @@ body.pro-mode-active {
   --bg-card: #ffffff;
   --bg-elevated: #f1f5f9;
   --text-primary: #0f172a;
-  --text-secondary: #475569;
+  --text-secondary: #334155;
   --border-color: #cbd5e1;
-  --accent-green: #15803d;
+  --accent-green: #16a34a;
   --accent-red: #dc2626;
-  --accent-cyan: #0991b1;
-  --bg-card-glass: rgba(255, 255, 255, 0.95);
+  --accent-cyan: #0284c7;
+  --bg-card-glass: #ffffff;
   --bg-glass-heavy: rgba(255, 255, 255, 0.98);
-  --bg-glass-light: rgba(15, 23, 42, 0.04);
+  --bg-glass-light: #f1f5f9;
   --gradient-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%);
   --pattern-opacity: 0.1;
+}
+
+[data-theme="light"] body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
 }
 
 [data-theme="light"] .section-card,
 [data-theme="light"] .index-card,
 [data-theme="light"] .auth-card,
-[data-theme="light"] div[style*="background: rgba"],
-[data-theme="light"] div[style*="background: var"] {
-  color: var(--text-primary);
+[data-theme="light"] div[style*="background"] {
+  color: #0f172a;
 }
 
+/* Transform dark grey boxes to crisp light-slate cards in light mode */
+[data-theme="light"] div[style*="background: rgba(10, 14, 39"],
+[data-theme="light"] div[style*="background: rgba(16, 20, 39"],
+[data-theme="light"] div[style*="background: rgba(22, 28, 59"],
+[data-theme="light"] div[style*="background: rgba(255, 255, 255, 0.02)"],
+[data-theme="light"] div[style*="background: rgba(255, 255, 255, 0.03)"],
+[data-theme="light"] div[style*="background: rgba(255, 255, 255, 0.05)"],
+[data-theme="light"] div[style*="background: #0a0e27"],
+[data-theme="light"] div[style*="background: #12162f"],
+[data-theme="light"] div[style*="background: #0f1635"],
+[data-theme="light"] div[style*="background: #070a1e"] {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Force high-contrast text colors in Light Mode */
 [data-theme="light"] p[style*="color: #9b9eac"],
 [data-theme="light"] span[style*="color: #9b9eac"],
 [data-theme="light"] div[style*="color: #9b9eac"],
 [data-theme="light"] p[style*="color: #a0aec0"],
 [data-theme="light"] span[style*="color: #a0aec0"],
 [data-theme="light"] div[style*="color: #a0aec0"],
+[data-theme="light"] p[style*="color: #64748b"],
+[data-theme="light"] span[style*="color: #64748b"],
 [data-theme="light"] small[style*="color: #9b9eac"],
 [data-theme="light"] .text-secondary,
 [data-theme="light"] .text-gray-400,
 [data-theme="light"] .text-slate-400 {
-  color: #475569 !important;
+  color: #334155 !important;
 }
 
 [data-theme="light"] h1, 

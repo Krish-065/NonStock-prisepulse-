@@ -1255,10 +1255,10 @@ export default function Markets() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ margin: 0, backgroundImage: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent' }}>
-            Live Market Charting
+            Live Stream
           </h1>
-          <p style={{ color: '#9b9eac', margin: '4px 0 0 0', fontSize: '14px' }}>
-            Advanced charting — Indian stocks, Crypto, Forex, US markets & more
+          <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0 0', fontSize: '14px' }}>
+            Advanced live market streaming — Indian stocks, Crypto, Forex, US markets & more
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

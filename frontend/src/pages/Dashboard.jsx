@@ -89,7 +89,7 @@ export default function Dashboard() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', width: '100%' }}>
           <div>
             <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
-              Dashboard
+              Command Center
               {user?.is_pro && (
                 <span className="pro-badge-glow" style={{
                   fontSize: '11px',
