@@ -24,10 +24,19 @@ export default function OnboardingTour() {
   const navigate = useNavigate();
 
   const isDark = theme === 'dark';
+  const [dismissed, setDismissed] = useState(false);
   
-  // Pro tour has priority when both are pending. Standard tour is skipped for Pro users.
-  const showProTour = user && user.is_pro && !user.has_completed_pro_tutorial;
-  const showStandardTour = user && !user.has_completed_tutorial && !showProTour;
+  // Check strict 1-time trigger flags from localStorage
+  const isNewRegistration = user && localStorage.getItem(`is_new_registration_${user.id}`) === 'true';
+  const isNewProUpgrade = user && user.is_pro && localStorage.getItem(`is_new_pro_upgrade_${user.id}`) === 'true';
+
+  const stdSeen = user && (localStorage.getItem(`std_tutorial_seen_${user.id}`) === 'true' || user.has_completed_tutorial);
+  const proSeen = user && (localStorage.getItem(`pro_tutorial_seen_${user.id}`) === 'true' || user.has_completed_pro_tutorial);
+
+  // Pro users NEVER see the standard tour. Pro tour occurs ONLY ONCE upon upgrading to Pro.
+  // Standard tour occurs ONLY ONCE upon registering a new account for non-Pro users.
+  const showProTour = Boolean(user && user.is_pro && !proSeen && isNewProUpgrade && !dismissed);
+  const showStandardTour = Boolean(user && !user.is_pro && !stdSeen && isNewRegistration && !showProTour && !dismissed);
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState(null);
@@ -41,14 +50,14 @@ export default function OnboardingTour() {
 
   const isMobile = windowWidth < 1024;
 
-  // Standard Tour Steps
+  // Standard Tour Steps (Easy, simple language)
   const standardSteps = [
     {
-      title: "Welcome to NonStock!",
+      title: "Welcome to NonStock! 👋",
       path: "/dashboard",
       selector: null,
       icon: <LayoutDashboard size={40} className="text-emerald-400" />,
-      content: "Let's take a quick 1-minute interactive tour of the platform. We will show you how to navigate your tabs, monitor real-time markets, and execute risk-free paper trades.",
+      content: "Welcome to your risk-free trading platform! We created NonStock so you can learn trading easily without losing any real money. Let's take a quick 1-minute look at how everything works.",
       illustration: (
         <div style={{
           height: '100px',
@@ -62,24 +71,24 @@ export default function OnboardingTour() {
           position: 'relative',
           overflow: 'hidden'
         }}>
-          <span style={{ fontSize: '32px', filter: 'drop-shadow(0 0 10px rgba(0,255,136,0.5))' }}>📈</span>
-          <div style={{ position: 'absolute', bottom: '8px', fontSize: '11px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Interactive Tour Active</div>
+          <span style={{ fontSize: '32px', filter: 'drop-shadow(0 0 10px rgba(0,255,136,0.5))' }}>🚀</span>
+          <div style={{ position: 'absolute', bottom: '8px', fontSize: '11px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Quick Interactive Tour</div>
         </div>
       )
     },
     {
-      title: "Your Dashboard Hub",
+      title: "Command Center (Your Dashboard)",
       path: "/dashboard",
       selector: "tour-nav-dashboard",
       icon: <LayoutDashboard size={24} />,
-      content: "Monitor your overall virtual investment summary, check top stock gainers and losers, track index benchmarks, and manage your custom watchlists from one central dashboard.",
+      content: "This is your home screen! Here you can check your total investment growth, see top gaining and falling stocks, and stay updated with live market news.",
     },
     {
-      title: "Real-time Markets",
+      title: "Live Stream (Real-Time Markets)",
       path: "/markets",
       selector: "tour-nav-markets",
       icon: <TrendingUp size={24} />,
-      content: "Search and view professional charts, trace technical indicators (RSI, EMA), and track live Indian indices (Nifty, Sensex) in real time.",
+      content: "Watch live stock movements! Search any Indian stock, look at live price charts, and trace simple market trends step-by-step.",
       illustration: (
         <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '60px', padding: '10px 0', justifyContent: 'center' }}>
           <div style={{ width: '8px', height: '20px', background: '#ff4444', borderRadius: '2px' }}></div>
@@ -91,38 +100,38 @@ export default function OnboardingTour() {
       )
     },
     {
-      title: "Risk-free Paper Trading",
+      title: "Arena Mode (Risk-Free Paper Trading)",
       path: "/paper-trading",
       selector: "tour-nav-paper-trading",
       icon: <LineChart size={24} />,
-      content: "Test your trading strategies risk-free! We allocate ₹50,000 in virtual funds to every account. Learn to buy/sell, place stop-losses, and track your virtual portfolio PnL.",
+      content: "Practice trading with zero risk! We have added ₹50,000 in free virtual cash to your account. Practice buying and selling stocks and building your confidence.",
       illustration: (
         <div style={{ textAlign: 'center', margin: '12px 0' }}>
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#00ff88' }}>₹50,000.00</div>
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Virtual Sandbox Balance Allocated</div>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Free Virtual Cash Balance Allocated</div>
         </div>
       )
     },
     {
-      title: "Community & Shared Signals",
+      title: "Trader Lounge (Community Hub)",
       path: "/community",
       selector: "tour-nav-community",
       icon: <Users size={24} />,
-      content: "Join public discussion channels (Nifty, Options, Basics), follow verified market experts/coaches, check their shared signals, and discuss trading ideas with the community.",
+      content: "Join public discussion groups, follow top community traders, ask questions, and share your trading ideas with fellow learners.",
     },
     {
-      title: "Screener & Tools",
+      title: "Alpha Tools (Calculators & Tools)",
       path: "/tools",
       selector: "tour-nav-tools",
       icon: <Calculator size={24} />,
-      content: "Build custom stock filters using the Screener, or compute financial projections with compounding, SIP, and Lumpsum calculators.",
+      content: "Use our easy investment calculators to see how your money can grow over time through SIPs, compounding, and stock screeners.",
     },
     {
-      title: "Go Pro for AI Tools",
+      title: "Level Up (Pro Version)",
       path: "/upgrade-pro",
       selector: "tour-nav-upgrade-pro",
       icon: <Sparkles size={24} style={{ color: '#ffb300' }} />,
-      content: "Ready for advanced trading? Go Pro to unlock our proprietary GATv2/Transformer AI Mentor, automated bot allocation, premium coach channels, and real-time SMS alerts.",
+      content: "Whenever you are ready for advanced trading, upgrade to Pro to unlock our smart AI Mentor (The Oracle), automated trading bots, and instant alert notifications!",
       illustration: (
         <div style={{
           padding: '10px',
@@ -135,20 +144,20 @@ export default function OnboardingTour() {
           textAlign: 'center',
           margin: '12px 0'
         }}>
-          💎 Unlock GATv2 AI Mentor & Smart Bots
+          💎 Unlock The Oracle AI & Smart Trading Bots
         </div>
       )
     }
   ];
 
-  // Pro Tour Steps
+  // Pro Tour Steps (Easy, simple language for Pro features)
   const proSteps = [
     {
-      title: "Welcome to NonStock Pro!",
+      title: "Welcome to NonStock Pro! 👑",
       path: "/dashboard",
       selector: null,
       icon: <Sparkles size={40} style={{ color: '#ffb300' }} />,
-      content: "Congratulations! Your account has been upgraded. The interface has transitioned to a luxury gold-accented layout. Let's tour your new institutional-grade features.",
+      content: "Congratulations! Your account is now upgraded to Pro. Your interface has switched to a premium gold layout. Let's show you the special tools unlocked in your account.",
       illustration: (
         <div style={{
           height: '100px',
@@ -168,18 +177,18 @@ export default function OnboardingTour() {
       )
     },
     {
-      title: "GATv2 Quant AI Mentor",
+      title: "The Oracle (AI Trading Mentor)",
       path: "/ai-mentor",
       selector: "tour-nav-ai-mentor",
       icon: <MessageSquare size={24} style={{ color: '#ffb300' }} />,
-      content: "Consult our proprietary GATv2/Transformer model. Get instant AI insights on buyer vs. seller perspectives, volume flow dynamics, and neural setup conviction ratings.",
+      content: "Ask your personal AI mentor any trading question! The Oracle analyzes live market volume, buyers vs sellers strength, and explains stock movements in simple words.",
     },
     {
-      title: "Automated Trading Advisors",
+      title: "Automated Trading Advisors (Bots)",
       path: "/paper-trading",
       selector: "tour-nav-paper-trading",
       icon: <Bot size={24} style={{ color: '#ffb300' }} />,
-      content: "Deploy automated trading bots beside your paper trading charts. These bots analyze real-time indicators and advise you on when to enter, exit, or hold stock positions.",
+      content: "Deploy smart AI bots alongside your paper trading charts. These bots continuously monitor stock charts and give you instant advice on when to buy, sell, or hold.",
       illustration: (
         <div style={{
           padding: '12px',
@@ -194,16 +203,16 @@ export default function OnboardingTour() {
           <div style={{ fontWeight: 800, color: '#ffb300', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
             <Bot size={12} /> Trend Follower Bot
           </div>
-          <div style={{ color: 'var(--text-secondary)' }}>"Signals strong buy setup on Reliance. Stop-loss recommended at ₹2450."</div>
+          <div style={{ color: 'var(--text-secondary)' }}>"Signals strong buy setup on Reliance. Recommended target ₹2550."</div>
         </div>
       )
     },
     {
-      title: "Premium Coach Channels",
+      title: "Exclusive Coach Lounge",
       path: "/community",
       selector: "tour-nav-community",
       icon: <Award size={24} style={{ color: '#ffb300' }} />,
-      content: "Gain full access to exclusive Pro discussion channels and direct signaling services run by SEBI-registered advisors and professional coaches.",
+      content: "Access exclusive Pro chat groups where top verified market coaches share high-probability trade setups and educational breakdown notes.",
     }
   ];
 
@@ -272,11 +281,31 @@ export default function OnboardingTour() {
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
     const type = showProTour ? 'pro' : 'standard';
-    await completeTutorial(type);
+    
+    // 1. Immediately dismiss tour modal locally so popup closes instantly
+    setDismissed(true);
     setCurrentStepIndex(0);
     setTargetRect(null);
+
+    // 2. Persist completion in localStorage right away
+    if (user?.id) {
+      if (type === 'pro') {
+        localStorage.setItem(`pro_tutorial_seen_${user.id}`, 'true');
+        localStorage.removeItem(`is_new_pro_upgrade_${user.id}`);
+      } else {
+        localStorage.setItem(`std_tutorial_seen_${user.id}`, 'true');
+        localStorage.removeItem(`is_new_registration_${user.id}`);
+      }
+    }
+
+    // 3. Trigger backend sync non-blockingly
+    try {
+      completeTutorial(type);
+    } catch (e) {
+      console.warn('Background tutorial sync warning:', e);
+    }
   };
 
   // Determine tooltip style positioning

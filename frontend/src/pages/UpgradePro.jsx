@@ -99,6 +99,9 @@ export default function UpgradePro() {
         setStep('pending');
         toast.success('Payment submitted for verification!');
       } else if (res.data.success) {
+        if (user?.id) {
+          localStorage.setItem(`is_new_pro_upgrade_${user.id}`, 'true');
+        }
         await fetchUser(false);
         setStep('success');
         toast.success('Congratulations! Welcome to NonStock Pro.');

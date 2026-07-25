@@ -101,6 +101,9 @@ export function AuthProvider({ children }) {
       const { token, user } = res.data;
       localStorage.setItem('token', token);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      if (user?.id) {
+        localStorage.setItem(`is_new_registration_${user.id}`, 'true');
+      }
       setUser(user);
       toast.success('Registration successful');
       return { success: true };
@@ -116,6 +119,9 @@ export function AuthProvider({ children }) {
       const { token, user } = res.data;
       localStorage.setItem('token', token);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      if (user?.id) {
+        localStorage.setItem(`is_new_registration_${user.id}`, 'true');
+      }
       setUser(user);
       toast.success('Email verified');
       return { success: true };
@@ -177,6 +183,15 @@ export function AuthProvider({ children }) {
 
   const completeTutorial = async (type) => {
     try {
+      if (user?.id) {
+        if (type === 'pro') {
+          localStorage.setItem(`pro_tutorial_seen_${user.id}`, 'true');
+          localStorage.removeItem(`is_new_pro_upgrade_${user.id}`);
+        } else {
+          localStorage.setItem(`std_tutorial_seen_${user.id}`, 'true');
+          localStorage.removeItem(`is_new_registration_${user.id}`);
+        }
+      }
       const res = await apiClient.post('/user/complete-tutorial', { type });
       setUser(res.data.user || res.data);
       return { success: true };
