@@ -722,6 +722,7 @@ export default function Profile() {
       <ProfileHeader>
         <Avatar>{userInitial}</Avatar>
         <HeaderInfo>
+          <div style={{ fontSize: '12px', fontWeight: '800', color: '#00ff88', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>My Zone</div>
           <h2>{user?.name || 'Investor Profile'}</h2>
           <p>{user?.email || 'investor@nonstock.com'}</p>
           <div className="badges">

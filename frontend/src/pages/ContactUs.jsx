@@ -65,7 +65,7 @@ export default function ContactUs() {
           gap: '12px'
         }}>
           <Sparkles size={32} style={{ color: '#00ff88' }} />
-          About NonStock & Support
+          Get In Touch
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '15px', maxWidth: '600px', margin: '0 auto' }}>
           Empowering retail traders with high-end algorithmic intelligence, real-time insights, and community collaboration.

@@ -502,6 +502,137 @@ const DonutChart = ({ invested, gains }) => {
   );
 };
 
+const ALL_CATEGORIZED_FUNDS = [
+  {
+    schemeCode: '118778',
+    name: 'Nippon India Small Cap Fund Direct Growth',
+    category: 'Equity',
+    subCategory: 'Small Cap',
+    nav: '168.90',
+    aum: '48,230',
+    risk: 'Very High Risk',
+    rating: 5,
+    returns1Y: '+38.2%',
+    returns3Y: '+32.4%',
+    returns5Y: '+29.6%',
+    minSip: 1000,
+    amc: 'Nippon India MF',
+    riskType: 'high'
+  },
+  {
+    schemeCode: '100027',
+    name: 'Parag Parikh Flexi Cap Fund Direct Growth',
+    category: 'Equity',
+    subCategory: 'Flexi Cap',
+    nav: '84.32',
+    aum: '65,420',
+    risk: 'Very High Risk',
+    rating: 5,
+    returns1Y: '+28.4%',
+    returns3Y: '+24.5%',
+    returns5Y: '+22.1%',
+    minSip: 1000,
+    amc: 'PPFAS Mutual Fund',
+    riskType: 'high'
+  },
+  {
+    schemeCode: '120503',
+    name: 'Quant Small Cap Fund Direct Growth',
+    category: 'Equity',
+    subCategory: 'Small Cap',
+    nav: '245.18',
+    aum: '21,340',
+    risk: 'Very High Risk',
+    rating: 5,
+    returns1Y: '+36.8%',
+    returns3Y: '+31.2%',
+    returns5Y: '+28.9%',
+    minSip: 500,
+    amc: 'Quant Mutual Fund',
+    riskType: 'high'
+  },
+  {
+    schemeCode: '119853',
+    name: 'Mirae Asset Large Cap Fund Direct Growth',
+    category: 'Equity',
+    subCategory: 'Large Cap',
+    nav: '112.65',
+    aum: '38,910',
+    risk: 'Very High Risk',
+    rating: 4,
+    returns1Y: '+22.1%',
+    returns3Y: '+18.6%',
+    returns5Y: '+17.4%',
+    minSip: 1000,
+    amc: 'Mirae Asset',
+    riskType: 'high'
+  },
+  {
+    schemeCode: '102873',
+    name: 'HDFC Index Nifty 50 Plan Direct Growth',
+    category: 'Index Funds',
+    subCategory: 'Index Fund',
+    nav: '218.90',
+    aum: '14,850',
+    risk: 'Very High Risk',
+    rating: 5,
+    returns1Y: '+24.8%',
+    returns3Y: '+19.2%',
+    returns5Y: '+16.8%',
+    minSip: 1000,
+    amc: 'HDFC Mutual Fund',
+    riskType: 'high'
+  },
+  {
+    schemeCode: '118989',
+    name: 'SBI Equity Hybrid Fund Direct Growth',
+    category: 'Hybrid',
+    subCategory: 'Aggressive Hybrid',
+    nav: '254.40',
+    aum: '62,110',
+    risk: 'High Risk',
+    rating: 4,
+    returns1Y: '+19.5%',
+    returns3Y: '+16.8%',
+    returns5Y: '+15.2%',
+    minSip: 500,
+    amc: 'SBI Mutual Fund',
+    riskType: 'medium'
+  },
+  {
+    schemeCode: '105672',
+    name: 'ICICI Prudential Liquid Fund Direct Growth',
+    category: 'Debt & Liquid',
+    subCategory: 'Liquid Debt',
+    nav: '342.15',
+    aum: '45,670',
+    risk: 'Low Risk',
+    rating: 5,
+    returns1Y: '+7.3%',
+    returns3Y: '+6.8%',
+    returns5Y: '+6.5%',
+    minSip: 500,
+    amc: 'ICICI Prudential',
+    riskType: 'low'
+  },
+  {
+    schemeCode: '108921',
+    name: 'Axis ELSS Tax Saver Fund Direct Growth',
+    category: 'ELSS Tax Saver',
+    subCategory: 'Tax Saver',
+    nav: '96.45',
+    aum: '31,540',
+    risk: 'Very High Risk',
+    rating: 4,
+    returns1Y: '+23.4%',
+    returns3Y: '+17.9%',
+    returns5Y: '+18.1%',
+    minSip: 500,
+    amc: 'Axis Mutual Fund',
+    riskType: 'high'
+  }
+];
+
 export default function MutualFunds() {
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -511,6 +642,9 @@ export default function MutualFunds() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedFund, setSelectedFund] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  // Multi-Category Explorer Filter
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
   
   // Timeframe states
   const [chartTimeframe, setChartTimeframe] = useState('3Y'); // 1M, 3M, 6M, 1Y, 3Y, ALL
@@ -723,7 +857,7 @@ export default function MutualFunds() {
     <Container>
       <Header>
         <div>
-          <Title>Mutual Funds Terminal</Title>
+          <Title>Fund Explorer</Title>
           <Subtitle>Institutional wealth research matrix offering live AMFI prices, multi-timeframe charts, and direct investing simulations</Subtitle>
         </div>
       </Header>
@@ -752,6 +886,143 @@ export default function MutualFunds() {
           </AutocompleteDropdown>
         )}
       </SearchContainer>
+
+      {/* ─── MULTI-CATEGORY FUND EXPLORER GRID ─── */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Layers size={20} style={{ color: '#00ff88' }} /> Explore Top Rated Mutual Funds
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
+              Browse top performing AMFI registered schemes across asset classes
+            </p>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {['ALL', 'Equity', 'Debt & Liquid', 'Hybrid', 'Index Funds', 'ELSS Tax Saver'].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                style={{
+                  background: categoryFilter === cat ? 'rgba(0, 255, 136, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                  border: categoryFilter === cat ? '1px solid #00ff88' : '1px solid rgba(255, 255, 255, 0.08)',
+                  color: categoryFilter === cat ? '#00ff88' : 'var(--text-secondary)',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {cat === 'ALL' ? 'All Funds' : cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Fund Cards Responsive Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          {ALL_CATEGORIZED_FUNDS
+            .filter(f => categoryFilter === 'ALL' || f.category === categoryFilter)
+            .map(fund => {
+              const isSelected = selectedFund?.schemeCode === fund.schemeCode;
+              return (
+                <div 
+                  key={fund.schemeCode}
+                  style={{
+                    background: isSelected ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                    border: isSelected ? '1px solid #00ff88' : '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justify: 'space-between',
+                    gap: '12px',
+                    transition: 'all 0.2s',
+                    boxShadow: isSelected ? '0 0 15px rgba(0, 255, 136, 0.15)' : 'none'
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: 'rgba(0, 188, 212, 0.1)', color: '#00bcd4', border: '1px solid rgba(0, 188, 212, 0.2)' }}>
+                        {fund.subCategory}
+                      </span>
+                      <span style={{ color: '#ffc107', fontSize: '11px', fontWeight: 700 }}>
+                        {'★'.repeat(fund.rating)}
+                      </span>
+                    </div>
+                    <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: '#ffffff', lineHeight: '1.3' }}>
+                      {fund.name}
+                    </h4>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{fund.amc}</div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px' }}>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>3Y CAGR</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#00ff88' }}>{fund.returns3Y}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>NAV</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>₹{fund.nav}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => fetchFundDetails(fund.schemeCode)}
+                      style={{
+                        flex: 1,
+                        background: isSelected ? '#00ff88' : 'rgba(0, 255, 136, 0.1)',
+                        color: isSelected ? '#0a0e27' : '#00ff88',
+                        border: '1px solid #00ff88',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      {isSelected ? 'Active View' : 'Analyze & Chart'} <ArrowRight size={12} />
+                    </button>
+                    <button
+                      onClick={() => handleAddToCompare({
+                        schemeCode: fund.schemeCode,
+                        name: fund.name,
+                        category: fund.category,
+                        nav: fund.nav,
+                        aum: fund.aum,
+                        risk: fund.risk,
+                        rating: fund.rating,
+                        returns: { '1Y': fund.returns1Y, '3Y': fund.returns3Y, '5Y': fund.returns5Y }
+                      })}
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                      title="Add to comparison"
+                    >
+                      + Compare
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
 
       <Grid>
         {/* ─── LEFT COLUMN: DETAILS, CHARTS & CALCULATOR ─── */}

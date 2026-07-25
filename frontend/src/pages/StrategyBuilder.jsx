@@ -293,7 +293,7 @@ export default function StrategyBuilder() {
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px 0', background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Sparkles size={28} style={{ color: '#00ff88' }} />
-            NonStock Strategy Lab
+            Strategy Forge
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
             Build, save, and simulate multi-indicator algorithmic systems on historical market assets.

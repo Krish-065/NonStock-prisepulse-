@@ -70,7 +70,7 @@ export default function Watchlist() {
 
   return (
     <div>
-      <h1>Your Watchlist</h1>
+      <h1 style={{ fontSize: '28px', fontWeight: '800', background: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '0 0 16px 0' }}>On My Radar</h1>
       <SearchWithSuggestions
         onSelect={(stock) => addToWatchlist(stock.symbol)}
         placeholder="Search stocks to add..."

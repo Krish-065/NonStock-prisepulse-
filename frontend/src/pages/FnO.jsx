@@ -180,6 +180,29 @@ export default function FnO() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       
+      {/* Top Banner Header */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(16, 20, 39, 0.6) 0%, rgba(22, 28, 59, 0.4) 100%)',
+        border: '1px solid rgba(0, 255, 136, 0.15)',
+        borderRadius: '16px',
+        padding: '24px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
+        <div>
+          <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px 0', background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <BarChart3 size={28} style={{ color: '#00ff88' }} />
+            Derivatives Desk
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
+            Live options chain greeks, put-call ratio sentiment gauge, and real-time futures build-up analytics.
+          </p>
+        </div>
+      </div>
+      
       {/* Expiry and Symbol Filter Header */}
       <div className="section-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', padding: '20px 24px' }}>
         <div style={{ display: 'flex', gap: '10px' }}>

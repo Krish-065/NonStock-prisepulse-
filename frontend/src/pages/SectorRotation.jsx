@@ -141,7 +141,7 @@ export default function SectorRotation() {
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-primary)' }}>
             <Compass size={32} style={{ color: '#00ff88', animation: refreshing ? 'spin 1.5s linear infinite' : 'none' }} />
-            Institutional Sector Rotation Matrix
+            Sector Radar
           </h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '14px' }}>
             Tracking block order volume and open interest momentum to map sector-wide cycles of Smart Money.

@@ -643,7 +643,7 @@ export default function Portfolio() {
     <Container>
       <Header>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <Title>Portfolio Analyst & Smart Sync</Title>
+          <Title>My Bag</Title>
           <Subtitle>Connect your demat securely in read-only mode to visualize sector rotation risk in your holdings</Subtitle>
           
           {/* Dual-Mode Toggle Tab */}

@@ -561,11 +561,15 @@ export default function IPOs() {
     <Container>
       <Header>
         <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00ff88', boxShadow: '0 0 10px #00ff88', display: 'inline-block' }}></span>
+            <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Real-Time Non-Delayed Data Feed</span>
+          </div>
           <Title>Live IPO Intelligence Center</Title>
           <Subtitle>Monitor GMP trends, live subscriber books, listing estimates & allotment schedules</Subtitle>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="live-badge" style={{ background: '#00ff88', color: '#0a0e27', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>LIVE TRACKING</span>
+          <span className="live-badge" style={{ background: 'linear-gradient(135deg, #00ff88, #00bcd4)', color: '#0a0e27', padding: '6px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: 800, boxShadow: '0 0 15px rgba(0,255,136,0.3)' }}>● LIVE STREAM ACTIVE</span>
         </div>
       </Header>
 
