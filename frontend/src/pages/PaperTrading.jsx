@@ -1942,11 +1942,11 @@ export default function PaperTrading() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Activity style={{ color: '#00ff88' }} size={24} /> Paper Trading Simulator
+            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Activity style={{ color: '#00ff88' }} size={24} /> Arena Mode
             </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#9b9eac' }}>
-              Real-time multi-market virtual environment
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
+              Real-time multi-market virtual trading arena
             </p>
           </div>
         </div>
