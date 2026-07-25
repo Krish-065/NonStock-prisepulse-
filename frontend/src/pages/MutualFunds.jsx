@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { createChart, AreaSeries } from 'lightweight-charts';
 import { apiClient } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   Search, Calculator, BarChart2, Plus, Trash2, 
   ArrowUpRight, Shield, Award, Layers, TrendingUp,
@@ -38,7 +40,7 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  color: #9b9eac;
+  color: var(--text-secondary);
   margin: 4px 0 0 0;
   font-size: 14px;
 `;
@@ -54,11 +56,11 @@ const Grid = styled.div`
 `;
 
 const Card = styled.div`
-  background: #0a0e27;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -78,18 +80,18 @@ const SearchInputWrapper = styled.div`
 const StyledSearchIcon = styled(Search)`
   position: absolute;
   left: 16px;
-  color: #9b9eac;
+  color: var(--text-secondary);
   width: 20px;
   height: 20px;
 `;
 
 const SearchInput = styled.input`
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 14px 16px 14px 48px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 14px;
   outline: none;
   transition: all 0.3s;
@@ -106,22 +108,22 @@ const AutocompleteDropdown = styled.div`
   top: 100%;
   left: 0;
   width: 100%;
-  background: #0d1236;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-top: none;
   border-radius: 0 0 12px 12px;
   z-index: 100;
   max-height: 280px;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 `;
 
 const AutocompleteItem = styled.div`
   padding: 12px 16px;
-  color: #e1e3e6;
+  color: var(--text-primary);
   font-size: 13px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border-color);
   transition: all 0.2s;
   
   &:hover {
@@ -134,8 +136,8 @@ const Tag = styled.span`
   font-size: 11px;
   padding: 3px 8px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #9b9eac;
+  background: var(--bg-glass-light);
+  color: var(--text-secondary);
   font-weight: 600;
 `;
 
@@ -147,8 +149,8 @@ const TimeframeSelector = styled.div`
 
 const TimeframeButton = styled.button`
   background: ${props => props.$active ? 'rgba(0, 255, 136, 0.15)' : 'transparent'};
-  border: 1px solid ${props => props.$active ? '#00ff88' : 'rgba(255, 255, 255, 0.05)'};
-  color: ${props => props.$active ? '#00ff88' : '#9b9eac'};
+  border: 1px solid ${props => props.$active ? '#00ff88' : 'var(--border-color)'};
+  color: ${props => props.$active ? '#00ff88' : 'var(--text-secondary)'};
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -165,7 +167,7 @@ const TimeframeButton = styled.button`
 const ChartContainer = styled.div`
   width: 100%;
   height: 280px;
-  background: #0a0e27;
+  background: var(--bg-card);
   border-radius: 12px;
   overflow: hidden;
   margin-top: 16px;
@@ -174,7 +176,7 @@ const ChartContainer = styled.div`
 // Start SIP / One-time styled elements
 const TabHeader = styled.div`
   display: flex;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 20px;
 `;
 
@@ -183,7 +185,7 @@ const TabButton = styled.button`
   background: transparent;
   border: none;
   padding: 12px;
-  color: ${props => props.$active ? '#00ff88' : '#9b9eac'};
+  color: ${props => props.$active ? '#00ff88' : 'var(--text-secondary)'};
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
@@ -192,7 +194,7 @@ const TabButton = styled.button`
   text-align: center;
   
   &:hover {
-    color: #ffffff;
+    color: var(--text-primary);
   }
 `;
 
@@ -200,10 +202,10 @@ const AmountInputContainer = styled.div`
   position: relative;
   display: flex;
   align-items: center;
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border: 1.5px solid var(--border-color);
   border-radius: 12px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-glass-light);
   margin-bottom: 16px;
   transition: all 0.2s;
   
@@ -216,7 +218,7 @@ const AmountInputContainer = styled.div`
   .currency {
     font-size: 24px;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--text-primary);
     margin-right: 4px;
   }
   
@@ -224,7 +226,7 @@ const AmountInputContainer = styled.div`
     background: transparent;
     border: none;
     outline: none;
-    color: #ffffff;
+    color: var(--text-primary);
     font-size: 24px;
     font-weight: 800;
     width: 100%;
@@ -233,15 +235,15 @@ const AmountInputContainer = styled.div`
   .clear-btn {
     background: transparent;
     border: none;
-    color: #9b9eac;
+    color: var(--text-secondary);
     cursor: pointer;
     display: flex;
     align-items: center;
     padding: 4px;
     border-radius: 50%;
     &:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #ffffff;
+      background: var(--bg-glass-light);
+      color: var(--text-primary);
     }
   }
 `;
@@ -254,8 +256,8 @@ const QuickPillGroup = styled.div`
 `;
 
 const QuickPill = styled.button`
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 6px 14px;
   color: #00ff88;
@@ -275,18 +277,18 @@ const InfoRow = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--border-color);
   font-size: 13px;
   
   .label {
-    color: #9b9eac;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 6px;
   }
   
   .value {
-    color: #ffffff;
+    color: var(--text-primary);
     font-weight: 700;
   }
 `;
@@ -294,7 +296,7 @@ const InfoRow = styled.div`
 const ContinueButton = styled.button`
   background: linear-gradient(135deg, #00ff88 0%, #00bcd4 100%);
   border: none;
-  color: #0a0e27;
+  color: var(--bg-primary);
   padding: 16px;
   border-radius: 12px;
   font-weight: 800;
@@ -319,7 +321,7 @@ const SimilarFundsContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  border-top: 1px dashed var(--border-color);
   padding-top: 18px;
   margin-top: 12px;
 `;
@@ -335,7 +337,7 @@ const SimilarFundLogo = styled.span`
   justify-content: center;
   font-size: 11px;
   font-weight: 800;
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border: 1.5px solid var(--border-color);
   margin-left: -8px;
   &:first-child {
     margin-left: 0;
@@ -344,10 +346,10 @@ const SimilarFundLogo = styled.span`
 
 const DurationGroup = styled.div`
   display: flex;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-glass-light);
   padding: 4px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
   margin-bottom: 12px;
 `;
 
@@ -355,7 +357,7 @@ const DurationButton = styled.button`
   flex: 1;
   background: ${props => props.$active ? 'rgba(0, 255, 136, 0.15)' : 'transparent'};
   border: 1px solid ${props => props.$active ? '#00ff88' : 'transparent'};
-  color: ${props => props.$active ? '#00ff88' : '#9b9eac'};
+  color: ${props => props.$active ? '#00ff88' : 'var(--text-secondary)'};
   padding: 8px;
   border-radius: 6px;
   cursor: pointer;
@@ -374,7 +376,7 @@ const SliderContainer = styled.div`
     display: flex;
     justify-content: space-between;
     font-size: 13px;
-    color: #9b9eac;
+    color: var(--text-secondary);
     
     span.value {
       color: #00ff88;
@@ -385,7 +387,7 @@ const SliderContainer = styled.div`
   input[type=range] {
     -webkit-appearance: none;
     width: 100%;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--border-color);
     height: 6px;
     border-radius: 3px;
     outline: none;
@@ -405,9 +407,9 @@ const SliderContainer = styled.div`
 const CompareTableContainer = styled.div`
   overflow-x: auto;
   border-radius: 12px;
-  background: #0a0e27;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 
   table {
     width: 100%;
@@ -417,12 +419,12 @@ const CompareTableContainer = styled.div`
   }
 
   th {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-glass-light);
     padding: 16px 14px;
     text-align: left;
-    color: #9b9eac;
+    color: var(--text-secondary);
     font-weight: 600;
-    border-bottom: 2px solid rgba(0, 255, 136, 0.2);
+    border-bottom: 2px solid var(--border-color);
     text-transform: uppercase;
     font-size: 11px;
     letter-spacing: 0.5px;
@@ -430,12 +432,12 @@ const CompareTableContainer = styled.div`
 
   td {
     padding: 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    color: #e1e3e6;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
   }
 
   tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-glass-light);
   }
 `;
 
@@ -501,6 +503,9 @@ const DonutChart = ({ invested, gains }) => {
 };
 
 export default function MutualFunds() {
+  const { user } = useAuth();
+  const { theme } = useTheme();
+  const isPro = user?.is_pro || false;
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -578,13 +583,13 @@ export default function MutualFunds() {
     
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { color: '#0a0e27' },
-        textColor: '#9b9eac',
+        background: { color: theme === 'dark' ? (isPro ? '#0b0803' : '#0a0e27') : (isPro ? '#fdfcf7' : '#ffffff') },
+        textColor: theme === 'dark' ? '#9b9eac' : '#5a6a85',
         fontFamily: 'Inter, sans-serif',
       },
       grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.015)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.015)' },
+        vertLines: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.015)' : 'rgba(0, 0, 0, 0.05)' },
+        horzLines: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.015)' : 'rgba(0, 0, 0, 0.05)' },
       },
       width: chartContainerRef.current.clientWidth || 500,
       height: 280,

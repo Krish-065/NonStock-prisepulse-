@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import styled from 'styled-components';
 import { apiClient } from '../services/api';
 import SearchWithSuggestions from '../components/SearchWithSuggestions';
@@ -38,7 +39,7 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  color: #9b9eac;
+  color: var(--text-secondary);
   margin: 4px 0 0 0;
   font-size: 14px;
 `;
@@ -50,7 +51,7 @@ const InfoBox = styled.div`
   padding: 16px;
   display: flex;
   gap: 12px;
-  color: #d1d4dc;
+  color: var(--text-primary);
   font-size: 13px;
   line-height: 1.5;
   
@@ -73,11 +74,11 @@ const Grid = styled.div`
 `;
 
 const Card = styled.div`
-  background: #0a0e27;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -90,14 +91,14 @@ const StatsGrid = styled.div`
 `;
 
 const StatCard = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px;
   
   .label {
     font-size: 11px;
-    color: #9b9eac;
+    color: var(--text-secondary);
     text-transform: uppercase;
     margin-bottom: 6px;
   }
@@ -105,7 +106,7 @@ const StatCard = styled.div`
   .value {
     font-size: 20px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text-primary);
   }
 `;
 
@@ -128,7 +129,7 @@ const RiskAlertBox = styled.div`
 const ActionButton = styled.button`
   background: linear-gradient(135deg, #00ff88, #00bcd4);
   border: none;
-  color: #0a0e27;
+  color: var(--bg-primary);
   padding: 10px 20px;
   border-radius: 8px;
   font-weight: 700;
@@ -161,13 +162,13 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: #0d1236;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   width: 100%;
   max-width: 480px;
   padding: 24px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -182,16 +183,16 @@ const FormGroup = styled.div`
   
   label {
     font-size: 12px;
-    color: #9b9eac;
+    color: var(--text-secondary);
     text-transform: uppercase;
   }
   
   input, select {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-glass-light);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px 12px;
-    color: #ffffff;
+    color: var(--text-primary);
     font-size: 14px;
     outline: none;
     
@@ -202,12 +203,12 @@ const FormGroup = styled.div`
 `;
 
 const HelperBox = styled.div`
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 12px;
   font-size: 11px;
-  color: #9b9eac;
+  color: var(--text-secondary);
   display: flex;
   gap: 8px;
 `;
@@ -215,8 +216,8 @@ const HelperBox = styled.div`
 const TableContainer = styled.div`
   overflow-x: auto;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: #0a0e27;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
   
   table {
     width: 100%;
@@ -225,24 +226,24 @@ const TableContainer = styled.div`
   }
   
   th {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-glass-light);
     padding: 12px 14px;
-    color: #9b9eac;
+    color: var(--text-secondary);
     text-align: left;
     text-transform: uppercase;
     font-size: 10px;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--border-color);
   }
   
   td {
     padding: 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    color: #e1e3e6;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
   }
   
   tr:hover {
-    background: rgba(255, 255, 255, 0.01);
+    background: var(--bg-glass-light);
   }
 `;
 

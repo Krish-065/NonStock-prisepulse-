@@ -26,7 +26,8 @@ import {
   Clock,
   Heart,
   CheckCircle,
-  Lock
+  Lock,
+  Sparkles
 } from 'lucide-react';
 
 const ProfileContainer = styled.div`
@@ -39,11 +40,11 @@ const ProfileHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 24px;
-  background: linear-gradient(135deg, #0f1635 0%, #070a1e 100%);
+  background: var(--gradient-bg, linear-gradient(135deg, #0f1635 0%, #070a1e 100%));
   padding: 32px;
   border-radius: 16px;
-  border: 1px solid rgba(0, 255, 136, 0.15);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   margin-bottom: 24px;
   flex-wrap: wrap;
 
@@ -64,7 +65,7 @@ const Avatar = styled.div`
   justify-content: center;
   font-size: 36px;
   font-weight: 800;
-  color: #0a0e27;
+  color: var(--bg-primary);
   box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
   text-transform: uppercase;
 `;
@@ -76,12 +77,12 @@ const HeaderInfo = styled.div`
     margin: 0;
     font-size: 28px;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--text-primary);
   }
 
   p {
     margin: 6px 0 0 0;
-    color: #9b9eac;
+    color: var(--text-secondary);
     font-size: 15px;
   }
 
@@ -121,18 +122,18 @@ const Grid = styled.div`
 `;
 
 const Card = styled.div`
-  background: #0a0e27;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 
   h3 {
     margin-top: 0;
     margin-bottom: 20px;
     font-size: 18px;
-    color: #ffffff;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 12px;
     display: flex;
     align-items: center;
@@ -145,13 +146,13 @@ const CardHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 12px;
 
   h3 {
     margin: 0;
     font-size: 18px;
-    color: #ffffff;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -187,7 +188,7 @@ const EditButton = styled.button`
 
   &:hover {
     background: #00ff88;
-    color: #0a0e27;
+    color: var(--bg-primary);
     box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
   }
 `;
@@ -200,7 +201,7 @@ const ActionButtonGroup = styled.div`
 const CancelButton = styled.button`
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #e1e3e6;
+  color: var(--text-primary);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 12px;
@@ -218,7 +219,7 @@ const InfoRow = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border-color);
   font-size: 14px;
   min-height: 48px;
   box-sizing: border-box;
@@ -228,22 +229,22 @@ const InfoRow = styled.div`
   }
 
   .label {
-    color: #9b9eac;
+    color: var(--text-secondary);
   }
 
   .value {
-    color: #ffffff;
+    color: var(--text-primary);
     font-weight: 600;
     text-align: right;
   }
 `;
 
 const RowInput = styled.input`
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 8px 12px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 14px;
   width: 60%;
   text-align: right;
@@ -266,10 +267,10 @@ const QuickLinks = styled.div`
 const NavButton = styled.button`
   width: 100%;
   padding: 14px 18px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 14px;
   display: flex;
@@ -297,11 +298,11 @@ const Form = styled.form`
   gap: 16px;
 
   input, textarea {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-glass-light);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 12px;
-    color: #ffffff;
+    color: var(--text-primary);
     font-size: 14px;
     outline: none;
     transition: all 0.2s;
@@ -321,7 +322,7 @@ const Form = styled.form`
   button {
     background: linear-gradient(135deg, #00ff88, #00bcd4);
     border: none;
-    color: #0a0e27;
+    color: var(--bg-primary);
     padding: 12px;
     border-radius: 8px;
     font-weight: 700;
@@ -335,8 +336,8 @@ const Form = styled.form`
 `;
 
 const ChannelItem = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 12px;
@@ -347,7 +348,7 @@ const ChannelItem = styled.div`
 
   &:hover {
     border-color: rgba(0, 255, 136, 0.2);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-glass-light);
   }
 `;
 
@@ -371,7 +372,7 @@ const ChannelAvatarFallback = styled.div`
   height: 48px;
   border-radius: 8px;
   background: linear-gradient(135deg, #00ff88 0%, #00bcd4 100%);
-  color: #0a0e27;
+  color: var(--bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -383,13 +384,13 @@ const ChannelInfo = styled.div`
   flex: 1;
   h4 {
     margin: 0;
-    color: #ffffff;
+    color: var(--text-primary);
     font-size: 15px;
     font-weight: 700;
   }
   p {
     margin: 4px 0 0 0;
-    color: #9b9eac;
+    color: var(--text-secondary);
     font-size: 12px;
     line-height: 1.4;
   }
@@ -398,14 +399,14 @@ const ChannelInfo = styled.div`
 const ChannelMeta = styled.div`
   display: flex;
   gap: 16px;
-  color: #9b9eac;
+  color: var(--text-secondary);
   font-size: 12px;
   margin-top: 4px;
 `;
 
 const PostItem = styled.div`
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-glass-light);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 12px;
@@ -416,7 +417,7 @@ const PostItem = styled.div`
 
   &:hover {
     border-color: rgba(0, 188, 212, 0.2);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-glass-light);
   }
 
   .post-header {
@@ -427,13 +428,13 @@ const PostItem = styled.div`
 
   h4 {
     margin: 0;
-    color: #ffffff;
+    color: var(--text-primary);
     font-size: 15px;
     font-weight: 700;
   }
 
   .post-body {
-    color: #cbd5e1;
+    color: var(--text-primary);
     font-size: 13px;
     line-height: 1.5;
     white-space: pre-wrap;
@@ -448,7 +449,7 @@ const PostItem = styled.div`
     justify-content: space-between;
     align-items: center;
     font-size: 11px;
-    color: #9b9eac;
+    color: var(--text-secondary);
     margin-top: 4px;
   }
 `;
@@ -469,12 +470,12 @@ const ActionButton = styled.button`
 
   &:hover {
     background: ${props => props.$danger ? '#ff3366' : '#00ff88'};
-    color: #0a0e27;
+    color: var(--bg-primary);
   }
 `;
 
 export default function Profile() {
-  const { user, logout, updateProfile, changePassword } = useAuth();
+  const { user, logout, updateProfile, changePassword, resetTutorial } = useAuth();
   const navigate = useNavigate();
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -750,7 +751,7 @@ export default function Profile() {
           <button 
             onClick={logout} 
             style={{ padding: '12px 24px', background: 'rgba(255, 51, 102, 0.1)', border: '1px solid rgba(255, 51, 102, 0.3)', color: '#ff3366', borderRadius: '10px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseOver={(e) => { e.target.style.background = '#ff3366'; e.target.style.color = '#0a0e27'; }}
+            onMouseOver={(e) => { e.target.style.background = '#ff3366'; e.target.style.color = 'var(--bg-primary)'; }}
             onMouseOut={(e) => { e.target.style.background = 'rgba(255, 51, 102, 0.1)'; e.target.style.color = '#ff3366'; }}
           >
             Logout Account
@@ -901,7 +902,7 @@ export default function Profile() {
                   style={{
                     background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
                     border: 'none',
-                    color: '#0a0e27',
+                    color: 'var(--bg-primary)',
                     padding: '10px 20px',
                     borderRadius: '8px',
                     fontWeight: '700',
@@ -1251,6 +1252,63 @@ export default function Profile() {
                 <span className="icon"><ArrowRight size={16} /></span>
               </NavButton>
             </QuickLinks>
+          </Card>
+
+          <Card>
+            <h3><IconContainer $color="#ffb300"><Sparkles size={16} /></IconContainer> Guided App Tours</h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: '1.5' }}>
+              Want to see the interactive onboarding tutorials again? Reset them here.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button 
+                onClick={async () => {
+                  const success = await resetTutorial('standard');
+                  if (success) toast.success('Standard account tour reset! Navigate to Dashboard to start.');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(0, 255, 136, 0.3)',
+                  background: 'rgba(0, 255, 136, 0.05)',
+                  color: 'var(--text-primary)',
+                  fontWeight: 600,
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0, 255, 136, 0.12)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0, 255, 136, 0.05)'; }}
+              >
+                Restart Standard App Tour
+              </button>
+              {user?.is_pro && (
+                <button 
+                  onClick={async () => {
+                    const success = await resetTutorial('pro');
+                    if (success) toast.success('Pro features tour reset! Navigate to Dashboard to start.');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 179, 0, 0.4)',
+                    background: 'rgba(255, 179, 0, 0.05)',
+                    color: '#ffb300',
+                    fontWeight: 600,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255, 179, 0, 0.12)'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255, 179, 0, 0.05)'; }}
+                >
+                  Restart Pro Features Tour
+                </button>
+              )}
+            </div>
           </Card>
 
           <Card>

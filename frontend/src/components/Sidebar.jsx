@@ -106,6 +106,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
           <NavLink
             key={item.path}
             to={item.path}
+            id={item.path === '/' ? 'tour-nav-dashboard' : `tour-nav-${item.path.replace('/', '')}`}
             onClick={isMobile ? onClose : undefined}
             style={({ isActive }) => {
               const activeColor = item.isSpecial 

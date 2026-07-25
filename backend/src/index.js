@@ -92,7 +92,7 @@ app.post('/api/auth/change-password', authenticate, authRoutes.changePassword);
 app.get('/api/user/profile', authenticate, async (req, res) => {
   try {
     const result = await query(
-      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref FROM users WHERE id = $1`, 
+      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref, has_completed_tutorial, has_completed_pro_tutorial FROM users WHERE id = $1`, 
       [req.user.id]
     );
     if (result.rows.length === 0) {
@@ -153,7 +153,7 @@ app.put('/api/user/profile', authenticate, async (req, res) => {
     );
 
     const result = await query(
-      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref FROM users WHERE id = $1`, 
+      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref, has_completed_tutorial, has_completed_pro_tutorial FROM users WHERE id = $1`, 
       [req.user.id]
     );
     if (result.rows.length === 0) {
@@ -172,6 +172,48 @@ app.put('/api/user/profile', authenticate, async (req, res) => {
   } catch (error) {
     console.error('❌ Update profile error:', error);
     res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// Complete onboarding tutorial route
+app.post('/api/user/complete-tutorial', authenticate, async (req, res) => {
+  try {
+    const { type } = req.body; // 'standard' or 'pro'
+    if (type === 'pro') {
+      await query(`UPDATE users SET has_completed_pro_tutorial = true WHERE id = $1`, [req.user.id]);
+    } else {
+      await query(`UPDATE users SET has_completed_tutorial = true WHERE id = $1`, [req.user.id]);
+    }
+
+    const result = await query(
+      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref, has_completed_tutorial, has_completed_pro_tutorial FROM users WHERE id = $1`, 
+      [req.user.id]
+    );
+    res.json({ message: 'Tutorial status updated', user: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Complete tutorial error:', error);
+    res.status(500).json({ error: 'Failed to update tutorial status' });
+  }
+});
+
+// Reset onboarding tutorial route
+app.post('/api/user/reset-tutorial', authenticate, async (req, res) => {
+  try {
+    const { type } = req.body; // 'standard' or 'pro'
+    if (type === 'pro') {
+      await query(`UPDATE users SET has_completed_pro_tutorial = false WHERE id = $1`, [req.user.id]);
+    } else {
+      await query(`UPDATE users SET has_completed_tutorial = false WHERE id = $1`, [req.user.id]);
+    }
+
+    const result = await query(
+      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref, has_completed_tutorial, has_completed_pro_tutorial FROM users WHERE id = $1`, 
+      [req.user.id]
+    );
+    res.json({ message: 'Tutorial status reset successfully', user: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Reset tutorial error:', error);
+    res.status(500).json({ error: 'Failed to reset tutorial status' });
   }
 });
 

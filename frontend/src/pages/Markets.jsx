@@ -5,6 +5,7 @@ import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lig
 import { apiClient } from '../services/api';
 import { io } from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import toast from 'react-hot-toast';
 
 // Symbol categories with popular options
@@ -536,6 +537,7 @@ const chartCalculateSAR = (data, step = 0.02, maxStep = 0.20) => {
 export default function Markets() {
   const location = useLocation();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const isPro = user?.is_pro || false;
   const [activeIndicators, setActiveIndicators] = useState({
     sma20: false,
@@ -766,10 +768,10 @@ export default function Markets() {
           symbol: tvSymbol,
           interval: interval === 'D' ? 'D' : interval === 'W' ? 'W' : interval === 'M' ? 'M' : '240',
           timezone: 'Asia/Kolkata',
-          theme: 'dark',
+          theme: theme === 'dark' ? 'dark' : 'light',
           style: '1',
           locale: 'en',
-          toolbar_bg: '#101427',
+          toolbar_bg: theme === 'dark' ? '#101427' : '#ffffff',
           enable_publishing: false,
           hide_side_toolbar: false,
           allow_symbol_change: true,
@@ -869,14 +871,14 @@ export default function Markets() {
       width: customChartContainerRef.current.clientWidth,
       height: 540,
       layout: {
-        background: { color: '#0a0e27' },
-        textColor: '#9b9eaf',
+        background: { color: theme === 'dark' ? (isPro ? '#0b0803' : '#0a0e27') : (isPro ? '#fdfcf7' : '#ffffff') },
+        textColor: theme === 'dark' ? '#9b9eaf' : '#5a6a85',
         fontSize: 12,
         fontFamily: 'Inter, sans-serif',
       },
       grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.03)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.03)' },
+        vertLines: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.05)' },
+        horzLines: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.05)' },
       },
       crosshair: {
         mode: 0,

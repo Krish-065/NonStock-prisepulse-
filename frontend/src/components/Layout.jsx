@@ -6,6 +6,7 @@ import { Menu, Star, Briefcase, Coins, LineChart, Award, Search, Newspaper, Acti
 import { apiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import OnboardingTour from './OnboardingTour';
 
 export default function Layout({ children }) {
   const { user } = useAuth();
@@ -560,6 +561,7 @@ export default function Layout({ children }) {
           </button>
         </div>
       )}
+      <OnboardingTour />
     </div>
   );
 }

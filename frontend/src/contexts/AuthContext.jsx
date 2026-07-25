@@ -166,11 +166,33 @@ export function AuthProvider({ children }) {
   const updateProfile = async (profileData) => {
     try {
       const res = await apiClient.put('/user/profile', profileData);
-      setUser(res.data.user);
+      setUser(res.data.user || res.data);
       toast.success(res.data.message || 'Profile updated successfully');
       return { success: true };
     } catch (err) {
       toast.error(err.response?.data?.error || 'Profile update failed');
+      return { success: false };
+    }
+  };
+
+  const completeTutorial = async (type) => {
+    try {
+      const res = await apiClient.post('/user/complete-tutorial', { type });
+      setUser(res.data.user || res.data);
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to complete tutorial:', err);
+      return { success: false };
+    }
+  };
+
+  const resetTutorial = async (type) => {
+    try {
+      const res = await apiClient.post('/user/reset-tutorial', { type });
+      setUser(res.data.user || res.data);
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to reset tutorial:', err);
       return { success: false };
     }
   };
@@ -187,7 +209,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, verifyEmail, verify2FALogin, logout, updateProfile, changePassword, fetchUser, googleLogin }}>
+    <AuthContext.Provider value={{ user, loading, login, register, verifyEmail, verify2FALogin, logout, updateProfile, changePassword, fetchUser, googleLogin, completeTutorial, resetTutorial }}>
       {children}
     </AuthContext.Provider>
   );

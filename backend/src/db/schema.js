@@ -461,6 +461,8 @@ async function createTables() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_pending_plan VARCHAR(50)`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_pending_ref VARCHAR(50)`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20)`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS has_completed_tutorial BOOLEAN DEFAULT FALSE`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS has_completed_pro_tutorial BOOLEAN DEFAULT FALSE`);
 
   // 7. Initialize admin user as Pro member automatically
   await query(`UPDATE users SET is_pro = true, pro_plan = 'lifetime' WHERE email = 'krishshah8201@gmail.com'`);

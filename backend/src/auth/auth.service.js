@@ -299,7 +299,7 @@ async function verifyEmail(req, res) {
     const isPro = email.toLowerCase() === 'krishshah8201@gmail.com' ? true : user.rows[0].is_pro;
     const proPlan = email.toLowerCase() === 'krishshah8201@gmail.com' ? 'lifetime' : user.rows[0].pro_plan;
     const token = jwt.sign({ id: user.rows[0].id, email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ message: 'Email verified', token, user: { id: user.rows[0].id, email, name: user.rows[0].name, is_admin: user.rows[0].is_admin, is_pro: isPro, pro_plan: proPlan } });
+    res.json({ message: 'Email verified', token, user: { id: user.rows[0].id, email, name: user.rows[0].name, is_admin: user.rows[0].is_admin, is_pro: isPro, pro_plan: proPlan, has_completed_tutorial: user.rows[0].has_completed_tutorial, has_completed_pro_tutorial: user.rows[0].has_completed_pro_tutorial } });
   } catch (error) {
     res.status(500).json({ error: 'Verification failed' });
   }
@@ -346,7 +346,7 @@ async function login(req, res) {
     const isPro = email.toLowerCase() === 'krishshah8201@gmail.com' ? true : user.is_pro;
     const proPlan = email.toLowerCase() === 'krishshah8201@gmail.com' ? 'lifetime' : user.pro_plan;
     const jwtToken = jwt.sign({ id: user.id, email, sessionId }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ message: 'Login successful', token: jwtToken, user: { id: user.id, email, name: user.name, is_admin: user.is_admin, is_pro: isPro, pro_plan: proPlan } });
+    res.json({ message: 'Login successful', token: jwtToken, user: { id: user.id, email, name: user.name, is_admin: user.is_admin, is_pro: isPro, pro_plan: proPlan, has_completed_tutorial: user.has_completed_tutorial, has_completed_pro_tutorial: user.has_completed_pro_tutorial } });
   } catch (error) {
     res.status(500).json({ error: 'Login failed' });
   }
@@ -400,7 +400,7 @@ async function verifyTwoFactorLogin(req, res) {
     const isPro = user.email.toLowerCase() === 'krishshah8201@gmail.com' ? true : user.is_pro;
     const proPlan = user.email.toLowerCase() === 'krishshah8201@gmail.com' ? 'lifetime' : user.pro_plan;
     const jwtToken = jwt.sign({ id: user.id, email: user.email, sessionId }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ message: 'Login successful', token: jwtToken, user: { id: user.id, email: user.email, name: user.name, is_admin: user.is_admin, is_pro: isPro, pro_plan: proPlan } });
+    res.json({ message: 'Login successful', token: jwtToken, user: { id: user.id, email: user.email, name: user.name, is_admin: user.is_admin, is_pro: isPro, pro_plan: proPlan, has_completed_tutorial: user.has_completed_tutorial, has_completed_pro_tutorial: user.has_completed_pro_tutorial } });
   } catch (error) {
     console.error('❌ 2FA login verification failed:', error);
     res.status(500).json({ error: '2FA login verification failed' });
@@ -657,7 +657,9 @@ async function googleLogin(req, res) {
         name: user.name,
         is_admin: user.is_admin,
         is_pro: isPro,
-        pro_plan: proPlan
+        pro_plan: proPlan,
+        has_completed_tutorial: user.has_completed_tutorial,
+        has_completed_pro_tutorial: user.has_completed_pro_tutorial
       }
     });
   } catch (error) {

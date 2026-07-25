@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { 
   TrendingUp, 
@@ -132,6 +133,7 @@ const resolveTVSymbol = (rawSymbol) => {
 
 export default function PaperTrading() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const isPro = user?.is_pro || false;
   // Navigation & Page State
   const [selectedSymbol, setSelectedSymbol] = useState('BTC-USD');
@@ -757,10 +759,10 @@ export default function PaperTrading() {
           symbol: tvSymbol,
           interval: tvInterval,
           timezone: 'Asia/Kolkata',
-          theme: 'dark',
+          theme: theme === 'dark' ? 'dark' : 'light',
           style: '1',
           locale: 'en',
-          toolbar_bg: '#101427',
+          toolbar_bg: theme === 'dark' ? '#101427' : '#ffffff',
           enable_publishing: false,
           hide_side_toolbar: false,
           allow_symbol_change: true,
@@ -1299,14 +1301,14 @@ export default function PaperTrading() {
       width: customChartContainerRef.current.clientWidth,
       height: 520,
       layout: {
-        background: { color: '#0a0e27' },
-        textColor: '#9b9eaf',
+        background: { color: theme === 'dark' ? (isPro ? '#0b0803' : '#0a0e27') : (isPro ? '#fdfcf7' : '#ffffff') },
+        textColor: theme === 'dark' ? '#9b9eaf' : '#5a6a85',
         fontSize: 12,
         fontFamily: 'Inter, sans-serif',
       },
       grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.03)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.03)' },
+        vertLines: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.05)' },
+        horzLines: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.05)' },
       },
       crosshair: {
         mode: 0,
