@@ -791,4 +791,28 @@ router.delete('/bots/:id', authenticate, async (req, res) => {
   }
 });
 
+// PATCH /api/strategy/bots/:id/symbol - Bind bot to a different symbol
+router.patch('/bots/:id/symbol', authenticate, async (req, res) => {
+  try {
+    const { symbol } = req.body;
+    if (!symbol) {
+      return res.status(400).json({ error: 'Symbol is required' });
+    }
+
+    const result = await query(
+      `UPDATE deployed_bots SET symbol = $1 WHERE id = $2 AND user_id = $3 RETURNING id`,
+      [symbol, req.params.id, req.user.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Bot not found or not owned by you' });
+    }
+
+    res.json({ success: true, message: `Bot successfully bound to ${symbol}.` });
+  } catch (err) {
+    console.error('Update bot symbol error:', err);
+    res.status(500).json({ error: 'Failed to update bot symbol' });
+  }
+});
+
 module.exports = router;

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Scale, AlertTriangle, Info, FileText, ChevronLeft, Award } from 'lucide-react';
+import { ShieldCheck, Scale, AlertTriangle, Info, FileText, ChevronLeft, Award, Users, Activity } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 
@@ -168,8 +168,7 @@ export default function Terms() {
           border: '1px solid var(--border-color)',
           borderRadius: '16px',
           padding: '24px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
-          marginBottom: '32px'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
         }}>
           <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#ffb300', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 12px 0' }}>
             <FileText size={20} /> 4. Membership Plans & Refund Policy
@@ -180,6 +179,95 @@ export default function Terms() {
             </p>
             <p>
               Fees paid for advanced indicators, AI queries quota extensions, or custom alert configurations are strictly for **sandbox computing capacity**. NonStock does not support auto-renewals or store card details. All membership upgrades are finalized upon admin verification, and payments are non-refundable.
+            </p>
+          </div>
+        </div>
+
+        {/* Section 5: Community Hub, Coaches & User-Generated Content */}
+        <div style={{
+          background: 'var(--bg-card-glass)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#a855f7', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 12px 0' }}>
+            <Users size={20} /> 5. Community Hub, Coaches & User-Generated Content
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', lineHeight: '1.6', color: '#d0d2dd' }}>
+            <p>
+              NonStock provides an open platform for creators, coaches, and users to host discussion groups, share market views, and publish strategies.
+            </p>
+            <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
+              <li><strong>Third-Party Content:</strong> Views, signals, or strategies shared by coaches or community members belong solely to the author and do not reflect the views of NonStock.</li>
+              <li><strong>No Endorsement:</strong> Hosting a channel on NonStock does not constitute an endorsement of a coach's SEBI registration status or trading expertise. Users are solely responsible for verifying the credentials of any third-party adviser.</li>
+              <li><strong>Moderation & Termination:</strong> NonStock reserves the right to terminate accounts, remove channels, or ban users who post unauthorized financial advice, spam, or misleading stock tips without prior notice.</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Section 6: Limitation of Liability & "As-Is" Provision */}
+        <div style={{
+          background: 'var(--bg-card-glass)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#ec4899', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 12px 0' }}>
+            <AlertTriangle size={20} /> 6. Limitation of Liability & "As-Is" Provision
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', lineHeight: '1.6', color: '#d0d2dd' }}>
+            <p>
+              The platform and all simulated utilities are provided on an <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> basis without warranties of any kind.
+            </p>
+            <p style={{ background: 'rgba(239, 68, 68, 0.05)', borderLeft: '4px solid #ef4444', padding: '12px', borderRadius: '4px', color: '#f87171' }}>
+              <strong>No Financial Liability:</strong> NonStock, its developers, and affiliated institutions shall not be held liable for any real-world financial losses, capital erosion, or decision-making outcomes resulting from the use of this platform, its AI Mentor, automated bots, or simulated data.
+            </p>
+          </div>
+        </div>
+
+        {/* Section 7: Algorithmic & Automated Bot Disclaimer */}
+        <div style={{
+          background: 'var(--bg-card-glass)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 12px 0' }}>
+            <Activity size={20} /> 7. Automated Simulation Bot Disclaimer
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', lineHeight: '1.6', color: '#d0d2dd' }}>
+            <p>
+              Users may deploy mock algorithmic bots within the paper trading sandbox.
+            </p>
+            <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
+              <li>All automated bot activities are simulated local scripts running inside a test environment.</li>
+              <li>Past simulated performance of any bot strategy is not indicative of future results in live market conditions.</li>
+              <li>Replicating mock bot setups in live brokerage accounts carries substantial risk, and users assume complete responsibility for any external algorithmic setups they configure.</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Section 8: User Accounts & Platform Security */}
+        <div style={{
+          background: 'var(--bg-card-glass)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
+          marginBottom: '32px'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#10b981', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 12px 0' }}>
+            <ShieldCheck size={20} /> 8. Account Security & Responsible Usage
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', lineHeight: '1.6', color: '#d0d2dd' }}>
+            <p>
+              You are responsible for maintaining the confidentiality of your credentials (including passwords and verification proof).
+            </p>
+            <p>
+              NonStock utilizes rate limiters and standard session management to protect user profiles. You agree not to perform scrapers, stress-tests, or DDOS requests on the public APIs. Any abuse of platform endpoints will lead to immediate account suspension.
             </p>
           </div>
         </div>

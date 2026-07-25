@@ -331,11 +331,13 @@ export default function Portfolio() {
   const isIndianSymbol = (sym) => {
     if (!sym) return false;
     const s = sym.toUpperCase();
-    const isCrypto = s.endsWith('-USD') || s.endsWith('-USDT') || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA'].includes(s);
+    const isCrypto = s.endsWith('-USD') || s.endsWith('-USDT') || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA', 'BNB', 'SHIB', 'AVAX', 'TRX'].includes(s) || s.includes('-USD') || s.includes('USDT');
     const isForex = s.endsWith('=X') || (s.includes('USD') && s.includes('INR')) || s.includes('EURUSD') || s.includes('GBPUSD');
     const isCommodity = s.endsWith('=F');
-    if (isCrypto || isForex || isCommodity) return false;
-    return s.endsWith('.NS') || s.endsWith('.BO') || ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'NIFTY', 'SENSEX', 'BANKNIFTY', 'NSEI', 'BSESN'].includes(s);
+    const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR'];
+    const cleanSym = s.replace('.NS', '').replace('.BO', '');
+    if (isCrypto || isForex || isCommodity || usTickers.includes(cleanSym)) return false;
+    return true;
   };
 
   const formatVal = (val, isUsd) => {
@@ -456,7 +458,8 @@ export default function Portfolio() {
 
   const addHolding = async (symbol, quantity, buyPrice) => {
     try {
-      const cleanSymbol = symbol.endsWith('.NS') ? symbol : `${symbol}.NS`;
+      const isInd = isIndianSymbol(symbol);
+      const cleanSymbol = isInd ? (symbol.endsWith('.NS') ? symbol : `${symbol}.NS`) : symbol;
       if (portfolioMode === 'real') {
         await apiClient.post('/portfolio', { symbol: cleanSymbol, quantity, buyPrice });
         toast.success(`${symbol} added to portfolio`);
@@ -507,7 +510,8 @@ export default function Portfolio() {
         const item = paperData.holdings.find(h => h.symbol === symbol);
         const sellQty = qty || (item ? item.quantity : 1);
         const sellPrice = item ? item.livePrice : 0;
-        const cleanSymbol = symbol.endsWith('.NS') ? symbol : `${symbol}.NS`;
+        const isInd = isIndianSymbol(symbol);
+        const cleanSymbol = isInd ? (symbol.endsWith('.NS') ? symbol : `${symbol}.NS`) : symbol;
 
         await apiClient.post('/paper/trade', { 
           symbol: cleanSymbol, 

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { fetchAngelHistory, isAngelConfigured } = require('../services/angelApi');
+const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
 
 // Yahoo Finance headers to avoid IP blocks
 const YAHOO_HEADERS = {
@@ -751,25 +752,10 @@ router.get('/search/:query', async (req, res) => {
 
 router.get('/stock/:symbol', async (req, res) => {
   const { symbol } = req.params;
-  let fetchSymbol = symbol.toUpperCase();
-
-  const indexMap = {
-    'NIFTY50': '^NSEI', 'NIFTY': '^NSEI', 'SENSEX': '^BSESN',
-    'BANKNIFTY': '^NSEBANK', 'NIFTYBANK': '^NSEBANK', 'NIFTYIT': '^CNXIT'
-  };
-
-  if (indexMap[fetchSymbol]) {
-    fetchSymbol = indexMap[fetchSymbol];
-  }
+  let fetchSymbol = normalizeSymbol(symbol);
 
   // Try fetching as-is first (e.g. AAPL, BTC-USD, EURUSD=X, RELIANCE.NS)
   let quote = await fetchYahooQuote(fetchSymbol);
-  
-  // If not found, check if it already ends with common suffixes. If not, try appending .NS (unless it's an index or crypto/forex/commodity format)
-  if ((!quote || !quote.price) && !fetchSymbol.endsWith('.NS') && !fetchSymbol.endsWith('.BO') && !fetchSymbol.endsWith('=X') && !fetchSymbol.endsWith('=F') && !fetchSymbol.includes('=') && !fetchSymbol.endsWith('-USD') && !fetchSymbol.startsWith('^')) {
-    fetchSymbol = `${fetchSymbol}.NS`;
-    quote = await fetchYahooQuote(fetchSymbol);
-  }
 
   // Fallback to high-quality mock quote if Yahoo blocks the server IP
   if (!quote || !quote.price) {
@@ -1251,31 +1237,12 @@ router.get('/sector-rotation', async (req, res) => {
 
 router.get('/stock-history/:symbol', async (req, res) => {
   try {
-    let symbol = req.params.symbol.toUpperCase();
-
-    // Strip prefix if any (e.g. NSE:RELIANCE -> RELIANCE, NSE:NIFTY -> NIFTY)
-    if (symbol.includes(':')) {
-      symbol = symbol.split(':')[1];
-    }
-
-    // Normalize index symbol names to official Yahoo Finance tickers
-    if (symbol === 'NIFTY' || symbol === 'NSEI') symbol = '^NSEI';
-    else if (symbol === 'SENSEX' || symbol === 'BSESN') symbol = '^BSESN';
-    else if (symbol === 'BANKNIFTY' || symbol === 'NSEBANK') symbol = '^NSEBANK';
-    else if (symbol === 'CNXIT') symbol = '^CNXIT';
-
-    // ─── Smart Symbol Resolver ───
-    const isIndex = symbol.startsWith('^') ||
-                    ['NSEI', 'BSESN', 'NSEBANK', 'CNXIT', 'NIFTY', 'SENSEX', 'BANKNIFTY'].includes(symbol);
-    const isCrypto = symbol.endsWith('-USD') || symbol.endsWith('-USDT') ||
-                     ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'SHIB', 'AVAX', 'TRX'].includes(symbol);
-    const isForex  = symbol.endsWith('=X') || symbol.includes('USD') || (symbol.includes('INR') && !symbol.endsWith('.NS'));
-    const alreadySuffixed = symbol.endsWith('.NS') || symbol.endsWith('.BO') || symbol.endsWith('=X') || symbol.endsWith('=F') || symbol.includes('=') || symbol.endsWith('-USD') || symbol.endsWith('-USDT') || symbol.startsWith('^');
-
-    let resolvedSymbol = symbol;
-    if (isCrypto && !alreadySuffixed) {
-      resolvedSymbol = `${symbol}-USD`;
-    }
+    let resolvedSymbol = normalizeSymbol(req.params.symbol);
+    let symbol = resolvedSymbol;
+    const isCrypto = resolvedSymbol.endsWith('-USD') || resolvedSymbol.endsWith('-USDT');
+    const isForex = resolvedSymbol.endsWith('=X');
+    const isIndex = resolvedSymbol.startsWith('^');
+    const alreadySuffixed = resolvedSymbol.endsWith('.NS') || resolvedSymbol.endsWith('.BO') || isCrypto || isForex || isIndex;
 
     // Support dynamic intervals: 1m, 5m, 15m, 60m, 1d, 1wk, 1mo. Default to 1d
     const allowedIntervals = ['1m', '5m', '15m', '60m', '1d', '1wk', '1mo'];
@@ -1297,12 +1264,7 @@ router.get('/stock-history/:symbol', async (req, res) => {
     }
 
     // ─── Try AngelOne SmartAPI if configured & Indian market symbol ───
-    const isIndian = resolvedSymbol.endsWith('.NS') || 
-                     resolvedSymbol.endsWith('.BO') || 
-                     resolvedSymbol.startsWith('NSE:') || 
-                     resolvedSymbol.startsWith('BSE:') || 
-                     ['NIFTY', 'BANKNIFTY', 'SENSEX', 'NSEI', 'BSESN', 'NSEBANK', 'CNXIT'].includes(resolvedSymbol) ||
-                     (!isIndex && !isCrypto && !isForex && !alreadySuffixed);
+    const isIndian = isIndianSymbol(resolvedSymbol);
 
     if (isIndian && isAngelConfigured()) {
       try {

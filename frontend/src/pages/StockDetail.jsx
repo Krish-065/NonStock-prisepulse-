@@ -237,6 +237,18 @@ export default function StockDetail() {
     }
   };
 
+  const isIndianSymbol = (sym) => {
+    if (!sym) return false;
+    const s = sym.toUpperCase();
+    const isCrypto = s.endsWith('-USD') || s.endsWith('-USDT') || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA', 'BNB', 'SHIB', 'AVAX', 'TRX'].includes(s) || s.includes('-USD') || s.includes('USDT');
+    const isForex = s.endsWith('=X') || (s.includes('USD') && s.includes('INR')) || s.includes('EURUSD') || s.includes('GBPUSD');
+    const isCommodity = s.endsWith('=F');
+    const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR'];
+    const cleanSym = s.replace('.NS', '').replace('.BO', '');
+    if (isCrypto || isForex || isCommodity || usTickers.includes(cleanSym)) return false;
+    return true;
+  };
+
   const handleExecutePaperTrade = async (action) => {
     if (!tradeQty || tradeQty <= 0) {
       toast.error('Please enter a valid quantity');
@@ -244,7 +256,8 @@ export default function StockDetail() {
     }
     setExecutingOrder(true);
     try {
-      const cleanSymbol = symbol.endsWith('.NS') ? symbol : `${symbol}.NS`;
+      const isInd = isIndianSymbol(symbol);
+      const cleanSymbol = isInd ? (symbol.endsWith('.NS') ? symbol : `${symbol}.NS`) : symbol;
       const price = stockInfo.price;
       const res = await apiClient.post('/paper/trade', {
         symbol: cleanSymbol,

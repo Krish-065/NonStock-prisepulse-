@@ -164,8 +164,12 @@ export default function PaperTrading() {
   const [orderHistory, setOrderHistory] = useState([]);
   const [pendingOrders, setPendingOrders] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboardStandard, setLeaderboardStandard] = useState([]);
+  const [leaderboardPro, setLeaderboardPro] = useState([]);
+  const [leaderboardType, setLeaderboardType] = useState('standard'); // 'standard' or 'pro'
   const [balanceHistory, setBalanceHistory] = useState([]);
   const [bots, setBots] = useState([]);
+  const [selectedAdvisoryBot, setSelectedAdvisoryBot] = useState(null);
   
   // Form State
   const [isBuy, setIsBuy] = useState(true);
@@ -414,6 +418,8 @@ export default function PaperTrading() {
     try {
       const res = await apiClient.get('/paper/leaderboard');
       setLeaderboard(res.data.leaderboard || []);
+      setLeaderboardStandard(res.data.standard || []);
+      setLeaderboardPro(res.data.pro || []);
     } catch (err) {
       console.error('Failed to fetch leaderboard:', err);
     }
@@ -467,6 +473,17 @@ export default function PaperTrading() {
       fetchBots();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to remove bot');
+    }
+  };
+
+  const handleBindBotSymbol = async (botId, newSymbol) => {
+    try {
+      const res = await apiClient.patch(`/strategy/bots/${botId}/symbol`, { symbol: newSymbol });
+      toast.success(res.data.message);
+      setSelectedAdvisoryBot(prev => prev && prev.id === botId ? { ...prev, symbol: newSymbol } : prev);
+      fetchBots();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update bot symbol');
     }
   };
 
@@ -2791,6 +2808,299 @@ export default function PaperTrading() {
                 );
               })()}
             </div>
+
+            {/* Advisory Bot Panel */}
+            {selectedAdvisoryBot && (() => {
+              const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+              const stopLossVal = parseFloat(selectedAdvisoryBot.stopLoss || 0);
+              const takeProfitVal = parseFloat(selectedAdvisoryBot.takeProfit || 0);
+              
+              const getAdvisoryRecommendation = () => {
+                if (activeHolding) {
+                  const buyPrice = parseFloat(activeHolding.buyPrice || 0);
+                  const curPrice = parseFloat(livePrice || 0);
+                  const curChangePct = buyPrice > 0 ? ((curPrice - buyPrice) / buyPrice) * 100 : 0;
+                  
+                  if (stopLossVal > 0 && curChangePct <= -stopLossVal) {
+                    return {
+                      action: 'SELL / STOP LOSS ADVISED',
+                      color: '#ff4444',
+                      bg: 'rgba(255, 68, 68, 0.08)',
+                      reason: `Critical: Asset has dropped ${curChangePct.toFixed(2)}%, crossing below your Stop Loss threshold of -${stopLossVal}%. Exit immediately to prevent capital erosion.`
+                    };
+                  }
+                  if (takeProfitVal > 0 && curChangePct >= takeProfitVal) {
+                    return {
+                      action: 'SELL / TAKE PROFIT ADVISED',
+                      color: '#00ff88',
+                      bg: 'rgba(0, 255, 136, 0.08)',
+                      reason: `Target Reached: Asset has gained +${curChangePct.toFixed(2)}%, exceeding your Take Profit threshold of +${takeProfitVal}%. Lock in profits now.`
+                    };
+                  }
+                  
+                  if (priceChangePercent < -1.0) {
+                    return {
+                      action: 'HOLD ADVISED',
+                      color: '#ff9800',
+                      bg: 'rgba(255, 152, 0, 0.08)',
+                      reason: `The price is down ${priceChangePercent.toFixed(2)}% today. However, it remains above your SL limit (-${stopLossVal}%). Suggest holding for a recovery.`
+                    };
+                  }
+                  return {
+                    action: 'HOLD ADVISED',
+                    color: '#ff9800',
+                    bg: 'rgba(255, 152, 0, 0.08)',
+                    reason: `Position is performing stable (+${curChangePct.toFixed(2)}%). Trend lines suggest maintaining current allocation. Re-evaluate if price approaches exit bands.`
+                  };
+                } else {
+                  if (priceChangePercent < -2.0) {
+                    return {
+                      action: 'BUY / ACCUMULATE ADVISED',
+                      color: '#00ff88',
+                      bg: 'rgba(0, 255, 136, 0.08)',
+                      reason: `Dip Opportunity: ${cleanSymbolName(selectedSymbol)} is down ${priceChangePercent.toFixed(2)}% today. Short-term indicators show oversold conditions. Recommend entering position.`
+                    };
+                  }
+                  if (priceChangePercent > 2.0) {
+                    return {
+                      action: 'AVOID / WAIT ADVISED',
+                      color: '#9b9eac',
+                      bg: 'rgba(255, 255, 255, 0.03)',
+                      reason: `Rallying: Asset is already up +${priceChangePercent.toFixed(2)}% today. Entering now risks buying at local resistance. Wait for a pullback before initiating buy orders.`
+                    };
+                  }
+                  return {
+                    action: 'HOLD / MONITOR ADVISED',
+                    color: '#ff9800',
+                    bg: 'rgba(255, 152, 0, 0.08)',
+                    reason: `Neutral Trend: Consolidated range bound action. Relative Strength Index (RSI) is at 48. Wait for clear support breakouts before deploying capital.`
+                  };
+                }
+              };
+              
+              const advice = getAdvisoryRecommendation();
+              return (
+                <div className="mobile-full-width-bot-panel" style={{
+                  width: '340px',
+                  background: 'rgba(10, 14, 39, 0.85)',
+                  backdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px',
+                  boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)',
+                  color: '#ffffff',
+                  height: '520px',
+                  overflowY: 'auto'
+                }}>
+                  {/* Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="pulse-dot" style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#00ff88', boxShadow: '0 0 8px #00ff88' }} />
+                        <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Active Advisor</span>
+                      </div>
+                      <span style={{ fontSize: '16px', fontWeight: 800 }}>{selectedAdvisoryBot.strategyName}</span>
+                    </div>
+                    <button 
+                      onClick={() => setSelectedAdvisoryBot(null)}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: 'none',
+                        color: '#9b9eac',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={e => e.currentTarget.style.color = '#fff'}
+                      onMouseOut={e => e.currentTarget.style.color = '#9b9eac'}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Symbol Binding & Alignment Alert */}
+                  {selectedSymbol !== selectedAdvisoryBot.symbol ? (
+                    <div style={{
+                      background: 'rgba(255, 152, 0, 0.08)',
+                      border: '1px solid rgba(255, 152, 0, 0.2)',
+                      borderRadius: '8px',
+                      padding: '10px 12px',
+                      fontSize: '11px',
+                      lineHeight: '1.4',
+                      color: '#ffb300'
+                    }}>
+                      <strong>Symbol Mismatch:</strong> Advisor default is <strong>{cleanSymbolName(selectedAdvisoryBot.symbol)}</strong>, but chart is showing <strong>{cleanSymbolName(selectedSymbol)}</strong>.
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                        <button 
+                          onClick={() => handleBindBotSymbol(selectedAdvisoryBot.id, selectedSymbol)}
+                          style={{
+                            flex: 1,
+                            background: 'rgba(255, 152, 0, 0.15)',
+                            border: '1px solid rgba(255, 152, 0, 0.3)',
+                            color: '#ffb300',
+                            borderRadius: '4px',
+                            padding: '4px 6px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Bind to {cleanSymbolName(selectedSymbol)}
+                        </button>
+                        <button 
+                          onClick={() => setSelectedSymbol(selectedAdvisoryBot.symbol)}
+                          style={{
+                            flex: 1,
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            color: '#ffffff',
+                            borderRadius: '4px',
+                            padding: '4px 6px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Go to {cleanSymbolName(selectedAdvisoryBot.symbol)}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      background: 'rgba(0, 255, 136, 0.04)',
+                      border: '1px solid rgba(0, 255, 136, 0.12)',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      fontSize: '12px',
+                      color: '#ffffff',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <span>Target Ticker:</span>
+                      <strong style={{ color: '#00ff88' }}>{cleanSymbolName(selectedSymbol)}</strong>
+                    </div>
+                  )}
+
+                  {/* Strategy Settings Info */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#9b9eac', textTransform: 'uppercase', marginBottom: '2px' }}>Capital</div>
+                      <div style={{ fontSize: '12px', fontWeight: 700 }}>${parseFloat(selectedAdvisoryBot.capital).toLocaleString()}</div>
+                    </div>
+                    <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#ff4444', textTransform: 'uppercase', marginBottom: '2px' }}>Stop Loss</div>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#ff4444' }}>{stopLossVal > 0 ? `-${stopLossVal}%` : 'None'}</div>
+                    </div>
+                    <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#00ff88', textTransform: 'uppercase', marginBottom: '2px' }}>Take Profit</div>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#00ff88' }}>{takeProfitVal > 0 ? `+${takeProfitVal}%` : 'None'}</div>
+                    </div>
+                  </div>
+
+                  {/* Analysis Recommendation Box */}
+                  <div style={{
+                    background: advice.bg,
+                    border: `1px solid ${advice.color}33`,
+                    borderRadius: '12px',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '11px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>Advised Action</span>
+                      <span style={{
+                        color: advice.color,
+                        fontSize: '13px',
+                        fontWeight: 900,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase'
+                      }}>
+                        {advice.action}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '12px', lineHeight: '1.5', color: '#d0d2dd', margin: 0 }}>
+                      {advice.reason}
+                    </p>
+                  </div>
+
+                  {/* Interactive Advisory Actions */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
+                    {activeHolding ? (
+                      <button
+                        onClick={() => handleClosePosition(activeHolding)}
+                        style={{
+                          background: '#ff4444',
+                          border: 'none',
+                          color: '#ffffff',
+                          borderRadius: '8px',
+                          padding: '12px 0',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 4px 12px rgba(255, 68, 68, 0.25)'
+                        }}
+                      >
+                        Execute Advisor Exit Order
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setIsBuy(true);
+                          setQuantity(Math.floor(parseFloat(selectedAdvisoryBot.capital) / livePrice));
+                          const formElement = document.getElementById('paper-order-form');
+                          if (formElement) {
+                            formElement.scrollIntoView({ behavior: 'smooth' });
+                          }
+                          toast.success(`Pre-filled order form based on Bot parameters!`);
+                        }}
+                        style={{
+                          background: '#00ff88',
+                          border: 'none',
+                          color: '#0a0e27',
+                          borderRadius: '8px',
+                          padding: '12px 0',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 4px 12px rgba(0, 255, 136, 0.25)'
+                        }}
+                      >
+                        Follow Advice: Open Order Form
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setSelectedAdvisoryBot(null)}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: '#d0d2dd',
+                        borderRadius: '8px',
+                        padding: '10px 0',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      Close Advisor Panel
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Quick Watchlist Selector */}
@@ -2873,7 +3183,7 @@ export default function PaperTrading() {
             </button>
           </div>
 
-          <form onSubmit={handlePlaceOrder} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form id="paper-order-form" onSubmit={handlePlaceOrder} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             
             {/* Size Mode Selector (Units or Lots) */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -3557,6 +3867,27 @@ export default function PaperTrading() {
                         </td>
                         <td style={{ padding: '12px', textAlign: 'right' }}>
                           <button
+                            onClick={() => {
+                              setSelectedSymbol(bot.symbol);
+                              setSelectedAdvisoryBot(bot);
+                              toast.success(`Active Advisor: ${bot.strategy_name} loaded for ${bot.symbol}`);
+                            }}
+                            style={{
+                              background: selectedAdvisoryBot?.id === bot.id ? 'rgba(0, 255, 136, 0.2)' : 'rgba(0, 188, 212, 0.08)',
+                              border: `1px solid ${selectedAdvisoryBot?.id === bot.id ? '#00ff88' : 'rgba(0, 188, 212, 0.2)'}`,
+                              color: selectedAdvisoryBot?.id === bot.id ? '#00ff88' : '#00bcd4',
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              marginRight: '8px',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {selectedAdvisoryBot?.id === bot.id ? 'Advising...' : 'View Advisor'}
+                          </button>
+                          <button
                             onClick={() => handleToggleBotStatus(bot.id, bot.status)}
                             style={{
                               background: bot.status === 'active' ? 'rgba(255, 152, 0, 0.08)' : 'rgba(0, 255, 136, 0.08)',
@@ -3600,29 +3931,89 @@ export default function PaperTrading() {
 
           {/* Rankings Leaderboard Tab */}
           {activeConsoleTab === 'leaderboard' && (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#9b9eac', fontSize: '11px', textTransform: 'uppercase' }}>
-                    <th style={{ padding: '12px', width: '80px' }}>Rank</th>
-                    <th style={{ padding: '12px' }}>Name</th>
-                    <th style={{ padding: '12px', textAlign: 'right' }}>Total Valuation (USD)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {leaderboard.map((user, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: '13px', color: '#ffffff' }}>
-                      <td style={{ padding: '12px', fontWeight: 700, color: idx === 0 ? '#ffb300' : idx === 1 ? '#e0e0e0' : idx === 2 ? '#cd7f32' : '#9b9eac' }}>
-                        #{idx + 1}
-                      </td>
-                      <td style={{ padding: '12px', fontWeight: 600 }}>{user.name}</td>
-                      <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: '#00ff88' }}>
-                        ${parseFloat(user.virtualBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Leaderboard Type Toggle */}
+              <div style={{ display: 'flex', gap: '8px', background: 'rgba(255, 255, 255, 0.03)', padding: '4px', borderRadius: '8px', alignSelf: 'flex-start' }}>
+                <button
+                  onClick={() => setLeaderboardType('standard')}
+                  style={{
+                    background: leaderboardType === 'standard' ? 'rgba(0, 188, 212, 0.15)' : 'transparent',
+                    border: leaderboardType === 'standard' ? '1px solid rgba(0, 188, 212, 0.3)' : '1px solid transparent',
+                    color: leaderboardType === 'standard' ? '#00bcd4' : '#9b9eac',
+                    padding: '6px 16px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Standard Accounts
+                </button>
+                <button
+                  onClick={() => setLeaderboardType('pro')}
+                  style={{
+                    background: leaderboardType === 'pro' ? 'rgba(0, 255, 136, 0.12)' : 'transparent',
+                    border: leaderboardType === 'pro' ? '1px solid rgba(0, 255, 136, 0.3)' : '1px solid transparent',
+                    color: leaderboardType === 'pro' ? '#00ff88' : '#9b9eac',
+                    padding: '6px 16px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  👑 Pro Accounts
+                </button>
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: '#9b9eac', fontSize: '11px', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '12px', width: '80px' }}>Rank</th>
+                      <th style={{ padding: '12px' }}>Name</th>
+                      <th style={{ padding: '12px' }}>Account Status</th>
+                      <th style={{ padding: '12px', textAlign: 'right' }}>Total Valuation (USD)</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {(leaderboardType === 'pro' ? leaderboardPro : leaderboardStandard).map((user, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: '13px', color: '#ffffff' }}>
+                        <td style={{ padding: '12px', fontWeight: 700, color: idx === 0 ? '#ffb300' : idx === 1 ? '#e0e0e0' : idx === 2 ? '#cd7f32' : '#9b9eac' }}>
+                          #{idx + 1}
+                        </td>
+                        <td style={{ padding: '12px', fontWeight: 600 }}>{user.name}</td>
+                        <td style={{ padding: '12px' }}>
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            background: user.isPro ? 'rgba(0, 255, 136, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                            color: user.isPro ? '#00ff88' : '#9b9eac',
+                            border: `1px solid ${user.isPro ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255, 255, 255, 0.1)'}`
+                          }}>
+                            {user.isPro ? 'Pro' : 'Standard'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: '#00ff88' }}>
+                          ${parseFloat(user.virtualBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))}
+                    {(leaderboardType === 'pro' ? leaderboardPro : leaderboardStandard).length === 0 && (
+                      <tr>
+                        <td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#9b9eac' }}>
+                          No users found in this category.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

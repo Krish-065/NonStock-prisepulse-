@@ -5,16 +5,8 @@ const { fetchYahooQuote } = require('./marketData');
 const { authenticate } = require('../middleware/auth');
 const crypto = require('crypto');
 
-// Helper to determine if a symbol is an Indian stock/index (native currency is INR)
-const isIndianSymbol = (symbol) => {
-  if (!symbol) return false;
-  const s = symbol.toUpperCase();
-  const isCrypto = s.endsWith('-USD') || s.endsWith('-USDT') || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA'].includes(s);
-  const isForex = s.endsWith('=X') || (s.includes('USD') && s.includes('INR')) || s.includes('EURUSD') || s.includes('GBPUSD');
-  const isCommodity = s.endsWith('=F');
-  if (isCrypto || isForex || isCommodity) return false;
-  return s.endsWith('.NS') || s.endsWith('.BO') || ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'NIFTY', 'SENSEX', 'BANKNIFTY', 'NSEI', 'BSESN'].includes(s);
-};
+const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
+
 
 // Helper to fetch live USD/INR exchange rate
 async function getUsdInrRate() {
@@ -117,7 +109,8 @@ router.get('/portfolio', authenticate, async (req, res) => {
 
 // POST /api/paper/trade - Execute simulated buy/sell order
 router.post('/trade', authenticate, async (req, res) => {
-  const { symbol, action, quantity, price, triggerReason, pendingOrderId, stopLoss, takeProfit } = req.body;
+  const { symbol: rawSymbol, action, quantity, price, triggerReason, pendingOrderId, stopLoss, takeProfit } = req.body;
+  const symbol = normalizeSymbol(rawSymbol);
 
   if (!symbol || !action || !quantity || !price) {
     return res.status(400).json({ error: 'Missing parameters: symbol, action, quantity, price' });
@@ -310,7 +303,8 @@ router.post('/trade', authenticate, async (req, res) => {
 
 // POST /api/paper/set-sltp - Save Stop Loss and Take Profit levels for an active position
 router.post('/set-sltp', authenticate, async (req, res) => {
-  const { symbol, stopLoss, takeProfit } = req.body;
+  const { symbol: rawSymbol, stopLoss, takeProfit } = req.body;
+  const symbol = normalizeSymbol(rawSymbol);
   if (!symbol) {
     return res.status(400).json({ error: 'Missing symbol parameter' });
   }
@@ -431,7 +425,8 @@ router.post('/reset', authenticate, async (req, res) => {
 
 // POST /api/paper/orders - Place a pending limit/stop order
 router.post('/orders', authenticate, async (req, res) => {
-  const { symbol, action, type, quantity, price, triggerPrice, stopLoss, takeProfit } = req.body;
+  const { symbol: rawSymbol, action, type, quantity, price, triggerPrice, stopLoss, takeProfit } = req.body;
+  const symbol = normalizeSymbol(rawSymbol);
 
   if (!symbol || !action || !type || !quantity || !price) {
     return res.status(400).json({ error: 'Missing parameters: symbol, action, type, quantity, price' });
@@ -587,13 +582,20 @@ router.get('/balance-history', authenticate, async (req, res) => {
   }
 });
 
-// GET /api/paper/leaderboard - Get user leaderboard based on virtual USD cash balance
+// GET /api/paper/leaderboard - Get user leaderboard based on virtual USD cash balance (split into standard and pro)
 router.get('/leaderboard', authenticate, async (req, res) => {
   try {
-    const leaderboardRes = await query(
-      'SELECT name, virtual_balance as "virtualBalance" FROM users ORDER BY virtual_balance DESC LIMIT 20'
+    const standardRes = await query(
+      'SELECT name, virtual_balance as "virtualBalance", COALESCE(is_pro, false) as "isPro" FROM users WHERE COALESCE(is_pro, false) = false ORDER BY virtual_balance DESC LIMIT 20'
     );
-    res.json({ leaderboard: leaderboardRes.rows });
+    const proRes = await query(
+      'SELECT name, virtual_balance as "virtualBalance", COALESCE(is_pro, false) as "isPro" FROM users WHERE COALESCE(is_pro, false) = true ORDER BY virtual_balance DESC LIMIT 20'
+    );
+    res.json({
+      leaderboard: standardRes.rows, // fallback for backwards compatibility
+      standard: standardRes.rows,
+      pro: proRes.rows
+    });
   } catch (error) {
     console.error('❌ Get paper leaderboard error:', error);
     res.status(500).json({ error: 'Failed to retrieve leaderboard ranking' });

@@ -487,6 +487,61 @@ async function createTables() {
   } catch (err) {
     console.warn('Migration warning (google sign-in fields):', err.message);
   }
+  
+  // 10. Paper Trading symbols normalization migration
+  try {
+    const { normalizeSymbol } = require('../utils/symbolUtils');
+    
+    // Fetch all portfolio items
+    const portfolioRes = await query('SELECT id, symbol, user_id FROM paper_portfolio_items');
+    for (const row of portfolioRes.rows) {
+      const normalized = normalizeSymbol(row.symbol);
+      if (normalized !== row.symbol) {
+        console.log(`[Migration] Normalizing paper portfolio item: ${row.symbol} -> ${normalized} for user ${row.user_id}`);
+        // Check if there is already an item with the normalized symbol for this user
+        const duplicateCheck = await query('SELECT id, quantity, buy_price FROM paper_portfolio_items WHERE user_id = $1 AND symbol = $2', [row.user_id, normalized]);
+        if (duplicateCheck.rows.length > 0) {
+          // If duplicate exists, merge them!
+          const dup = duplicateCheck.rows[0];
+          const origRes = await query('SELECT quantity, buy_price FROM paper_portfolio_items WHERE id = $1', [row.id]);
+          if (origRes.rows.length > 0) {
+            const orig = origRes.rows[0];
+            const newQty = parseFloat(dup.quantity) + parseFloat(orig.quantity);
+            // Calculate weighted average price
+            const totalCost = (parseFloat(dup.quantity) * parseFloat(dup.buy_price)) + (parseFloat(orig.quantity) * parseFloat(orig.buy_price));
+            const newBuyPrice = newQty > 0 ? totalCost / newQty : dup.buy_price;
+            
+            await query('UPDATE paper_portfolio_items SET quantity = $1, buy_price = $2 WHERE id = $3', [newQty, newBuyPrice, dup.id]);
+            await query('DELETE FROM paper_portfolio_items WHERE id = $1', [row.id]);
+          }
+        } else {
+          await query('UPDATE paper_portfolio_items SET symbol = $1 WHERE id = $2', [normalized, row.id]);
+        }
+      }
+    }
+
+    // Fetch all pending orders
+    const pendingOrdersRes = await query('SELECT id, symbol FROM paper_pending_orders');
+    for (const row of pendingOrdersRes.rows) {
+      const normalized = normalizeSymbol(row.symbol);
+      if (normalized !== row.symbol) {
+        console.log(`[Migration] Normalizing pending order: ${row.symbol} -> ${normalized}`);
+        await query('UPDATE paper_pending_orders SET symbol = $1 WHERE id = $2', [normalized, row.id]);
+      }
+    }
+
+    // Fetch all paper trades
+    const tradesRes = await query('SELECT id, symbol FROM paper_trades');
+    for (const row of tradesRes.rows) {
+      const normalized = normalizeSymbol(row.symbol);
+      if (normalized !== row.symbol) {
+        console.log(`[Migration] Normalizing trade log: ${row.symbol} -> ${normalized}`);
+        await query('UPDATE paper_trades SET symbol = $1 WHERE id = $2', [normalized, row.id]);
+      }
+    }
+  } catch (err) {
+    console.warn('[Migration] Error normalizing paper trading symbols:', err.message);
+  }
 
   console.log('✅ All tables created');
 }
