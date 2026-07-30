@@ -81,42 +81,42 @@ async function loadScripMaster() {
 
 async function getInstrumentToken(symbol) {
   const master = await loadScripMaster();
-  const cleanSym = symbol.toUpperCase().replace('.NS', '').replace('.BO', '').replace('NSE:', '').replace('BSE:', '');
+  const cleanSym = symbol.toUpperCase().replace('.NS', '').replace('.BO', '').replace('NSE:', '').replace('BSE:', '').trim();
 
   // Handle hardcoded indices
-  if (cleanSym === 'NIFTY' || cleanSym === 'NSEI') {
+  if (cleanSym === 'NIFTY' || cleanSym === 'NSEI' || cleanSym === '^NSEI') {
     return { token: '99926000', exchange: 'NSE' };
   }
-  if (cleanSym === 'BANKNIFTY' || cleanSym === 'NSEBANK') {
+  if (cleanSym === 'BANKNIFTY' || cleanSym === 'NSEBANK' || cleanSym === '^NSEBANK') {
     return { token: '99926009', exchange: 'NSE' };
   }
-  if (cleanSym === 'SENSEX' || cleanSym === 'BSESN') {
+  if (cleanSym === 'SENSEX' || cleanSym === 'BSESN' || cleanSym === '^BSESN') {
     return { token: '99919000', exchange: 'BSE' };
   }
 
-  // Look for exact match like RELIANCE-EQ
-  const targetSymbol = `${cleanSym}-EQ`;
-  const match = master.find(inst => 
-    inst.exch_seg === 'NSE' && inst.symbol === targetSymbol
+  // 1. Look for exact match like RELIANCE-EQ on NSE
+  let match = master.find(inst => 
+    inst.exch_seg === 'NSE' && (inst.symbol === `${cleanSym}-EQ` || inst.symbol === cleanSym)
   );
+  if (match) return { token: match.token, exchange: 'NSE' };
 
-  if (match) {
-    return { token: match.token, exchange: 'NSE' };
-  }
-
-  // Fallback: look for name match or search exchange BSE
-  const bseMatch = master.find(inst => 
-    inst.exch_seg === 'BSE' && inst.symbol === targetSymbol
+  // 2. Look for exact match on BSE
+  match = master.find(inst => 
+    inst.exch_seg === 'BSE' && (inst.symbol === `${cleanSym}-EQ` || inst.symbol === cleanSym)
   );
-  if (bseMatch) {
-    return { token: bseMatch.token, exchange: 'BSE' };
-  }
+  if (match) return { token: match.token, exchange: 'BSE' };
 
-  // Last-ditch: match by name
-  const nameMatch = master.find(inst => inst.name === cleanSym);
-  if (nameMatch) {
-    return { token: nameMatch.token, exchange: nameMatch.exch_seg };
-  }
+  // 3. Look by instrument name field
+  match = master.find(inst => 
+    inst.name && inst.name.toUpperCase() === cleanSym && inst.exch_seg === 'NSE'
+  );
+  if (match) return { token: match.token, exchange: 'NSE' };
+
+  // 4. Look by symbol prefix match on NSE
+  match = master.find(inst => 
+    inst.exch_seg === 'NSE' && inst.symbol && inst.symbol.startsWith(`${cleanSym}-`)
+  );
+  if (match) return { token: match.token, exchange: 'NSE' };
 
   return null;
 }

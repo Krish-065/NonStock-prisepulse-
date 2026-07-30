@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
-import { 
-  Compass, TrendingUp, TrendingDown, Info, RefreshCw, 
+import {
+  Compass, TrendingUp, TrendingDown, Info, RefreshCw,
   Layers, Activity, Sparkles, LineChart, Percent, CheckCircle
 } from 'lucide-react';
 
@@ -124,7 +124,7 @@ export default function SectorRotation() {
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
-      
+
       {/* Upper Title Block */}
       <div style={{
         background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(10, 14, 39, 0.5) 100%)',
@@ -141,7 +141,7 @@ export default function SectorRotation() {
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-primary)' }}>
             <Compass size={32} style={{ color: '#00ff88', animation: refreshing ? 'spin 1.5s linear infinite' : 'none' }} />
-            Sector Radar
+            Institutional Sector Rotation Matrix
           </h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '14px' }}>
             Tracking block order volume and open interest momentum to map sector-wide cycles of Smart Money.
@@ -215,7 +215,7 @@ export default function SectorRotation() {
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-            
+
             <div style={{ background: 'rgba(0, 255, 136, 0.03)', border: '1px solid rgba(0, 255, 136, 0.15)', borderRadius: '10px', padding: '16px' }}>
               <h4 style={{ color: '#00ff88', fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>🟢 Leading Quadrant</h4>
               <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: '1.5' }}>
@@ -265,7 +265,7 @@ export default function SectorRotation() {
 
       {/* Main Split Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-        
+
         {/* Left Side: Dynamic SVG Scatter Matrix */}
         <div style={{
           background: 'var(--bg-card-glass)',
@@ -283,13 +283,13 @@ export default function SectorRotation() {
 
           <div style={{ position: 'relative', width: '100%', paddingBottom: '100%', height: 0 }}>
             {/* SVG Interactive Scatter Plot */}
-            <svg 
-              viewBox="0 0 400 400" 
-              style={{ 
-                position: 'absolute', 
-                top: 0, 
-                left: 0, 
-                width: '100%', 
+            <svg
+              viewBox="0 0 400 400"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
                 height: '100%',
                 background: 'rgba(10, 14, 39, 0.4)',
                 borderRadius: '12px',
@@ -333,7 +333,7 @@ export default function SectorRotation() {
                 // SVG coordinate space: (0,0) is top-left, (400, 400) is bottom-right
                 // X Axis represents OI change (neg is left, pos is right)
                 // Y Axis represents Price change (neg is bottom, pos is top)
-                
+
                 const rawX = (item.oiChange / maxOiChange) * 160 + 200;
                 const rawY = 200 - (item.priceChange / maxPriceChange) * 160;
 
@@ -345,52 +345,52 @@ export default function SectorRotation() {
                 const isSelected = selectedSector && selectedSector.sector === item.sector;
 
                 return (
-                  <g 
-                    key={idx} 
+                  <g
+                    key={idx}
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleSectorClick(item.sector)}
                   >
                     {/* Ring highlight if selected */}
                     {isSelected && (
-                      <circle 
-                        cx={cx} 
-                        cy={cy} 
-                        r="18" 
-                        fill="none" 
-                        stroke="#00ff88" 
-                        strokeWidth="1.5" 
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r="18"
+                        fill="none"
+                        stroke="#00ff88"
+                        strokeWidth="1.5"
                         strokeDasharray="3 3"
-                        style={{ transformOrigin: `${cx}px ${cy}px`, animation: 'spin 10s linear infinite' }} 
+                        style={{ transformOrigin: `${cx}px ${cy}px`, animation: 'spin 10s linear infinite' }}
                       />
                     )}
                     {/* Core sector bubble */}
-                    <circle 
-                      cx={cx} 
-                      cy={cy} 
-                      r="11" 
-                      fill={qStyle.text} 
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r="11"
+                      fill={qStyle.text}
                       fillOpacity={isSelected ? "0.85" : "0.55"}
                       stroke={qStyle.text}
                       strokeWidth="1.5"
                     />
                     {/* Initials label */}
-                    <text 
-                      x={cx} 
-                      y={cy + 3} 
-                      fill="#000000" 
-                      fontSize="9" 
-                      fontWeight="800" 
+                    <text
+                      x={cx}
+                      y={cy + 3}
+                      fill="#000000"
+                      fontSize="9"
+                      fontWeight="800"
                       textAnchor="middle"
                     >
                       {item.sector.substring(0, 2).toUpperCase()}
                     </text>
                     {/* Floating label caption text */}
-                    <text 
-                      x={cx} 
-                      y={cy - 15} 
-                      fill="#ffffff" 
-                      fontSize="8" 
-                      fontWeight={isSelected ? "700" : "500"} 
+                    <text
+                      x={cx}
+                      y={cy - 15}
+                      fill="#ffffff"
+                      fontSize="8"
+                      fontWeight={isSelected ? "700" : "500"}
                       textAnchor="middle"
                       visibility={isSelected ? "visible" : "hidden"}
                     >
@@ -479,11 +479,11 @@ export default function SectorRotation() {
                   <Layers size={14} style={{ color: '#00ff88' }} />
                   Sector Component Weights
                 </h3>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {sectorComponents[selectedSector.sector]?.map((comp, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -569,7 +569,7 @@ export default function SectorRotation() {
                 const isSelected = selectedSector && selectedSector.sector === item.sector;
                 const qStyle = getQuadrantStyle(item.quadrant);
                 return (
-                  <tr 
+                  <tr
                     key={idx}
                     onClick={() => handleSectorClick(item.sector)}
                     style={{
@@ -611,10 +611,10 @@ export default function SectorRotation() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '130px' }}>
                         <span style={{ fontSize: '12px', fontWeight: '700', minWidth: '24px' }}>{item.flowIndex}</span>
                         <div style={{ flexGrow: 1, background: 'rgba(255, 255, 255, 0.05)', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ 
-                            background: `linear-gradient(90deg, ${qStyle.text} 0%, #00ff88 100%)`, 
-                            height: '100%', 
-                            width: `${item.flowIndex}%` 
+                          <div style={{
+                            background: `linear-gradient(90deg, ${qStyle.text} 0%, #00ff88 100%)`,
+                            height: '100%',
+                            width: `${item.flowIndex}%`
                           }}></div>
                         </div>
                       </div>
@@ -622,10 +622,10 @@ export default function SectorRotation() {
                     <td style={{ padding: '16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{item.topStock}</span>
-                        <span style={{ 
-                          fontSize: '11px', 
+                        <span style={{
+                          fontSize: '11px',
                           fontWeight: '600',
-                          color: item.topStockPerformance >= 0 ? '#00ff88' : '#ff4444' 
+                          color: item.topStockPerformance >= 0 ? '#00ff88' : '#ff4444'
                         }}>
                           ({item.topStockPerformance >= 0 ? '+' : ''}{item.topStockPerformance}%)
                         </span>

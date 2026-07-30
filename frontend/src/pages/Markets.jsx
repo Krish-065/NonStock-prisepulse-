@@ -667,14 +667,18 @@ export default function Markets() {
 
   const displayLabel = ALL_SYMBOLS.find(s => s.value === symbol)?.label || symbol;
 
-  const isIndianStock = symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || symbol.includes('.NS') || symbol.includes('.BO') || activeCategory === 'Indian Stocks';
+  const isIndianStock = symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || symbol.includes('.NS') || symbol.includes('.BO') || activeCategory === 'Indian Stocks' || !symbol.includes('-');
 
   // Automatically switch tab when a new symbol is selected
   useEffect(() => {
     if (symbol !== lastSymbolRef.current) {
-      const isInd = symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || symbol.includes('.NS') || symbol.includes('.BO');
-      const isCommodity = symbol.endsWith('=F') || symbol.startsWith('TVC:') || activeCategory === 'Commodities';
-      setActiveTab((isInd || isCommodity) ? 'custom' : 'tradingview');
+      const isCrypto = symbol.includes('-USD') || symbol.includes('-USDT') || ['BTC-USD', 'ETH-USD', 'SOL-USD'].includes(symbol);
+      const isForex = symbol.endsWith('=X');
+      const isUSStock = ['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOG', 'META', 'NVDA', 'NFLX'].includes(symbol);
+      
+      // Default to AngelOne custom chart for Indian stocks & commodities, and TradingView for US/Crypto
+      const useAngelOneChart = !isCrypto && !isForex && !isUSStock;
+      setActiveTab(useAngelOneChart ? 'custom' : 'tradingview');
       lastSymbolRef.current = symbol;
     }
   }, [symbol, activeCategory]);
