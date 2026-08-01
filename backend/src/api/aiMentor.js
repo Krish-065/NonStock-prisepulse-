@@ -35,21 +35,27 @@ function cosineSimilarity(vecA, vecB) {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-function keywordSimilarity(query, title, content) {
+function keywordSimilarity(query, item) {
   const queryClean = query.toLowerCase().replace(/[^a-z0-9\s]/g, '');
-  const titleClean = title.toLowerCase().replace(/[^a-z0-9\s]/g, '');
-  const contentClean = content.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  const titleClean = item.title.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  const contentClean = item.content.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  const categoryClean = (item.category || '').toLowerCase().replace(/[^a-z0-9\s]/g, '');
   
-  const queryWords = queryClean.split(/\s+/).filter(w => w.length > 2);
+  const stopWords = new Set(['what', 'are', 'the', 'and', 'for', 'how', 'does', 'work', 'with', 'about', 'this', 'that', 'they', 'them', 'these', 'those', 'where', 'when', 'which', 'who', 'why', 'you', 'your', 'like', 'there', 'here', 'should', 'buy', 'sell']);
+  
+  const queryWords = queryClean.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
   if (queryWords.length === 0) return 0;
   
   let score = 0;
   for (const word of queryWords) {
     if (titleClean.includes(word)) {
-      score += 4;
+      score += 5;
+    }
+    if (categoryClean.includes(word)) {
+      score += 3;
     }
     if (contentClean.includes(word)) {
-      score += 1.5;
+      score += 1.2;
     }
   }
   return score / queryWords.length;
@@ -83,7 +89,7 @@ async function performRAG(queryText, GEMINI_API_KEY) {
     if (queryVector && item.embedding && item.embedding.length > 0) {
       score = cosineSimilarity(queryVector, item.embedding);
     } else {
-      score = keywordSimilarity(queryText, item.title, item.content);
+      score = keywordSimilarity(queryText, item);
     }
     return { item, score };
   });
@@ -206,13 +212,24 @@ function buildSandboxResponse(technicals, detectedSymbol, queryText = '', histor
 
   // 3. Select matching education/strategy chunk or geopolitical/macro outlook
   if (retrievedChunks && retrievedChunks.length > 0) {
-    const primary = retrievedChunks[0];
-    responseText = `### 📚 Learning Hub: ${primary.title} (${primary.category})
+    if (retrievedChunks.length === 1) {
+      const primary = retrievedChunks[0];
+      responseText = `### 📚 Learning Hub: ${primary.title} (${primary.category})
 ${primary.content}
 
 ### 💡 Sandbox Educational Insights
-In our trading learning environment, understanding **${primary.title}** is crucial. ${retrievedChunks.length > 1 ? `You can also study related topics like **${retrievedChunks.slice(1).map(c => c.title).join('** and **')}**.` : ''}
+In our trading learning environment, understanding **${primary.title}** is crucial.
 ${detectedSymbol && technicals ? `\nLet's apply this: looking at live charts for **${detectedSymbol}** at ₹${technicals.price}, we see key support at ₹${technicals.support} and resistance at ₹${technicals.resistance}.` : 'To practice, you can query specific stocks like "Reliance" or "TCS" to see real-time indicators alongside these concepts.'}`;
+    } else {
+      responseText = `### 📚 Learning Hub: Unified Study Guide\n`;
+      retrievedChunks.forEach((chunk, index) => {
+        responseText += `\n#### ${index + 1}. ${chunk.title} (${chunk.category})
+${chunk.content}\n`;
+      });
+      responseText += `\n### 💡 Sandbox Educational Insights
+In our trading learning environment, synthesizing these concepts is crucial.
+${detectedSymbol && technicals ? `\nLet's apply this: looking at live charts for **${detectedSymbol}** at ₹${technicals.price}, we see key support at ₹${technicals.support} and resistance at ₹${technicals.resistance}.` : 'To practice, you can query specific stocks like "Reliance" or "TCS" to see real-time indicators alongside these concepts.'}`;
+    }
   } else if (isGeopolitical) {
     let asset = 'Gold';
     if (upper.includes('BTC') || upper.includes('BITCOIN') || upper.includes('CRYPTO')) asset = 'Bitcoin';
@@ -412,7 +429,7 @@ Try asking: *"What is the RSI indicator?"* or *"Analyze Reliance"* to get starte
   return {
     response: finalResponse,
     technicals,
-    mlEnsemble: getMLEnsemble(detectedSymbol || 'NIFTY')
+    mlEnsemble: detectedSymbol ? getMLEnsemble(detectedSymbol) : null
   };
 }
 

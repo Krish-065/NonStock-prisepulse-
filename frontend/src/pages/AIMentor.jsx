@@ -215,6 +215,8 @@ export default function AIMentor() {
       // Update Technical context sidebar if found
       if (res.data.technicals) {
         setActiveTechnicals(res.data.technicals);
+      } else {
+        setActiveTechnicals(null);
       }
       // Update ML Ensemble sidebar if found
       if (res.data.mlEnsemble) {
@@ -584,9 +586,35 @@ export default function AIMentor() {
                 </div>
               </div>
             ) : (
-              <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, textAlign: 'center', padding: '36px 0' }}>
-                Query a specific stock (e.g. "Should I buy Reliance?") to fetch real-time indicators context here.
-              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: '0 0 4px 0', textAlign: 'center', padding: '12px 0' }}>
+                  Query a specific stock (e.g. "Analyze Reliance") to fetch live metrics and ML forecasts.
+                </p>
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                  <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: '800', display: 'block', marginBottom: '8px', letterSpacing: '0.5px' }}>TRENDING SYMBOLS</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {['RELIANCE', 'TCS', 'SBIN', 'NIFTY', 'BTC', 'ETH'].map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => handleSendMessage(`Analyze ${t}`)}
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: '6px',
+                          color: '#ffffff',
+                          padding: '6px 12px',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
