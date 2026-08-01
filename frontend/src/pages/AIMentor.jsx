@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { 
   Send, Sparkles, MessageSquare, AlertTriangle, Play, HelpCircle, 
   TrendingUp, TrendingDown, RefreshCw, BarChart2, ShieldAlert,
-  Plus, Trash2
+  Plus, Trash2, BookOpen, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -80,6 +80,8 @@ export default function AIMentor() {
   const [activeMLEnsemble, setActiveMLEnsemble] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
+  const [syllabus, setSyllabus] = useState({});
+  const [expandedCategory, setExpandedCategory] = useState(null);
   
   const chatEndRef = useRef(null);
 
@@ -105,6 +107,16 @@ export default function AIMentor() {
 
   useEffect(() => {
     fetchConversations();
+    
+    const fetchSyllabus = async () => {
+      try {
+        const res = await apiClient.get('/ai/knowledge');
+        setSyllabus(res.data);
+      } catch (err) {
+        console.error('Failed to fetch trading library syllabus:', err);
+      }
+    };
+    fetchSyllabus();
   }, []);
 
   useEffect(() => {
@@ -637,28 +649,102 @@ export default function AIMentor() {
             </div>
           )}
 
-          {/* Education guidelines sidebar card */}
+          {/* Trading Library syllabus sidebar card */}
           <div style={{
             background: 'linear-gradient(135deg, rgba(16, 20, 39, 0.9) 0%, rgba(22, 28, 59, 0.9) 100%)',
             border: '1px solid rgba(0, 255, 136, 0.15)',
             borderRadius: '16px',
-            padding: '24px',
+            padding: '20px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px'
+            gap: '12px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
           }}>
             <h3 style={{ fontSize: '14px', fontWeight: '800', color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ShieldAlert size={16} style={{ color: '#ffb300' }} />
-              Educational Principles
+              <BookOpen size={16} style={{ color: '#00ff88' }} />
+              Trading Library
             </h3>
-            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>
-              NonStock is built to foster financial literacy. Our AI mentor translates dry data points into clear educational summaries.
+            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 4px 0', lineHeight: '1.4' }}>
+              Click on any concept below to study it interactively with your AI Mentor.
             </p>
-            <ul style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0, paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <li>Support stands for price floors where buying is historically strong.</li>
-              <li>Resistance stands for ceilings where selling has halted upside.</li>
-              <li>Always execute virtual trades on the paper trading sandbox first!</li>
-            </ul>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
+              {Object.keys(syllabus).length === 0 ? (
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', padding: '12px' }}>
+                  Loading library topics...
+                </div>
+              ) : (
+                Object.keys(syllabus).map(category => {
+                  const isExpanded = expandedCategory === category;
+                  return (
+                    <div key={category} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedCategory(isExpanded ? null : category)}
+                        style={{
+                          width: '100%',
+                          background: 'none',
+                          border: 'none',
+                          color: isExpanded ? '#00ff88' : '#e0e0e0',
+                          padding: '8px 0',
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          transition: 'color 0.2s'
+                        }}
+                      >
+                        <span>{category}</span>
+                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                      
+                      {isExpanded && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '8px', paddingBottom: '8px' }}>
+                          {syllabus[category].map(topic => (
+                            <button
+                              key={topic.id}
+                              type="button"
+                              onClick={() => handleSendMessage(`Explain ${topic.title} and how to use it`)}
+                              style={{
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                border: '1px solid rgba(255, 255, 255, 0.04)',
+                                borderRadius: '6px',
+                                padding: '6px 10px',
+                                fontSize: '11px',
+                                color: '#c0c2cc',
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                width: '100%'
+                              }}
+                              onMouseEnter={e => {
+                                e.currentTarget.style.background = 'rgba(0, 255, 136, 0.08)';
+                                e.currentTarget.style.color = '#ffffff';
+                                e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.2)';
+                              }}
+                              onMouseLeave={e => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                                e.currentTarget.style.color = '#c0c2cc';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.04)';
+                              }}
+                            >
+                              <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#00ff88', flexShrink: 0 }} />
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{topic.title}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
 
         </div>

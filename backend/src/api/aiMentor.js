@@ -1,8 +1,99 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const { query } = require('../db/index');
 const { authenticate } = require('../middleware/auth');
+
+let vectorStore = [];
+try {
+  const storePath = path.join(__dirname, '../knowledge_base/vector_store.json');
+  if (fs.existsSync(storePath)) {
+    vectorStore = JSON.parse(fs.readFileSync(storePath, 'utf8'));
+  } else {
+    const kbPath = path.join(__dirname, '../knowledge_base/trading_kb.json');
+    if (fs.existsSync(kbPath)) {
+      vectorStore = JSON.parse(fs.readFileSync(kbPath, 'utf8')).map(item => ({ ...item, embedding: [] }));
+    }
+  }
+} catch (err) {
+  console.error('[AI Mentor] Failed to load knowledge base:', err);
+}
+
+function cosineSimilarity(vecA, vecB) {
+  if (!vecA || !vecB || vecA.length === 0 || vecB.length === 0) return 0;
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    normA += vecA[i] * vecA[i];
+    normB += vecB[i] * vecB[i];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+function keywordSimilarity(query, title, content) {
+  const queryClean = query.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  const titleClean = title.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  const contentClean = content.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  
+  const queryWords = queryClean.split(/\s+/).filter(w => w.length > 2);
+  if (queryWords.length === 0) return 0;
+  
+  let score = 0;
+  for (const word of queryWords) {
+    if (titleClean.includes(word)) {
+      score += 4;
+    }
+    if (contentClean.includes(word)) {
+      score += 1.5;
+    }
+  }
+  return score / queryWords.length;
+}
+
+async function performRAG(queryText, GEMINI_API_KEY) {
+  let queryVector = null;
+  const hasVectors = vectorStore.some(item => item.embedding && item.embedding.length > 0);
+
+  if (GEMINI_API_KEY && hasVectors) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${GEMINI_API_KEY}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: { parts: [{ text: queryText }] }
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        queryVector = data?.embedding?.values;
+      }
+    } catch (e) {
+      console.warn('[RAG Engine] Embedding fetch exception:', e.message);
+    }
+  }
+
+  const results = vectorStore.map(item => {
+    let score = 0;
+    if (queryVector && item.embedding && item.embedding.length > 0) {
+      score = cosineSimilarity(queryVector, item.embedding);
+    } else {
+      score = keywordSimilarity(queryText, item.title, item.content);
+    }
+    return { item, score };
+  });
+
+  return results
+    .filter(r => r.score > 0.15)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(r => r.item);
+}
 
 // Yahoo Finance headers to avoid IP blocks
 const YAHOO_HEADERS = {
@@ -79,12 +170,16 @@ function getMLEnsemble(symbol) {
 }
 
 // ─── Sandbox Response Builder (always returns 200, never crashes) ─────────────
-// ─── Sandbox Response Builder (always returns 200, never crashes) ─────────────
-function buildSandboxResponse(technicals, detectedSymbol, queryText = '', history = []) {
+function buildSandboxResponse(technicals, detectedSymbol, queryText = '', history = [], retrievedChunks = []) {
   const upper = (queryText || '').toUpperCase();
   let responseText = '';
 
-  // 1. Extract memory context from history to learn from user asked questions
+  // 1. Classify query for conditional/geopolitical/macroeconomic analysis
+  const isConditional = upper.includes('IF') || upper.includes('WHICH') || upper.includes('WOULD') || upper.includes('AFFECT') || upper.includes('FUTURE OF') || upper.includes('HAPPEN') || upper.includes('WAR') || upper.includes('TRUMP');
+  const isGeopolitical = upper.includes('WAR') || upper.includes('TRUMP') || upper.includes('CONFLICT') || upper.includes('GEOPOLITIC') || upper.includes('INDIA') || upper.includes('ELECTION') || upper.includes('TARIFF');
+  const isMacro = upper.includes('INFLATION') || upper.includes('INTEREST RATE') || upper.includes('FED') || upper.includes('RBI') || upper.includes('RECES') || upper.includes('BUDGET') || upper.includes('GDP');
+
+  // 2. Extract memory context from history to learn from user asked questions
   let memoryContext = '';
   const prevUserQueries = (history || [])
     .filter(h => h.sender === 'user' && h.text !== queryText)
@@ -109,12 +204,16 @@ function buildSandboxResponse(technicals, detectedSymbol, queryText = '', histor
 *Note: Factoring in ${memoryParts.join(' and ')} from your previous queries. I will monitor these sectors to build your comprehensive trading strategy.*`;
   }
 
-  // 2. Classify query for conditional/geopolitical/macroeconomic analysis
-  const isConditional = upper.includes('IF') || upper.includes('WHICH') || upper.includes('WOULD') || upper.includes('AFFECT') || upper.includes('FUTURE OF') || upper.includes('HAPPEN') || upper.includes('WAR') || upper.includes('TRUMP');
-  const isGeopolitical = upper.includes('WAR') || upper.includes('TRUMP') || upper.includes('CONFLICT') || upper.includes('GEOPOLITIC') || upper.includes('INDIA') || upper.includes('ELECTION') || upper.includes('TARIFF');
-  const isMacro = upper.includes('INFLATION') || upper.includes('INTEREST RATE') || upper.includes('FED') || upper.includes('RBI') || upper.includes('RECES') || upper.includes('BUDGET') || upper.includes('GDP');
+  // 3. Select matching education/strategy chunk or geopolitical/macro outlook
+  if (retrievedChunks && retrievedChunks.length > 0) {
+    const primary = retrievedChunks[0];
+    responseText = `### 📚 Learning Hub: ${primary.title} (${primary.category})
+${primary.content}
 
-  if (isGeopolitical) {
+### 💡 Sandbox Educational Insights
+In our trading learning environment, understanding **${primary.title}** is crucial. ${retrievedChunks.length > 1 ? `You can also study related topics like **${retrievedChunks.slice(1).map(c => c.title).join('** and **')}**.` : ''}
+${detectedSymbol && technicals ? `\nLet's apply this: looking at live charts for **${detectedSymbol}** at ₹${technicals.price}, we see key support at ₹${technicals.support} and resistance at ₹${technicals.resistance}.` : 'To practice, you can query specific stocks like "Reliance" or "TCS" to see real-time indicators alongside these concepts.'}`;
+  } else if (isGeopolitical) {
     let asset = 'Gold';
     if (upper.includes('BTC') || upper.includes('BITCOIN') || upper.includes('CRYPTO')) asset = 'Bitcoin';
     else if (upper.includes('NIFTY') || upper.includes('STOCK') || upper.includes('RELIANCE')) asset = 'Equities';
@@ -317,6 +416,26 @@ Try asking: *"What is the RSI indicator?"* or *"Analyze Reliance"* to get starte
   };
 }
 
+// ─── GET /knowledge ──────────────────────────────────────────────────────────
+router.get('/knowledge', authenticate, (req, res) => {
+  try {
+    const categories = {};
+    vectorStore.forEach(item => {
+      if (!categories[item.category]) {
+        categories[item.category] = [];
+      }
+      categories[item.category].push({
+        id: item.id,
+        title: item.title
+      });
+    });
+    res.json(categories);
+  } catch (err) {
+    console.error('[AI Mentor] Failed to get knowledge categories:', err);
+    res.status(500).json({ error: 'Failed to retrieve trading concepts list' });
+  }
+});
+
 // ─── GET /conversations ───────────────────────────────────────────────────────
 router.get('/conversations', authenticate, async (req, res) => {
   try {
@@ -496,9 +615,18 @@ router.post('/ask', authenticate, async (req, res) => {
       }
     }
 
+    // Perform RAG search for relevant articles
+    const retrievedChunks = await performRAG(message, GEMINI_API_KEY);
+    let ragContext = '';
+    if (retrievedChunks.length > 0) {
+      ragContext = `\n\n[Retrieved Trading Knowledge Base Context]:\n` + 
+        retrievedChunks.map((chunk, index) => `${index + 1}. Topic: ${chunk.title}\nCategory: ${chunk.category}\nContent: ${chunk.content}`).join('\n\n') +
+        `\n\nWhen answering, verify terms and concepts against this retrieved context. Refer to these specific strategies or risk parameters to explain clearly.`;
+    }
+
     if (!GEMINI_API_KEY) {
       console.log('[AI Mentor] No Gemini key — sandbox mode');
-      const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows);
+      const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
       return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
     }
 
@@ -521,7 +649,9 @@ Behavior Guidelines:
 - Offer professional-tier market analysis, incorporating institutional concepts like volatility, mean reversion, and multi-timeframe breakouts.
 - If the user asks about specific stocks or indicators, check if live market data context is provided. If it is, incorporate it into your explanation of the stock's trend, RSI, support/resistance, and volume.
 - Keep your answers educational. Do NOT give direct BUY, SELL, or HOLD recommendations. Always frame insights as technical assessments and educational analysis.
-- Maintain context of the conversation. Learn from previous questions and answers in the chat history to provide intelligent follow-up responses and connect concepts.`;
+- Maintain context of the conversation. Learn from previous questions and answers in the chat history to provide intelligent follow-up responses and connect concepts.
+
+${ragContext}`;
       } else {
         systemInstructionText = `You are the "NonStock AI Mentor", a world-class macroeconomic analyst, premium technical analyst, and experienced trader helping beginner investors.
 Your goal is to explain financial concepts clearly, guide users through technical analysis indicators, and help them understand stock trends.
@@ -539,7 +669,9 @@ Behavior Guidelines:
 - When answering conditional questions (e.g., "what if X happens to the future of Y"), frame your analysis through safe-haven assets, capital reallocation, and volatility frameworks.
 - If the user asks about specific stocks or indicators, check if live market data context is provided. If it is, incorporate it into your explanation of the stock's trend, RSI, support/resistance, and volume.
 - Keep your answers educational. Do NOT give direct BUY, SELL, or HOLD recommendations. Always frame insights as technical assessments and educational analysis.
-- Maintain context of the conversation. Learn from previous questions and answers in the chat history to provide intelligent follow-up responses and connect concepts.`;
+- Maintain context of the conversation. Learn from previous questions and answers in the chat history to provide intelligent follow-up responses and connect concepts.
+
+${ragContext}`;
       }
 
       const contents = [];
@@ -593,7 +725,7 @@ Behavior Guidelines:
       if (!geminiRes.ok) {
         const body = await geminiRes.text();
         console.warn(`[AI Mentor] Gemini ${geminiRes.status} — sandbox fallback. ${body.substring(0, 150)}`);
-        const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows);
+        const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
         return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
       }
 
@@ -601,7 +733,7 @@ Behavior Guidelines:
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) {
         console.warn('[AI Mentor] Gemini empty response — sandbox fallback');
-        const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows);
+        const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
         return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
       }
 
@@ -610,7 +742,7 @@ Behavior Guidelines:
 
     } catch (geminiErr) {
       console.warn('[AI Mentor] Gemini exception — sandbox fallback:', geminiErr.message);
-      const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows);
+      const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
       return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
     }
 

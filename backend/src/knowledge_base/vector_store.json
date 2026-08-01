@@ -1,0 +1,205 @@
+[
+  {
+    "id": "day_trading",
+    "category": "Trading Styles",
+    "title": "Day Trading (Intraday)",
+    "content": "Day trading involves executing buy and sell orders for financial instruments within the same trading day. Day traders aim to profit from small, intraday price fluctuations and close all positions before the market closes to avoid overnight holding risks, overnight news gaps, or margin interest. Popular intraday trading strategies include scalping, momentum trading, range trading, and trading news events. Intraday traders rely heavily on liquid stocks or contracts and short-term candlestick charts (such as 1-minute, 5-minute, or 15-minute timeframes) alongside real-time indicators like RSI, MACD, and VWAP. Strict risk management is vital: traders typically set hard stop losses and risk no more than 1% of their trading capital on any single trade.",
+    "embedding": []
+  },
+  {
+    "id": "swing_trading",
+    "category": "Trading Styles",
+    "title": "Swing Trading",
+    "content": "Swing trading is a style of trading that attempts to capture price swings in a stock or commodity over a period of a few days to several weeks. Swing traders use technical analysis to identify momentum, trend reversals, and support/resistance zones to determine entry and exit points. Unlike day traders, swing traders hold positions overnight, exposing them to potential gaps in opening prices. However, swing trading requires less constant monitoring and is popular among part-time traders. Main indicators used include daily and weekly moving averages (such as the 20-day and 50-day EMA), Bollinger Bands, the MACD oscillator, and key Fibonacci retracement levels.",
+    "embedding": []
+  },
+  {
+    "id": "position_trading",
+    "category": "Trading Styles",
+    "title": "Position Trading (Trend Following)",
+    "content": "Position trading is a long-term approach where traders hold assets for weeks, months, or even years, focusing on capturing major market trends. Position traders rely on a combination of technical analysis (weekly and monthly charts) and fundamental analysis (corporate earnings, macroeconomic indicators, industry cycles, and monetary policies). They are less concerned with short-term price noise or minor daily fluctuations. Popular strategies include trend following, breakout trading, and value investing. Since positions are held for long durations, risk management involves wider stop losses and smaller leverage to withstand temporary drawdowns.",
+    "embedding": []
+  },
+  {
+    "id": "scalping",
+    "category": "Trading Styles",
+    "title": "Scalping Strategy",
+    "content": "Scalping is an ultra-short-term trading strategy where traders target minor price changes, opening and closing dozens or hundreds of trades in a single session. Scalpers aim to profit from very small price moves (spread arbitrage or quick bid-ask flips) and hold positions for seconds to minutes. Because profits per trade are small, scalpers execute large order sizes and rely on tight spreads, high liquidity, and low transaction commissions. Tools like Level 2 order books, volume profile, VWAP, and tick charts are essential. Risk control must be automated and instantaneous, as a single large loss can easily wipe out hundreds of small winning trades.",
+    "embedding": []
+  },
+  {
+    "id": "support_resistance",
+    "category": "Chart & Pattern Analysis",
+    "title": "Support and Resistance Levels",
+    "content": "Support and resistance are key horizontal price levels representing supply and demand zones where price historically reverses or consolidates. Support represents a demand floor where buying interest is strong enough to overcome selling pressure, halting a downward price trend. Resistance represents a supply ceiling where selling interest exceeds buying interest, halting an upward price trend. When a resistance level is broken, it often shifts roles to become a support level (role reversal), and vice versa. Traders identify these zones using historical pivot points, swing highs/lows, round psychological numbers, and volume profile concentrations.",
+    "embedding": []
+  },
+  {
+    "id": "trendlines_channels",
+    "category": "Chart & Pattern Analysis",
+    "title": "Trendlines and Channel Patterns",
+    "content": "Trendlines are diagonal lines drawn across chart pivots to visualize the direction and speed of price trends. An uptrend line connects consecutive higher swing lows, serving as dynamic support. A downtrend line connects consecutive lower swing highs, serving as dynamic resistance. A price channel is formed by drawing a parallel line to the trendline, creating a corridor. In an ascending channel, traders look to buy near the lower channel line and sell or short near the upper channel line. A clean breakout out of a trendline or channel on high volume signals a potential trend reversal or acceleration.",
+    "embedding": []
+  },
+  {
+    "id": "candlestick_patterns",
+    "category": "Chart & Pattern Analysis",
+    "title": "Candlestick Charting Patterns",
+    "content": "Candlestick patterns visualize price action inside a specific timeframe, indicating buyer-seller sentiment. Single-bar patterns include the Doji (representing indecision), Hammer or Shooting Star (indicating price rejection and potential reversal at support/resistance). Multi-bar patterns include Bullish/Bearish Engulfing (showing strong momentum shifts) and Morning/Evening Star (representing three-bar reversal clusters). Professional traders use candlestick patterns to confirm entry signals near key support/resistance levels rather than trading them in isolation.",
+    "embedding": []
+  },
+  {
+    "id": "classic_chart_patterns",
+    "category": "Chart & Pattern Analysis",
+    "title": "Classic Chart Patterns",
+    "content": "Classic chart patterns are geometric formations created by price action over time, divided into continuation and reversal patterns. Reversal patterns include Double Tops/Bottoms and Head and Shoulders, signaling the exhaustion of the prevailing trend and a primary trend change. Continuation patterns include flags, pennants, and triangles (ascending, descending, symmetrical), representing temporary consolidation pauses before the price breaks out in the direction of the primary trend. Breakout validation requires analyzing volume expansion and price closing outside the pattern boundaries.",
+    "embedding": []
+  },
+  {
+    "id": "rsi_indicator",
+    "category": "Technical Indicators",
+    "title": "Relative Strength Index (RSI)",
+    "content": "The Relative Strength Index (RSI) is a popular momentum oscillator that measures the speed and magnitude of recent price changes on a scale of 0 to 100. Traditionally, an RSI value above 70 indicates an overbought condition, suggesting the asset is overvalued and due for a pullback or consolidation. An RSI below 30 indicates an oversold condition, suggesting the asset is undervalued and due for a bounce. Advanced traders also analyze RSI divergences (e.g. price making higher highs while RSI makes lower highs, indicating weakening momentum) and use the 50-level line to confirm overall trend direction.",
+    "embedding": []
+  },
+  {
+    "id": "macd_indicator",
+    "category": "Technical Indicators",
+    "title": "Moving Average Convergence Divergence (MACD)",
+    "content": "The Moving Average Convergence Divergence (MACD) is a trend-following momentum indicator displaying the relationship between two exponential moving averages. It consists of the MACD Line (12-period EMA minus 26-period EMA), the Signal Line (9-period EMA of the MACD line), and the Histogram (difference between the MACD and Signal lines). Key trading signals include Signal Line Crossovers (bullish when MACD crosses above Signal Line, bearish when below), Centerline Crossovers (crossing above zero confirms bullish trend), and momentum divergence signals.",
+    "embedding": []
+  },
+  {
+    "id": "moving_averages",
+    "category": "Technical Indicators",
+    "title": "Simple vs Exponential Moving Averages",
+    "content": "Moving averages smooth price data to identify the trend direction. The Simple Moving Average (SMA) calculates the average price over a set period (e.g. 50-day or 200-day), treating all data points equally. The Exponential Moving Average (EMA) places higher weight on recent prices, reacting faster to sudden market reversals. Moving average indicators act as dynamic support/resistance. Popular strategies include EMA crossovers (e.g., a short-term 9-day crossing a long-term 21-day EMA) and the Golden Cross/Death Cross (50-day SMA crossing above/below the 200-day SMA), signaling macro trend shifts.",
+    "embedding": []
+  },
+  {
+    "id": "adx_indicator",
+    "category": "Technical Indicators",
+    "title": "Average Directional Index (ADX)",
+    "content": "The Average Directional Index (ADX) measures the strength of a price trend on a scale of 0 to 100, without indicating the trend's direction. It is computed from the Directional Movement Indicators (+DI and -DI). An ADX value above 25 signals a strong trending market, indicating trend-following strategies (like moving average crossovers) should be utilized. An ADX below 20 indicates a weak, range-bound market, indicating mean-reversion or range-bound strategies. A rising ADX confirms trend acceleration, while a falling ADX suggests trend consolidation.",
+    "embedding": []
+  },
+  {
+    "id": "volume_vwap",
+    "category": "Technical Indicators",
+    "title": "Volume & Volume Weighted Average Price (VWAP)",
+    "content": "Volume represents the total shares traded in a period and acts as confirmation for price movements. Price rallies on high volume indicate strong buyer conviction, while price rises on low volume warning of exhaustion. The Volume Weighted Average Price (VWAP) is an intraday benchmark calculated by taking the sum of value traded (price multiplied by volume) divided by total volume. VWAP acts as a primary institutional benchmark; buying below VWAP is considered getting a good intraday value, while prices crossing VWAP indicate shifts in intraday control.",
+    "embedding": []
+  },
+  {
+    "id": "risk_1percent_rule",
+    "category": "Risk Management",
+    "title": "The 1% Rule & Capital Preservation",
+    "content": "The 1% rule is a fundamental risk management guideline where a trader never risks more than 1% (or up to 2% for advanced setups) of their total account capital on a single trade. If a trader has an account balance of ₹1,00,000, the maximum risk allowed per trade is ₹1,000. Risk is calculated as the difference between the Entry Price and Stop Loss Price, multiplied by the quantity. This rule preserves trading capital and ensures that even a long consecutive sequence of losing trades will not lead to account liquidation or severe drawdowns.",
+    "embedding": []
+  },
+  {
+    "id": "risk_reward_ratio",
+    "category": "Risk Management",
+    "title": "Risk-to-Reward Ratio and Position Sizing",
+    "content": "The Risk-to-Reward (R:R) ratio compares the potential loss of a trade (difference between entry and stop loss) to its potential profit (difference between entry and take profit target). Professional traders target a minimum R:R ratio of 1:2, meaning they seek to make twice as much as they risk. With a 1:2 ratio, a trader only needs a 34% win rate to remain profitable. Position sizing is calculated using: Position Size = (Account Capital * Risk %) / (Entry Price - Stop Loss Price). This adjusts the quantity dynamically based on how wide or tight the stop loss is.",
+    "embedding": []
+  },
+  {
+    "id": "stop_loss_placement",
+    "category": "Risk Management",
+    "title": "Stop Loss and Take Profit Placement",
+    "content": "A Stop Loss (SL) is a pre-set order placed to automatically sell an asset when it reaches a specific price, capping a trader's loss. A Take Profit (TP) automatically closes the position when a profit target is met. Stop losses should be placed at logical technical invalidation points, such as just below key support zones for long trades, or above resistance zones for short trades. Traders avoid arbitrary percentage-based stop losses, instead placing stops where the chart structure proves their trade hypothesis wrong.",
+    "embedding": []
+  },
+  {
+    "id": "options_basics",
+    "category": "Derivatives & Options",
+    "title": "Introduction to Options (Calls and Puts)",
+    "content": "Options are financial derivatives representing contracts that give the buyer the right, but not the obligation, to buy or sell an underlying asset at a specified price (Strike Price) on or before an expiration date. A Call Option gives the buyer the right to buy the asset, reflecting a bullish view. A Put Option gives the buyer the right to sell the asset, reflecting a bearish view. The seller (writer) of the option receives a premium from the buyer but takes on the obligation to fulfill the contract, representing high risk if naked.",
+    "embedding": []
+  },
+  {
+    "id": "options_greeks",
+    "category": "Derivatives & Options",
+    "title": "Understanding Options Greeks",
+    "content": "Options Greeks measure the sensitivity of an option's price to various market variables: Delta measures the change in option premium per ₹1 change in the underlying stock price (acts as a probability proxy of expiring in-the-money). Gamma measures the rate of change of Delta. Theta measures the daily decay of the option's value over time, working against option buyers and in favor of option sellers. Vega measures the sensitivity of the option price to changes in implied volatility (IV).",
+    "embedding": []
+  },
+  {
+    "id": "futures_trading",
+    "category": "Derivatives & Options",
+    "title": "Futures Trading & Leverage",
+    "content": "Futures contracts are legal agreements to buy or sell an asset at a predetermined price at a specified future date. Unlike options, both parties are obligated to execute the transaction. Futures allow trading with high leverage (paying a margin deposit of e.g. 10-20% of contract value). Leverage multiplies both returns and losses, meaning slight adverse price moves can trigger margin calls or account liquidation. Margin maintenance is required daily (marked-to-market).",
+    "embedding": []
+  },
+  {
+    "id": "hedging_strategies",
+    "category": "Derivatives & Options",
+    "title": "Hedging Strategies",
+    "content": "Hedging is a risk-reduction strategy using derivatives to offset potential losses in existing investment portfolios. Common hedging techniques include: 1. Protective Puts: Buying a put option on a stock you own, capping your maximum downside while retaining unlimited upside. 2. Covered Calls: Selling call options against stock you already own to generate income from premiums during range-bound markets, though capping potential upside. Hedging acts as insurance, sacrificing minor premium cost to protect against catastrophic market crashes.",
+    "embedding": []
+  },
+  {
+    "id": "market_mechanics_exchanges",
+    "category": "Market Mechanics",
+    "title": "How the Stock Market Works",
+    "content": "The stock market is a network of exchanges (like the NSE, BSE, or NYSE) where shares of publicly listed companies are bought and sold. Trading is driven by supply and demand: buyers place bids (highest price they are willing to pay) and sellers place asks (lowest price they are willing to accept). The Order Book matches these orders automatically. The difference between the highest bid and lowest ask is the bid-ask spread. High liquidity (many buyers and sellers) keeps this spread narrow, ensuring trades execute quickly at fair prices. Market makers provide continuous liquidity by simultaneously quoting buy and sell prices.",
+    "embedding": []
+  },
+  {
+    "id": "stocks_shares_explained",
+    "category": "Market Mechanics",
+    "title": "Stocks, Shares, and Market Capitalization",
+    "content": "A share represents fractional ownership in a corporation. When you buy a share, you own a piece of that company's assets and earnings. Stock prices fluctuate based on earnings reports, economic data, and investor sentiment. Market Capitalization is the total market value of a company's outstanding shares, calculated by multiplying shares outstanding by the current stock price. Companies are categorized as Large-cap (stable, established), Mid-cap (growth potential, moderate risk), and Small-cap (high growth potential, high volatility). Stock indices like the Nifty 50 or S&P 500 track a basket of top stocks to gauge overall market health.",
+    "embedding": []
+  },
+  {
+    "id": "primary_secondary_ipos",
+    "category": "Market Mechanics",
+    "title": "Primary vs Secondary Markets (IPOs)",
+    "content": "The stock market is divided into primary and secondary markets. In the primary market, a private company raises capital by issuing new shares to the public for the first time through an Initial Public Offering (IPO). The money raised goes directly to the company to fund expansion, pay debt, or conduct research. Once listed, the shares trade on the secondary market (the exchange) between investors. In the secondary market, money changes hands between buyers and sellers, and the issuing company does not receive any proceeds from these daily stock trades.",
+    "embedding": []
+  },
+  {
+    "id": "how_brokers_work",
+    "category": "Brokerage & Accounts",
+    "title": "How Stockbrokers Work",
+    "content": "A stockbroker is a registered financial intermediary that connects retail and institutional investors to stock exchanges. Brokers are divided into Discount Brokers (low-fee, execution-only platforms like Zerodha, Groww) and Full-Service Brokers (higher fee, offering advisory, research, and relationship managers). When you place an order, your broker routes it to the exchange for matching. In India, securities are stored electronically in Depositories (CDSL or NSDL) via a Demat Account, while transactions are settled through a Trading Account. Clearing Corporations guarantee settlement, ensuring shares are delivered and funds are transferred.",
+    "embedding": []
+  },
+  {
+    "id": "transaction_costs_fees",
+    "category": "Brokerage & Accounts",
+    "title": "Transaction Costs and Fees",
+    "content": "Trading involves several transaction costs that impact profitability: 1. Brokerage: The commission paid to the broker. 2. Securities Transaction Tax (STT): A direct tax levied by the government on the purchase or sale of equities. 3. Exchange Transaction Charges: Fees charged by exchanges (NSE/BSE) for using their infrastructure. 4. Stamp Duty & SEBI Turnover Fees: Legal regulatory charges. 5. Slippage: The difference between the expected price of a trade and the actual execution price, usually occurring in highly volatile or low-liquidity conditions.",
+    "embedding": []
+  },
+  {
+    "id": "order_types",
+    "category": "Brokerage & Accounts",
+    "title": "Types of Stock Orders",
+    "content": "Traders use different order types to control price and execution: 1. Market Order: Executes instantly at the best available current price (guarantees execution but not price). 2. Limit Order: Executes only at a specified price or better (guarantees price but not execution). 3. Stop Order: Converts to a market order once a trigger price is hit, used for stop losses. 4. GTT (Good Till Triggered): Orders that remain active for up to a year until the trigger conditions are met. 5. Bracket/Cover Orders: Advanced orders that place a entry, stop loss, and target profit simultaneously.",
+    "embedding": []
+  },
+  {
+    "id": "traders_vs_investors",
+    "category": "Corporate Finance",
+    "title": "Traders vs Investors: Speculation and Hedging",
+    "content": "Traders and investors participate in the market for different reasons. Traders focus on short-term price movements (speculation), utilizing leverage (borrowed funds) and short selling (profiting from falling prices) to maximize returns quickly. They transfer risk from long-term holders. Investors focus on long-term wealth creation, holding assets for years to benefit from compounding, interest, dividends, and corporate growth. Arbitrageurs exploit temporary price differences of the same asset across different exchanges (e.g. NSE vs BSE) to capture risk-free profits, improving market efficiency.",
+    "embedding": []
+  },
+  {
+    "id": "company_profitability_value",
+    "category": "Corporate Finance",
+    "title": "Company Profitability and Shareholder Value",
+    "content": "For a company, listing on the stock exchange allows access to public equity capital to finance expansion, mergers, or research without taking on debt. A company's profitability is measured by key ratios: Price-to-Earnings (P/E) ratio (valuation multiplier), Return on Equity (ROE) (how efficiently it uses shareholder funds), and Net Profit Margin. When a company reports strong earnings growth, demand for its stock increases, driving up the stock price and increasing shareholder value. If a company fails to maintain profitability, its valuation drops, making it harder to raise capital.",
+    "embedding": []
+  },
+  {
+    "id": "corporate_actions",
+    "category": "Corporate Finance",
+    "title": "Corporate Actions (Dividends, Splits, Buybacks)",
+    "content": "Corporate actions are decisions made by a company's board of directors that affect its shareholders and stock structure: 1. Dividends: Distribution of a portion of company earnings to shareholders as cash. 2. Stock Splits: Dividing existing shares into multiple shares (e.g. 1-to-10 split) to increase liquidity and make the stock price affordable, without changing the total market cap. 3. Share Buybacks: The company purchases its own shares from the market, reducing outstanding shares, which boosts Earnings Per Share (EPS). 4. Bonus Shares: Free additional shares given to existing shareholders based on holdings.",
+    "embedding": []
+  }
+]
