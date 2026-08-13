@@ -1165,9 +1165,9 @@ export default function Community() {
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {[
                 { id: 'all', name: 'All Posts', icon: <Globe size={14} /> },
-                { id: 'trending', name: 'Trending 🔥', icon: <TrendingUp size={14} /> },
+                { id: 'trending', name: 'Trending', icon: <TrendingUp size={14} /> },
                 { id: 'following', name: 'Following Channels', icon: <Users size={14} /> },
-                { id: 'channels', name: 'Explore Channels 📺', icon: <ExternalLink size={14} /> }
+                { id: 'channels', name: 'Explore Channels', icon: <ExternalLink size={14} /> }
               ].map(sub => (
                 <button
                   key={sub.id}
@@ -1377,7 +1377,7 @@ export default function Community() {
                       >
                         <option value="">My Profile ({user?.name || 'User'})</option>
                         {channels.filter(c => c.owner_id === user?.id).map(c => (
-                          <option key={c.id} value={c.id}>📢 Channel: {c.name}</option>
+                          <option key={c.id} value={c.id}>Channel: {c.name}</option>
                         ))}
                       </select>
                     </div>
@@ -1922,7 +1922,7 @@ export default function Community() {
                             fontSize: '9px', background: 'rgba(255,179,0,0.12)', color: '#ffb300',
                             padding: '2px 8px', borderRadius: '4px', fontWeight: '800',
                             border: '1px solid rgba(255,179,0,0.2)', letterSpacing: '0.5px'
-                          }}>🌐 FEATURED AD</span>
+                          }}><Globe size={9} style={{ display: 'inline', marginRight: '3px', verticalAlign: 'middle' }} />FEATURED AD</span>
                         )}
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingRight: ct.is_curated ? '80px' : '0' }}>
@@ -2087,7 +2087,9 @@ export default function Community() {
                                 ? '1px solid rgba(255,100,0,0.2)'
                                 : '1px solid rgba(255,0,0,0.2)',
                             }}>
-                              {course.curated_source === 'Zerodha Varsity' ? '📘 Varsity' : '▶ YouTube'}
+                              {course.curated_source === 'Zerodha Varsity'
+                                ? <><BookOpen size={9} style={{ display: 'inline', marginRight: '2px', verticalAlign: 'middle' }} />Varsity</>
+                                : <><Play size={9} style={{ display: 'inline', marginRight: '2px', verticalAlign: 'middle' }} />YouTube</>}
                             </span>
                           )}
                         </div>
@@ -2358,7 +2360,7 @@ export default function Community() {
                         }}
                       >
                         <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '180px' }}>
-                          👥 {group.name}
+                          <Users size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle', flexShrink: 0 }} />{group.name}
                         </span>
                         {group.my_role === 'admin' && (
                           <span style={{ fontSize: '9px', background: 'rgba(0, 255, 136, 0.1)', color: '#00ff88', padding: '1px 4px', borderRadius: '4px' }}>
@@ -2466,7 +2468,7 @@ export default function Community() {
                 <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <h2 style={{ fontSize: '18px', fontWeight: '900', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {isPrivate ? `👥 ${activeGroup.name}` : `# ${activeGroup.name}`}
+                      {isPrivate ? <><Users size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />{activeGroup.name}</> : `# ${activeGroup.name}`}
                       {isPrivate && (
                         <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', padding: '2px 6px', borderRadius: '4px', fontWeight: '500' }}>
                           Private Group
@@ -2736,7 +2738,7 @@ export default function Community() {
                     fontSize: '12px',
                     fontWeight: '700'
                   }}>
-                    🔒 Only the room creator or channel admins can post announcements here.
+                    <Lock size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />Only the room creator or channel admins can post announcements here.
                   </div>
                 );
               }

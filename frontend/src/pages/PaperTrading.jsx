@@ -26,7 +26,11 @@ import {
   X,
   Layers,
   ArrowDownCircle,
-  HelpCircle
+  HelpCircle,
+  AlertTriangle,
+  Lock,
+  Crown,
+  Zap
 } from 'lucide-react';
 
 const POPULAR_WATCHLIST = [
@@ -1920,7 +1924,7 @@ export default function PaperTrading() {
           backdropFilter: 'blur(10px)'
         }}>
           <strong style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 800 }}>
-            ⚠️ Mindful Trading Break Recommended (Consecutive SL Hits: {consecutiveSlHits})
+            <AlertTriangle size={16} style={{ flexShrink: 0 }} /> Mindful Trading Break Recommended (Consecutive SL Hits: {consecutiveSlHits})
           </strong>
           <span>
             You have hit your Stop Loss {consecutiveSlHits} times consecutively. To prevent emotional trading and revenge losses, we strongly advise taking a break from the charts for a few days. Clear your mind, empty your emotions, and return when you are calm and refreshed!
@@ -2197,7 +2201,7 @@ export default function PaperTrading() {
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  <span style={{ fontSize: '10px' }}>⚡</span>
+                  <Zap size={12} />
                   <span>Ask None AI</span>
                 </Link>
               </div>
@@ -2239,7 +2243,7 @@ export default function PaperTrading() {
               {/* Pro Exclusive Strategies/Indicators Group */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span style={{ fontSize: '9px', color: '#ffb300', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                  👑 Pro Strategies
+                  <Crown size={11} style={{ color: '#ffb300' }} /> Pro Strategies
                 </span>
                 <div style={{ display: 'flex', background: 'rgba(255, 179, 0, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255, 179, 0, 0.1)', gap: '4px' }}>
                   {[
@@ -2256,7 +2260,7 @@ export default function PaperTrading() {
                         key={ind.id}
                         onClick={() => {
                           if (!isPro) {
-                            toast.error(`👑 ${ind.label} is a NonStock Pro exclusive strategy. Upgrade to unlock!`);
+                            toast.error(`${ind.label} is a NonStock Pro exclusive strategy. Upgrade to unlock!`);
                             return;
                           }
                           setActiveIndicators({ ...activeIndicators, [ind.id]: !activeIndicators[ind.id] });
@@ -2277,7 +2281,7 @@ export default function PaperTrading() {
                           transition: 'all 0.2s'
                         }}
                       >
-                        {!isPro && <span style={{ fontSize: '10px' }}>🔒</span>}
+                        {!isPro && <Lock size={10} style={{ flexShrink: 0 }} />}
                         {ind.label}
                       </button>
                     );
@@ -3840,7 +3844,7 @@ export default function PaperTrading() {
                   color: '#9b9eac'
                 }}>
                   <div style={{ fontSize: '18px', fontWeight: 800, color: '#ffb300', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    🔒 Pro-Exclusive Simulator Feature
+                    <Lock size={20} style={{ color: '#ffb300' }} /> Pro-Exclusive Simulator Feature
                   </div>
                   <div>Upgrade to NonStock Pro to deploy, pause, and remove automated algorithmic bots simulating trades in real-time.</div>
                   <button 
@@ -4003,7 +4007,7 @@ export default function PaperTrading() {
                     transition: 'all 0.2s'
                   }}
                 >
-                  👑 Pro Accounts
+                  <Crown size={14} style={{ color: '#ffb300', verticalAlign: 'middle', marginRight: '4px' }} /> Pro Accounts
                 </button>
               </div>
 

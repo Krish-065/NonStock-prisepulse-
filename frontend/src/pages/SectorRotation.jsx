@@ -217,28 +217,28 @@ export default function SectorRotation() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '20px' }}>
 
             <div style={{ background: 'rgba(0, 255, 136, 0.03)', border: '1px solid rgba(0, 255, 136, 0.15)', borderRadius: '10px', padding: '16px' }}>
-              <h4 style={{ color: '#00ff88', fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>🟢 Leading Quadrant</h4>
+              <h4 style={{ color: '#00ff88', fontWeight: '700', fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#00ff88', display: 'inline-block', flexShrink: 0 }} /> Leading Quadrant</h4>
               <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: '1.5' }}>
                 <strong>Price is Up & Open Interest is Up.</strong> Indicates active institutional buying and contract accumulation. These sectors are driving the market's uptrend.
               </p>
             </div>
 
             <div style={{ background: 'rgba(255, 179, 0, 0.03)', border: '1px solid rgba(255, 179, 0, 0.15)', borderRadius: '10px', padding: '16px' }}>
-              <h4 style={{ color: '#ffb300', fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>🟡 Weakening Quadrant</h4>
+              <h4 style={{ color: '#ffb300', fontWeight: '700', fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ffb300', display: 'inline-block', flexShrink: 0 }} /> Weakening Quadrant</h4>
               <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: '1.5' }}>
                 <strong>Price is Down but Open Interest is Up.</strong> Signals institutional distribution. Large players are opening short positions or quietly unloading shares onto retail buyers.
               </p>
             </div>
 
             <div style={{ background: 'rgba(255, 68, 68, 0.03)', border: '1px solid rgba(255, 68, 68, 0.15)', borderRadius: '10px', padding: '16px' }}>
-              <h4 style={{ color: '#ff4444', fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>🔴 Lagging Quadrant</h4>
+              <h4 style={{ color: '#ff4444', fontWeight: '700', fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ff4444', display: 'inline-block', flexShrink: 0 }} /> Lagging Quadrant</h4>
               <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: '1.5' }}>
                 <strong>Price is Down & Open Interest is Down.</strong> Indicates institutional abandonment. Traders are closing contracts (long unwinding), leading to listless trading.
               </p>
             </div>
 
             <div style={{ background: 'rgba(0, 188, 212, 0.03)', border: '1px solid rgba(0, 188, 212, 0.15)', borderRadius: '10px', padding: '16px' }}>
-              <h4 style={{ color: '#00bcd4', fontWeight: '700', fontSize: '14px', marginBottom: '6px' }}>🔵 Improving Quadrant</h4>
+              <h4 style={{ color: '#00bcd4', fontWeight: '700', fontSize: '14px', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#00bcd4', display: 'inline-block', flexShrink: 0 }} /> Improving Quadrant</h4>
               <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: '1.5' }}>
                 <strong>Price is Up but Open Interest is Down.</strong> Typically represents short covering. Sellers are closing their trades to cut losses, pushing the price up. This is the early stage of structural recovery.
               </p>

@@ -26,7 +26,7 @@ const GEMINI_SUGGESTED_PROMPTS = [
 // Custom lightweight markdown/formatting parser
 function formatAIMessage(text) {
   if (!text) return '';
-  
+  try {
   // Format lines
   const lines = text.split('\n');
   return lines.map((line, idx) => {
@@ -62,6 +62,9 @@ function formatAIMessage(text) {
 
     return <p key={idx} style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#e0e0e0' }}>{parseBoldText(cleanLine)}</p>;
   });
+  } catch (e) {
+    return <p style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#e0e0e0' }}>{String(text)}</p>;
+  }
 }
 
 function parseBoldText(text) {
@@ -1207,7 +1210,7 @@ export default function AIMentor() {
               </div>
             )}
 
-            {/* 2.             {/* 2. FORECASTS TAB CONTENT */}
+            {/* 2. FORECASTS TAB CONTENT */}
             {rightTab === 'forecast' && (() => {
               const getTVSymbol = () => {
                 const s = (activeTechnicals?.symbol || symbol || 'AAPL').toUpperCase().replace('.NS', '');
@@ -1294,7 +1297,7 @@ export default function AIMentor() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
                           <span style={{ fontSize: '14px', fontWeight: '900', color: '#ffffff' }}>{activeTechnicals.symbol}</span>
-                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#00ff88' }}>₹{activeTechnicals.price.toLocaleString('en-IN')}</span>
+                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#00ff88' }}>₹{Number(activeTechnicals.price).toLocaleString('en-IN')}</span>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
@@ -1315,12 +1318,12 @@ export default function AIMentor() {
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: 'var(--text-secondary)' }}>Support Floor:</span>
-                            <span style={{ fontWeight: '800', color: '#00ff88' }}>₹{activeTechnicals.support.toLocaleString('en-IN')}</span>
+                             <span style={{ fontWeight: '800', color: '#00ff88' }}>₹{Number(activeTechnicals.support).toLocaleString('en-IN')}</span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: 'var(--text-secondary)' }}>Resistance Ceiling:</span>
-                            <span style={{ fontWeight: '800', color: '#ff4444' }}>₹{activeTechnicals.resistance.toLocaleString('en-IN')}</span>
+                             <span style={{ fontWeight: '800', color: '#ff4444' }}>₹{Number(activeTechnicals.resistance).toLocaleString('en-IN')}</span>
                           </div>
                         </div>
                       </div>
