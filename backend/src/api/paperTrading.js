@@ -589,7 +589,12 @@ router.get('/leaderboard', authenticate, async (req, res) => {
       'SELECT name, virtual_balance as "virtualBalance", COALESCE(is_pro, false) as "isPro" FROM users WHERE COALESCE(is_pro, false) = false ORDER BY virtual_balance DESC LIMIT 20'
     );
     const proRes = await query(
-      'SELECT name, virtual_balance as "virtualBalance", COALESCE(is_pro, false) as "isPro" FROM users WHERE COALESCE(is_pro, false) = true ORDER BY virtual_balance DESC LIMIT 20'
+      `SELECT name, 
+              CASE WHEN COALESCE(virtual_balance, 0) <= 50000.00 THEN 1000000.00 ELSE virtual_balance END as "virtualBalance", 
+              COALESCE(is_pro, false) as "isPro" 
+       FROM users 
+       WHERE COALESCE(is_pro, false) = true 
+       ORDER BY (CASE WHEN COALESCE(virtual_balance, 0) <= 50000.00 THEN 1000000.00 ELSE virtual_balance END) DESC LIMIT 20`
     );
     res.json({
       leaderboard: standardRes.rows, // fallback for backwards compatibility
