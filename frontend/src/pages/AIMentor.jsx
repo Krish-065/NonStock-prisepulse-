@@ -542,8 +542,8 @@ export default function AIMentor() {
       {/* CSS Animation Injector */}
       <style>{`
         @keyframes pulse-core {
-          0% { transform: scale(0.95); filter: drop-shadow(0 0 8px rgba(0, 188, 212, 0.4)); }
-          100% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(0, 188, 212, 0.85)); }
+          0% { transform: scale(0.95); filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5)); }
+          100% { transform: scale(1.08); filter: drop-shadow(0 0 22px rgba(0, 243, 255, 0.9)); }
         }
         @keyframes spin-core {
           0% { transform: rotate(0deg); }
@@ -556,7 +556,7 @@ export default function AIMentor() {
           animation: spin-core 10s infinite linear;
         }
         
-        /* Neon Border Animations */
+        /* Neon Border Animations - Gold & Cyan Pro Theme */
         @keyframes rotate-neon {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
@@ -564,13 +564,13 @@ export default function AIMentor() {
         .neon-border-wrapper-pro {
           position: relative;
           border-radius: 12px;
-          padding: 1.5px;
+          padding: 1.8px;
           overflow: hidden;
-          background: rgba(255, 255, 255, 0.02);
+          background: rgba(255, 215, 0, 0.05);
           display: inline-block;
           align-self: flex-end;
-          max-width: 82%;
-          box-shadow: 0 0 15px rgba(0, 188, 212, 0.15);
+          max-width: 85%;
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.25), 0 0 12px rgba(0, 243, 255, 0.15);
         }
         .neon-border-wrapper-pro::before {
           content: '';
@@ -579,13 +579,13 @@ export default function AIMentor() {
           left: -150%;
           width: 400%;
           height: 400%;
-          background: conic-gradient(from 0deg, transparent 30%, #00bcd4 50%, transparent 70%);
-          animation: rotate-neon 4s infinite linear;
+          background: conic-gradient(from 0deg, transparent 20%, #ffd700 45%, #00f3ff 65%, #f59e0b 80%, transparent 95%);
+          animation: rotate-neon 3.5s infinite linear;
           z-index: 0;
         }
         .neon-border-wrapper-pro .bubble-content {
           position: relative;
-          background: rgba(10, 12, 28, 0.95);
+          background: linear-gradient(135deg, rgba(14, 17, 36, 0.96) 0%, rgba(10, 12, 28, 0.98) 100%);
           padding: 12px 16px;
           border-radius: 11px;
           z-index: 1;
@@ -599,7 +599,7 @@ export default function AIMentor() {
           background: rgba(255, 255, 255, 0.02);
           display: inline-block;
           align-self: flex-end;
-          max-width: 82%;
+          max-width: 85%;
           box-shadow: 0 0 15px rgba(0, 255, 136, 0.15);
         }
         .neon-border-wrapper-standard::before {
@@ -622,10 +622,14 @@ export default function AIMentor() {
         }
       `}</style>
 
-      {/* Top Title Banner */}
+      {/* Top Title Banner with Gold & Cyan Theme */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(16, 20, 39, 0.6) 0%, rgba(22, 28, 59, 0.4) 100%)',
-        border: mentorType === 'none' ? '1px solid rgba(0, 188, 212, 0.25)' : '1px solid rgba(0, 255, 136, 0.15)',
+        background: accountMode === 'pro' || user?.is_pro
+          ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.09) 0%, rgba(0, 243, 255, 0.05) 50%, rgba(16, 20, 39, 0.8) 100%)'
+          : 'linear-gradient(135deg, rgba(16, 20, 39, 0.6) 0%, rgba(22, 28, 59, 0.4) 100%)',
+        border: accountMode === 'pro' || user?.is_pro
+          ? '1px solid rgba(255, 215, 0, 0.35)'
+          : mentorType === 'none' ? '1px solid rgba(0, 188, 212, 0.25)' : '1px solid rgba(0, 255, 136, 0.15)',
         borderRadius: '16px',
         padding: '20px 24px',
         marginBottom: '20px',
@@ -634,19 +638,56 @@ export default function AIMentor() {
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '16px',
+        boxShadow: accountMode === 'pro' || user?.is_pro ? '0 0 30px rgba(255, 215, 0, 0.1)' : 'none',
         transition: 'all 0.3s'
       }}>
         <div>
-          <h1 style={{ fontSize: '26px', fontWeight: '900', margin: '0 0 4px 0', background: 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Sparkles size={26} style={{ color: '#00bcd4' }} />
+          <h1 style={{ 
+            fontSize: '26px', 
+            fontWeight: '900', 
+            margin: '0 0 4px 0', 
+            background: accountMode === 'pro' || user?.is_pro
+              ? 'linear-gradient(135deg, #ffd700 0%, #00f3ff 100%)'
+              : 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)', 
+            WebkitBackgroundClip: 'text', 
+            WebkitTextFillColor: 'transparent', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px' 
+          }}>
+            <Sparkles size={26} style={{ color: accountMode === 'pro' || user?.is_pro ? '#ffd700' : '#00bcd4' }} />
             None AI Mentor
+            {(accountMode === 'pro' || user?.is_pro) && (
+              <span style={{
+                fontSize: '10px',
+                fontWeight: '900',
+                background: 'linear-gradient(135deg, #ffd700 0%, #f59e0b 100%)',
+                color: '#0a0e27',
+                padding: '3px 8px',
+                borderRadius: '12px',
+                letterSpacing: '0.8px',
+                textTransform: 'uppercase',
+                verticalAlign: 'middle',
+                boxShadow: '0 0 10px rgba(255, 215, 0, 0.4)'
+              }}>
+                PRO ELITE
+              </span>
+            )}
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
             Connect indicator configurations and study setups with None AI, our high-precision Groq quantitative assistant.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', color: '#c0c2cc', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', fontWeight: '700' }}>
+          <span style={{ 
+            fontSize: '11px', 
+            color: accountMode === 'pro' || user?.is_pro ? '#ffd700' : '#c0c2cc', 
+            background: accountMode === 'pro' || user?.is_pro ? 'rgba(255, 215, 0, 0.08)' : 'rgba(255,255,255,0.05)', 
+            padding: '6px 14px', 
+            borderRadius: '20px', 
+            border: accountMode === 'pro' || user?.is_pro ? '1px solid rgba(255, 215, 0, 0.3)' : '1px solid rgba(255,255,255,0.08)', 
+            fontWeight: '700' 
+          }}>
             Groq LLaMA 3.3 70B
           </span>
         </div>
@@ -799,8 +840,8 @@ export default function AIMentor() {
             display: 'flex', 
             alignItems: 'center', 
             gap: '12px', 
-            background: 'rgba(0, 188, 212, 0.04)', 
-            border: '1px solid rgba(0, 188, 212, 0.15)', 
+            background: accountMode === 'pro' || user?.is_pro ? 'rgba(255, 215, 0, 0.05)' : 'rgba(0, 188, 212, 0.04)', 
+            border: accountMode === 'pro' || user?.is_pro ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(0, 188, 212, 0.15)', 
             borderRadius: '12px', 
             padding: '10px 14px', 
             marginBottom: '12px' 
@@ -809,8 +850,10 @@ export default function AIMentor() {
               width: '28px', 
               height: '28px', 
               borderRadius: '50%', 
-              background: 'radial-gradient(circle, #00ffff 20%, rgba(0, 188, 212, 0.3) 60%, transparent 100%)', 
-              border: '2px dashed #00ffff', 
+              background: accountMode === 'pro' || user?.is_pro
+                ? 'radial-gradient(circle, #ffd700 20%, rgba(0, 243, 255, 0.4) 60%, transparent 100%)'
+                : 'radial-gradient(circle, #00ffff 20%, rgba(0, 188, 212, 0.3) 60%, transparent 100%)', 
+              border: accountMode === 'pro' || user?.is_pro ? '2px dashed #ffd700' : '2px dashed #00ffff', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
@@ -821,11 +864,13 @@ export default function AIMentor() {
                 height: '12px', 
                 borderRadius: '50%', 
                 background: '#ffffff', 
-                boxShadow: '0 0 10px #ffffff' 
+                boxShadow: accountMode === 'pro' || user?.is_pro ? '0 0 10px #ffd700' : '0 0 10px #ffffff' 
               }} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '11px', fontWeight: '800', color: '#00bcd4', textTransform: 'uppercase', letterSpacing: '0.5px' }}>None Core Enabled</div>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: accountMode === 'pro' || user?.is_pro ? '#ffd700' : '#00bcd4', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {accountMode === 'pro' || user?.is_pro ? 'None Pro Core Enabled' : 'None Core Enabled'}
+              </div>
               <div style={{ fontSize: '10px', color: '#c0c2cc' }}>Ingesting context: **{symbol}** • {timeframe} • {accountMode.toUpperCase()} MODE</div>
             </div>
           </div>
@@ -833,15 +878,21 @@ export default function AIMentor() {
           {/* Messages log */}
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {messages.map((msg, idx) => {
+              const isProAccount = user?.is_pro || accountMode === 'pro';
+
               if (msg.sender === 'user') {
-                const isProAccount = user?.is_pro || accountMode === 'pro';
                 return (
                   <div 
                     key={idx} 
                     className={isProAccount ? 'neon-border-wrapper-pro' : 'neon-border-wrapper-standard'}
                   >
                     <div className="bubble-content">
-                      <p style={{ margin: 0, fontSize: '13px', fontWeight: '750', lineHeight: '1.4', color: isProAccount ? '#00e5ff' : '#00ff88' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: '900', color: isProAccount ? '#ffd700' : '#00ff88', letterSpacing: '0.5px' }}>
+                          {isProAccount ? 'PRO TRADER' : 'YOU'}
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '700', lineHeight: '1.45', color: isProAccount ? '#e0f7fc' : '#ffffff' }}>
                         {msg.text}
                       </p>
                     </div>
@@ -854,12 +905,14 @@ export default function AIMentor() {
                   key={idx} 
                   style={{
                     alignSelf: 'flex-start',
-                    maxWidth: '82%',
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(0, 188, 212, 0.12)',
+                    maxWidth: '85%',
+                    background: isProAccount ? 'linear-gradient(145deg, rgba(16, 20, 42, 0.95), rgba(12, 15, 32, 0.98))' : 'rgba(255,255,255,0.02)',
+                    border: isProAccount ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(0, 188, 212, 0.12)',
+                    borderTop: isProAccount ? '2px solid #ffd700' : '1px solid rgba(0, 188, 212, 0.12)',
                     borderRadius: '12px 12px 12px 2px',
-                    padding: '12px 16px',
+                    padding: '14px 18px',
                     color: '#ffffff',
+                    boxShadow: isProAccount ? '0 4px 20px rgba(255, 215, 0, 0.08)' : 'none'
                   }}
                 >
                   <div>
@@ -914,39 +967,43 @@ export default function AIMentor() {
           )}
 
           {/* Chat input */}
-          <div style={{ display: 'flex', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
+          <div style={{ display: 'flex', gap: '10px', borderTop: (accountMode === 'pro' || user?.is_pro) ? '1px solid rgba(255, 215, 0, 0.15)' : '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
             <input 
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask None AI (e.g. 'Explain risk zones for this setup' or 'Is this a trap?')..."
+              placeholder={accountMode === 'pro' || user?.is_pro ? "Ask None Pro AI (e.g. 'Evaluate options Greeks' or 'Identify liquidity trap')..." : "Ask None AI (e.g. 'Explain risk zones for this setup' or 'Is this a trap?')..."}
               style={{
                 flex: 1,
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.06)',
+                background: (accountMode === 'pro' || user?.is_pro) ? 'rgba(255, 215, 0, 0.03)' : 'rgba(255,255,255,0.02)',
+                border: (accountMode === 'pro' || user?.is_pro) ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(255,255,255,0.06)',
                 borderRadius: '8px',
                 padding: '10px 14px',
                 color: '#ffffff',
                 fontSize: '13px',
-                outline: 'none'
+                outline: 'none',
+                boxShadow: (accountMode === 'pro' || user?.is_pro) ? 'inset 0 0 10px rgba(255, 215, 0, 0.03)' : 'none'
               }}
             />
             <button
               onClick={() => handleSendMessage()}
               disabled={sending}
               style={{
-                background: 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)',
+                background: (accountMode === 'pro' || user?.is_pro)
+                  ? 'linear-gradient(135deg, #ffd700 0%, #00f3ff 100%)'
+                  : 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)',
                 border: 'none',
                 borderRadius: '8px',
-                color: '#ffffff',
-                padding: '10px 16px',
+                color: (accountMode === 'pro' || user?.is_pro) ? '#0a0e27' : '#ffffff',
+                padding: '10px 18px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: sending ? 0.6 : 1,
-                fontWeight: '800',
+                fontWeight: '900',
+                boxShadow: (accountMode === 'pro' || user?.is_pro) ? '0 0 15px rgba(255, 215, 0, 0.3)' : 'none',
                 transition: 'all 0.2s'
               }}
             >
