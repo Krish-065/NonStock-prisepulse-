@@ -551,6 +551,71 @@ export default function AIMentor() {
         .none-core-inner {
           animation: spin-core 10s infinite linear;
         }
+        
+        /* Neon Border Animations */
+        @keyframes rotate-neon {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .neon-border-wrapper-pro {
+          position: relative;
+          border-radius: 12px;
+          padding: 1.5px;
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.02);
+          display: inline-block;
+          align-self: flex-end;
+          max-width: 82%;
+          box-shadow: 0 0 15px rgba(0, 188, 212, 0.15);
+        }
+        .neon-border-wrapper-pro::before {
+          content: '';
+          position: absolute;
+          top: -150%;
+          left: -150%;
+          width: 400%;
+          height: 400%;
+          background: conic-gradient(from 0deg, transparent 30%, #00bcd4 50%, transparent 70%);
+          animation: rotate-neon 4s infinite linear;
+          z-index: 0;
+        }
+        .neon-border-wrapper-pro .bubble-content {
+          position: relative;
+          background: rgba(10, 12, 28, 0.95);
+          padding: 12px 16px;
+          border-radius: 11px;
+          z-index: 1;
+        }
+
+        .neon-border-wrapper-standard {
+          position: relative;
+          border-radius: 12px;
+          padding: 1.5px;
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.02);
+          display: inline-block;
+          align-self: flex-end;
+          max-width: 82%;
+          box-shadow: 0 0 15px rgba(0, 255, 136, 0.15);
+        }
+        .neon-border-wrapper-standard::before {
+          content: '';
+          position: absolute;
+          top: -150%;
+          left: -150%;
+          width: 400%;
+          height: 400%;
+          background: conic-gradient(from 0deg, transparent 30%, #00ff88 50%, transparent 70%);
+          animation: rotate-neon 4s infinite linear;
+          z-index: 0;
+        }
+        .neon-border-wrapper-standard .bubble-content {
+          position: relative;
+          background: rgba(10, 12, 28, 0.95);
+          padding: 12px 16px;
+          border-radius: 11px;
+          z-index: 1;
+        }
       `}</style>
 
       {/* Top Title Banner */}
@@ -763,34 +828,42 @@ export default function AIMentor() {
 
           {/* Messages log */}
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {messages.map((msg, idx) => (
-              <div 
-                key={idx} 
-                style={{
-                  alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: '82%',
-                  background: msg.sender === 'user' 
-                    ? 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)'
-                    : 'rgba(255,255,255,0.02)',
-                  border: msg.sender === 'user' 
-                    ? 'none' 
-                    : '1px solid rgba(0, 188, 212, 0.12)',
-                  borderRadius: msg.sender === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                  padding: '12px 16px',
-                  color: msg.sender === 'user' ? '#0a0e27' : '#ffffff',
-                }}
-              >
-                {msg.sender === 'ai' ? (
+            {messages.map((msg, idx) => {
+              if (msg.sender === 'user') {
+                const isProAccount = user?.is_pro || accountMode === 'pro';
+                return (
+                  <div 
+                    key={idx} 
+                    className={isProAccount ? 'neon-border-wrapper-pro' : 'neon-border-wrapper-standard'}
+                  >
+                    <div className="bubble-content">
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: '750', lineHeight: '1.4', color: isProAccount ? '#00e5ff' : '#00ff88' }}>
+                        {msg.text}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div 
+                  key={idx} 
+                  style={{
+                    alignSelf: 'flex-start',
+                    maxWidth: '82%',
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(0, 188, 212, 0.12)',
+                    borderRadius: '12px 12px 12px 2px',
+                    padding: '12px 16px',
+                    color: '#ffffff',
+                  }}
+                >
                   <div>
                     {formatAIMessage(msg.text)}
                   </div>
-                ) : (
-                  <p style={{ margin: 0, fontSize: '13px', fontWeight: '750', lineHeight: '1.4' }}>
-                    {msg.text}
-                  </p>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
             {sending && (
               <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '12px 12px 12px 2px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#c0c2cc' }}>
                 <RefreshCw className="animate-spin" size={13} />
