@@ -242,7 +242,13 @@ exports.getLiveTechnicals = async (req, res) => {
     }
 
     let sym = symbol.toUpperCase();
-    if (!sym.endsWith('.NS') && !sym.includes('-USD') && !sym.includes('^') && !sym.includes('=')) {
+    if (sym === 'NIFTY' || sym === 'NIFTY50' || sym === 'NIFTY 50') {
+      sym = '^NSEI';
+    } else if (sym === 'SENSEX') {
+      sym = '^BSESN';
+    } else if (sym === 'NIFTYBANK' || sym === 'BANKNIFTY' || sym === 'NIFTY BANK') {
+      sym = '^NSEBANK';
+    } else if (!sym.endsWith('.NS') && !sym.includes('-USD') && !sym.includes('^') && !sym.includes('=')) {
       sym = sym === 'BTC' ? 'BTC-USD'
           : sym === 'ETH' ? 'ETH-USD'
           : `${sym}.NS`;

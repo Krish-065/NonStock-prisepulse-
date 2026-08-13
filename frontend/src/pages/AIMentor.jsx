@@ -103,6 +103,7 @@ export default function AIMentor() {
   ]);
 
   const [inputText, setInputText] = useState('');
+  const [forecastSearch, setForecastSearch] = useState('');
   const [sending, setSending] = useState(false);
   const [activeTechnicals, setActiveTechnicals] = useState(null);
   const [activeMLEnsemble, setActiveMLEnsemble] = useState(null);
@@ -1206,183 +1207,257 @@ export default function AIMentor() {
               </div>
             )}
 
-            {/* 2. FORECASTS TAB CONTENT */}
-            {rightTab === 'forecast' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                
-                {/* Live Technicals Section */}
-                <div>
-                  <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
-                    Live Technical Signals
-                  </span>
+            {/* 2.             {/* 2. FORECASTS TAB CONTENT */}
+            {rightTab === 'forecast' && (() => {
+              const getTVSymbol = () => {
+                const s = (activeTechnicals?.symbol || symbol || 'AAPL').toUpperCase().replace('.NS', '');
+                if (s === 'NIFTY' || s === '^NSEI') return 'NSE:NIFTY';
+                if (s === 'SENSEX' || s === '^BSESN') return 'BSE:SENSEX';
+                if (s === 'NIFTYBANK' || s === 'BANKNIFTY' || s === '^NSEBANK') return 'NSE:BANKNIFTY';
+                if (['RELIANCE', 'TCS', 'SBIN'].includes(s)) return `NSE:${s}`;
+                if (['BTC', 'ETH'].includes(s)) return `COINBASE:${s}USD`;
+                return s;
+              };
+              const tvSymbol = getTVSymbol();
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   
-                  {activeTechnicals ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '900', color: '#ffffff' }}>{activeTechnicals.symbol}</span>
-                        <span style={{ fontSize: '16px', fontWeight: '900', color: '#00ff88' }}>₹{activeTechnicals.price.toLocaleString('en-IN')}</span>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>RSI (14):</span>
-                          <span style={{ fontWeight: '800', color: activeTechnicals.rsi > 70 ? '#ff4444' : activeTechnicals.rsi < 30 ? '#00ff88' : '#00bcd4' }}>
-                            {activeTechnicals.rsi} ({activeTechnicals.rsi > 70 ? 'Overbought' : activeTechnicals.rsi < 30 ? 'Oversold' : 'Neutral'})
-                          </span>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>30-Day Trend:</span>
-                          <span style={{ fontWeight: '800', color: activeTechnicals.trend === 'BULLISH' ? '#00ff88' : '#ff4444', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                            {activeTechnicals.trend === 'BULLISH' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                            {activeTechnicals.trend}
-                          </span>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Support Floor:</span>
-                          <span style={{ fontWeight: '800', color: '#00ff88' }}>₹{activeTechnicals.support.toLocaleString('en-IN')}</span>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Resistance Ceiling:</span>
-                          <span style={{ fontWeight: '800', color: '#ff4444' }}>₹{activeTechnicals.resistance.toLocaleString('en-IN')}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>
-                      No active technical data. Submit a prompt to start simulator analysis.
-                    </div>
+                  {/* Search Bar - PRO VERSION ONLY */}
+                  {(accountMode === 'pro' || user?.is_pro) && (
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (forecastSearch.trim()) {
+                          loadStockForecast(forecastSearch.trim().toUpperCase(), false);
+                          setForecastSearch('');
+                        }
+                      }} 
+                      style={{ display: 'flex', gap: '6px' }}
+                    >
+                      <input
+                        type="text"
+                        placeholder="Search stock symbol (e.g. AAPL, TSLA)..."
+                        value={forecastSearch}
+                        onChange={e => setForecastSearch(e.target.value)}
+                        style={{
+                          flex: 1,
+                          background: 'rgba(255,255,255,0.02)',
+                          border: '1px solid rgba(168, 85, 247, 0.4)',
+                          borderRadius: '6px',
+                          padding: '6px 10px',
+                          color: '#ffffff',
+                          fontSize: '11px',
+                          outline: 'none',
+                          transition: 'border 0.2s'
+                        }}
+                        onFocus={e => e.currentTarget.style.borderColor = '#a855f7'}
+                        onBlur={e => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.4)'}
+                      />
+                      <button
+                        type="submit"
+                        style={{
+                          background: 'rgba(168, 85, 247, 0.2)',
+                          border: '1px solid #a855f7',
+                          borderRadius: '6px',
+                          color: '#a855f7',
+                          padding: '6px 10px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: '800'
+                        }}
+                      >
+                        Search
+                      </button>
+                    </form>
                   )}
-                </div>
 
-                {/* ML Ensemble Section */}
-                {activeMLEnsemble && (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
-                    <span style={{ fontSize: '11px', color: '#00bcd4', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
-                      ML Ensemble Forecast
+                  {/* TradingView Live Chart widget */}
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#00bcd4', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
+                      Live Market Chart
+                    </span>
+                    <iframe
+                      src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${encodeURIComponent(tvSymbol)}&interval=D&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=10121c&theme=dark&style=1&timezone=exchange&locale=en`}
+                      style={{ width: '100%', height: '200px', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px' }}
+                      title="TradingView Live Chart"
+                    />
+                  </div>
+
+                  {/* Live Technicals Section */}
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                      Live Technical Signals
                     </span>
                     
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>OVERALL FORECAST PROBABILITY</span>
-                        <div style={{ height: '20px', borderRadius: '10px', overflow: 'hidden', display: 'flex', fontSize: '9px', fontWeight: '800', color: '#0a0e27' }}>
-                          {activeMLEnsemble.overall.buy > 0 && (
-                            <div style={{ background: '#00ff88', width: `${activeMLEnsemble.overall.buy}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              Buy {activeMLEnsemble.overall.buy}%
-                            </div>
-                          )}
-                          {activeMLEnsemble.overall.hold > 0 && (
-                            <div style={{ background: '#ffb300', width: `${activeMLEnsemble.overall.hold}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              Hold {activeMLEnsemble.overall.hold}%
-                            </div>
-                          )}
-                          {activeMLEnsemble.overall.sell > 0 && (
-                            <div style={{ background: '#ff4444', width: `${activeMLEnsemble.overall.sell}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              Sell {activeMLEnsemble.overall.sell}%
-                            </div>
-                          )}
+                    {activeTechnicals ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: '900', color: '#ffffff' }}>{activeTechnicals.symbol}</span>
+                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#00ff88' }}>₹{activeTechnicals.price.toLocaleString('en-IN')}</span>
                         </div>
-                      </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '8px' }}>
-                        <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>COMPONENT SIGNALS</span>
-                        {activeMLEnsemble.components.map((comp, idx) => (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                            <span style={{ color: '#c0c2cc' }}>{comp.name}</span>
-                            <span style={{ 
-                              fontWeight: '800', 
-                              color: comp.signal === 'Buy' || comp.signal === 'Bullish' ? '#00ff88' : comp.signal === 'Sell' || comp.signal === 'Bearish' ? '#ff4444' : '#ffb300' 
-                            }}>
-                              {comp.signal} ({comp.strength}%)
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>RSI (14):</span>
+                            <span style={{ fontWeight: '800', color: activeTechnicals.rsi > 70 ? '#ff4444' : activeTechnicals.rsi < 30 ? '#00ff88' : '#00bcd4' }}>
+                              {activeTechnicals.rsi} ({activeTechnicals.rsi > 70 ? 'Overbought' : activeTechnicals.rsi < 30 ? 'Oversold' : 'Neutral'})
                             </span>
                           </div>
-                        ))}
-                      </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '8px', fontSize: '11px' }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>Ensemble Confidence:</span>
-                        <span style={{ fontWeight: '950', color: '#00bcd4' }}>{activeMLEnsemble.confidence}%</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>30-Day Trend:</span>
+                            <span style={{ fontWeight: '800', color: activeTechnicals.trend === 'BULLISH' ? '#00ff88' : '#ff4444', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                              {activeTechnicals.trend === 'BULLISH' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                              {activeTechnicals.trend}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Support Floor:</span>
+                            <span style={{ fontWeight: '800', color: '#00ff88' }}>₹{activeTechnicals.support.toLocaleString('en-IN')}</span>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Resistance Ceiling:</span>
+                            <span style={{ fontWeight: '800', color: '#ff4444' }}>₹{activeTechnicals.resistance.toLocaleString('en-IN')}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ color: 'var(--text-secondary)', fontSize: '11px', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>
+                        No active technical data. Submit a prompt to start simulator analysis.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ML Ensemble Section */}
+                  {activeMLEnsemble && (
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                      <span style={{ fontSize: '11px', color: '#00bcd4', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                        ML Ensemble Forecast
+                      </span>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>OVERALL FORECAST PROBABILITY</span>
+                          <div style={{ height: '20px', borderRadius: '10px', overflow: 'hidden', display: 'flex', fontSize: '9px', fontWeight: '800', color: '#0a0e27' }}>
+                            {activeMLEnsemble.overall.buy > 0 && (
+                              <div style={{ background: '#00ff88', width: `${activeMLEnsemble.overall.buy}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                Buy {activeMLEnsemble.overall.buy}%
+                              </div>
+                            )}
+                            {activeMLEnsemble.overall.hold > 0 && (
+                              <div style={{ background: '#ffb300', width: `${activeMLEnsemble.overall.hold}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                Hold {activeMLEnsemble.overall.hold}%
+                              </div>
+                            )}
+                            {activeMLEnsemble.overall.sell > 0 && (
+                              <div style={{ background: '#ff4444', width: `${activeMLEnsemble.overall.sell}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                Sell {activeMLEnsemble.overall.sell}%
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '8px' }}>
+                          <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>COMPONENT SIGNALS</span>
+                          {activeMLEnsemble.components.map((comp, idx) => (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                              <span style={{ color: '#c0c2cc' }}>{comp.name}</span>
+                              <span style={{ 
+                                fontWeight: '800', 
+                                color: comp.signal === 'Buy' || comp.signal === 'Bullish' ? '#00ff88' : comp.signal === 'Sell' || comp.signal === 'Bearish' ? '#ff4444' : '#ffb300' 
+                              }}>
+                                {comp.signal} ({comp.strength}%)
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '8px', fontSize: '11px' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Ensemble Confidence:</span>
+                          <span style={{ fontWeight: '950', color: '#00bcd4' }}>{activeMLEnsemble.confidence}%</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Live News Section */}
-                {activeNews && activeNews.length > 0 && (
+                  {/* Live News Section */}
+                  {activeNews && activeNews.length > 0 && (
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                      <span style={{ fontSize: '11px', color: '#a855f7', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                        Live Market News
+                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {activeNews.map((n, idx) => (
+                          <a
+                            key={idx}
+                            href={n.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'block',
+                              background: 'rgba(255,255,255,0.01)',
+                              border: '1px solid rgba(255,255,255,0.03)',
+                              padding: '10px',
+                              borderRadius: '8px',
+                              textDecoration: 'none',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                              e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
+                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.03)';
+                            }}
+                          >
+                            <div style={{ fontSize: '11px', fontWeight: '800', color: '#e0e0e0', marginBottom: '4px', lineHeight: '1.4' }}>
+                              {n.title}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'var(--text-secondary)' }}>
+                              <span>{n.publisher}</span>
+                              <span>{n.time}</span>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Trending Symbols Selection */}
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
-                    <span style={{ fontSize: '11px', color: '#a855f7', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
-                      Live Market News
-                    </span>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {activeNews.map((n, idx) => (
-                        <a
-                          key={idx}
-                          href={n.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                    <span style={{ fontSize: '10px', color: '#00bcd4', fontWeight: '880', display: 'block', marginBottom: '8px', letterSpacing: '0.5px' }}>TRENDING SYMBOLS</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {['RELIANCE', 'TCS', 'SBIN', 'NIFTY', 'BTC', 'ETH'].map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => {
+                            loadStockForecast(t, false);
+                          }}
                           style={{
-                            display: 'block',
-                            background: 'rgba(255,255,255,0.01)',
-                            border: '1px solid rgba(255,255,255,0.03)',
-                            padding: '10px',
-                            borderRadius: '8px',
-                            textDecoration: 'none',
+                            background: 'rgba(255,255,255,0.02)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            borderRadius: '6px',
+                            color: '#ffffff',
+                            padding: '4px 10px',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
                             transition: 'all 0.2s',
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                            e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.03)';
-                          }}
                         >
-                          <div style={{ fontSize: '11px', fontWeight: '800', color: '#e0e0e0', marginBottom: '4px', lineHeight: '1.4' }}>
-                            {n.title}
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'var(--text-secondary)' }}>
-                            <span>{n.publisher}</span>
-                            <span>{n.time}</span>
-                          </div>
-                        </a>
+                          {t}
+                        </button>
                       ))}
                     </div>
                   </div>
-                )}
 
-                {/* Trending Symbols Selection */}
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
-                  <span style={{ fontSize: '10px', color: '#00bcd4', fontWeight: '800', display: 'block', marginBottom: '8px', letterSpacing: '0.5px' }}>TRENDING SYMBOLS</span>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {['RELIANCE', 'TCS', 'SBIN', 'NIFTY', 'BTC', 'ETH'].map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => {
-                          loadStockForecast(t, false);
-                        }}
-                        style={{
-                          background: 'rgba(255,255,255,0.02)',
-                          border: '1px solid rgba(255,255,255,0.06)',
-                          borderRadius: '6px',
-                          color: '#ffffff',
-                          padding: '4px 10px',
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
                 </div>
-
-              </div>
-            )}
+              );
+            })()}
 
             {/* 3. SYLLABUS LIBRARY TAB CONTENT */}
             {rightTab === 'library' && (

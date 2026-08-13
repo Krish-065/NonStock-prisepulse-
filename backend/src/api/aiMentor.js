@@ -588,8 +588,14 @@ router.post('/ask', authenticate, async (req, res) => {
       };
       techContext = `[SIMULATED: ${marketData.symbol}] Price ₹${marketData.currentPrice}, RSI ${marketData.rsi}, MACD ${marketData.macd?.signal || 'N/A'}, Trend ${marketData.trend}, Pattern: ${marketData.patternDetected}`;
     } else if (detectedSymbol) {
-      let sym = detectedSymbol;
-      if (!sym.endsWith('.NS') && !sym.includes('-USD') && !sym.includes('^')) {
+      let sym = detectedSymbol.toUpperCase();
+      if (sym === 'NIFTY' || sym === 'NIFTY50' || sym === 'NIFTY 50') {
+        sym = '^NSEI';
+      } else if (sym === 'SENSEX') {
+        sym = '^BSESN';
+      } else if (sym === 'NIFTYBANK' || sym === 'BANKNIFTY' || sym === 'NIFTY BANK') {
+        sym = '^NSEBANK';
+      } else if (!sym.endsWith('.NS') && !sym.includes('-USD') && !sym.includes('^')) {
         sym = detectedSymbol === 'BTC' ? 'BTC-USD'
             : detectedSymbol === 'ETH' ? 'ETH-USD'
             : `${sym}.NS`;
