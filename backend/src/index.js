@@ -76,7 +76,10 @@ app.use('/api/strategy', strategyRoutes);
 
 // AI Mentor Services
 const aiMentorRoutes = require('./api/aiMentor');
+const aiRoutes = require('./routes/aiRoutes');
 app.use('/api/ai', aiMentorRoutes);
+app.use('/api/ai', aiRoutes);
+
 
 // Community Social Learning Hub
 const communityHubRoutes = require('./api/community');
