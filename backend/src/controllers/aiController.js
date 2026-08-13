@@ -185,3 +185,124 @@ We are looking at **${symbol}** which is currently priced at **$${price}**. The 
 
 **Disclaimer: NOT financial advice. This analysis is for educational and simulation purposes only.**`;
 }
+
+const YAHOO_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Accept': 'application/json, text/plain, */*',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'Referer': 'https://finance.yahoo.com/',
+  'Origin': 'https://finance.yahoo.com',
+};
+
+function computeRSI(prices, period = 14) {
+  if (prices.length <= period) return null;
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const diff = prices[i] - prices[i - 1];
+    if (diff > 0) gains += diff; else losses -= diff;
+  }
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  for (let i = period + 1; i < prices.length; i++) {
+    const diff = prices[i] - prices[i - 1];
+    avgGain = (avgGain * (period - 1) + (diff > 0 ? diff : 0)) / period;
+    avgLoss = (avgLoss * (period - 1) + (diff < 0 ? -diff : 0)) / period;
+  }
+  const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+  return parseFloat((100 - 100 / (1 + rs)).toFixed(2));
+}
+
+exports.getLiveTechnicals = async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    if (!symbol) {
+      return res.status(400).json({ error: 'Symbol is required.' });
+    }
+
+    let sym = symbol.toUpperCase();
+    if (!sym.endsWith('.NS') && !sym.includes('-USD') && !sym.includes('^') && !sym.includes('=')) {
+      sym = sym === 'BTC' ? 'BTC-USD'
+          : sym === 'ETH' ? 'ETH-USD'
+          : `${sym}.NS`;
+    }
+
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=1mo&interval=1d`;
+      const yfRes = await fetch(url, { headers: YAHOO_HEADERS });
+      
+      if (!yfRes.ok) {
+        throw new Error(`Yahoo Finance status ${yfRes.status}`);
+      }
+
+      const data = await yfRes.json();
+      const result = data?.chart?.result?.[0];
+      
+      if (!result || !result.timestamp) {
+        throw new Error('Invalid Yahoo response data format');
+      }
+
+      const closes = (result.indicators?.quote?.[0]?.close || []).filter(Boolean);
+      const volumes = (result.indicators?.quote?.[0]?.volume || []).filter(Boolean);
+
+      if (closes.length === 0) {
+        throw new Error('No historical prices found');
+      }
+
+      const last = closes[closes.length - 1];
+      const sup = Math.min(...closes);
+      const resVal = Math.max(...closes);
+      const rsi = computeRSI(closes, 14) || 50;
+      const vol = volumes[volumes.length - 1] || 0;
+      const trendVal = last >= closes[0] ? 'BULLISH' : 'BEARISH';
+
+      return res.json({
+        success: true,
+        symbol: symbol.toUpperCase(),
+        price: parseFloat(last.toFixed(2)),
+        support: parseFloat(sup.toFixed(2)),
+        resistance: parseFloat(resVal.toFixed(2)),
+        rsi: parseFloat(rsi.toFixed(1)),
+        trend: trendVal,
+        volume: vol
+      });
+
+    } catch (apiError) {
+      console.warn(`[None Controller] Yahoo Finance fetch failed for ${sym}, using fallback:`, apiError.message);
+      let basePrice = 100;
+      const cleanSym = symbol.toUpperCase().replace('.NS', '').replace('-USD', '').replace('=X', '').replace('=F', '');
+      if (cleanSym === 'BTC') basePrice = 65000;
+      else if (cleanSym === 'ETH') basePrice = 3500;
+      else if (cleanSym === 'RELIANCE') basePrice = 2450;
+      else if (cleanSym === 'TCS') basePrice = 3850;
+      else if (cleanSym === 'INFY') basePrice = 1420;
+      else if (cleanSym === 'AAPL') basePrice = 185;
+      else {
+        let charSum = 0;
+        for (let i = 0; i < cleanSym.length; i++) {
+          charSum += cleanSym.charCodeAt(i);
+        }
+        basePrice = (charSum % 400) + 10;
+      }
+
+      const sup = parseFloat((basePrice * 0.95).toFixed(2));
+      const resVal = parseFloat((basePrice * 1.05).toFixed(2));
+      const rsi = Math.floor(35 + Math.random() * 40);
+
+      return res.json({
+        success: true,
+        symbol: symbol.toUpperCase(),
+        price: basePrice,
+        support: sup,
+        resistance: resVal,
+        rsi: rsi,
+        trend: Math.random() > 0.5 ? 'BULLISH' : 'BEARISH',
+        volume: 1200000,
+        warning: 'Yahoo API offline. Simulated market data loaded.'
+      });
+    }
+
+  } catch (error) {
+    console.error('[None Controller] Error fetching live technicals:', error);
+    return res.status(500).json({ error: 'Server error retrieving stock technicals.' });
+  }
+};

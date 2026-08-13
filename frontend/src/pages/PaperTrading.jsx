@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -2157,12 +2158,48 @@ export default function PaperTrading() {
               </div>
 
               {/* Ticker Live info display */}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                <span style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>{cleanSymbolName(selectedSymbol)}</span>
-                <span style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>{formatPrice(livePrice, selectedSymbol)}</span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: priceChange >= 0 ? '#00ff88' : '#ff4444' }}>
-                  {priceChange >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(priceChange || 0)).toFixed(2)} ({parseFloat(priceChangePercent || 0).toFixed(2)}%)
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                  <span style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>{cleanSymbolName(selectedSymbol)}</span>
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>{formatPrice(livePrice, selectedSymbol)}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: priceChange >= 0 ? '#00ff88' : '#ff4444' }}>
+                    {priceChange >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(priceChange || 0)).toFixed(2)} ({parseFloat(priceChangePercent || 0).toFixed(2)}%)
+                  </span>
+                </div>
+
+                <Link
+                  to={`/ai-mentor?symbol=${selectedSymbol}`}
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 188, 212, 0.1) 100%)',
+                    border: '1px solid rgba(0, 255, 136, 0.3)',
+                    boxShadow: '0 0 8px rgba(0, 255, 136, 0.1)',
+                    borderRadius: '8px',
+                    padding: '4px 10px',
+                    color: '#ffffff',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                    textShadow: '0 0 3px rgba(0, 255, 136, 0.4)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 188, 212, 0.2) 100%)';
+                    e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.3)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 188, 212, 0.1) 100%)';
+                    e.currentTarget.style.boxShadow = '0 0 8px rgba(0, 255, 136, 0.1)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <span style={{ fontSize: '10px' }}>⚡</span>
+                  <span>Ask None AI</span>
+                </Link>
               </div>
             </div>
 

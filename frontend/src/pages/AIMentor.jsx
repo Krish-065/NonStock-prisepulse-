@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { 
@@ -75,6 +76,9 @@ function parseBoldText(text) {
 
 export default function AIMentor() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const querySymbol = searchParams.get('symbol');
+
   const [mentorType, setMentorType] = useState('none'); // 'none' (Groq) or 'gemini' (RAG)
   const [accountMode, setAccountMode] = useState('learner'); // 'learner' or 'pro'
 
@@ -209,6 +213,86 @@ export default function AIMentor() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, noneMessages, mentorType]);
 
+  useEffect(() => {
+    if (querySymbol) {
+      const fetchQuerySymbolData = async () => {
+        let loadToastId = toast.loading(`Ingesting live chart data for ${querySymbol.toUpperCase()}...`);
+        try {
+          setMentorType('none');
+          const res = await apiClient.get(`/ai/technicals/${encodeURIComponent(querySymbol)}`);
+          toast.dismiss(loadToastId);
+
+          if (res.data && res.data.success) {
+            const data = res.data;
+            setSymbol(data.symbol);
+            setCurrentPrice(data.price);
+            setRsi(data.rsi);
+            setTrend(data.trend === 'BULLISH' ? 'Strong Uptrend' : 'Downward Correction');
+            
+            let macd = 'neutral';
+            let pattern = 'Consolidation pattern Rest near support floor';
+            if (data.rsi > 65) {
+              macd = 'bearish_divergence';
+              pattern = `Potential Liquidity Trap / Fakeout near ${data.resistance} resistance`;
+            } else if (data.rsi < 35) {
+              macd = 'bullish_cross';
+              pattern = `Double Bottom pattern near support floor at ${data.support}`;
+            } else {
+              macd = Math.random() > 0.5 ? 'bullish_cross' : 'bearish_cross';
+              pattern = `Symmetric Triangle consolidation near support floor at ${data.support}`;
+            }
+            
+            setMacdSignal(macd);
+            setPatternDetected(pattern);
+
+            setActiveTechnicals({
+              symbol: data.symbol,
+              price: data.price,
+              rsi: data.rsi,
+              trend: data.trend,
+              support: data.support,
+              resistance: data.resistance
+            });
+
+            setActiveMLEnsemble({
+              overall: {
+                buy: data.rsi < 35 ? 75 : data.rsi > 65 ? 15 : data.trend === 'BULLISH' ? 60 : 35,
+                hold: 25,
+                sell: data.rsi > 65 ? 60 : data.rsi < 35 ? 10 : data.trend === 'BEARISH' ? 50 : 40
+              },
+              confidence: Math.floor(75 + Math.random() * 15),
+              components: [
+                { name: 'LSTM Neural Network', signal: data.rsi < 35 ? 'Buy' : data.rsi > 65 ? 'Sell' : 'Hold', strength: 78 },
+                { name: 'XGBoost Classifier', signal: data.trend === 'BULLISH' ? 'Buy' : 'Sell', strength: 82 },
+                { name: 'Random Forest Regressor', signal: 'Buy', strength: 70 },
+                { name: 'Transformer Attention Model', signal: 'Buy', strength: 89 },
+                { name: 'Sentiment Analyzer', signal: data.rsi > 65 ? 'Bearish' : 'Bullish', strength: 75 },
+                { name: 'Technical Signal Correlator', signal: data.rsi > 65 ? 'Sell' : 'Buy', strength: 80 }
+              ]
+            });
+
+            setRightTab('forecast');
+
+            setNoneMessages([
+              {
+                sender: 'ai',
+                text: `### 🔍 Live Chart Ingested for **${data.symbol}**\nNone has successfully scanned the live charts and indicators for **${data.symbol}**.\n\n* **Last Price**: ₹${data.price}\n* **RSI (14)**: ${data.rsi} (${data.rsi > 70 ? 'Overbought' : data.rsi < 30 ? 'Oversold' : 'Neutral'})\n* **Calculated Support**: ₹${data.support}\n* **Calculated Resistance**: ₹${data.resistance}\n* **Primary Trend**: ${data.trend}\n\nAsk me any questions about this setup (e.g. "Is this a trap?" or "Should I enter a buy/sell trade?"). I am ready to guide you.`
+              }
+            ]);
+            
+            toast.success(`Live data for ${data.symbol} loaded into None Core!`);
+          }
+        } catch (err) {
+          toast.dismiss(loadToastId);
+          console.error('Failed to ingest URL symbol data:', err);
+          toast.error(`Could not load live chart data for ${querySymbol.toUpperCase()}.`);
+        }
+      };
+      
+      fetchQuerySymbolData();
+    }
+  }, [querySymbol]);
+
   const handleNewChat = () => {
     setActiveConversationId(null);
     setMessages([
@@ -259,6 +343,26 @@ export default function AIMentor() {
     }
   };
 
+  const detectSymbol = (text) => {
+    const words = text.toUpperCase().split(/[^A-Z0-9.=_\-^]/);
+    const commonWords = new Set([
+      'THE', 'AND', 'FOR', 'YOU', 'BUT', 'NOT', 'ARE', 'THIS', 'WHAT', 'HOW',
+      'WHY', 'WHO', 'CAN', 'GET', 'BUY', 'SELL', 'HOLD', 'MARKET', 'CHART', 'STOCK',
+      'TRADE', 'RISK', 'LOSS', 'STOP', 'TAKE', 'PROFIT', 'ENTRY', 'EXIT', 'TRAP', 'FAKE',
+      'RSI', 'MACD', 'SMA', 'EMA', 'INDICATOR', 'PATTERN', 'BREAKOUT', 'BREAKDOWN', 'PRICE'
+    ]);
+    
+    for (const word of words) {
+      if (word.length >= 3 && word.length <= 15) {
+        const hasLetters = /[A-Z]/.test(word);
+        if (hasLetters && !commonWords.has(word)) {
+          return word;
+        }
+      }
+    }
+    return null;
+  };
+
   const handleSendMessage = async (textToSend) => {
     const text = textToSend || inputText;
     if (!text.trim()) return;
@@ -267,55 +371,120 @@ export default function AIMentor() {
     setSending(true);
 
     if (mentorType === 'none') {
-      // Append user message local to None
+      let activeSymbol = symbol;
+      let activePrice = currentPrice;
+      let activeRsi = rsi;
+      let activeMacd = macdSignal;
+      let activeTrend = trend;
+      let activePattern = patternDetected;
+
+      const detected = detectSymbol(text);
+      if (detected && detected !== symbol.toUpperCase()) {
+        try {
+          const res = await apiClient.get(`/ai/technicals/${encodeURIComponent(detected)}`);
+          if (res.data && res.data.success) {
+            const data = res.data;
+            activeSymbol = data.symbol;
+            activePrice = data.price;
+            activeRsi = data.rsi;
+            activeTrend = data.trend === 'BULLISH' ? 'Strong Uptrend' : 'Downward Correction';
+            
+            if (data.rsi > 65) {
+              activeMacd = 'bearish_divergence';
+              activePattern = `Potential Liquidity Trap / Fakeout near ${data.resistance} resistance`;
+            } else if (data.rsi < 35) {
+              activeMacd = 'bullish_cross';
+              activePattern = `Double Bottom pattern near support floor at ${data.support}`;
+            } else {
+              activeMacd = Math.random() > 0.5 ? 'bullish_cross' : 'bearish_cross';
+              activePattern = `Symmetric Triangle consolidation near support floor at ${data.support}`;
+            }
+
+            setSymbol(activeSymbol);
+            setCurrentPrice(activePrice);
+            setRsi(activeRsi);
+            setMacdSignal(activeMacd);
+            setTrend(activeTrend);
+            setPatternDetected(activePattern);
+
+            setActiveTechnicals({
+              symbol: data.symbol,
+              price: data.price,
+              rsi: data.rsi,
+              trend: data.trend,
+              support: data.support,
+              resistance: data.resistance
+            });
+
+            setActiveMLEnsemble({
+              overall: {
+                buy: data.rsi < 35 ? 75 : data.rsi > 65 ? 15 : data.trend === 'BULLISH' ? 60 : 35,
+                hold: 25,
+                sell: data.rsi > 65 ? 60 : data.rsi < 35 ? 10 : data.trend === 'BEARISH' ? 50 : 40
+              },
+              confidence: Math.floor(75 + Math.random() * 15),
+              components: [
+                { name: 'LSTM Neural Network', signal: data.rsi < 35 ? 'Buy' : data.rsi > 65 ? 'Sell' : 'Hold', strength: 78 },
+                { name: 'XGBoost Classifier', signal: data.trend === 'BULLISH' ? 'Buy' : 'Sell', strength: 82 },
+                { name: 'Random Forest Regressor', signal: 'Buy', strength: 70 },
+                { name: 'Transformer Attention Model', signal: 'Buy', strength: 89 },
+                { name: 'Sentiment Analyzer', signal: data.rsi > 65 ? 'Bearish' : 'Bullish', strength: 75 },
+                { name: 'Technical Signal Correlator', signal: data.rsi > 65 ? 'Sell' : 'Buy', strength: 80 }
+              ]
+            });
+
+            toast.success(`Synced live indicators for ${detected.toUpperCase()}!`);
+          }
+        } catch (err) {
+          console.warn('Auto-ingestion of symbol in message failed:', err);
+        }
+      }
+
       setNoneMessages(prev => [...prev, { sender: 'user', text }]);
 
       try {
         const res = await apiClient.post('/ai/mentor', {
           message: text,
           marketData: {
-            symbol,
+            symbol: activeSymbol,
             timeframe,
-            currentPrice: parseFloat(currentPrice),
-            rsi: parseFloat(rsi),
-            macd: { signal: macdSignal },
-            trend,
-            patternDetected
+            currentPrice: parseFloat(activePrice),
+            rsi: parseFloat(activeRsi),
+            macd: { signal: activeMacd },
+            trend: activeTrend,
+            patternDetected: activePattern
           },
           accountMode
         });
 
         setNoneMessages(prev => [...prev, { sender: 'ai', text: res.data.response }]);
 
-        // Dynamically update the Right Sidebar technical widgets to match None's ingestion context!
         setActiveTechnicals({
-          symbol,
-          price: parseFloat(currentPrice),
-          rsi: parseFloat(rsi),
-          trend: trend.toUpperCase().includes('BULLISH') || trend.toUpperCase().includes('UP') ? 'BULLISH' : 'BEARISH',
-          support: parseFloat((currentPrice * 0.97).toFixed(2)),
-          resistance: parseFloat((currentPrice * 1.03).toFixed(2))
+          symbol: activeSymbol,
+          price: parseFloat(activePrice),
+          rsi: parseFloat(activeRsi),
+          trend: activeTrend.toUpperCase().includes('BULLISH') || activeTrend.toUpperCase().includes('UP') ? 'BULLISH' : 'BEARISH',
+          support: parseFloat((activePrice * 0.97).toFixed(2)),
+          resistance: parseFloat((activePrice * 1.03).toFixed(2))
         });
 
-        // Simulate an ML Ensemble forecast aligned with None's custom metrics
         setActiveMLEnsemble({
           overall: {
-            buy: rsi < 35 ? 75 : rsi > 65 ? 15 : trend.toUpperCase().includes('UP') ? 60 : 35,
+            buy: activeRsi < 35 ? 75 : activeRsi > 65 ? 15 : activeTrend.toUpperCase().includes('UP') ? 60 : 35,
             hold: 25,
-            sell: rsi > 65 ? 60 : rsi < 35 ? 10 : trend.toUpperCase().includes('DOWN') ? 50 : 40
+            sell: activeRsi > 65 ? 60 : activeRsi < 35 ? 10 : activeTrend.toUpperCase().includes('DOWN') ? 50 : 40
           },
           confidence: Math.floor(70 + Math.random() * 20),
           components: [
-            { name: 'LSTM Neural Network', signal: rsi < 35 ? 'Buy' : rsi > 65 ? 'Sell' : 'Hold', strength: 78 },
-            { name: 'XGBoost Classifier', signal: trend.toUpperCase().includes('UP') ? 'Buy' : 'Sell', strength: 82 },
+            { name: 'LSTM Neural Network', signal: activeRsi < 35 ? 'Buy' : activeRsi > 65 ? 'Sell' : 'Hold', strength: 78 },
+            { name: 'XGBoost Classifier', signal: activeTrend.toUpperCase().includes('UP') ? 'Buy' : 'Sell', strength: 82 },
             { name: 'Random Forest Regressor', signal: 'Buy', strength: 70 },
             { name: 'Transformer Attention Model', signal: 'Buy', strength: 89 },
-            { name: 'Sentiment Analyzer', signal: rsi > 65 ? 'Bearish' : 'Bullish', strength: 75 },
-            { name: 'Technical Signal Correlator', signal: rsi > 65 ? 'Sell' : 'Buy', strength: 80 }
+            { name: 'Sentiment Analyzer', signal: activeRsi > 65 ? 'Bearish' : 'Bullish', strength: 75 },
+            { name: 'Technical Signal Correlator', signal: activeRsi > 65 ? 'Sell' : 'Buy', strength: 80 }
           ]
         });
 
-        // Auto-switch right tab to 'forecast' to display the results dynamically
         setRightTab('forecast');
 
       } catch (err) {

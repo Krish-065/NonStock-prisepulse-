@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import { createChart, CandlestickSeries, LineSeries, createSeriesMarkers } from 'lightweight-charts';
 import { 
@@ -1026,7 +1026,43 @@ export default function StockDetail() {
           </h1>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+          <Link
+            to={`/ai-mentor?symbol=${symbol}`}
+            style={{
+              background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 188, 212, 0.15) 100%)',
+              border: '1px solid rgba(0, 255, 136, 0.4)',
+              boxShadow: '0 0 12px rgba(0, 255, 136, 0.15)',
+              borderRadius: '12px',
+              padding: '10px 16px',
+              color: '#ffffff',
+              fontSize: '13px',
+              fontWeight: '700',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              textShadow: '0 0 4px rgba(0, 255, 136, 0.5)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0, 255, 136, 0.25) 0%, rgba(0, 188, 212, 0.25) 100%)';
+              e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 136, 0.4)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 188, 212, 0.15) 100%)';
+              e.currentTarget.style.boxShadow = '0 0 12px rgba(0, 255, 136, 0.15)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <Sparkles size={16} style={{ color: '#00ff88' }} />
+            <span>Analyze with None AI</span>
+          </Link>
+
+          <div style={{ height: '24px', width: '1px', background: 'var(--border-color)' }}></div>
+
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>LIVE SPOT PRICE</div>
             <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)', marginTop: '2px' }}>
