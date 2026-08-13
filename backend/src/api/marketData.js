@@ -900,12 +900,12 @@ router.get('/commodities', async (req, res) => {
     'HG=F': 'Copper'
   };
   const images = {
-    'GC=F': 'https://images.unsplash.com/photo-1610375228911-c4abdd97d7c9?w=100&auto=format&fit=crop&q=60',
-    'SI=F': 'https://images.unsplash.com/photo-1605557626697-2e87166d88f9?w=100&auto=format&fit=crop&q=60',
-    'CL=F': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=100&auto=format&fit=crop&q=60',
-    'BZ=F': 'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd?w=100&auto=format&fit=crop&q=60',
-    'NG=F': 'https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?w=100&auto=format&fit=crop&q=60',
-    'HG=F': 'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=100&auto=format&fit=crop&q=60'
+    'GC=F': 'https://images.unsplash.com/photo-1574607383476-f517f562d92b?w=200&auto=format&fit=crop&q=80',  // Gold bars/bullion
+    'SI=F': 'https://images.unsplash.com/photo-1624365169198-38e67de3f660?w=200&auto=format&fit=crop&q=80',  // Silver bars
+    'CL=F': 'https://images.unsplash.com/photo-1473090826765-d54ac2fdc1eb?w=200&auto=format&fit=crop&q=80',  // Oil pump jack
+    'BZ=F': 'https://images.unsplash.com/photo-1568952433726-3896e3881c65?w=200&auto=format&fit=crop&q=80',  // Oil refinery/tanker
+    'NG=F': 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=200&auto=format&fit=crop&q=80',  // Gas flame / energy
+    'HG=F': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&auto=format&fit=crop&q=80'   // Copper coils/wire
   };
   for (const sym of symbols) {
     const quote = fetched[sym];

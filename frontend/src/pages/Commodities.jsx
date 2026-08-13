@@ -86,11 +86,40 @@ export default function Commodities() {
             }}
             onClick={() => navigate('/markets', { state: { selectSymbol: item.symbol } })}
           >
-            {item.image && (
-              <div style={{ width: '64px', height: '64px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-            )}
+            {/* Commodity icon — image with emoji fallback */}
+            {(() => {
+              const emojiMap = {
+                'GC=F': '🥇', 'SI=F': '🥈', 'CL=F': '🛢️',
+                'BZ=F': '⛽', 'NG=F': '🔥', 'HG=F': '🔩'
+              };
+              return (
+                <div style={{
+                  width: '72px', height: '72px', borderRadius: '50%',
+                  overflow: 'hidden',
+                  border: '2px solid rgba(255,179,0,0.25)',
+                  background: 'rgba(255,179,0,0.06)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={e => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentNode.innerHTML =
+                          `<span style="font-size:32px;line-height:1">${emojiMap[item.symbol] || '📦'}</span>`;
+                      }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: '32px', lineHeight: 1 }}>
+                      {emojiMap[item.symbol] || '📦'}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff' }}>{item.name}</div>
               <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '2px', fontWeight: 600 }}>{item.symbol}</div>
