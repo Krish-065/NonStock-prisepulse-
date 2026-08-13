@@ -16,7 +16,9 @@ export default function Community() {
   
   // Shared Strategies & Leaderboard
   const [sharedStrategies, setSharedStrategies] = useState([]);
-  const [leaderboard, setLeaderboard] = useState([]);
+  const [standardLeaderboard, setStandardLeaderboard] = useState([]);
+  const [proLeaderboard, setProLeaderboard] = useState([]);
+  const [leaderboardTab, setLeaderboardTab] = useState('pro');
   const [loadingStrategies, setLoadingStrategies] = useState(false);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 
@@ -189,7 +191,8 @@ export default function Community() {
     setLoadingLeaderboard(true);
     try {
       const res = await apiClient.get('/paper/leaderboard');
-      setLeaderboard(res.data.leaderboard || []);
+      setStandardLeaderboard(res.data.standard || res.data.leaderboard || []);
+      setProLeaderboard(res.data.pro || []);
     } catch (err) {
       console.error('Failed to fetch leaderboard:', err);
     } finally {
@@ -885,17 +888,66 @@ export default function Community() {
                 Real-time ranking of paper trading accounts by current virtual balance.
               </p>
 
+              {/* Leaderboard Tier Toggle */}
+              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', padding: '3px' }}>
+                <button
+                  type="button"
+                  onClick={() => setLeaderboardTab('pro')}
+                  style={{
+                    flex: 1,
+                    background: leaderboardTab === 'pro' ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: leaderboardTab === 'pro' ? '#a855f7' : 'var(--text-secondary)',
+                    padding: '6px 12px',
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Sparkles size={11} /> Pro Accounts
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLeaderboardTab('standard')}
+                  style={{
+                    flex: 1,
+                    background: leaderboardTab === 'standard' ? 'rgba(0, 255, 136, 0.15)' : 'transparent',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: leaderboardTab === 'standard' ? '#00ff88' : 'var(--text-secondary)',
+                    padding: '6px 12px',
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Users size={11} /> Standard Accounts
+                </button>
+              </div>
+
               {loadingLeaderboard ? (
                 <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                   <RefreshCw className="animate-spin" />
                 </div>
-              ) : leaderboard.length === 0 ? (
+              ) : (leaderboardTab === 'pro' ? proLeaderboard : standardLeaderboard).length === 0 ? (
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', textAlign: 'center' }}>No users ranked yet.</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {leaderboard.map((user, idx) => {
-                    const balance = parseFloat(user.virtualBalance || 1000000);
-                    const pnlPercent = ((balance - 1000000) / 1000000) * 100;
+                  {(leaderboardTab === 'pro' ? proLeaderboard : standardLeaderboard).map((user, idx) => {
+                    const initialCapital = leaderboardTab === 'pro' ? 1000000 : 50000;
+                    const balance = parseFloat(user.virtualBalance || initialCapital);
+                    const pnlPercent = ((balance - initialCapital) / initialCapital) * 100;
                     
                     return (
                       <div key={idx} style={{
