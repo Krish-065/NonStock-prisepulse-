@@ -1270,15 +1270,22 @@ export default function AIMentor() {
             {/* 2. FORECASTS TAB CONTENT */}
             {rightTab === 'forecast' && (() => {
               const getTVSymbol = () => {
-                const s = (activeTechnicals?.symbol || symbol || 'AAPL').toUpperCase().replace('.NS', '');
+                if (activeTechnicals?.tvSymbol) return activeTechnicals.tvSymbol;
+                const raw = (activeTechnicals?.symbol || symbol || 'AAPL').toUpperCase();
+                const s = raw.replace('.NS', '').replace('.BO', '').replace('NSE:', '').replace('NASDAQ:', '');
                 if (s === 'NIFTY' || s === '^NSEI') return 'NSE:NIFTY';
                 if (s === 'SENSEX' || s === '^BSESN') return 'BSE:SENSEX';
                 if (s === 'NIFTYBANK' || s === 'BANKNIFTY' || s === '^NSEBANK') return 'NSE:BANKNIFTY';
-                if (['RELIANCE', 'TCS', 'SBIN'].includes(s)) return `NSE:${s}`;
-                if (['BTC', 'ETH'].includes(s)) return `COINBASE:${s}USD`;
-                return s;
+                if (['TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX', 'AMD', 'SPY', 'QQQ', 'COIN'].includes(s)) return `NASDAQ:${s}`;
+                if (['BABA', 'DIS', 'BA', 'JPM', 'NKE'].includes(s)) return `NYSE:${s}`;
+                if (['BTC', 'ETH', 'SOL'].includes(s)) return `BINANCE:${s}USDT`;
+                return `NSE:${s}`;
               };
               const tvSymbol = getTVSymbol();
+              
+              const isUSStock = ['TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX', 'AMD', 'SPY', 'QQQ', 'COIN', 'BTC', 'ETH', 'SOL'].includes((activeTechnicals?.symbol || symbol || '').toUpperCase());
+              const currSymbol = activeTechnicals?.currency || (isUSStock ? '$' : '₹');
+              const formatPrice = (val) => `${currSymbol}${Number(val).toLocaleString(isUSStock ? 'en-US' : 'en-IN')}`;
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -1297,7 +1304,7 @@ export default function AIMentor() {
                     >
                       <input
                         type="text"
-                        placeholder="Search stock symbol (e.g. AAPL, TSLA)..."
+                        placeholder="Search stock symbol (e.g. AAPL, TSLA, RELIANCE, NIFTY)..."
                         value={forecastSearch}
                         onChange={e => setForecastSearch(e.target.value)}
                         style={{
@@ -1335,9 +1342,10 @@ export default function AIMentor() {
                   {/* TradingView Live Chart widget */}
                   <div>
                     <span style={{ fontSize: '11px', color: '#00bcd4', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
-                      Live Market Chart
+                      Live Market Chart ({tvSymbol})
                     </span>
                     <iframe
+                      key={tvSymbol}
                       src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${encodeURIComponent(tvSymbol)}&interval=D&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=10121c&theme=dark&style=1&timezone=exchange&locale=en`}
                       style={{ width: '100%', height: '200px', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px' }}
                       title="TradingView Live Chart"
@@ -1354,7 +1362,7 @@ export default function AIMentor() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
                           <span style={{ fontSize: '14px', fontWeight: '900', color: '#ffffff' }}>{activeTechnicals.symbol}</span>
-                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#00ff88' }}>₹{Number(activeTechnicals.price).toLocaleString('en-IN')}</span>
+                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#00ff88' }}>{formatPrice(activeTechnicals.price)}</span>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
@@ -1375,12 +1383,12 @@ export default function AIMentor() {
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: 'var(--text-secondary)' }}>Support Floor:</span>
-                             <span style={{ fontWeight: '800', color: '#00ff88' }}>₹{Number(activeTechnicals.support).toLocaleString('en-IN')}</span>
+                             <span style={{ fontWeight: '800', color: '#00ff88' }}>{formatPrice(activeTechnicals.support)}</span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: 'var(--text-secondary)' }}>Resistance Ceiling:</span>
-                             <span style={{ fontWeight: '800', color: '#ff4444' }}>₹{Number(activeTechnicals.resistance).toLocaleString('en-IN')}</span>
+                             <span style={{ fontWeight: '800', color: '#ff4444' }}>{formatPrice(activeTechnicals.resistance)}</span>
                           </div>
                         </div>
                       </div>

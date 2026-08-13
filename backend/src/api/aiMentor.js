@@ -152,13 +152,71 @@ async function getLiveNews(symbol) {
 }
 
 
+// ─── Ticker & Currency Resolver ────────────────────────────────────────────────
+const US_TICKERS = new Set([
+  'TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'GOOG', 'AMZN', 'META', 'NFLX', 'AMD',
+  'SPY', 'QQQ', 'COIN', 'DIS', 'BA', 'JPM', 'BABA', 'NKE', 'INTC', 'PLTR', 'UBER',
+  'CRUDE', 'GOLD', 'SILVER'
+]);
+
+const CRYPTO_TICKERS = new Set([
+  'BTC', 'ETH', 'SOL', 'DOGE', 'XRP', 'ADA', 'AVAX', 'DOT', 'LINK', 'BNB'
+]);
+
+const INDIAN_TICKERS = new Set([
+  'RELIANCE', 'TCS', 'INFY', 'INFOSYS', 'SBIN', 'HDFCBANK', 'ICICIBANK', 'TATAMOTORS',
+  'TATASTEEL', 'WIPRO', 'ADANIENT', 'ONGC', 'BAJFINANCE', 'LTIM', 'MARUTI', 'SUNPHARMA',
+  'HINDUNILVR', 'AXISBANK', 'ZOMATO', 'PAYTM', 'ITC', 'KOTAKBANK', 'LT', 'BHARTIARTL'
+]);
+
+function resolveYahooTicker(rawSymbol) {
+  let s = (rawSymbol || 'NIFTY').toUpperCase().trim();
+  s = s.replace('NSE:', '').replace('BSE:', '').replace('NASDAQ:', '').replace('NYSE:', '');
+
+  if (s === 'NIFTY' || s === 'NIFTY50' || s === 'NIFTY 50' || s === '^NSEI') {
+    return { yahooTicker: '^NSEI', currency: '₹', tvTicker: 'NSE:NIFTY', isIndian: true };
+  }
+  if (s === 'SENSEX' || s === '^BSESN') {
+    return { yahooTicker: '^BSESN', currency: '₹', tvTicker: 'BSE:SENSEX', isIndian: true };
+  }
+  if (s === 'BANKNIFTY' || s === 'NIFTYBANK' || s === '^NSEBANK') {
+    return { yahooTicker: '^NSEBANK', currency: '₹', tvTicker: 'NSE:BANKNIFTY', isIndian: true };
+  }
+
+  if (CRYPTO_TICKERS.has(s) || s.endsWith('-USD')) {
+    const base = s.replace('-USD', '');
+    return { yahooTicker: `${base}-USD`, currency: '$', tvTicker: `BINANCE:${base}USDT`, isIndian: false };
+  }
+
+  if (US_TICKERS.has(s) || s.endsWith('.US')) {
+    const base = s.replace('.US', '');
+    return { yahooTicker: base, currency: '$', tvTicker: `NASDAQ:${base}`, isIndian: false };
+  }
+
+  if (s.endsWith('.NS')) {
+    const base = s.replace('.NS', '');
+    return { yahooTicker: s, currency: '₹', tvTicker: `NSE:${base}`, isIndian: true };
+  }
+  if (s.endsWith('.BO')) {
+    const base = s.replace('.BO', '');
+    return { yahooTicker: s, currency: '₹', tvTicker: `BSE:${base}`, isIndian: true };
+  }
+
+  if (INDIAN_TICKERS.has(s)) {
+    return { yahooTicker: `${s}.NS`, currency: '₹', tvTicker: `NSE:${s}`, isIndian: true };
+  }
+
+  return { yahooTicker: `${s}.NS`, currency: '₹', tvTicker: `NSE:${s}`, isIndian: true };
+}
+
 // ─── Symbol Extractor ─────────────────────────────────────────────────────────
 function extractSymbol(queryText) {
   const upper = queryText.toUpperCase();
   const words = upper.split(/\s+/);
   const common = ['RELIANCE', 'SBIN', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK',
     'TATAMOTORS', 'ZOMATO', 'BTC', 'ETH', 'WIPRO', 'ADANIENT', 'ONGC',
-    'BAJFINANCE', 'LTIM', 'MARUTI', 'SUNPHARMA', 'HINDUNILVR', 'AXISBANK'];
+    'BAJFINANCE', 'LTIM', 'MARUTI', 'SUNPHARMA', 'HINDUNILVR', 'AXISBANK',
+    'TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META'];
 
   for (const sym of common) {
     if (words.includes(sym) || upper.includes(sym)) return sym;
@@ -414,8 +472,9 @@ Cryptocurrencies trade 24/7 globally and are subject to extreme price volatility
     const trend = technicals.trend?.toLowerCase() ?? 'consolidating';
     const rsi = technicals.rsi ?? 50;
     const volume = technicals.volume?.toLocaleString() ?? '1,450,200';
-    const support = `₹${technicals.support.toLocaleString('en-IN')}`;
-    const resistance = `₹${technicals.resistance.toLocaleString('en-IN')}`;
+    const currSym = technicals.currency || (['TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'BTC', 'ETH'].includes(detectedSymbol.toUpperCase()) ? '$' : '₹');
+    const support = `${currSym}${technicals.support?.toLocaleString()}`;
+    const resistance = `${currSym}${technicals.resistance?.toLocaleString()}`;
     const rsiZone = rsi > 70 ? 'overbought (potentially overextended — consider caution)'
                    : rsi < 30 ? 'oversold (potential buying opportunity for patient investors)'
                    : 'neutral momentum zone (no extreme bias)';
@@ -588,21 +647,22 @@ router.post('/ask', authenticate, async (req, res) => {
       };
       techContext = `[SIMULATED: ${marketData.symbol}] Price ₹${marketData.currentPrice}, RSI ${marketData.rsi}, MACD ${marketData.macd?.signal || 'N/A'}, Trend ${marketData.trend}, Pattern: ${marketData.patternDetected}`;
     } else if (detectedSymbol) {
-      let sym = detectedSymbol.toUpperCase();
-      if (sym === 'NIFTY' || sym === 'NIFTY50' || sym === 'NIFTY 50') {
-        sym = '^NSEI';
-      } else if (sym === 'SENSEX') {
-        sym = '^BSESN';
-      } else if (sym === 'NIFTYBANK' || sym === 'BANKNIFTY' || sym === 'NIFTY BANK') {
-        sym = '^NSEBANK';
-      } else if (!sym.endsWith('.NS') && !sym.includes('-USD') && !sym.includes('^')) {
-        sym = detectedSymbol === 'BTC' ? 'BTC-USD'
-            : detectedSymbol === 'ETH' ? 'ETH-USD'
-            : `${sym}.NS`;
-      }
+      const resolved = resolveYahooTicker(detectedSymbol);
+      let sym = resolved.yahooTicker;
       try {
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=1mo&interval=1d`;
-        const yfRes = await fetch(url, { headers: YAHOO_HEADERS });
+        let url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=1mo&interval=1d`;
+        let yfRes = await fetch(url, { headers: YAHOO_HEADERS });
+        if (!yfRes.ok && sym.endsWith('.NS')) {
+          const altSym = sym.replace('.NS', '');
+          const altUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(altSym)}?range=1mo&interval=1d`;
+          const altRes = await fetch(altUrl, { headers: YAHOO_HEADERS });
+          if (altRes.ok) {
+            yfRes = altRes;
+            resolved.currency = '$';
+            resolved.tvTicker = `NASDAQ:${altSym}`;
+            resolved.isIndian = false;
+          }
+        }
         if (yfRes.ok) {
           const data = await yfRes.json();
           const result = data?.chart?.result?.[0];
@@ -616,15 +676,18 @@ router.post('/ask', authenticate, async (req, res) => {
               const rsi  = computeRSI(closes, 14);
               const vol  = volumes[volumes.length - 1] || 0;
               technicals = {
-                symbol:     detectedSymbol,
+                symbol:     detectedSymbol.toUpperCase(),
                 price:      parseFloat(last.toFixed(2)),
                 support:    parseFloat(sup.toFixed(2)),
                 resistance: parseFloat(resVal.toFixed(2)),
                 rsi:        rsi || 50,
                 trend:      last >= closes[0] ? 'BULLISH' : 'BEARISH',
-                volume:     vol
+                volume:     vol,
+                currency:   resolved.currency,
+                tvSymbol:   resolved.tvTicker,
+                isIndian:   resolved.isIndian
               };
-              techContext = `[LIVE: ${detectedSymbol}] Price ₹${last.toFixed(2)}, Support ₹${sup.toFixed(2)}, Resistance ₹${resVal.toFixed(2)}, RSI ${rsi?.toFixed(1)}, Trend ${technicals.trend}, Vol ${vol.toLocaleString()}`;
+              techContext = `[LIVE: ${detectedSymbol}] Price ${resolved.currency}${last.toFixed(2)}, Support ${resolved.currency}${sup.toFixed(2)}, Resistance ${resolved.currency}${resVal.toFixed(2)}, RSI ${rsi?.toFixed(1)}, Trend ${technicals.trend}, Vol ${vol.toLocaleString()}`;
             }
           }
         }

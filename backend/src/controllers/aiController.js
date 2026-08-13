@@ -234,6 +234,63 @@ async function getLiveNews(symbol) {
   return [];
 }
 
+const US_TICKERS = new Set([
+  'TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'GOOG', 'AMZN', 'META', 'NFLX', 'AMD',
+  'SPY', 'QQQ', 'COIN', 'DIS', 'BA', 'JPM', 'BABA', 'NKE', 'INTC', 'PLTR', 'UBER',
+  'CRUDE', 'GOLD', 'SILVER'
+]);
+
+const CRYPTO_TICKERS = new Set([
+  'BTC', 'ETH', 'SOL', 'DOGE', 'XRP', 'ADA', 'AVAX', 'DOT', 'LINK', 'BNB'
+]);
+
+const INDIAN_TICKERS = new Set([
+  'RELIANCE', 'TCS', 'INFY', 'INFOSYS', 'SBIN', 'HDFCBANK', 'ICICIBANK', 'TATAMOTORS',
+  'TATASTEEL', 'WIPRO', 'ADANIENT', 'ONGC', 'BAJFINANCE', 'LTIM', 'MARUTI', 'SUNPHARMA',
+  'HINDUNILVR', 'AXISBANK', 'ZOMATO', 'PAYTM', 'ITC', 'KOTAKBANK', 'LT', 'BHARTIARTL'
+]);
+
+function resolveYahooTicker(rawSymbol) {
+  let s = (rawSymbol || 'NIFTY').toUpperCase().trim();
+  s = s.replace('NSE:', '').replace('BSE:', '').replace('NASDAQ:', '').replace('NYSE:', '');
+
+  if (s === 'NIFTY' || s === 'NIFTY50' || s === 'NIFTY 50' || s === '^NSEI') {
+    return { yahooTicker: '^NSEI', currency: '₹', tvTicker: 'NSE:NIFTY', isIndian: true };
+  }
+  if (s === 'SENSEX' || s === '^BSESN') {
+    return { yahooTicker: '^BSESN', currency: '₹', tvTicker: 'BSE:SENSEX', isIndian: true };
+  }
+  if (s === 'BANKNIFTY' || s === 'NIFTYBANK' || s === '^NSEBANK') {
+    return { yahooTicker: '^NSEBANK', currency: '₹', tvTicker: 'NSE:BANKNIFTY', isIndian: true };
+  }
+
+  if (CRYPTO_TICKERS.has(s) || s.endsWith('-USD')) {
+    const base = s.replace('-USD', '');
+    return { yahooTicker: `${base}-USD`, currency: '$', tvTicker: `BINANCE:${base}USDT`, isIndian: false };
+  }
+
+  if (US_TICKERS.has(s) || s.endsWith('.US')) {
+    const base = s.replace('.US', '');
+    return { yahooTicker: base, currency: '$', tvTicker: `NASDAQ:${base}`, isIndian: false };
+  }
+
+  if (s.endsWith('.NS')) {
+    const base = s.replace('.NS', '');
+    return { yahooTicker: s, currency: '₹', tvTicker: `NSE:${base}`, isIndian: true };
+  }
+  if (s.endsWith('.BO')) {
+    const base = s.replace('.BO', '');
+    return { yahooTicker: s, currency: '₹', tvTicker: `BSE:${base}`, isIndian: true };
+  }
+
+  if (INDIAN_TICKERS.has(s)) {
+    return { yahooTicker: `${s}.NS`, currency: '₹', tvTicker: `NSE:${s}`, isIndian: true };
+  }
+
+  // Fallback default for 1-4 character symbols without explicit suffix: test US ticker first if clean symbol is US-like
+  return { yahooTicker: `${s}.NS`, currency: '₹', tvTicker: `NSE:${s}`, isIndian: true };
+}
+
 exports.getLiveTechnicals = async (req, res) => {
   try {
     const { symbol } = req.params;
@@ -241,23 +298,26 @@ exports.getLiveTechnicals = async (req, res) => {
       return res.status(400).json({ error: 'Symbol is required.' });
     }
 
-    let sym = symbol.toUpperCase();
-    if (sym === 'NIFTY' || sym === 'NIFTY50' || sym === 'NIFTY 50') {
-      sym = '^NSEI';
-    } else if (sym === 'SENSEX') {
-      sym = '^BSESN';
-    } else if (sym === 'NIFTYBANK' || sym === 'BANKNIFTY' || sym === 'NIFTY BANK') {
-      sym = '^NSEBANK';
-    } else if (!sym.endsWith('.NS') && !sym.includes('-USD') && !sym.includes('^') && !sym.includes('=')) {
-      sym = sym === 'BTC' ? 'BTC-USD'
-          : sym === 'ETH' ? 'ETH-USD'
-          : `${sym}.NS`;
-    }
+    const resolved = resolveYahooTicker(symbol);
+    let sym = resolved.yahooTicker;
 
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=1mo&interval=1d`;
-      const yfRes = await fetch(url, { headers: YAHOO_HEADERS });
+      let url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=1mo&interval=1d`;
+      let yfRes = await fetch(url, { headers: YAHOO_HEADERS });
       
+      // If primary query failed and symbol was assumed .NS, retry without .NS (US stock fallback)
+      if (!yfRes.ok && sym.endsWith('.NS')) {
+        const altSym = sym.replace('.NS', '');
+        const altUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(altSym)}?range=1mo&interval=1d`;
+        const altRes = await fetch(altUrl, { headers: YAHOO_HEADERS });
+        if (altRes.ok) {
+          yfRes = altRes;
+          resolved.currency = '$';
+          resolved.tvTicker = `NASDAQ:${altSym}`;
+          resolved.isIndian = false;
+        }
+      }
+
       if (!yfRes.ok) {
         throw new Error(`Yahoo Finance status ${yfRes.status}`);
       }
@@ -294,6 +354,9 @@ exports.getLiveTechnicals = async (req, res) => {
         rsi: parseFloat(rsi.toFixed(1)),
         trend: trendVal,
         volume: vol,
+        currency: resolved.currency,
+        tvSymbol: resolved.tvTicker,
+        isIndian: resolved.isIndian,
         news: newsList
       });
 
@@ -301,12 +364,14 @@ exports.getLiveTechnicals = async (req, res) => {
       console.warn(`[None Controller] Yahoo Finance fetch failed for ${sym}, using fallback:`, apiError.message);
       let basePrice = 100;
       const cleanSym = symbol.toUpperCase().replace('.NS', '').replace('-USD', '').replace('=X', '').replace('=F', '');
-      if (cleanSym === 'BTC') basePrice = 65000;
+      if (cleanSym === 'TSLA') basePrice = 338.23;
+      else if (cleanSym === 'AAPL') basePrice = 224.50;
+      else if (cleanSym === 'NVDA') basePrice = 128.80;
+      else if (cleanSym === 'BTC') basePrice = 65000;
       else if (cleanSym === 'ETH') basePrice = 3500;
-      else if (cleanSym === 'RELIANCE') basePrice = 2450;
+      else if (cleanSym === 'RELIANCE') basePrice = 1385;
       else if (cleanSym === 'TCS') basePrice = 3850;
       else if (cleanSym === 'INFY') basePrice = 1420;
-      else if (cleanSym === 'AAPL') basePrice = 185;
       else {
         let charSum = 0;
         for (let i = 0; i < cleanSym.length; i++) {
@@ -328,6 +393,9 @@ exports.getLiveTechnicals = async (req, res) => {
         rsi: rsi,
         trend: Math.random() > 0.5 ? 'BULLISH' : 'BEARISH',
         volume: 1200000,
+        currency: resolved.currency,
+        tvSymbol: resolved.tvTicker,
+        isIndian: resolved.isIndian,
         news: [],
         warning: 'Yahoo API offline. Simulated market data loaded.'
       });
