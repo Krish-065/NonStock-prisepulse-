@@ -129,6 +129,29 @@ function computeRSI(prices, period = 14) {
   return parseFloat((100 - 100 / (1 + rs)).toFixed(2));
 }
 
+// ─── Fetch Stock News ────────────────────────────────────────────────────────
+async function getLiveNews(symbol) {
+  try {
+    const cleanSym = symbol.split('.')[0].split('-')[0].toUpperCase();
+    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanSym)}`;
+    const res = await fetch(url, { headers: YAHOO_HEADERS });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (data.news && Array.isArray(data.news)) {
+      return data.news.slice(0, 5).map(item => ({
+        title: item.title,
+        publisher: item.publisher,
+        link: item.link,
+        time: item.providerPublishTime ? new Date(item.providerPublishTime * 1000).toLocaleString() : 'N/A'
+      }));
+    }
+  } catch (err) {
+    console.warn('[AI News Service] Failed to fetch news for', symbol, err.message);
+  }
+  return [];
+}
+
+
 // ─── Symbol Extractor ─────────────────────────────────────────────────────────
 function extractSymbol(queryText) {
   const upper = queryText.toUpperCase();
@@ -604,10 +627,21 @@ router.post('/ask', authenticate, async (req, res) => {
       }
     }
 
+    // Fetch live Yahoo Finance news for context
+    let newsContext = '';
+    let newsList = [];
+    if (detectedSymbol) {
+      newsList = await getLiveNews(detectedSymbol);
+      if (newsList.length > 0) {
+        newsContext = `\n[RECENT NEWS HEADLINES FOR ${detectedSymbol}]:\n` + 
+          newsList.map((n, i) => `${i + 1}. "${n.title}" (Source: ${n.publisher}, Published: ${n.time})`).join('\n') + '\n';
+      }
+    }
+
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     
     // helper to save model reply & send final HTTP response
-    const finalizeAndSave = async (responseText, techObj, mlObj) => {
+    const finalizeAndSave = async (responseText, techObj, mlObj, newsObj = []) => {
       const aiMsgId = 'msg_' + crypto.randomBytes(8).toString('hex');
       await query(
         'INSERT INTO ai_messages (id, conversation_id, sender, text) VALUES ($1, $2, $3, $4)',
@@ -621,6 +655,7 @@ router.post('/ask', authenticate, async (req, res) => {
         response: responseText,
         technicals: techObj,
         mlEnsemble: mlObj,
+        news: newsObj,
         conversationId: activeConversationId
       });
     };
@@ -656,7 +691,7 @@ router.post('/ask', authenticate, async (req, res) => {
     if (!GROQ_API_KEY) {
       console.log('[AI Mentor] No Groq key — sandbox mode');
       const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
-      return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
+      return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble, newsList);
     }
 
     try {
@@ -728,9 +763,17 @@ ${ragContext}`;
         });
       }
 
-      const currentPromptText = techContext
-        ? `[Live market data context: ${techContext}]\nUser query: ${message}`
-        : message;
+      let currentPromptText = message;
+      if (techContext || newsContext) {
+        currentPromptText = `[Context Information]\n`;
+        if (techContext) {
+          currentPromptText += `Market Indicators/Simulated Setup: ${techContext}\n\n`;
+        }
+        if (newsContext) {
+          currentPromptText += `Latest News Headlines & Geopolitical Context: ${newsContext}\n\n`;
+        }
+        currentPromptText += `User Query: ${message}`;
+      }
 
       if (groqMessages.length > 1 && groqMessages[groqMessages.length - 1].role === 'user') {
         groqMessages[groqMessages.length - 1].content = currentPromptText;
@@ -759,7 +802,7 @@ ${ragContext}`;
         const body = await response.text();
         console.warn(`[AI Mentor] Groq ${response.status} — sandbox fallback. ${body.substring(0, 150)}`);
         const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
-        return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
+        return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble, newsList);
       }
 
       const data = await response.json();
@@ -767,16 +810,16 @@ ${ragContext}`;
       if (!text) {
         console.warn('[AI Mentor] Groq empty response — sandbox fallback');
         const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
-        return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
+        return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble, newsList);
       }
 
       const mlObj = detectedSymbol ? getMLEnsemble(detectedSymbol) : null;
-      return await finalizeAndSave(text, technicals, mlObj);
+      return await finalizeAndSave(text, technicals, mlObj, newsList);
 
     } catch (groqErr) {
       console.warn('[AI Mentor] Groq exception — sandbox fallback:', groqErr.message);
       const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
-      return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
+      return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble, newsList);
     }
 
   } catch (err) {

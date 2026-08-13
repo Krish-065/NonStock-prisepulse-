@@ -212,6 +212,28 @@ function computeRSI(prices, period = 14) {
   return parseFloat((100 - 100 / (1 + rs)).toFixed(2));
 }
 
+// Helper to fetch live Yahoo Finance search news
+async function getLiveNews(symbol) {
+  try {
+    const cleanSym = symbol.split('.')[0].split('-')[0].toUpperCase();
+    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanSym)}`;
+    const res = await fetch(url, { headers: YAHOO_HEADERS });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (data.news && Array.isArray(data.news)) {
+      return data.news.slice(0, 5).map(item => ({
+        title: item.title,
+        publisher: item.publisher,
+        link: item.link,
+        time: item.providerPublishTime ? new Date(item.providerPublishTime * 1000).toLocaleString() : 'N/A'
+      }));
+    }
+  } catch (err) {
+    console.warn('[AI Controller News] Failed to fetch news for', symbol, err.message);
+  }
+  return [];
+}
+
 exports.getLiveTechnicals = async (req, res) => {
   try {
     const { symbol } = req.params;
@@ -254,6 +276,8 @@ exports.getLiveTechnicals = async (req, res) => {
       const rsi = computeRSI(closes, 14) || 50;
       const vol = volumes[volumes.length - 1] || 0;
       const trendVal = last >= closes[0] ? 'BULLISH' : 'BEARISH';
+      
+      const newsList = await getLiveNews(symbol);
 
       return res.json({
         success: true,
@@ -263,7 +287,8 @@ exports.getLiveTechnicals = async (req, res) => {
         resistance: parseFloat(resVal.toFixed(2)),
         rsi: parseFloat(rsi.toFixed(1)),
         trend: trendVal,
-        volume: vol
+        volume: vol,
+        news: newsList
       });
 
     } catch (apiError) {
@@ -297,6 +322,7 @@ exports.getLiveTechnicals = async (req, res) => {
         rsi: rsi,
         trend: Math.random() > 0.5 ? 'BULLISH' : 'BEARISH',
         volume: 1200000,
+        news: [],
         warning: 'Yahoo API offline. Simulated market data loaded.'
       });
     }

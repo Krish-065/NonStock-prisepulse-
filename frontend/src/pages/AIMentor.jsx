@@ -106,6 +106,7 @@ export default function AIMentor() {
   const [sending, setSending] = useState(false);
   const [activeTechnicals, setActiveTechnicals] = useState(null);
   const [activeMLEnsemble, setActiveMLEnsemble] = useState(null);
+  const [activeNews, setActiveNews] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [syllabus, setSyllabus] = useState({});
@@ -246,6 +247,12 @@ export default function AIMentor() {
               resistance: data.resistance
             });
 
+            if (data.news) {
+              setActiveNews(data.news);
+            } else {
+              setActiveNews([]);
+            }
+
             setActiveMLEnsemble({
               overall: {
                 buy: data.rsi < 35 ? 75 : data.rsi > 65 ? 15 : data.trend === 'BULLISH' ? 60 : 35,
@@ -295,6 +302,7 @@ export default function AIMentor() {
     ]);
     setActiveTechnicals(null);
     setActiveMLEnsemble(null);
+    setActiveNews([]);
   };
 
   const handleSelectConversation = async (convId) => {
@@ -311,6 +319,7 @@ export default function AIMentor() {
       setActiveConversationId(convId);
       setActiveTechnicals(null);
       setActiveMLEnsemble(null);
+      setActiveNews([]);
       setMentorType('none'); // Keep it unified under None AI Mentor
     } catch (err) {
       toast.error('Failed to load messages');
@@ -503,6 +512,12 @@ export default function AIMentor() {
             { name: 'Technical Signal Correlator', signal: activeRsi > 65 ? 'Sell' : 'Buy', strength: 80 }
           ]
         });
+      }
+
+      if (res.data.news) {
+        setActiveNews(res.data.news);
+      } else {
+        setActiveNews([]);
       }
 
       setRightTab('forecast');
@@ -1215,6 +1230,50 @@ export default function AIMentor() {
                         <span style={{ color: 'var(--text-secondary)' }}>Ensemble Confidence:</span>
                         <span style={{ fontWeight: '950', color: '#00bcd4' }}>{activeMLEnsemble.confidence}%</span>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Live News Section */}
+                {activeNews && activeNews.length > 0 && (
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                    <span style={{ fontSize: '11px', color: '#a855f7', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                      Live Market News
+                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {activeNews.map((n, idx) => (
+                        <a
+                          key={idx}
+                          href={n.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'block',
+                            background: 'rgba(255,255,255,0.01)',
+                            border: '1px solid rgba(255,255,255,0.03)',
+                            padding: '10px',
+                            borderRadius: '8px',
+                            textDecoration: 'none',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                            e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.03)';
+                          }}
+                        >
+                          <div style={{ fontSize: '11px', fontWeight: '800', color: '#e0e0e0', marginBottom: '4px', lineHeight: '1.4' }}>
+                            {n.title}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'var(--text-secondary)' }}>
+                            <span>{n.publisher}</span>
+                            <span>{n.time}</span>
+                          </div>
+                        </a>
+                      ))}
                     </div>
                   </div>
                 )}
