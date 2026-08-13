@@ -206,89 +206,91 @@ export default function AIMentor() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, mentorType]);
 
+  const loadStockForecast = async (stockSymbol, shouldInjectWelcomeMsg = false) => {
+    let loadToastId = toast.loading(`Ingesting live chart data for ${stockSymbol.toUpperCase()}...`);
+    try {
+      setMentorType('none');
+      const res = await apiClient.get(`/ai/technicals/${encodeURIComponent(stockSymbol)}`);
+      toast.dismiss(loadToastId);
+
+      if (res.data && res.data.success) {
+        const data = res.data;
+        setSymbol(data.symbol);
+        setCurrentPrice(data.price);
+        setRsi(data.rsi);
+        setTrend(data.trend === 'BULLISH' ? 'Strong Uptrend' : 'Downward Correction');
+        
+        let macd = 'neutral';
+        let pattern = 'Consolidation pattern Rest near support floor';
+        if (data.rsi > 65) {
+          macd = 'bearish_divergence';
+          pattern = `Potential Liquidity Trap / Fakeout near ${data.resistance} resistance`;
+        } else if (data.rsi < 35) {
+          macd = 'bullish_cross';
+          pattern = `Double Bottom pattern near support floor at ${data.support}`;
+        } else {
+          macd = Math.random() > 0.5 ? 'bullish_cross' : 'bearish_cross';
+          pattern = `Symmetric Triangle consolidation near support floor at ${data.support}`;
+        }
+        
+        setMacdSignal(macd);
+        setPatternDetected(pattern);
+
+        setActiveTechnicals({
+          symbol: data.symbol,
+          price: data.price,
+          rsi: data.rsi,
+          trend: data.trend,
+          support: data.support,
+          resistance: data.resistance
+        });
+
+        if (data.news) {
+          setActiveNews(data.news);
+        } else {
+          setActiveNews([]);
+        }
+
+        setActiveMLEnsemble({
+          overall: {
+            buy: data.rsi < 35 ? 75 : data.rsi > 65 ? 15 : data.trend === 'BULLISH' ? 60 : 35,
+            hold: 25,
+            sell: data.rsi > 65 ? 60 : data.rsi < 35 ? 10 : data.trend === 'BEARISH' ? 50 : 40
+          },
+          confidence: Math.floor(75 + Math.random() * 15),
+          components: [
+            { name: 'LSTM Neural Network', signal: data.rsi < 35 ? 'Buy' : data.rsi > 65 ? 'Sell' : 'Hold', strength: 78 },
+            { name: 'XGBoost Classifier', signal: data.trend === 'BULLISH' ? 'Buy' : 'Sell', strength: 82 },
+            { name: 'Random Forest Regressor', signal: 'Buy', strength: 70 },
+            { name: 'Transformer Attention Model', signal: 'Buy', strength: 89 },
+            { name: 'Sentiment Analyzer', signal: data.rsi > 65 ? 'Bearish' : 'Bullish', strength: 75 },
+            { name: 'Technical Signal Correlator', signal: data.rsi > 65 ? 'Sell' : 'Buy', strength: 80 }
+          ]
+        });
+
+        setRightTab('forecast');
+
+        if (shouldInjectWelcomeMsg) {
+          setMessages([
+            {
+              sender: 'ai',
+              text: `### 🔍 Live Chart Ingested for **${data.symbol}**\nNone has successfully scanned the live charts and indicators for **${data.symbol}**.\n\n* **Last Price**: ₹${data.price}\n* **RSI (14)**: ${data.rsi} (${data.rsi > 70 ? 'Overbought' : data.rsi < 30 ? 'Oversold' : 'Neutral'})\n* **Calculated Support**: ₹${data.support}\n* **Calculated Resistance**: ₹${data.resistance}\n* **Primary Trend**: ${data.trend}\n\nAsk me any questions about this setup (e.g. "Is this a trap?" or "Should I enter a buy/sell trade?"). I am ready to guide you.`
+            }
+          ]);
+        }
+        
+        toast.success(`Live data for ${data.symbol} loaded into None Core!`);
+      }
+    } catch (err) {
+      toast.dismiss(loadToastId);
+      console.error('Failed to ingest symbol data:', err);
+      toast.error(`Could not load live chart data for ${stockSymbol.toUpperCase()}.`);
+    }
+  };
+
   useEffect(() => {
     if (querySymbol) {
-      const fetchQuerySymbolData = async () => {
-        let loadToastId = toast.loading(`Ingesting live chart data for ${querySymbol.toUpperCase()}...`);
-        try {
-          setMentorType('none');
-          const res = await apiClient.get(`/ai/technicals/${encodeURIComponent(querySymbol)}`);
-          toast.dismiss(loadToastId);
-
-          if (res.data && res.data.success) {
-            const data = res.data;
-            setSymbol(data.symbol);
-            setCurrentPrice(data.price);
-            setRsi(data.rsi);
-            setTrend(data.trend === 'BULLISH' ? 'Strong Uptrend' : 'Downward Correction');
-            
-            let macd = 'neutral';
-            let pattern = 'Consolidation pattern Rest near support floor';
-            if (data.rsi > 65) {
-              macd = 'bearish_divergence';
-              pattern = `Potential Liquidity Trap / Fakeout near ${data.resistance} resistance`;
-            } else if (data.rsi < 35) {
-              macd = 'bullish_cross';
-              pattern = `Double Bottom pattern near support floor at ${data.support}`;
-            } else {
-              macd = Math.random() > 0.5 ? 'bullish_cross' : 'bearish_cross';
-              pattern = `Symmetric Triangle consolidation near support floor at ${data.support}`;
-            }
-            
-            setMacdSignal(macd);
-            setPatternDetected(pattern);
-
-            setActiveTechnicals({
-              symbol: data.symbol,
-              price: data.price,
-              rsi: data.rsi,
-              trend: data.trend,
-              support: data.support,
-              resistance: data.resistance
-            });
-
-            if (data.news) {
-              setActiveNews(data.news);
-            } else {
-              setActiveNews([]);
-            }
-
-            setActiveMLEnsemble({
-              overall: {
-                buy: data.rsi < 35 ? 75 : data.rsi > 65 ? 15 : data.trend === 'BULLISH' ? 60 : 35,
-                hold: 25,
-                sell: data.rsi > 65 ? 60 : data.rsi < 35 ? 10 : data.trend === 'BEARISH' ? 50 : 40
-              },
-              confidence: Math.floor(75 + Math.random() * 15),
-              components: [
-                { name: 'LSTM Neural Network', signal: data.rsi < 35 ? 'Buy' : data.rsi > 65 ? 'Sell' : 'Hold', strength: 78 },
-                { name: 'XGBoost Classifier', signal: data.trend === 'BULLISH' ? 'Buy' : 'Sell', strength: 82 },
-                { name: 'Random Forest Regressor', signal: 'Buy', strength: 70 },
-                { name: 'Transformer Attention Model', signal: 'Buy', strength: 89 },
-                { name: 'Sentiment Analyzer', signal: data.rsi > 65 ? 'Bearish' : 'Bullish', strength: 75 },
-                { name: 'Technical Signal Correlator', signal: data.rsi > 65 ? 'Sell' : 'Buy', strength: 80 }
-              ]
-            });
-
-            setRightTab('forecast');
-
-            setMessages([
-              {
-                sender: 'ai',
-                text: `### 🔍 Live Chart Ingested for **${data.symbol}**\nNone has successfully scanned the live charts and indicators for **${data.symbol}**.\n\n* **Last Price**: ₹${data.price}\n* **RSI (14)**: ${data.rsi} (${data.rsi > 70 ? 'Overbought' : data.rsi < 30 ? 'Oversold' : 'Neutral'})\n* **Calculated Support**: ₹${data.support}\n* **Calculated Resistance**: ₹${data.resistance}\n* **Primary Trend**: ${data.trend}\n\nAsk me any questions about this setup (e.g. "Is this a trap?" or "Should I enter a buy/sell trade?"). I am ready to guide you.`
-              }
-            ]);
-            
-            toast.success(`Live data for ${data.symbol} loaded into None Core!`);
-          }
-        } catch (err) {
-          toast.dismiss(loadToastId);
-          console.error('Failed to ingest URL symbol data:', err);
-          toast.error(`Could not load live chart data for ${querySymbol.toUpperCase()}.`);
-        }
-      };
-      
-      fetchQuerySymbolData();
+      loadStockForecast(querySymbol, true);
     }
   }, [querySymbol]);
 
@@ -1286,12 +1288,7 @@ export default function AIMentor() {
                       <button
                         key={t}
                         onClick={() => {
-                          if (mentorType === 'none') {
-                            setSymbol(t);
-                            handleSendMessage(`Analyze simulated ${t} pattern`);
-                          } else {
-                            handleSendMessage(`Analyze ${t}`);
-                          }
+                          loadStockForecast(t, false);
                         }}
                         style={{
                           background: 'rgba(255,255,255,0.02)',
