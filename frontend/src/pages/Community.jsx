@@ -936,6 +936,13 @@ export default function Community() {
                 </button>
               </div>
 
+              <style>{`
+                .hog-scroll::-webkit-scrollbar { width: 5px; }
+                .hog-scroll::-webkit-scrollbar-track { background: transparent; }
+                .hog-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
+                .hog-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+              `}</style>
+
               {loadingLeaderboard ? (
                 <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                   <RefreshCw className="animate-spin" />
@@ -943,7 +950,21 @@ export default function Community() {
               ) : (leaderboardTab === 'pro' ? proLeaderboard : standardLeaderboard).length === 0 ? (
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', textAlign: 'center' }}>No users ranked yet.</p>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div
+                  className="hog-scroll"
+                  style={{
+                    maxHeight: '340px',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    paddingRight: '4px',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgba(255,255,255,0.12) transparent'
+                  }}
+                  onWheel={e => e.stopPropagation()}
+                >
+
                   {(leaderboardTab === 'pro' ? proLeaderboard : standardLeaderboard).map((user, idx) => {
                     const initialCapital = leaderboardTab === 'pro' ? 1000000 : 50000;
                     const balance = parseFloat(user.virtualBalance || initialCapital);
@@ -957,7 +978,8 @@ export default function Community() {
                         background: 'rgba(255,255,255,0.02)',
                         border: '1px solid rgba(255,255,255,0.04)',
                         borderRadius: '8px',
-                        padding: '10px 12px'
+                        padding: '10px 12px',
+                        flexShrink: 0
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{
