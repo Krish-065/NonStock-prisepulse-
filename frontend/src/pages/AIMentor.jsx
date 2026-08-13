@@ -79,7 +79,7 @@ export default function AIMentor() {
   const [searchParams, setSearchParams] = useSearchParams();
   const querySymbol = searchParams.get('symbol');
 
-  const [mentorType, setMentorType] = useState('none'); // 'none' (Groq) or 'gemini' (RAG)
+  const [mentorType, setMentorType] = useState('none'); // locked to 'none' for unified model
   const [accountMode, setAccountMode] = useState('learner'); // 'learner' or 'pro'
 
   // Right sidebar tab selector: 'simulator', 'forecast', or 'library'
@@ -94,19 +94,11 @@ export default function AIMentor() {
   const [trend, setTrend] = useState('Upward Breakout');
   const [patternDetected, setPatternDetected] = useState('Potential Liquidity Trap / Fakeout near 186.00 resistance');
 
-  // Gemini state (persisted in DB)
+  // Persisted chat history (using None model under the hood)
   const [messages, setMessages] = useState([
     {
       sender: 'ai',
-      text: 'Hello! I am your NonStock AI Mentor. Ask me any investing questions, ask about specific indicators (e.g. RSI, SMA), or check setup trend details like **"Should I buy Reliance?"**'
-    }
-  ]);
-
-  // None state (kept local for instant sandbox playground testing)
-  const [noneMessages, setNoneMessages] = useState([
-    {
-      sender: 'ai',
-      text: '### 🌐 None Core Initialized\nHello! I am **None**, your temporary AI Trading Mentor. Powered by LLaMA 3.3 (70B) via Groq API.\n\nUse the **Simulation Hub** on the right side of the screen to customize simulated chart conditions. Toggle between **Learner Mode** and **Pro Mode** to change how I explain concepts. Ask me to identify retail traps, plan risk invalidation zones, or evaluate candlestick patterns!'
+      text: '### 🌐 None Core Initialized\nHello! I am **None**, your AI Trading Mentor. Powered by LLaMA 3.3 (70B) via Groq API.\n\nUse the **Simulation Hub** on the right side of the screen to customize simulated chart conditions. Toggle between **Learner Mode** and **Pro Mode** to change how I explain concepts. Ask me to identify retail traps, plan risk invalidation zones, or evaluate candlestick patterns! You can also query general trading theories (like *"What is RSI?"* or *"Explain Support and Resistance"*).'
     }
   ]);
 
@@ -211,7 +203,7 @@ export default function AIMentor() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, noneMessages, mentorType]);
+  }, [messages, mentorType]);
 
   useEffect(() => {
     if (querySymbol) {
@@ -273,7 +265,7 @@ export default function AIMentor() {
 
             setRightTab('forecast');
 
-            setNoneMessages([
+            setMessages([
               {
                 sender: 'ai',
                 text: `### 🔍 Live Chart Ingested for **${data.symbol}**\nNone has successfully scanned the live charts and indicators for **${data.symbol}**.\n\n* **Last Price**: ₹${data.price}\n* **RSI (14)**: ${data.rsi} (${data.rsi > 70 ? 'Overbought' : data.rsi < 30 ? 'Oversold' : 'Neutral'})\n* **Calculated Support**: ₹${data.support}\n* **Calculated Resistance**: ₹${data.resistance}\n* **Primary Trend**: ${data.trend}\n\nAsk me any questions about this setup (e.g. "Is this a trap?" or "Should I enter a buy/sell trade?"). I am ready to guide you.`
@@ -298,7 +290,7 @@ export default function AIMentor() {
     setMessages([
       {
         sender: 'ai',
-        text: 'Hello! I am your NonStock AI Mentor. Ask me any investing questions, ask about specific indicators (e.g. RSI, SMA), or check setup trend details like **"Should I buy Reliance?"**'
+        text: '### 🌐 None Core Initialized\nHello! I am **None**, your AI Trading Mentor. Powered by LLaMA 3.3 (70B) via Groq API.\n\nUse the **Simulation Hub** on the right side of the screen to customize simulated chart conditions. Toggle between **Learner Mode** and **Pro Mode** to change how I explain concepts. Ask me to identify retail traps, plan risk invalidation zones, or evaluate candlestick patterns! You can also query general trading theories (like *"What is RSI?"* or *"Explain Support and Resistance"*).'
       }
     ]);
     setActiveTechnicals(null);
@@ -319,7 +311,7 @@ export default function AIMentor() {
       setActiveConversationId(convId);
       setActiveTechnicals(null);
       setActiveMLEnsemble(null);
-      setMentorType('gemini'); // Automatically switch to Gemini if selecting a saved Gemini chat
+      setMentorType('none'); // Keep it unified under None AI Mentor
     } catch (err) {
       toast.error('Failed to load messages');
     } finally {
@@ -370,95 +362,118 @@ export default function AIMentor() {
     if (!textToSend) setInputText('');
     setSending(true);
 
-    if (mentorType === 'none') {
-      let activeSymbol = symbol;
-      let activePrice = currentPrice;
-      let activeRsi = rsi;
-      let activeMacd = macdSignal;
-      let activeTrend = trend;
-      let activePattern = patternDetected;
+    let activeSymbol = symbol;
+    let activePrice = currentPrice;
+    let activeRsi = rsi;
+    let activeMacd = macdSignal;
+    let activeTrend = trend;
+    let activePattern = patternDetected;
 
-      const detected = detectSymbol(text);
-      if (detected && detected !== symbol.toUpperCase()) {
-        try {
-          const res = await apiClient.get(`/ai/technicals/${encodeURIComponent(detected)}`);
-          if (res.data && res.data.success) {
-            const data = res.data;
-            activeSymbol = data.symbol;
-            activePrice = data.price;
-            activeRsi = data.rsi;
-            activeTrend = data.trend === 'BULLISH' ? 'Strong Uptrend' : 'Downward Correction';
-            
-            if (data.rsi > 65) {
-              activeMacd = 'bearish_divergence';
-              activePattern = `Potential Liquidity Trap / Fakeout near ${data.resistance} resistance`;
-            } else if (data.rsi < 35) {
-              activeMacd = 'bullish_cross';
-              activePattern = `Double Bottom pattern near support floor at ${data.support}`;
-            } else {
-              activeMacd = Math.random() > 0.5 ? 'bullish_cross' : 'bearish_cross';
-              activePattern = `Symmetric Triangle consolidation near support floor at ${data.support}`;
-            }
-
-            setSymbol(activeSymbol);
-            setCurrentPrice(activePrice);
-            setRsi(activeRsi);
-            setMacdSignal(activeMacd);
-            setTrend(activeTrend);
-            setPatternDetected(activePattern);
-
-            setActiveTechnicals({
-              symbol: data.symbol,
-              price: data.price,
-              rsi: data.rsi,
-              trend: data.trend,
-              support: data.support,
-              resistance: data.resistance
-            });
-
-            setActiveMLEnsemble({
-              overall: {
-                buy: data.rsi < 35 ? 75 : data.rsi > 65 ? 15 : data.trend === 'BULLISH' ? 60 : 35,
-                hold: 25,
-                sell: data.rsi > 65 ? 60 : data.rsi < 35 ? 10 : data.trend === 'BEARISH' ? 50 : 40
-              },
-              confidence: Math.floor(75 + Math.random() * 15),
-              components: [
-                { name: 'LSTM Neural Network', signal: data.rsi < 35 ? 'Buy' : data.rsi > 65 ? 'Sell' : 'Hold', strength: 78 },
-                { name: 'XGBoost Classifier', signal: data.trend === 'BULLISH' ? 'Buy' : 'Sell', strength: 82 },
-                { name: 'Random Forest Regressor', signal: 'Buy', strength: 70 },
-                { name: 'Transformer Attention Model', signal: 'Buy', strength: 89 },
-                { name: 'Sentiment Analyzer', signal: data.rsi > 65 ? 'Bearish' : 'Bullish', strength: 75 },
-                { name: 'Technical Signal Correlator', signal: data.rsi > 65 ? 'Sell' : 'Buy', strength: 80 }
-              ]
-            });
-
-            toast.success(`Synced live indicators for ${detected.toUpperCase()}!`);
-          }
-        } catch (err) {
-          console.warn('Auto-ingestion of symbol in message failed:', err);
-        }
-      }
-
-      setNoneMessages(prev => [...prev, { sender: 'user', text }]);
-
+    const detected = detectSymbol(text);
+    if (detected && detected !== symbol.toUpperCase()) {
       try {
-        const res = await apiClient.post('/ai/mentor', {
-          message: text,
-          marketData: {
-            symbol: activeSymbol,
-            timeframe,
-            currentPrice: parseFloat(activePrice),
-            rsi: parseFloat(activeRsi),
-            macd: { signal: activeMacd },
-            trend: activeTrend,
-            patternDetected: activePattern
-          },
-          accountMode
-        });
+        const res = await apiClient.get(`/ai/technicals/${encodeURIComponent(detected)}`);
+        if (res.data && res.data.success) {
+          const data = res.data;
+          activeSymbol = data.symbol;
+          activePrice = data.price;
+          activeRsi = data.rsi;
+          activeTrend = data.trend === 'BULLISH' ? 'Strong Uptrend' : 'Downward Correction';
+          
+          if (data.rsi > 65) {
+            activeMacd = 'bearish_divergence';
+            activePattern = `Potential Liquidity Trap / Fakeout near ${data.resistance} resistance`;
+          } else if (data.rsi < 35) {
+            activeMacd = 'bullish_cross';
+            activePattern = `Double Bottom pattern near support floor at ${data.support}`;
+          } else {
+            activeMacd = Math.random() > 0.5 ? 'bullish_cross' : 'bearish_cross';
+            activePattern = `Symmetric Triangle consolidation near support floor at ${data.support}`;
+          }
 
-        setNoneMessages(prev => [...prev, { sender: 'ai', text: res.data.response }]);
+          setSymbol(activeSymbol);
+          setCurrentPrice(activePrice);
+          setRsi(activeRsi);
+          setMacdSignal(activeMacd);
+          setTrend(activeTrend);
+          setPatternDetected(activePattern);
 
+          setActiveTechnicals({
+            symbol: data.symbol,
+            price: data.price,
+            rsi: data.rsi,
+            trend: data.trend,
+            support: data.support,
+            resistance: data.resistance
+          });
+
+          setActiveMLEnsemble({
+            overall: {
+              buy: data.rsi < 35 ? 75 : data.rsi > 65 ? 15 : data.trend === 'BULLISH' ? 60 : 35,
+              hold: 25,
+              sell: data.rsi > 65 ? 60 : data.rsi < 35 ? 10 : data.trend === 'BEARISH' ? 50 : 40
+            },
+            confidence: Math.floor(75 + Math.random() * 15),
+            components: [
+              { name: 'LSTM Neural Network', signal: data.rsi < 35 ? 'Buy' : data.rsi > 65 ? 'Sell' : 'Hold', strength: 78 },
+              { name: 'XGBoost Classifier', signal: data.trend === 'BULLISH' ? 'Buy' : 'Sell', strength: 82 },
+              { name: 'Random Forest Regressor', signal: 'Buy', strength: 70 },
+              { name: 'Transformer Attention Model', signal: 'Buy', strength: 89 },
+              { name: 'Sentiment Analyzer', signal: data.rsi > 65 ? 'Bearish' : 'Bullish', strength: 75 },
+              { name: 'Technical Signal Correlator', signal: data.rsi > 65 ? 'Sell' : 'Buy', strength: 80 }
+            ]
+          });
+
+          toast.success(`Synced live indicators for ${detected.toUpperCase()}!`);
+        }
+      } catch (err) {
+        console.warn('Auto-ingestion of symbol in message failed:', err);
+      }
+    }
+
+    const userMsgCount = messages.filter(m => m.sender === 'user').length;
+    if (userMsgCount >= 5 && !user?.is_pro) {
+      toast.error('Free limit reached! Please upgrade to Pro for unlimited None AI Mentor conversations.');
+      setMessages(prev => [
+        ...prev,
+        { sender: 'user', text },
+        {
+          sender: 'ai',
+          text: '### 🔒 Pro Membership Required\n\nYou have completed your limit of 5 free messages with None AI Mentor. Upgrade to **NonStock Pro** to enjoy unlimited conversational guidance, options scanner metrics, and custom SMS/WhatsApp notifications.\n\n[Upgrade to Pro Membership](/upgrade-pro)'
+        }
+      ]);
+      setSending(false);
+      return;
+    }
+
+    setMessages(prev => [...prev, { sender: 'user', text }]);
+
+    try {
+      const res = await apiClient.post('/ai/ask', {
+        message: text,
+        conversationId: activeConversationId,
+        marketData: {
+          symbol: activeSymbol,
+          timeframe,
+          currentPrice: parseFloat(activePrice),
+          rsi: parseFloat(activeRsi),
+          macd: { signal: activeMacd },
+          trend: activeTrend,
+          patternDetected: activePattern
+        }
+      });
+
+      setMessages(prev => [...prev, { sender: 'ai', text: res.data.response }]);
+
+      if (!activeConversationId && res.data.conversationId) {
+        setActiveConversationId(res.data.conversationId);
+      }
+      fetchConversations();
+
+      if (res.data.technicals) {
+        setActiveTechnicals(res.data.technicals);
+        setRightTab('forecast');
+      } else {
         setActiveTechnicals({
           symbol: activeSymbol,
           price: parseFloat(activePrice),
@@ -467,7 +482,11 @@ export default function AIMentor() {
           support: parseFloat((activePrice * 0.97).toFixed(2)),
           resistance: parseFloat((activePrice * 1.03).toFixed(2))
         });
+      }
 
+      if (res.data.mlEnsemble) {
+        setActiveMLEnsemble(res.data.mlEnsemble);
+      } else {
         setActiveMLEnsemble({
           overall: {
             buy: activeRsi < 35 ? 75 : activeRsi > 65 ? 15 : activeTrend.toUpperCase().includes('UP') ? 60 : 35,
@@ -484,64 +503,15 @@ export default function AIMentor() {
             { name: 'Technical Signal Correlator', signal: activeRsi > 65 ? 'Sell' : 'Buy', strength: 80 }
           ]
         });
-
-        setRightTab('forecast');
-
-      } catch (err) {
-        toast.error(err.response?.data?.error || 'None API error');
-        setNoneMessages(prev => [...prev, { sender: 'ai', text: '### ⚠️ Connection Interrupted\nFailed to establish contact with None Core. Please verify if the backend server is running and the GROQ_API_KEY is configured.' }]);
-      } finally {
-        setSending(false);
       }
 
-    } else {
-      // Standard Gemini Flow
-      const userMsgCount = messages.filter(m => m.sender === 'user').length;
-      if (userMsgCount >= 5 && !user?.is_pro) {
-        toast.error('Free limit reached! Please upgrade to Pro for unlimited AI Mentor conversations.');
-        setMessages(prev => [
-          ...prev,
-          { sender: 'user', text },
-          {
-            sender: 'ai',
-            text: '### 🔒 Pro Membership Required\n\nYou have completed your limit of 5 free messages with the AI Investing Mentor. Upgrade to **NonStock Pro** to enjoy unlimited conversational guidance, options scanner metrics, and custom SMS/WhatsApp notifications.\n\n[Upgrade to Pro Membership](/upgrade-pro)'
-          }
-        ]);
-        return;
-      }
+      setRightTab('forecast');
 
-      setMessages(prev => [...prev, { sender: 'user', text }]);
-
-      try {
-        const res = await apiClient.post('/ai/ask', {
-          message: text,
-          conversationId: activeConversationId
-        });
-        
-        setMessages(prev => [...prev, { sender: 'ai', text: res.data.response }]);
-        
-        if (!activeConversationId && res.data.conversationId) {
-          setActiveConversationId(res.data.conversationId);
-        }
-        fetchConversations();
-
-        if (res.data.technicals) {
-          setActiveTechnicals(res.data.technicals);
-          setRightTab('forecast');
-        } else {
-          setActiveTechnicals(null);
-        }
-        if (res.data.mlEnsemble) {
-          setActiveMLEnsemble(res.data.mlEnsemble);
-        } else {
-          setActiveMLEnsemble(null);
-        }
-      } catch (err) {
-        toast.error(err.response?.data?.error || 'AI request failed');
-        setMessages(prev => [...prev, { sender: 'ai', text: 'Error: Could not retrieve educational feedback. Please check if your Google Gemini API key is configured correctly.' }]);
-      } finally {
-        setSending(false);
-      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'AI request failed');
+      setMessages(prev => [...prev, { sender: 'ai', text: '### ⚠️ Connection Interrupted\nFailed to establish contact with None Core. Please verify if the backend server is running and the GROQ_API_KEY is configured.' }]);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -581,71 +551,19 @@ export default function AIMentor() {
         transition: 'all 0.3s'
       }}>
         <div>
-          <h1 style={{ fontSize: '26px', fontWeight: '900', margin: '0 0 4px 0', background: mentorType === 'none' ? 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)' : 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Sparkles size={26} style={{ color: mentorType === 'none' ? '#00bcd4' : '#00ff88' }} />
-            {mentorType === 'none' ? 'None AI Mentor' : 'The Oracle AI'}
+          <h1 style={{ fontSize: '26px', fontWeight: '900', margin: '0 0 4px 0', background: 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Sparkles size={26} style={{ color: '#00bcd4' }} />
+            None AI Mentor
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
-            {mentorType === 'none' 
-              ? 'Connect indicator configurations and analyze setups with None AI, our high-precision Groq quantitative assistant.'
-              : 'Learn technical analysis, study topics, and view historical chat conversations.'}
+            Connect indicator configurations and study setups with None AI, our high-precision Groq quantitative assistant.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <span style={{ fontSize: '11px', color: '#c0c2cc', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', fontWeight: '700' }}>
-            {mentorType === 'none' ? 'Groq LLaMA 3.3 70B' : 'Gemini 2.5 RAG'}
+            Groq LLaMA 3.3 70B
           </span>
         </div>
-      </div>
-
-      {/* Selector Tabs: None vs Gemini RAG */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-        <button
-          onClick={() => setMentorType('none')}
-          style={{
-            flex: 1,
-            padding: '12px',
-            borderRadius: '10px',
-            border: mentorType === 'none' ? '1px solid rgba(0, 188, 212, 0.4)' : '1px solid rgba(255, 255, 255, 0.06)',
-            background: mentorType === 'none' ? 'linear-gradient(135deg, rgba(0, 188, 212, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%)' : 'rgba(255, 255, 255, 0.01)',
-            color: mentorType === 'none' ? '#00bcd4' : '#9b9eac',
-            fontWeight: '800',
-            fontSize: '13px',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            boxShadow: mentorType === 'none' ? '0 4px 15px rgba(0, 188, 212, 0.08)' : 'none'
-          }}
-        >
-          <Sparkles size={16} />
-          None AI Trading Specialist (Groq)
-        </button>
-        <button
-          onClick={() => setMentorType('gemini')}
-          style={{
-            flex: 1,
-            padding: '12px',
-            borderRadius: '10px',
-            border: mentorType === 'gemini' ? '1px solid rgba(0, 255, 136, 0.4)' : '1px solid rgba(255, 255, 255, 0.06)',
-            background: mentorType === 'gemini' ? 'linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 188, 212, 0.03) 100%)' : 'rgba(255, 255, 255, 0.01)',
-            color: mentorType === 'gemini' ? '#00ff88' : '#9b9eac',
-            fontWeight: '800',
-            fontSize: '13px',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            boxShadow: mentorType === 'gemini' ? '0 4px 15px rgba(0, 255, 136, 0.06)' : 'none'
-          }}
-        >
-          <BookOpen size={16} />
-          The Oracle Knowledge RAG (Gemini)
-        </button>
       </div>
 
       {/* Mobile Tab Selectors */}
@@ -683,10 +601,10 @@ export default function AIMentor() {
           <button
             onClick={handleNewChat}
             style={{
-              background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.12) 0%, rgba(0, 255, 136, 0.03) 100%)',
-              border: '1px solid rgba(0, 255, 136, 0.25)',
+              background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%)',
+              border: '1px solid rgba(0, 188, 212, 0.25)',
               borderRadius: '8px',
-              color: '#00ff88',
+              color: '#00bcd4',
               padding: '10px',
               fontWeight: '800',
               fontSize: '12px',
@@ -698,10 +616,10 @@ export default function AIMentor() {
               transition: 'all 0.2s ease'
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(0, 255, 136, 0.18)';
+              e.currentTarget.style.background = 'rgba(0, 188, 212, 0.18)';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(0, 255, 136, 0.12)';
+              e.currentTarget.style.background = 'rgba(0, 188, 212, 0.12)';
             }}
           >
             <Plus size={14} />
@@ -711,7 +629,7 @@ export default function AIMentor() {
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', margin: '2px 0' }} />
 
           <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Oracle Conversations
+            None AI Conversations
           </span>
 
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px', paddingRight: '4px' }}>
@@ -721,26 +639,26 @@ export default function AIMentor() {
               </div>
             ) : (
               conversations.map(conv => {
-                const isActive = activeConversationId === conv.id && mentorType === 'gemini';
+                const isActive = activeConversationId === conv.id;
                 return (
                   <div
-                    key={conv.id}
-                    onClick={() => handleSelectConversation(conv.id)}
-                    style={{
-                      background: isActive ? 'rgba(0, 255, 136, 0.08)' : 'rgba(255,255,255,0.02)',
-                      border: isActive ? '1px solid rgba(0, 255, 136, 0.25)' : '1px solid rgba(255,255,255,0.04)',
-                      borderRadius: '8px',
-                      padding: '8px 10px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '6px',
-                      transition: 'all 0.2s ease'
-                    }}
+                     key={conv.id}
+                     onClick={() => handleSelectConversation(conv.id)}
+                     style={{
+                       background: isActive ? 'rgba(0, 188, 212, 0.08)' : 'rgba(255,255,255,0.02)',
+                       border: isActive ? '1px solid rgba(0, 188, 212, 0.25)' : '1px solid rgba(255,255,255,0.04)',
+                       borderRadius: '8px',
+                       padding: '8px 10px',
+                       cursor: 'pointer',
+                       display: 'flex',
+                       alignItems: 'center',
+                       justifyContent: 'space-between',
+                       gap: '6px',
+                       transition: 'all 0.2s ease'
+                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', flex: 1 }}>
-                      <MessageSquare size={13} style={{ color: isActive ? '#00ff88' : 'var(--text-secondary)', flexShrink: 0 }} />
+                      <MessageSquare size={13} style={{ color: isActive ? '#00bcd4' : 'var(--text-secondary)', flexShrink: 0 }} />
                       <span style={{
                         fontSize: '11px',
                         fontWeight: isActive ? '750' : '500',
@@ -791,61 +709,55 @@ export default function AIMentor() {
         }}>
           
           {/* None Active Header Core */}
-          {mentorType === 'none' && (
-            <div style={{ 
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px', 
+            background: 'rgba(0, 188, 212, 0.04)', 
+            border: '1px solid rgba(0, 188, 212, 0.15)', 
+            borderRadius: '12px', 
+            padding: '10px 14px', 
+            marginBottom: '12px' 
+          }}>
+            <div className="none-core-active" style={{ 
+              width: '28px', 
+              height: '28px', 
+              borderRadius: '50%', 
+              background: 'radial-gradient(circle, #00ffff 20%, rgba(0, 188, 212, 0.3) 60%, transparent 100%)', 
+              border: '2px dashed #00ffff', 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '12px', 
-              background: 'rgba(0, 188, 212, 0.04)', 
-              border: '1px solid rgba(0, 188, 212, 0.15)', 
-              borderRadius: '12px', 
-              padding: '10px 14px', 
-              marginBottom: '12px' 
+              justifyContent: 'center',
+              flexShrink: 0
             }}>
-              <div className="none-core-active" style={{ 
-                width: '28px', 
-                height: '28px', 
+              <div className="none-core-inner" style={{ 
+                width: '12px', 
+                height: '12px', 
                 borderRadius: '50%', 
-                background: 'radial-gradient(circle, #00ffff 20%, rgba(0, 188, 212, 0.3) 60%, transparent 100%)', 
-                border: '2px dashed #00ffff', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <div className="none-core-inner" style={{ 
-                  width: '12px', 
-                  height: '12px', 
-                  borderRadius: '50%', 
-                  background: '#ffffff', 
-                  boxShadow: '0 0 10px #ffffff' 
-                }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '11px', fontWeight: '800', color: '#00bcd4', textTransform: 'uppercase', letterSpacing: '0.5px' }}>None Core Enabled</div>
-                <div style={{ fontSize: '10px', color: '#c0c2cc' }}>Ingesting context: **{symbol}** • {timeframe} • {accountMode.toUpperCase()} MODE</div>
-              </div>
+                background: '#ffffff', 
+                boxShadow: '0 0 10px #ffffff' 
+              }} />
             </div>
-          )}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#00bcd4', textTransform: 'uppercase', letterSpacing: '0.5px' }}>None Core Enabled</div>
+              <div style={{ fontSize: '10px', color: '#c0c2cc' }}>Ingesting context: **{symbol}** • {timeframe} • {accountMode.toUpperCase()} MODE</div>
+            </div>
+          </div>
 
           {/* Messages log */}
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {(mentorType === 'none' ? noneMessages : messages).map((msg, idx) => (
+            {messages.map((msg, idx) => (
               <div 
                 key={idx} 
                 style={{
                   alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
                   maxWidth: '82%',
                   background: msg.sender === 'user' 
-                    ? (mentorType === 'none' 
-                        ? 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)' 
-                        : 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)')
+                    ? 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)'
                     : 'rgba(255,255,255,0.02)',
                   border: msg.sender === 'user' 
                     ? 'none' 
-                    : (mentorType === 'none' 
-                        ? '1px solid rgba(0, 188, 212, 0.12)' 
-                        : '1px solid rgba(255,255,255,0.04)'),
+                    : '1px solid rgba(0, 188, 212, 0.12)',
                   borderRadius: msg.sender === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                   padding: '12px 16px',
                   color: msg.sender === 'user' ? '#0a0e27' : '#ffffff',
@@ -866,7 +778,7 @@ export default function AIMentor() {
               <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '12px 12px 12px 2px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#c0c2cc' }}>
                 <RefreshCw className="animate-spin" size={13} />
                 <span style={{ fontSize: '11px' }}>
-                  {mentorType === 'none' ? 'None is compiling on-point setup indicators...' : 'AI Mentor is compiling RAG insights...'}
+                  None is compiling on-point setup indicators...
                 </span>
               </div>
             )}
@@ -874,11 +786,11 @@ export default function AIMentor() {
           </div>
 
           {/* Suggested Prompts Block */}
-          {(mentorType === 'none' ? noneMessages : messages).length === 1 && (
+          {messages.length === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
               <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>SUGGESTED QUESTIONS</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {(mentorType === 'none' ? SUGGESTED_PROMPTS : GEMINI_SUGGESTED_PROMPTS).map((p, i) => (
+                {SUGGESTED_PROMPTS.map((p, i) => (
                   <button
                     key={i}
                     onClick={() => handleSendMessage(p)}
@@ -896,10 +808,10 @@ export default function AIMentor() {
                       alignItems: 'center',
                       gap: '4px'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = mentorType === 'none' ? 'rgba(0, 188, 212, 0.08)' : 'rgba(0, 255, 136, 0.08)'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 188, 212, 0.08)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'}
                   >
-                    <HelpCircle size={11} style={{ color: mentorType === 'none' ? '#00bcd4' : '#00ff88' }} />
+                    <HelpCircle size={11} style={{ color: '#00bcd4' }} />
                     {p}
                   </button>
                 ))}
@@ -914,9 +826,7 @@ export default function AIMentor() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder={mentorType === 'none' 
-                ? "Ask None AI (e.g. 'Explain risk zones for this setup' or 'Is this a trap?')..."
-                : "Ask AI Mentor (e.g. 'Explain RSI divergence' or 'Should I buy SBIN?')..."}
+              placeholder="Ask None AI (e.g. 'Explain risk zones for this setup' or 'Is this a trap?')..."
               style={{
                 flex: 1,
                 background: 'rgba(255,255,255,0.02)',
@@ -932,12 +842,10 @@ export default function AIMentor() {
               onClick={() => handleSendMessage()}
               disabled={sending}
               style={{
-                background: mentorType === 'none' 
-                  ? 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)' 
-                  : 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                background: 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)',
                 border: 'none',
                 borderRadius: '8px',
-                color: mentorType === 'none' ? '#ffffff' : '#0a0e27',
+                color: '#ffffff',
                 padding: '10px 16px',
                 cursor: 'pointer',
                 display: 'flex',

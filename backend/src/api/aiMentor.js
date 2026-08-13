@@ -512,7 +512,7 @@ router.delete('/conversations/:id', authenticate, async (req, res) => {
 // ─── POST /ask ────────────────────────────────────────────────────────────────
 router.post('/ask', authenticate, async (req, res) => {
   try {
-    const { message, conversationId } = req.body;
+    const { message, conversationId, marketData } = req.body;
     if (!message) return res.status(400).json({ error: 'Message query is required' });
 
     let activeConversationId = conversationId;
@@ -550,11 +550,21 @@ router.post('/ask', authenticate, async (req, res) => {
     );
 
     // Detect symbol & fetch live Yahoo Finance technicals
-    const detectedSymbol = extractSymbol(message);
+    const detectedSymbol = extractSymbol(message) || (marketData && marketData.symbol);
     let techContext = '';
     let technicals  = null;
 
-    if (detectedSymbol) {
+    if (marketData && marketData.symbol) {
+      technicals = {
+        symbol:     marketData.symbol,
+        price:      parseFloat(marketData.currentPrice),
+        rsi:        parseFloat(marketData.rsi),
+        macd:       marketData.macd,
+        trend:      marketData.trend,
+        patternDetected: marketData.patternDetected
+      };
+      techContext = `[SIMULATED: ${marketData.symbol}] Price ₹${marketData.currentPrice}, RSI ${marketData.rsi}, MACD ${marketData.macd?.signal || 'N/A'}, Trend ${marketData.trend}, Pattern: ${marketData.patternDetected}`;
+    } else if (detectedSymbol) {
       let sym = detectedSymbol;
       if (!sym.endsWith('.NS') && !sym.includes('-USD') && !sym.includes('^')) {
         sym = detectedSymbol === 'BTC' ? 'BTC-USD'
@@ -641,8 +651,10 @@ router.post('/ask', authenticate, async (req, res) => {
         `\n\nWhen answering, verify terms and concepts against this retrieved context. Refer to these specific strategies or risk parameters to explain clearly.`;
     }
 
-    if (!GEMINI_API_KEY) {
-      console.log('[AI Mentor] No Gemini key — sandbox mode');
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+
+    if (!GROQ_API_KEY) {
+      console.log('[AI Mentor] No Groq key — sandbox mode');
       const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
       return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
     }
@@ -650,40 +662,47 @@ router.post('/ask', authenticate, async (req, res) => {
     try {
       let systemInstructionText = '';
       if (isPro) {
-        systemInstructionText = `You are the premium "NonStock Pro AI Mentor", a world-class macroeconomic analyst, elite technical analyst, and expert quantitative trader.
-Your goal is to provide advanced technical analysis, option pricing insights, indicator calculations, and help users design risk-managed trading setups.
+        systemInstructionText = `You are "None", an elite, institutional-grade AI Trading Mentor and Quantitative Specialist on the NonStock trading platform.
+Your purpose is to analyze the user's trading query or action in the context of live market conditions, indicators, patterns, and traps, and provide a deep, educational, and structured breakdown.
+
+User Account Mode: Professional
 
 Response Format Guidelines:
 - Use standard markdown headers starting with "###" for sections and "##" for major topics.
-- Use bullet points starting with "-" for lists.
-- Use bold text (surrounded by "**") to highlight key terms.
-- Avoid using code blocks (e.g., \`\`\`), tables, or HTML in your response as the custom parser in the frontend is optimized for headers, bold text, and lists.
-- At the end of your response, always append: "**Disclaimer: NOT financial advice. Provided exclusively for NonStock Pro members for educational and quantitative analysis purposes.**"
+- Use bullet points for lists.
+- Highlight key terms in **bold**.
+- Keep sections clean: e.g. "### 🔍 Market Analysis", "### 📊 Pattern & Indicator Ingest", "### 🛡️ Risk Playbook & Invalidation Zones", "### 💡 Educational Key Takeaways".
+- Keep it Concise: Ensure your response is perfectly on-point, clear, and direct. Avoid excessively long essays. Target between 200 to 300 words. Focus only on high-value insights.
+- Always end with this exact disclaimer: "**Disclaimer: NOT financial advice. Provided exclusively for NonStock Pro members for educational and quantitative analysis purposes.**"
 
 Behavior Guidelines:
 - Adopt the persona of a world-known economic analyst and expert trader. Think critically about macroeconomic factors, monetary policy, and market sentiment.
 - When answering conditional questions (e.g., "what if X happens to the future of Y"), frame your analysis through safe-haven assets, capital reallocation, and volatility frameworks.
-- Offer professional-tier market analysis, incorporating institutional concepts like volatility, mean reversion, and multi-timeframe breakouts.
+- Offer professional-tier market analysis, incorporating institutional concepts like volatility, mean reversion, order blocks, and multi-timeframe breakouts.
 - If the user asks about specific stocks or indicators, check if live market data context is provided. If it is, incorporate it into your explanation of the stock's trend, RSI, support/resistance, and volume.
 - Keep your answers educational. Do NOT give direct BUY, SELL, or HOLD recommendations. Always frame insights as technical assessments and educational analysis.
 - Maintain context of the conversation. Learn from previous questions and answers in the chat history to provide intelligent follow-up responses and connect concepts.
 
 ${ragContext}`;
       } else {
-        systemInstructionText = `You are the "NonStock AI Mentor", a world-class macroeconomic analyst, premium technical analyst, and experienced trader helping beginner investors.
-Your goal is to explain financial concepts clearly, guide users through technical analysis indicators, and help them understand stock trends.
+        systemInstructionText = `You are "None", an elite, institutional-grade AI Trading Mentor and Quantitative Specialist on the NonStock trading platform.
+Your purpose is to analyze the user's trading query or action in the context of live market conditions, indicators, patterns, and traps, and provide a deep, educational, and structured breakdown.
+
+User Account Mode: Learner / Novice
 
 Response Format Guidelines:
-- Use standard markdown headers starting with "###" for sections (e.g., "### What is RSI?") and "##" for major topics. These headers will be formatted with custom colors in the UI.
-- Use bullet points starting with "-" for lists.
-- Use bold text (surrounded by "**") to highlight key terms.
-- Avoid using code blocks (e.g., \`\`\`), tables, or HTML in your response as the custom parser in the frontend is optimized for headers, bold text, and lists.
-- At the end of your response, always append: "**Disclaimer: NOT financial advice. This analysis is for educational purposes only.**"
+- Use standard markdown headers starting with "###" for sections (e.g., "### What is RSI?") and "##" for major topics.
+- Use bullet points for lists.
+- Highlight key terms in **bold**.
+- Keep sections clean: e.g. "### 🔍 Market Analysis", "### 📊 Pattern & Indicator Ingest", "### 🛡️ Risk Playbook & Invalidation Zones", "### 💡 Educational Key Takeaways".
+- Keep it Concise: Ensure your response is perfectly on-point, clear, and direct. Avoid excessively long essays. Target between 200 to 300 words. Focus only on high-value insights.
+- Always end with this exact disclaimer: "**Disclaimer: NOT financial advice. This analysis is for educational and simulation purposes only.**"
 
 Behavior Guidelines:
 - Adopt the persona of a world-known economic analyst and expert trader. Think critically about macroeconomic factors, monetary policy, and market sentiment.
 - Explain financial concepts with clear, simple language and Indian examples if helpful (like tea shops, local businesses, Nifty 50, Reliance).
 - When answering conditional questions (e.g., "what if X happens to the future of Y"), frame your analysis through safe-haven assets, capital reallocation, and volatility frameworks.
+- Explain technical jargon clearly (e.g. what RSI or MACD signifies under the hood) with clear, everyday analogies (like supply/demand dynamics of a local shop).
 - If the user asks about specific stocks or indicators, check if live market data context is provided. If it is, incorporate it into your explanation of the stock's trend, RSI, support/resistance, and volume.
 - Keep your answers educational. Do NOT give direct BUY, SELL, or HOLD recommendations. Always frame insights as technical assessments and educational analysis.
 - Maintain context of the conversation. Learn from previous questions and answers in the chat history to provide intelligent follow-up responses and connect concepts.
@@ -691,65 +710,62 @@ Behavior Guidelines:
 ${ragContext}`;
       }
 
-      const contents = [];
+      const groqMessages = [
+        { role: 'system', content: systemInstructionText }
+      ];
+
       if (dbHistory.rows.length > 0) {
         dbHistory.rows.forEach((item) => {
-          // sender maps to either 'user' or 'model' (Gemini expects user/model)
-          const role = item.sender === 'user' ? 'user' : 'model';
+          const role = item.sender === 'user' ? 'user' : 'assistant';
           
-          // Skip leading model messages to guarantee starting with 'user'
-          if (contents.length === 0 && role === 'model') return;
-          
-          // Avoid consecutive duplicates
-          if (contents.length > 0 && contents[contents.length - 1].role === role) return;
+          if (groqMessages.length === 1 && role === 'assistant') return;
+          if (groqMessages.length > 1 && groqMessages[groqMessages.length - 1].role === role) return;
 
-          contents.push({
+          groqMessages.push({
             role: role,
-            parts: [{ text: item.text }]
+            content: item.text
           });
         });
       }
 
-      // Inject live market data context into the last query if available
       const currentPromptText = techContext
         ? `[Live market data context: ${techContext}]\nUser query: ${message}`
         : message;
 
-      // Ensure the last part has the live context injected
-      if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
-        contents[contents.length - 1].parts[0].text = currentPromptText;
+      if (groqMessages.length > 1 && groqMessages[groqMessages.length - 1].role === 'user') {
+        groqMessages[groqMessages.length - 1].content = currentPromptText;
       } else {
-        contents.push({
+        groqMessages.push({
           role: 'user',
-          parts: [{ text: currentPromptText }]
+          content: currentPromptText
         });
       }
 
-      const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: systemInstructionText }]
-            },
-            contents: contents
-          })
-        }
-      );
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: groqMessages,
+          temperature: 0.3,
+          max_tokens: 800
+        })
+      });
 
-      if (!geminiRes.ok) {
-        const body = await geminiRes.text();
-        console.warn(`[AI Mentor] Gemini ${geminiRes.status} — sandbox fallback. ${body.substring(0, 150)}`);
+      if (!response.ok) {
+        const body = await response.text();
+        console.warn(`[AI Mentor] Groq ${response.status} — sandbox fallback. ${body.substring(0, 150)}`);
         const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
         return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
       }
 
-      const data = await geminiRes.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const data = await response.json();
+      const text = data?.choices?.[0]?.message?.content;
       if (!text) {
-        console.warn('[AI Mentor] Gemini empty response — sandbox fallback');
+        console.warn('[AI Mentor] Groq empty response — sandbox fallback');
         const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
         return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
       }
@@ -757,8 +773,8 @@ ${ragContext}`;
       const mlObj = detectedSymbol ? getMLEnsemble(detectedSymbol) : null;
       return await finalizeAndSave(text, technicals, mlObj);
 
-    } catch (geminiErr) {
-      console.warn('[AI Mentor] Gemini exception — sandbox fallback:', geminiErr.message);
+    } catch (groqErr) {
+      console.warn('[AI Mentor] Groq exception — sandbox fallback:', groqErr.message);
       const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
       return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble);
     }
