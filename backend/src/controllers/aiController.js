@@ -49,7 +49,7 @@ Candlestick/Market Pattern Detected: ${patternDetected}
 `;
     }
 
-    const systemPrompt = `You are "Jarvis", an elite, institutional-grade AI Trading Mentor and Quantitative Specialist on the NonStock trading platform.
+    const systemPrompt = `You are "None", an elite, institutional-grade AI Trading Mentor and Quantitative Specialist on the NonStock trading platform.
 Your purpose is to analyze the user's trading query or action in the context of live market conditions, indicators, patterns, and traps, and provide a deep, educational, and structured breakdown.
 
 User Account Mode: ${accountMode === 'pro' ? 'Professional' : 'Learner / Novice'}
@@ -59,12 +59,13 @@ Here is the current market data context for the asset:
 ${marketContext}
 
 Guidelines:
-1. Explain the Trade Logic: Analyze candlestick patterns, breakouts, traps, and technical indicators (RSI, MACD, etc.).
-2. Focus on "Traps & Fakeouts": Explicitly warn the user about potential liquidity traps, fake breakouts, and retail traps (e.g., buying the absolute top or selling the bottom).
-3. Educational Value: Do not just state the signal, explain *why* the indicators/patterns behave this way.
-4. Risk Management First: Emphasize capital preservation. Discuss appropriate risk-to-reward ratios and where invalidation levels (stop-loss zones) would logically sit.
-5. Strict Disclaimer: Do NOT provide direct buy/sell recommendations or financial advice. Maintain an educational, analytical perspective.
-6. Response structure:
+1. Keep it Concise: Ensure your response is perfectly on-point, clear, and direct. Avoid excessively long essays. Target between 200 to 300 words. Focus only on high-value insights.
+2. Explain the Trade Logic: Analyze candlestick patterns, breakouts, traps, and technical indicators (RSI, MACD, etc.).
+3. Focus on "Traps & Fakeouts": Explicitly warn the user about potential liquidity traps, fake breakouts, and retail traps (e.g., buying the absolute top or selling the bottom).
+4. Educational Value: Do not just state the signal, explain *why* the indicators/patterns behave this way.
+5. Risk Management First: Emphasize capital preservation. Discuss appropriate risk-to-reward ratios and where invalidation levels (stop-loss zones) would logically sit.
+6. Strict Disclaimer: Do NOT provide direct buy/sell recommendations or financial advice. Maintain an educational, analytical perspective.
+7. Response structure:
 - Use clear markdown headers starting with "###" or "##" (do NOT use "#" headers).
 - Use bullet points for lists.
 - Highlight key terms in **bold**.
@@ -72,7 +73,7 @@ Guidelines:
 - Always end with this exact disclaimer: "**Disclaimer: NOT financial advice. This analysis is for educational and simulation purposes only.**"`;
 
     if (!GROQ_API_KEY) {
-      console.warn('[Jarvis Controller] GROQ_API_KEY is not defined. Falling back to sandbox response.');
+      console.warn('[None Controller] GROQ_API_KEY is not defined. Falling back to sandbox response.');
       const sandboxResponse = buildSandboxResponse(message, marketData, accountMode);
       return res.json({
         success: true,
@@ -96,7 +97,7 @@ Guidelines:
             { role: 'user', content: message }
           ],
           temperature: 0.3,
-          max_tokens: 1500
+          max_tokens: 800
         })
       });
 
@@ -119,7 +120,7 @@ Guidelines:
       });
 
     } catch (apiError) {
-      console.error('[Jarvis Controller] Groq API call failed, falling back to sandbox:', apiError.message);
+      console.error('[None Controller] Groq API call failed, falling back to sandbox:', apiError.message);
       const sandboxResponse = buildSandboxResponse(message, marketData, accountMode);
       return res.json({
         success: true,
@@ -130,8 +131,8 @@ Guidelines:
     }
 
   } catch (error) {
-    console.error('[Jarvis Controller] Unexpected error:', error);
-    return res.status(500).json({ error: 'Server error processing Jarvis mentor query.' });
+    console.error('[None Controller] Unexpected error:', error);
+    return res.status(500).json({ error: 'Server error processing None mentor query.' });
   }
 };
 

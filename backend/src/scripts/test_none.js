@@ -8,18 +8,18 @@ const PORT = process.env.PORT || 3000;
 const API_URL = `http://localhost:${PORT}/api/ai/mentor`;
 
 async function runVerification() {
-  console.log('🏁 Starting Jarvis AI Mentor programmatic verification...\n');
+  console.log('🏁 Starting None AI Mentor programmatic verification...\n');
 
   // 1. Create a mock user and session in db
-  const userId = 'usr_test_jarvis_' + crypto.randomBytes(4).toString('hex');
-  const userEmail = `jarvis_test_${userId}@test.com`;
-  const sessionId = 'sess_test_jarvis_' + crypto.randomBytes(4).toString('hex');
+  const userId = 'usr_test_none_' + crypto.randomBytes(4).toString('hex');
+  const userEmail = `none_test_${userId}@test.com`;
+  const sessionId = 'sess_test_none_' + crypto.randomBytes(4).toString('hex');
 
   try {
     await query(
       `INSERT INTO users (id, name, email, password) 
        VALUES ($1, $2, $3, $4)`,
-      [userId, 'Jarvis Validator', userEmail, 'password123']
+      [userId, 'None Validator', userEmail, 'password123']
     );
 
     await query(
@@ -36,7 +36,7 @@ async function runVerification() {
 
   // Sign JWT matching database records
   const testToken = jwt.sign(
-    { id: userId, sessionId: sessionId, name: 'Jarvis Validator' },
+    { id: userId, sessionId: sessionId, name: 'None Validator' },
     JWT_SECRET
   );
 
@@ -96,7 +96,7 @@ async function runVerification() {
       if (response.ok && data.success) {
         console.log(`✅ Success! Response returned by: ${data.model}`);
         if (data.warning) console.warn(`⚠️ Warning: ${data.warning}`);
-        console.log(`\n--- Jarvis Response Snippet ---`);
+        console.log(`\n--- None Response Snippet ---`);
         console.log(data.response.substring(0, 600) + '\n...');
       } else {
         console.error(`❌ Failed:`, data);

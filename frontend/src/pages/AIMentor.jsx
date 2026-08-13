@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { 
-  Send, Sparkles, MessageSquare, AlertTriangle, Play, HelpCircle, 
-  TrendingUp, TrendingDown, RefreshCw, BarChart2, ShieldAlert,
+  Send, Sparkles, MessageSquare, HelpCircle, 
+  TrendingUp, TrendingDown, RefreshCw, BarChart2,
   Plus, Trash2, BookOpen, ChevronDown, ChevronUp, Sliders, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -75,10 +75,13 @@ function parseBoldText(text) {
 
 export default function AIMentor() {
   const { user } = useAuth();
-  const [mentorType, setMentorType] = useState('jarvis'); // 'jarvis' or 'gemini'
+  const [mentorType, setMentorType] = useState('none'); // 'none' (Groq) or 'gemini' (RAG)
   const [accountMode, setAccountMode] = useState('learner'); // 'learner' or 'pro'
 
-  // Market Data States for Jarvis Ingestion
+  // Right sidebar tab selector: 'simulator', 'forecast', or 'library'
+  const [rightTab, setRightTab] = useState('simulator');
+
+  // Market Data States for None Ingestion
   const [symbol, setSymbol] = useState('AAPL');
   const [timeframe, setTimeframe] = useState('15m');
   const [currentPrice, setCurrentPrice] = useState(185.50);
@@ -95,11 +98,11 @@ export default function AIMentor() {
     }
   ]);
 
-  // Jarvis state (kept local for instant sandbox playground testing)
-  const [jarvisMessages, setJarvisMessages] = useState([
+  // None state (kept local for instant sandbox playground testing)
+  const [noneMessages, setNoneMessages] = useState([
     {
       sender: 'ai',
-      text: '### 🌐 Jarvis Core Initialized\nHello! I am **Jarvis**, your temporary AI Trading Mentor. Powered by LLaMA 3.3 (70B) via Groq API.\n\nUse the **Ingestion Controls** on the left to customize simulated chart conditions. Toggle between **Learner Mode** and **Pro Mode** to change how I explain concepts. Ask me to identify retail traps, plan risk invalidation zones, or evaluate candlestick patterns!'
+      text: '### 🌐 None Core Initialized\nHello! I am **None**, your temporary AI Trading Mentor. Powered by LLaMA 3.3 (70B) via Groq API.\n\nUse the **Simulation Hub** on the right side of the screen to customize simulated chart conditions. Toggle between **Learner Mode** and **Pro Mode** to change how I explain concepts. Ask me to identify retail traps, plan risk invalidation zones, or evaluate candlestick patterns!'
     }
   ]);
 
@@ -117,7 +120,7 @@ export default function AIMentor() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [mobileTab, setMobileTab] = useState('chat');
 
-  // Jarvis presets
+  // Scenario presets
   const presets = {
     trap: {
       symbol: 'RELIANCE',
@@ -204,7 +207,7 @@ export default function AIMentor() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, jarvisMessages, mentorType]);
+  }, [messages, noneMessages, mentorType]);
 
   const handleNewChat = () => {
     setActiveConversationId(null);
@@ -263,9 +266,9 @@ export default function AIMentor() {
     if (!textToSend) setInputText('');
     setSending(true);
 
-    if (mentorType === 'jarvis') {
-      // Append user message local to Jarvis
-      setJarvisMessages(prev => [...prev, { sender: 'user', text }]);
+    if (mentorType === 'none') {
+      // Append user message local to None
+      setNoneMessages(prev => [...prev, { sender: 'user', text }]);
 
       try {
         const res = await apiClient.post('/ai/mentor', {
@@ -282,9 +285,9 @@ export default function AIMentor() {
           accountMode
         });
 
-        setJarvisMessages(prev => [...prev, { sender: 'ai', text: res.data.response }]);
+        setNoneMessages(prev => [...prev, { sender: 'ai', text: res.data.response }]);
 
-        // Dynamically update the Right Sidebar technical widgets to match Jarvis's ingestion context!
+        // Dynamically update the Right Sidebar technical widgets to match None's ingestion context!
         setActiveTechnicals({
           symbol,
           price: parseFloat(currentPrice),
@@ -294,7 +297,7 @@ export default function AIMentor() {
           resistance: parseFloat((currentPrice * 1.03).toFixed(2))
         });
 
-        // Simulate an ML Ensemble forecast aligned with Jarvis's custom metrics
+        // Simulate an ML Ensemble forecast aligned with None's custom metrics
         setActiveMLEnsemble({
           overall: {
             buy: rsi < 35 ? 75 : rsi > 65 ? 15 : trend.toUpperCase().includes('UP') ? 60 : 35,
@@ -312,16 +315,18 @@ export default function AIMentor() {
           ]
         });
 
+        // Auto-switch right tab to 'forecast' to display the results dynamically
+        setRightTab('forecast');
+
       } catch (err) {
-        toast.error(err.response?.data?.error || 'Jarvis API error');
-        setJarvisMessages(prev => [...prev, { sender: 'ai', text: '### ⚠️ Connection Interrupted\nFailed to establish contact with Jarvis Core. Please verify if the backend server is running and the GROQ_API_KEY is configured.' }]);
+        toast.error(err.response?.data?.error || 'None API error');
+        setNoneMessages(prev => [...prev, { sender: 'ai', text: '### ⚠️ Connection Interrupted\nFailed to establish contact with None Core. Please verify if the backend server is running and the GROQ_API_KEY is configured.' }]);
       } finally {
         setSending(false);
       }
 
     } else {
       // Standard Gemini Flow
-      // Check message quota for non-Pro users
       const userMsgCount = messages.filter(m => m.sender === 'user').length;
       if (userMsgCount >= 5 && !user?.is_pro) {
         toast.error('Free limit reached! Please upgrade to Pro for unlimited AI Mentor conversations.');
@@ -353,6 +358,7 @@ export default function AIMentor() {
 
         if (res.data.technicals) {
           setActiveTechnicals(res.data.technicals);
+          setRightTab('forecast');
         } else {
           setActiveTechnicals(null);
         }
@@ -376,17 +382,17 @@ export default function AIMentor() {
       {/* CSS Animation Injector */}
       <style>{`
         @keyframes pulse-core {
-          0% { transform: scale(0.95); filter: drop-shadow(0 0 8px rgba(0, 188, 212, 0.5)); }
-          100% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(0, 188, 212, 0.95)); }
+          0% { transform: scale(0.95); filter: drop-shadow(0 0 8px rgba(0, 188, 212, 0.4)); }
+          100% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(0, 188, 212, 0.85)); }
         }
         @keyframes spin-core {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-        .jarvis-core-active {
+        .none-core-active {
           animation: pulse-core 1.5s infinite alternate ease-in-out;
         }
-        .jarvis-core-inner {
+        .none-core-inner {
           animation: spin-core 10s infinite linear;
         }
       `}</style>
@@ -394,10 +400,10 @@ export default function AIMentor() {
       {/* Top Title Banner */}
       <div style={{
         background: 'linear-gradient(135deg, rgba(16, 20, 39, 0.6) 0%, rgba(22, 28, 59, 0.4) 100%)',
-        border: mentorType === 'jarvis' ? '1px solid rgba(0, 188, 212, 0.25)' : '1px solid rgba(0, 255, 136, 0.15)',
+        border: mentorType === 'none' ? '1px solid rgba(0, 188, 212, 0.25)' : '1px solid rgba(0, 255, 136, 0.15)',
         borderRadius: '16px',
-        padding: '24px',
-        marginBottom: '24px',
+        padding: '20px 24px',
+        marginBottom: '20px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -406,34 +412,34 @@ export default function AIMentor() {
         transition: 'all 0.3s'
       }}>
         <div>
-          <h1 style={{ fontSize: '28px', fontWeight: '900', margin: '0 0 6px 0', background: mentorType === 'jarvis' ? 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)' : 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Sparkles size={28} style={{ color: mentorType === 'jarvis' ? '#00bcd4' : '#00ff88' }} />
-            {mentorType === 'jarvis' ? 'Jarvis AI Trading Mentor' : 'The Oracle AI'}
+          <h1 style={{ fontSize: '26px', fontWeight: '900', margin: '0 0 4px 0', background: mentorType === 'none' ? 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)' : 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Sparkles size={26} style={{ color: mentorType === 'none' ? '#00bcd4' : '#00ff88' }} />
+            {mentorType === 'none' ? 'None AI Mentor' : 'The Oracle AI'}
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
-            {mentorType === 'jarvis' 
-              ? 'Inject custom indicator metrics, breakouts, or liquidity traps on the fly and study setups with Jarvis.'
-              : 'Learn technical analysis, request stock details, and study financial concepts interactively with your RAG mentor.'}
+            {mentorType === 'none' 
+              ? 'Connect indicator configurations and analyze setups with None AI, our high-precision Groq quantitative assistant.'
+              : 'Learn technical analysis, study topics, and view historical chat conversations.'}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', color: '#c0c2cc', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)' }}>
-            {mentorType === 'jarvis' ? 'Groq LLaMA 3.3 70B' : 'Gemini 2.5 Flash'}
+          <span style={{ fontSize: '11px', color: '#c0c2cc', background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', fontWeight: '700' }}>
+            {mentorType === 'none' ? 'Groq LLaMA 3.3 70B' : 'Gemini 2.5 RAG'}
           </span>
         </div>
       </div>
 
-      {/* Selector Tabs: Jarvis vs Gemini RAG */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+      {/* Selector Tabs: None vs Gemini RAG */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
         <button
-          onClick={() => setMentorType('jarvis')}
+          onClick={() => setMentorType('none')}
           style={{
             flex: 1,
-            padding: '14px',
-            borderRadius: '12px',
-            border: mentorType === 'jarvis' ? '1px solid rgba(0, 188, 212, 0.4)' : '1px solid rgba(255, 255, 255, 0.06)',
-            background: mentorType === 'jarvis' ? 'linear-gradient(135deg, rgba(0, 188, 212, 0.15) 0%, rgba(168, 85, 247, 0.05) 100%)' : 'rgba(255, 255, 255, 0.02)',
-            color: mentorType === 'jarvis' ? '#00bcd4' : '#9b9eac',
+            padding: '12px',
+            borderRadius: '10px',
+            border: mentorType === 'none' ? '1px solid rgba(0, 188, 212, 0.4)' : '1px solid rgba(255, 255, 255, 0.06)',
+            background: mentorType === 'none' ? 'linear-gradient(135deg, rgba(0, 188, 212, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%)' : 'rgba(255, 255, 255, 0.01)',
+            color: mentorType === 'none' ? '#00bcd4' : '#9b9eac',
             fontWeight: '800',
             fontSize: '13px',
             cursor: 'pointer',
@@ -442,20 +448,20 @@ export default function AIMentor() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            boxShadow: mentorType === 'jarvis' ? '0 4px 15px rgba(0, 188, 212, 0.1)' : 'none'
+            boxShadow: mentorType === 'none' ? '0 4px 15px rgba(0, 188, 212, 0.08)' : 'none'
           }}
         >
           <Sparkles size={16} />
-          Jarvis AI Trading Specialist (Groq LLaMA 3.3)
+          None AI Trading Specialist (Groq)
         </button>
         <button
           onClick={() => setMentorType('gemini')}
           style={{
             flex: 1,
-            padding: '14px',
-            borderRadius: '12px',
+            padding: '12px',
+            borderRadius: '10px',
             border: mentorType === 'gemini' ? '1px solid rgba(0, 255, 136, 0.4)' : '1px solid rgba(255, 255, 255, 0.06)',
-            background: mentorType === 'gemini' ? 'linear-gradient(135deg, rgba(0, 255, 136, 0.12) 0%, rgba(0, 188, 212, 0.05) 100%)' : 'rgba(255, 255, 255, 0.02)',
+            background: mentorType === 'gemini' ? 'linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 188, 212, 0.03) 100%)' : 'rgba(255, 255, 255, 0.01)',
             color: mentorType === 'gemini' ? '#00ff88' : '#9b9eac',
             fontWeight: '800',
             fontSize: '13px',
@@ -465,415 +471,171 @@ export default function AIMentor() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            boxShadow: mentorType === 'gemini' ? '0 4px 15px rgba(0, 255, 136, 0.08)' : 'none'
+            boxShadow: mentorType === 'gemini' ? '0 4px 15px rgba(0, 255, 136, 0.06)' : 'none'
           }}
         >
           <BookOpen size={16} />
-          The Oracle Knowledge RAG (Gemini 2.5)
+          The Oracle Knowledge RAG (Gemini)
         </button>
       </div>
 
       {/* Mobile Tab Selectors */}
       {isMobile && (
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <button type="button" onClick={() => setMobileTab('history')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: 'pointer', background: mobileTab === 'history' ? '#10142d' : 'transparent', color: mobileTab === 'history' ? '#00bcd4' : '#9b9eac', transition: 'all 0.2s' }}>
-              {mentorType === 'jarvis' ? 'Ingest Controls' : 'History'}
+              History
             </button>
             <button type="button" onClick={() => setMobileTab('chat')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: 'pointer', background: mobileTab === 'chat' ? '#10142d' : 'transparent', color: mobileTab === 'chat' ? '#00bcd4' : '#9b9eac', transition: 'all 0.2s' }}>
               AI Chat
             </button>
             <button type="button" onClick={() => setMobileTab('technicals')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: 'pointer', background: mobileTab === 'technicals' ? '#10142d' : 'transparent', color: mobileTab === 'technicals' ? '#00bcd4' : '#9b9eac', transition: 'all 0.2s' }}>
-              Technicals
+              Analytics
             </button>
           </div>
         </div>
       )}
 
-      <div className="responsive-grid-stack" style={{ display: 'grid', gridTemplateColumns: '290px 1fr 340px', gap: '24px', alignItems: 'stretch' }}>
+      {/* Clean 3-Column Layout: Consistent History on Left, Chat Center, Combined Tab Sidebar on Right */}
+      <div className="responsive-grid-stack" style={{ display: 'grid', gridTemplateColumns: '260px 1fr 380px', gap: '20px', alignItems: 'stretch' }}>
         
-        {/* Left Side Column: INGEST CONTROLS (Jarvis) or CHAT HISTORY (Gemini) */}
-        {mentorType === 'jarvis' ? (
-          /* Jarvis Ingestion Controls Panel */
-          <div style={{
-            background: 'var(--bg-card-glass)',
-            border: '1px solid rgba(0, 188, 212, 0.18)',
-            borderRadius: '16px',
-            padding: '20px',
-            display: isMobile && mobileTab !== 'history' ? 'none' : 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            height: '660px',
-            overflowY: 'auto',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#00bcd4' }}>
-              <Sliders size={16} />
-              Ingestion Controls
-            </h3>
-
-            {/* Account Mode Toggle */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '700' }}>ACCOUNT MENTOR MODE</span>
-              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <button
-                  onClick={() => setAccountMode('learner')}
-                  style={{
-                    flex: 1,
-                    padding: '6px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    background: accountMode === 'learner' ? '#00bcd4' : 'transparent',
-                    color: accountMode === 'learner' ? '#0a0e27' : '#9b9eac',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  Learner Mode
-                </button>
-                <button
-                  onClick={() => setAccountMode('pro')}
-                  style={{
-                    flex: 1,
-                    padding: '6px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    background: accountMode === 'pro' ? '#a855f7' : 'transparent',
-                    color: accountMode === 'pro' ? '#ffffff' : '#9b9eac',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  Pro Mode
-                </button>
-              </div>
-            </div>
-
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '4px 0' }} />
-
-            {/* Presets List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '700' }}>SCENARIO PRESETS</span>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <button
-                  onClick={() => applyPreset('trap')}
-                  style={{
-                    background: 'rgba(255, 68, 68, 0.06)',
-                    border: '1px solid rgba(255, 68, 68, 0.2)',
-                    borderRadius: '6px',
-                    padding: '8px',
-                    color: '#ff4444',
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 68, 68, 0.12)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 68, 68, 0.06)'}
-                >
-                  Liquidity Trap
-                </button>
-                <button
-                  onClick={() => applyPreset('breakout')}
-                  style={{
-                    background: 'rgba(0, 255, 136, 0.06)',
-                    border: '1px solid rgba(0, 255, 136, 0.2)',
-                    borderRadius: '6px',
-                    padding: '8px',
-                    color: '#00ff88',
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 255, 136, 0.12)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0, 255, 136, 0.06)'}
-                >
-                  Breakout Play
-                </button>
-                <button
-                  onClick={() => applyPreset('oversold')}
-                  style={{
-                    background: 'rgba(0, 188, 212, 0.06)',
-                    border: '1px solid rgba(0, 188, 212, 0.2)',
-                    borderRadius: '6px',
-                    padding: '8px',
-                    color: '#00bcd4',
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 188, 212, 0.12)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0, 188, 212, 0.06)'}
-                >
-                  Oversold Bounce
-                </button>
-                <button
-                  onClick={() => applyPreset('bearTrap')}
-                  style={{
-                    background: 'rgba(255, 179, 0, 0.06)',
-                    border: '1px solid rgba(255, 179, 0, 0.2)',
-                    borderRadius: '6px',
-                    padding: '8px',
-                    color: '#ffb300',
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 179, 0, 0.12)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 179, 0, 0.06)'}
-                >
-                  Bear Trap
-                </button>
-              </div>
-            </div>
-
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '4px 0' }} />
-
-            {/* Input fields */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>SYMBOL</span>
-                <input
-                  type="text"
-                  value={symbol}
-                  onChange={e => setSymbol(e.target.value.toUpperCase())}
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '12px', outline: 'none' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>TIMEFRAME</span>
-                  <select
-                    value={timeframe}
-                    onChange={e => setTimeframe(e.target.value)}
-                    style={{ background: 'rgba(25.5,25.5,25.5,0.03)' === '' ? 'rgba(0,0,0,0.8)' : '#0f1124', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '6px 8px', color: '#ffffff', fontSize: '12px', outline: 'none' }}
-                  >
-                    <option value="15m">15m</option>
-                    <option value="1h">1h</option>
-                    <option value="1d">1d</option>
-                  </select>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>PRICE</span>
-                  <input
-                    type="number"
-                    value={currentPrice}
-                    step="0.01"
-                    onChange={e => setCurrentPrice(e.target.value)}
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '12px', outline: 'none' }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>RSI (14)</span>
-                  <span style={{ fontSize: '11px', fontWeight: '800', color: rsi > 70 ? '#ff4444' : rsi < 30 ? '#00ff88' : '#00bcd4' }}>{rsi}</span>
-                </div>
-                <input
-                  type="range"
-                  min="10"
-                  max="90"
-                  value={rsi}
-                  onChange={e => setRsi(e.target.value)}
-                  style={{ width: '100%', accentColor: '#00bcd4', background: 'rgba(255,255,255,0.1)', height: '4px', borderRadius: '2px' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>MACD SIGNAL</span>
-                <select
-                  value={macdSignal}
-                  onChange={e => setMacdSignal(e.target.value)}
-                  style={{ background: '#0f1124', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '6px 8px', color: '#ffffff', fontSize: '12px', outline: 'none' }}
-                >
-                  <option value="bullish_cross">Bullish Crossover</option>
-                  <option value="bearish_cross">Bearish Crossover</option>
-                  <option value="bullish_divergence">Bullish Divergence</option>
-                  <option value="bearish_divergence">Bearish Divergence</option>
-                  <option value="neutral">Neutral Consolidation</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>TREND DESCRIPTION</span>
-                <input
-                  type="text"
-                  value={trend}
-                  onChange={e => setTrend(e.target.value)}
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '12px', outline: 'none' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>PATTERN / TRAP DETECTED</span>
-                <textarea
-                  value={patternDetected}
-                  onChange={e => setPatternDetected(e.target.value)}
-                  rows="2"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '8px 10px', color: '#ffffff', fontSize: '12px', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Gemini Chat History Left Sidebar */
-          <div style={{
-            background: 'var(--bg-card-glass)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '16px',
-            padding: '20px',
-            display: isMobile && mobileTab !== 'history' ? 'none' : 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            height: '660px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-          }}>
-            <button
-              onClick={handleNewChat}
-              style={{
-                background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 255, 136, 0.05) 100%)',
-                border: '1px solid rgba(0, 255, 136, 0.3)',
-                borderRadius: '8px',
-                color: '#00ff88',
-                padding: '12px',
-                fontWeight: '800',
-                fontSize: '13px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(0, 255, 136, 0.22)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(0, 255, 136, 0.15)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              <Plus size={16} />
-              New Conversation
-            </button>
-
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', margin: '4px 0' }} />
-
-            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Recent Chats
-            </span>
-
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
-              {conversations.length === 0 ? (
-                <div style={{ color: 'var(--text-secondary)', fontSize: '12px', textAlign: 'center', padding: '24px 0', fontStyle: 'italic' }}>
-                  No past conversations.
-                </div>
-              ) : (
-                conversations.map(conv => {
-                  const isActive = activeConversationId === conv.id;
-                  return (
-                    <div
-                      key={conv.id}
-                      onClick={() => handleSelectConversation(conv.id)}
-                      style={{
-                        background: isActive ? 'rgba(0, 255, 136, 0.08)' : 'rgba(255,255,255,0.02)',
-                        border: isActive ? '1px solid rgba(0, 255, 136, 0.3)' : '1px solid rgba(255,255,255,0.04)',
-                        borderRadius: '8px',
-                        padding: '10px 12px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '8px',
-                        transition: 'all 0.2s ease',
-                        position: 'relative'
-                      }}
-                      onMouseEnter={e => {
-                        if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                      }}
-                      onMouseLeave={e => {
-                        if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', flex: 1 }}>
-                        <MessageSquare size={14} style={{ color: isActive ? '#00ff88' : 'var(--text-secondary)', flexShrink: 0 }} />
-                        <span style={{
-                          fontSize: '12px',
-                          fontWeight: isActive ? '750' : '500',
-                          color: isActive ? '#ffffff' : '#d0d2dd',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          flex: 1
-                        }}>
-                          {conv.title}
-                        </span>
-                      </div>
-                      
-                      <button
-                        onClick={(e) => handleDeleteConversation(e, conv.id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--text-secondary)',
-                          cursor: 'pointer',
-                          padding: '2px',
-                          borderRadius: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'color 0.2s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#ff4444'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Chat Canvas Section */}
+        {/* LEFT COLUMN: ALWAYS CONVERSATION HISTORY */}
         <div style={{
           background: 'var(--bg-card-glass)',
           border: '1px solid var(--border-color)',
           borderRadius: '16px',
-          padding: '24px',
+          padding: '16px',
+          display: isMobile && mobileTab !== 'history' ? 'none' : 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          height: '640px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
+        }}>
+          <button
+            onClick={handleNewChat}
+            style={{
+              background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.12) 0%, rgba(0, 255, 136, 0.03) 100%)',
+              border: '1px solid rgba(0, 255, 136, 0.25)',
+              borderRadius: '8px',
+              color: '#00ff88',
+              padding: '10px',
+              fontWeight: '800',
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(0, 255, 136, 0.18)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(0, 255, 136, 0.12)';
+            }}
+          >
+            <Plus size={14} />
+            New Conversation
+          </button>
+
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', margin: '2px 0' }} />
+
+          <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Oracle Conversations
+          </span>
+
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px', paddingRight: '4px' }}>
+            {conversations.length === 0 ? (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '11px', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>
+                No past conversations.
+              </div>
+            ) : (
+              conversations.map(conv => {
+                const isActive = activeConversationId === conv.id && mentorType === 'gemini';
+                return (
+                  <div
+                    key={conv.id}
+                    onClick={() => handleSelectConversation(conv.id)}
+                    style={{
+                      background: isActive ? 'rgba(0, 255, 136, 0.08)' : 'rgba(255,255,255,0.02)',
+                      border: isActive ? '1px solid rgba(0, 255, 136, 0.25)' : '1px solid rgba(255,255,255,0.04)',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '6px',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', flex: 1 }}>
+                      <MessageSquare size={13} style={{ color: isActive ? '#00ff88' : 'var(--text-secondary)', flexShrink: 0 }} />
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: isActive ? '750' : '500',
+                        color: isActive ? '#ffffff' : '#d0d2dd',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        flex: 1
+                      }}>
+                        {conv.title}
+                      </span>
+                    </div>
+                    
+                    <button
+                      onClick={(e) => handleDeleteConversation(e, conv.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        padding: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#ff4444'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* CENTER COLUMN: SPACIOUS CHAT CANVAS */}
+        <div style={{
+          background: 'var(--bg-card-glass)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '20px',
           display: isMobile && mobileTab !== 'chat' ? 'none' : 'flex',
           flexDirection: 'column',
-          height: '660px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+          height: '640px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
         }}>
           
-          {/* Animated Jarvis Core Status Indicator */}
-          {mentorType === 'jarvis' && (
+          {/* None Active Header Core */}
+          {mentorType === 'none' && (
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '12px', 
-              background: 'rgba(0, 188, 212, 0.05)', 
-              border: '1px solid rgba(0, 188, 212, 0.2)', 
+              background: 'rgba(0, 188, 212, 0.04)', 
+              border: '1px solid rgba(0, 188, 212, 0.15)', 
               borderRadius: '12px', 
-              padding: '12px 16px', 
-              marginBottom: '16px' 
+              padding: '10px 14px', 
+              marginBottom: '12px' 
             }}>
-              <div className="jarvis-core-active" style={{ 
-                width: '32px', 
-                height: '32px', 
+              <div className="none-core-active" style={{ 
+                width: '28px', 
+                height: '28px', 
                 borderRadius: '50%', 
                 background: 'radial-gradient(circle, #00ffff 20%, rgba(0, 188, 212, 0.3) 60%, transparent 100%)', 
                 border: '2px dashed #00ffff', 
@@ -882,43 +644,42 @@ export default function AIMentor() {
                 justifyContent: 'center',
                 flexShrink: 0
               }}>
-                <div className="jarvis-core-inner" style={{ 
-                  width: '14px', 
-                  height: '14px', 
+                <div className="none-core-inner" style={{ 
+                  width: '12px', 
+                  height: '12px', 
                   borderRadius: '50%', 
                   background: '#ffffff', 
-                  boxShadow: '0 0 12px #ffffff' 
+                  boxShadow: '0 0 10px #ffffff' 
                 }} />
               </div>
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: '800', color: '#00bcd4', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Jarvis Core: Active</div>
-                <div style={{ fontSize: '10px', color: '#c0c2cc' }}>Simulating analysis for **{symbol}** under {timeframe} timeframe ({accountMode.toUpperCase()} MODE)</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '11px', fontWeight: '800', color: '#00bcd4', textTransform: 'uppercase', letterSpacing: '0.5px' }}>None Core Enabled</div>
+                <div style={{ fontSize: '10px', color: '#c0c2cc' }}>Ingesting context: **{symbol}** • {timeframe} • {accountMode.toUpperCase()} MODE</div>
               </div>
             </div>
           )}
 
-          {/* Scrollable messages container */}
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '10px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {(mentorType === 'jarvis' ? jarvisMessages : messages).map((msg, idx) => (
+          {/* Messages log */}
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {(mentorType === 'none' ? noneMessages : messages).map((msg, idx) => (
               <div 
                 key={idx} 
                 style={{
                   alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: '75%',
+                  maxWidth: '82%',
                   background: msg.sender === 'user' 
-                    ? (mentorType === 'jarvis' 
+                    ? (mentorType === 'none' 
                         ? 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)' 
                         : 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)')
-                    : 'rgba(255,255,255,0.03)',
+                    : 'rgba(255,255,255,0.02)',
                   border: msg.sender === 'user' 
                     ? 'none' 
-                    : (mentorType === 'jarvis' 
-                        ? '1px solid rgba(0, 188, 212, 0.15)' 
-                        : '1px solid rgba(255,255,255,0.06)'),
-                  borderRadius: msg.sender === 'user' ? '16px 16px 2px 16px' : '16px 16px 16px 2px',
-                  padding: '16px',
+                    : (mentorType === 'none' 
+                        ? '1px solid rgba(0, 188, 212, 0.12)' 
+                        : '1px solid rgba(255,255,255,0.04)'),
+                  borderRadius: msg.sender === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                  padding: '12px 16px',
                   color: msg.sender === 'user' ? '#0a0e27' : '#ffffff',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
               >
                 {msg.sender === 'ai' ? (
@@ -933,10 +694,10 @@ export default function AIMentor() {
               </div>
             ))}
             {sending && (
-              <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '16px 16px 16px 2px', padding: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#c0c2cc' }}>
-                <RefreshCw className="animate-spin" size={14} />
-                <span style={{ fontSize: '12px' }}>
-                  {mentorType === 'jarvis' ? 'Jarvis is scanning indicator traps...' : 'AI Mentor is compiling stock insights...'}
+              <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '12px 12px 12px 2px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#c0c2cc' }}>
+                <RefreshCw className="animate-spin" size={13} />
+                <span style={{ fontSize: '11px' }}>
+                  {mentorType === 'none' ? 'None is compiling on-point setup indicators...' : 'AI Mentor is compiling RAG insights...'}
                 </span>
               </div>
             )}
@@ -944,19 +705,19 @@ export default function AIMentor() {
           </div>
 
           {/* Suggested Prompts Block */}
-          {(mentorType === 'jarvis' ? jarvisMessages : messages).length === 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '700' }}>SUGGESTED QUESTIONS</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {(mentorType === 'jarvis' ? SUGGESTED_PROMPTS : GEMINI_SUGGESTED_PROMPTS).map((p, i) => (
+          {(mentorType === 'none' ? noneMessages : messages).length === 1 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>SUGGESTED QUESTIONS</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {(mentorType === 'none' ? SUGGESTED_PROMPTS : GEMINI_SUGGESTED_PROMPTS).map((p, i) => (
                   <button
                     key={i}
                     onClick={() => handleSendMessage(p)}
                     style={{
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
-                      borderRadius: '20px',
-                      padding: '8px 14px',
+                      background: 'rgba(255, 255, 255, 0.02)',
+                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                      borderRadius: '16px',
+                      padding: '6px 12px',
                       color: 'var(--text-primary)',
                       fontSize: '11px',
                       fontWeight: '700',
@@ -966,10 +727,10 @@ export default function AIMentor() {
                       alignItems: 'center',
                       gap: '4px'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = mentorType === 'jarvis' ? 'rgba(0, 188, 212, 0.1)' : 'rgba(0, 255, 136, 0.1)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+                    onMouseEnter={e => e.currentTarget.style.background = mentorType === 'none' ? 'rgba(0, 188, 212, 0.08)' : 'rgba(0, 255, 136, 0.08)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'}
                   >
-                    <HelpCircle size={12} style={{ color: mentorType === 'jarvis' ? '#00bcd4' : '#00ff88' }} />
+                    <HelpCircle size={11} style={{ color: mentorType === 'none' ? '#00bcd4' : '#00ff88' }} />
                     {p}
                   </button>
                 ))}
@@ -977,22 +738,22 @@ export default function AIMentor() {
             </div>
           )}
 
-          {/* Chat Input Area */}
-          <div style={{ display: 'flex', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+          {/* Chat input */}
+          <div style={{ display: 'flex', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
             <input 
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder={mentorType === 'jarvis' 
-                ? "Ask Jarvis (e.g. 'Is this pattern a breakout trap?' or 'Analyze my risk')..."
-                : "Ask AI Mentor (e.g. 'Explain RSI' or 'Should I buy SBIN?')..."}
+              placeholder={mentorType === 'none' 
+                ? "Ask None AI (e.g. 'Explain risk zones for this setup' or 'Is this a trap?')..."
+                : "Ask AI Mentor (e.g. 'Explain RSI divergence' or 'Should I buy SBIN?')..."}
               style={{
                 flex: 1,
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.06)',
                 borderRadius: '8px',
-                padding: '12px 16px',
+                padding: '10px 14px',
                 color: '#ffffff',
                 fontSize: '13px',
                 outline: 'none'
@@ -1002,13 +763,13 @@ export default function AIMentor() {
               onClick={() => handleSendMessage()}
               disabled={sending}
               style={{
-                background: mentorType === 'jarvis' 
+                background: mentorType === 'none' 
                   ? 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)' 
                   : 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
                 border: 'none',
                 borderRadius: '8px',
-                color: mentorType === 'jarvis' ? '#ffffff' : '#0a0e27',
-                padding: '12px 20px',
+                color: mentorType === 'none' ? '#ffffff' : '#0a0e27',
+                padding: '10px 16px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -1018,83 +779,378 @@ export default function AIMentor() {
                 transition: 'all 0.2s'
               }}
             >
-              <Send size={16} />
+              <Send size={15} />
             </button>
           </div>
 
         </div>
 
-        {/* Right Sidebar: Real-Time Technical Insights */}
-        <div style={{ display: isMobile && mobileTab !== 'technicals' ? 'none' : 'flex', flexDirection: 'column', gap: '24px' }}>
+        {/* RIGHT COLUMN: SIMULATION & ANALYTICS TAB HUB (REMOVES MESSINESS) */}
+        <div style={{
+          background: 'var(--bg-card-glass)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          display: isMobile && mobileTab !== 'technicals' ? 'none' : 'flex',
+          flexDirection: 'column',
+          height: '640px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
+          overflow: 'hidden'
+        }}>
           
-          {/* Real-Time Tech Widget */}
+          {/* Tab Selector Header */}
           <div style={{
-            background: 'var(--bg-card-glass)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '16px',
-            padding: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            background: 'rgba(255,255,255,0.02)',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '4px'
           }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BarChart2 size={18} style={{ color: mentorType === 'jarvis' ? '#00bcd4' : '#00ff88' }} />
-              Live Technicals Widget
-            </h3>
+            <button
+              onClick={() => setRightTab('simulator')}
+              style={{
+                padding: '12px 6px',
+                border: 'none',
+                background: rightTab === 'simulator' ? 'rgba(0, 188, 212, 0.08)' : 'transparent',
+                color: rightTab === 'simulator' ? '#00bcd4' : '#9b9eac',
+                fontSize: '11px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <Sliders size={12} />
+              Simulator
+            </button>
+            <button
+              onClick={() => setRightTab('forecast')}
+              style={{
+                padding: '12px 6px',
+                border: 'none',
+                background: rightTab === 'forecast' ? 'rgba(0, 255, 136, 0.06)' : 'transparent',
+                color: rightTab === 'forecast' ? '#00ff88' : '#9b9eac',
+                fontSize: '11px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <BarChart2 size={12} />
+              Forecasts
+            </button>
+            <button
+              onClick={() => setRightTab('library')}
+              style={{
+                padding: '12px 6px',
+                border: 'none',
+                background: rightTab === 'library' ? 'rgba(168, 85, 247, 0.08)' : 'transparent',
+                color: rightTab === 'library' ? '#a855f7' : '#9b9eac',
+                fontSize: '11px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <BookOpen size={12} />
+              Library
+            </button>
+          </div>
 
-            {activeTechnicals ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: '900', color: '#ffffff' }}>{activeTechnicals.symbol}</span>
-                  <span style={{ fontSize: '18px', fontWeight: '900', color: '#00ff88' }}>₹{activeTechnicals.price.toLocaleString('en-IN')}</span>
+          {/* Active Tab Body */}
+          <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
+            
+            {/* 1. SIMULATOR TAB CONTENT */}
+            {rightTab === 'simulator' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#00bcd4', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Simulation Ingestion</span>
+                  <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', padding: '2px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <button
+                      onClick={() => setAccountMode('learner')}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        background: accountMode === 'learner' ? '#00bcd4' : 'transparent',
+                        color: accountMode === 'learner' ? '#0a0e27' : '#9b9eac'
+                      }}
+                    >
+                      Learner
+                    </button>
+                    <button
+                      onClick={() => setAccountMode('pro')}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        background: accountMode === 'pro' ? '#a855f7' : 'transparent',
+                        color: accountMode === 'pro' ? '#ffffff' : '#9b9eac'
+                      }}
+                    >
+                      Pro
+                    </button>
+                  </div>
                 </div>
 
+                {/* Scenario presets pills */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>SCENARIO PRESETS</span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                    {Object.keys(presets).map((key) => {
+                      let color = '#00bcd4';
+                      let bg = 'rgba(0,188,212,0.05)';
+                      let border = 'rgba(0,188,212,0.15)';
+                      if (key === 'trap') { color = '#ff4444'; bg = 'rgba(255,68,68,0.05)'; border = 'rgba(255,68,68,0.15)'; }
+                      if (key === 'breakout') { color = '#00ff88'; bg = 'rgba(0,255,136,0.05)'; border = 'rgba(0,255,136,0.15)'; }
+                      if (key === 'bearTrap') { color = '#ffb300'; bg = 'rgba(255,179,0,0.05)'; border = 'rgba(255,179,0,0.15)'; }
+
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => applyPreset(key)}
+                          style={{
+                            background: bg,
+                            border: `1px solid ${border}`,
+                            borderRadius: '6px',
+                            padding: '6px',
+                            color: color,
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {key === 'trap' ? 'Liquidity Trap' : key === 'breakout' ? 'Breakout' : key === 'oversold' ? 'Oversold Support' : 'Bear Trap'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }} />
+
+                {/* Input Fields */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>RSI (14):</span>
-                    <span style={{ fontWeight: '800', color: activeTechnicals.rsi > 70 ? '#ff4444' : activeTechnicals.rsi < 30 ? '#00ff88' : '#00bcd4' }}>
-                      {activeTechnicals.rsi} ({activeTechnicals.rsi > 70 ? 'Overbought' : activeTechnicals.rsi < 30 ? 'Oversold' : 'Neutral'})
-                    </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>SYMBOL</span>
+                    <input
+                      type="text"
+                      value={symbol}
+                      onChange={e => setSymbol(e.target.value.toUpperCase())}
+                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                    />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>30-Day Trend:</span>
-                    <span style={{ fontWeight: '800', color: activeTechnicals.trend === 'BULLISH' ? '#00ff88' : '#ff4444', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {activeTechnicals.trend === 'BULLISH' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                      {activeTechnicals.trend}
-                    </span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>TIMEFRAME</span>
+                      <select
+                        value={timeframe}
+                        onChange={e => setTimeframe(e.target.value)}
+                        style={{ background: '#0f1124', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 8px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                      >
+                        <option value="15m">15m</option>
+                        <option value="1h">1h</option>
+                        <option value="1d">1d</option>
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>PRICE</span>
+                      <input
+                        type="number"
+                        value={currentPrice}
+                        step="0.01"
+                        onChange={e => setCurrentPrice(e.target.value)}
+                        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                      />
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Support Floor:</span>
-                    <span style={{ fontWeight: '800', color: '#00ff88' }}>₹{activeTechnicals.support.toLocaleString('en-IN')}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>RSI (14)</span>
+                      <span style={{ fontSize: '11px', fontWeight: '800', color: rsi > 70 ? '#ff4444' : rsi < 30 ? '#00ff88' : '#00bcd4' }}>{rsi}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="10"
+                      max="90"
+                      value={rsi}
+                      onChange={e => setRsi(e.target.value)}
+                      style={{ width: '100%', accentColor: '#00bcd4', background: 'rgba(255,255,255,0.1)', height: '4px', borderRadius: '2px' }}
+                    />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Resistance Ceiling:</span>
-                    <span style={{ fontWeight: '800', color: '#ff4444' }}>₹{activeTechnicals.resistance.toLocaleString('en-IN')}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>MACD SIGNAL</span>
+                    <select
+                      value={macdSignal}
+                      onChange={e => setMacdSignal(e.target.value)}
+                      style={{ background: '#0f1124', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 8px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                    >
+                      <option value="bullish_cross">Bullish Crossover</option>
+                      <option value="bearish_cross">Bearish Crossover</option>
+                      <option value="bullish_divergence">Bullish Divergence</option>
+                      <option value="bearish_divergence">Bearish Divergence</option>
+                      <option value="neutral">Neutral Consolidation</option>
+                    </select>
                   </div>
-                </div>
 
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)', fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                  <strong>AI Note:</strong> Ingested RSI is sitting at {activeTechnicals.rsi}. A level below 30 represents oversold conditions, while a level above 70 indicates overbought conditions.
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>TREND CONTEXT</span>
+                    <input
+                      type="text"
+                      value={trend}
+                      onChange={e => setTrend(e.target.value)}
+                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>CANDLESTICK PATTERN</span>
+                    <textarea
+                      value={patternDetected}
+                      onChange={e => setPatternDetected(e.target.value)}
+                      rows="2"
+                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '11px', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
+                    />
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: '0 0 4px 0', textAlign: 'center', padding: '12px 0' }}>
-                  {mentorType === 'jarvis' 
-                    ? 'Submit a prompt above to render your simulated live metrics and ML forecasts!'
-                    : 'Query a specific stock (e.g. "Analyze Reliance") to fetch live metrics and ML forecasts.'}
-                </p>
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
-                  <span style={{ fontSize: '11px', color: mentorType === 'jarvis' ? '#00bcd4' : '#00ff88', fontWeight: '800', display: 'block', marginBottom: '8px', letterSpacing: '0.5px' }}>TRENDING SYMBOLS</span>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            )}
+
+            {/* 2. FORECASTS TAB CONTENT */}
+            {rightTab === 'forecast' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                
+                {/* Live Technicals Section */}
+                <div>
+                  <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                    Live Technical Signals
+                  </span>
+                  
+                  {activeTechnicals ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '900', color: '#ffffff' }}>{activeTechnicals.symbol}</span>
+                        <span style={{ fontSize: '16px', fontWeight: '900', color: '#00ff88' }}>₹{activeTechnicals.price.toLocaleString('en-IN')}</span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>RSI (14):</span>
+                          <span style={{ fontWeight: '800', color: activeTechnicals.rsi > 70 ? '#ff4444' : activeTechnicals.rsi < 30 ? '#00ff88' : '#00bcd4' }}>
+                            {activeTechnicals.rsi} ({activeTechnicals.rsi > 70 ? 'Overbought' : activeTechnicals.rsi < 30 ? 'Oversold' : 'Neutral'})
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>30-Day Trend:</span>
+                          <span style={{ fontWeight: '800', color: activeTechnicals.trend === 'BULLISH' ? '#00ff88' : '#ff4444', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            {activeTechnicals.trend === 'BULLISH' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                            {activeTechnicals.trend}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Support Floor:</span>
+                          <span style={{ fontWeight: '800', color: '#00ff88' }}>₹{activeTechnicals.support.toLocaleString('en-IN')}</span>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Resistance Ceiling:</span>
+                          <span style={{ fontWeight: '800', color: '#ff4444' }}>₹{activeTechnicals.resistance.toLocaleString('en-IN')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>
+                      No active technical data. Submit a prompt to start simulator analysis.
+                    </div>
+                  )}
+                </div>
+
+                {/* ML Ensemble Section */}
+                {activeMLEnsemble && (
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                    <span style={{ fontSize: '11px', color: '#00bcd4', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                      ML Ensemble Forecast
+                    </span>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>OVERALL FORECAST PROBABILITY</span>
+                        <div style={{ height: '20px', borderRadius: '10px', overflow: 'hidden', display: 'flex', fontSize: '9px', fontWeight: '800', color: '#0a0e27' }}>
+                          {activeMLEnsemble.overall.buy > 0 && (
+                            <div style={{ background: '#00ff88', width: `${activeMLEnsemble.overall.buy}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              Buy {activeMLEnsemble.overall.buy}%
+                            </div>
+                          )}
+                          {activeMLEnsemble.overall.hold > 0 && (
+                            <div style={{ background: '#ffb300', width: `${activeMLEnsemble.overall.hold}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              Hold {activeMLEnsemble.overall.hold}%
+                            </div>
+                          )}
+                          {activeMLEnsemble.overall.sell > 0 && (
+                            <div style={{ background: '#ff4444', width: `${activeMLEnsemble.overall.sell}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              Sell {activeMLEnsemble.overall.sell}%
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '8px' }}>
+                        <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>COMPONENT SIGNALS</span>
+                        {activeMLEnsemble.components.map((comp, idx) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                            <span style={{ color: '#c0c2cc' }}>{comp.name}</span>
+                            <span style={{ 
+                              fontWeight: '800', 
+                              color: comp.signal === 'Buy' || comp.signal === 'Bullish' ? '#00ff88' : comp.signal === 'Sell' || comp.signal === 'Bearish' ? '#ff4444' : '#ffb300' 
+                            }}>
+                              {comp.signal} ({comp.strength}%)
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '8px', fontSize: '11px' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>Ensemble Confidence:</span>
+                        <span style={{ fontWeight: '950', color: '#00bcd4' }}>{activeMLEnsemble.confidence}%</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Trending Symbols Selection */}
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                  <span style={{ fontSize: '10px', color: '#00bcd4', fontWeight: '800', display: 'block', marginBottom: '8px', letterSpacing: '0.5px' }}>TRENDING SYMBOLS</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {['RELIANCE', 'TCS', 'SBIN', 'NIFTY', 'BTC', 'ETH'].map((t) => (
                       <button
                         key={t}
                         onClick={() => {
-                          if (mentorType === 'jarvis') {
+                          if (mentorType === 'none') {
                             setSymbol(t);
                             handleSendMessage(`Analyze simulated ${t} pattern`);
                           } else {
@@ -1102,11 +1158,11 @@ export default function AIMentor() {
                           }
                         }}
                         style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '1px solid rgba(255,255,255,0.08)',
+                          background: 'rgba(255,255,255,0.02)',
+                          border: '1px solid rgba(255,255,255,0.06)',
                           borderRadius: '6px',
                           color: '#ffffff',
-                          padding: '6px 12px',
+                          padding: '4px 10px',
                           fontSize: '11px',
                           fontWeight: '700',
                           cursor: 'pointer',
@@ -1118,167 +1174,96 @@ export default function AIMentor() {
                     ))}
                   </div>
                 </div>
+
               </div>
             )}
-          </div>
 
-          {activeMLEnsemble && (
-            <div style={{
-              background: 'var(--bg-card-glass)',
-              border: mentorType === 'jarvis' ? '1px solid rgba(0, 188, 212, 0.25)' : '1px solid rgba(0, 188, 212, 0.2)',
-              borderRadius: '16px',
-              padding: '24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              boxShadow: '0 8px 32px rgba(0, 188, 212, 0.05)'
-            }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#00bcd4' }}>
-                <Sparkles size={18} />
-                ML Ensemble Forecast
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>ENSEMBLE DIRECTION PROBABILITY</span>
-                <div style={{ height: '24px', borderRadius: '12px', overflow: 'hidden', display: 'flex', fontSize: '10px', fontWeight: '800', color: '#0a0e27' }}>
-                  {activeMLEnsemble.overall.buy > 0 && (
-                    <div style={{ background: '#00ff88', width: `${activeMLEnsemble.overall.buy}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      Buy {activeMLEnsemble.overall.buy}%
+            {/* 3. SYLLABUS LIBRARY TAB CONTENT */}
+            {rightTab === 'library' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <span style={{ fontSize: '11px', color: '#a855f7', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>
+                  Trading Library Syllabus
+                </span>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {Object.keys(syllabus).length === 0 ? (
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', padding: '16px' }}>
+                      Loading library topics...
                     </div>
-                  )}
-                  {activeMLEnsemble.overall.hold > 0 && (
-                    <div style={{ background: '#ffb300', width: `${activeMLEnsemble.overall.hold}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      Hold {activeMLEnsemble.overall.hold}%
-                    </div>
-                  )}
-                  {activeMLEnsemble.overall.sell > 0 && (
-                    <div style={{ background: '#ff4444', width: `${activeMLEnsemble.overall.sell}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      Sell {activeMLEnsemble.overall.sell}%
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
-                <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>COMPONENT MODEL SIGNALS</span>
-                {activeMLEnsemble.components.map((comp, idx) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                    <span style={{ color: '#c0c2cc' }}>{comp.name}</span>
-                    <span style={{ 
-                      fontWeight: '800', 
-                      color: comp.signal === 'Buy' || comp.signal === 'Bullish' ? '#00ff88' : comp.signal === 'Sell' || comp.signal === 'Bearish' ? '#ff4444' : '#ffb300' 
-                    }}>
-                      {comp.signal} ({comp.strength}%)
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', fontSize: '12px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Ensemble Confidence:</span>
-                <span style={{ fontWeight: '900', color: '#00bcd4' }}>{activeMLEnsemble.confidence}%</span>
-              </div>
-            </div>
-          )}
-
-          {/* Trading Library syllabus sidebar card */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(16, 20, 39, 0.9) 0%, rgba(22, 28, 59, 0.9) 100%)',
-            border: mentorType === 'jarvis' ? '1px solid rgba(0, 188, 212, 0.15)' : '1px solid rgba(0, 255, 136, 0.15)',
-            borderRadius: '16px',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
-          }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '800', color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BookOpen size={16} style={{ color: mentorType === 'jarvis' ? '#00bcd4' : '#00ff88' }} />
-              Trading Library
-            </h3>
-            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '0 0 4px 0', lineHeight: '1.4' }}>
-              {mentorType === 'jarvis' 
-                ? 'Select any concept below to study it interactively with Jarvis under current indicator inputs.'
-                : 'Click on any concept below to study it interactively with your AI Mentor.'}
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto', paddingRight: '4px' }}>
-              {Object.keys(syllabus).length === 0 ? (
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', padding: '12px' }}>
-                  Loading library topics...
-                </div>
-              ) : (
-                Object.keys(syllabus).map(category => {
-                  const isExpanded = expandedCategory === category;
-                  return (
-                    <div key={category} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '4px' }}>
-                      <button
-                        type="button"
-                        onClick={() => setExpandedCategory(isExpanded ? null : category)}
-                        style={{
-                          width: '100%',
-                          background: 'none',
-                          border: 'none',
-                          color: isExpanded ? '#00bcd4' : '#e0e0e0',
-                          padding: '8px 0',
-                          fontSize: '12px',
-                          fontWeight: '700',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          transition: 'color 0.2s'
-                        }}
-                      >
-                        <span>{category}</span>
-                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                      </button>
-                      
-                      {isExpanded && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '8px', paddingBottom: '8px' }}>
-                          {syllabus[category].map(topic => (
-                            <button
-                              key={topic.id}
-                              type="button"
-                              onClick={() => handleSendMessage(`Explain ${topic.title} and how it applies to our setup`)}
-                              style={{
-                                background: 'rgba(255, 255, 255, 0.02)',
-                                border: '1px solid rgba(255, 255, 255, 0.04)',
-                                borderRadius: '6px',
-                                padding: '6px 10px',
-                                fontSize: '11px',
-                                color: '#c0c2cc',
-                                textAlign: 'left',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                width: '100%'
-                              }}
-                              onMouseEnter={e => {
-                                e.currentTarget.style.background = mentorType === 'jarvis' ? 'rgba(0, 188, 212, 0.1)' : 'rgba(0, 255, 136, 0.08)';
-                                e.currentTarget.style.color = '#ffffff';
-                                e.currentTarget.style.borderColor = mentorType === 'jarvis' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 255, 136, 0.2)';
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
-                                e.currentTarget.style.color = '#c0c2cc';
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.04)';
-                              }}
-                            >
-                              <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: mentorType === 'jarvis' ? '#00bcd4' : '#00ff88', flexShrink: 0 }} />
-                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{topic.title}</span>
-                            </button>
-                          ))}
+                  ) : (
+                    Object.keys(syllabus).map(category => {
+                      const isExpanded = expandedCategory === category;
+                      return (
+                        <div key={category} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedCategory(isExpanded ? null : category)}
+                            style={{
+                              width: '100%',
+                              background: 'none',
+                              border: 'none',
+                              color: isExpanded ? '#00bcd4' : '#e0e0e0',
+                              padding: '6px 0',
+                              fontSize: '11px',
+                              fontWeight: '700',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <span>{category}</span>
+                            {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                          </button>
+                          
+                          {isExpanded && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '6px', paddingTop: '4px', paddingBottom: '4px' }}>
+                              {syllabus[category].map(topic => (
+                                <button
+                                  key={topic.id}
+                                  type="button"
+                                  onClick={() => handleSendMessage(`Explain ${topic.title} and how it applies to our setup`)}
+                                  style={{
+                                    background: 'rgba(255, 255, 255, 0.01)',
+                                    border: '1px solid rgba(255, 255, 255, 0.03)',
+                                    borderRadius: '5px',
+                                    padding: '5px 8px',
+                                    fontSize: '11px',
+                                    color: '#c0c2cc',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    width: '100%'
+                                  }}
+                                  onMouseEnter={e => {
+                                    e.currentTarget.style.background = 'rgba(168, 85, 247, 0.06)';
+                                    e.currentTarget.style.color = '#ffffff';
+                                    e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.2)';
+                                  }}
+                                  onMouseLeave={e => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
+                                    e.currentTarget.style.color = '#c0c2cc';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.03)';
+                                  }}
+                                >
+                                  <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#a855f7', flexShrink: 0 }} />
+                                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{topic.title}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
 
         </div>
