@@ -10,6 +10,135 @@ import {
   Globe, AlertCircle, CheckCircle, XCircle
 } from 'lucide-react';
 
+// ─── Curated always-visible courses (Zerodha Varsity + popular picks) ────────
+const CURATED_COURSES = [
+  {
+    id: 'varsity-1', title: 'Introduction to Stock Markets', category: 'Fundamentals',
+    description: 'Understand how stock markets work, IPOs, exchanges, indices & long-term investing. The definitive beginner guide by Zerodha Varsity.',
+    instructor: 'Zerodha Varsity', youtube_link: 'https://zerodha.com/varsity/module/introduction-to-stock-markets/',
+    is_curated: true, curated_source: 'Zerodha Varsity'
+  },
+  {
+    id: 'varsity-2', title: 'Technical Analysis – Candlesticks & Patterns', category: 'Technical Analysis',
+    description: 'Master candlestick patterns, chart formations, support & resistance, and price action trading from zero to advanced.',
+    instructor: 'Zerodha Varsity', youtube_link: 'https://zerodha.com/varsity/module/technical-analysis/',
+    is_curated: true, curated_source: 'Zerodha Varsity'
+  },
+  {
+    id: 'varsity-3', title: 'Fundamental Analysis', category: 'Fundamental Analysis',
+    description: 'Learn how to read balance sheets, P&L statements, cash flow reports, ratios and value a business like a professional analyst.',
+    instructor: 'Zerodha Varsity', youtube_link: 'https://zerodha.com/varsity/module/fundamental-analysis/',
+    is_curated: true, curated_source: 'Zerodha Varsity'
+  },
+  {
+    id: 'varsity-4', title: 'Futures Trading', category: 'Derivatives',
+    description: 'Deep dive into futures contracts, lot sizes, margin, hedging strategies, rollover, and futures pricing theory.',
+    instructor: 'Zerodha Varsity', youtube_link: 'https://zerodha.com/varsity/module/futures-trading/',
+    is_curated: true, curated_source: 'Zerodha Varsity'
+  },
+  {
+    id: 'varsity-5', title: 'Options Theory for Professional Trading', category: 'Derivatives',
+    description: 'Complete options course: Greeks (Delta, Gamma, Theta, Vega), strategies like Iron Condor, Straddle, Strangle, and Calendar Spreads.',
+    instructor: 'Zerodha Varsity', youtube_link: 'https://zerodha.com/varsity/module/option-theory/',
+    is_curated: true, curated_source: 'Zerodha Varsity'
+  },
+  {
+    id: 'varsity-6', title: 'Options Strategies', category: 'Derivatives',
+    description: 'Practical playbook of 25+ options strategies—Bull Call Spread, Bear Put Spread, Butterfly, Collar, Protective Put, and more.',
+    instructor: 'Zerodha Varsity', youtube_link: 'https://zerodha.com/varsity/module/option-strategies/',
+    is_curated: true, curated_source: 'Zerodha Varsity'
+  },
+  {
+    id: 'varsity-7', title: 'Risk Management & Trading Psychology', category: 'Psychology',
+    description: 'Learn position sizing, risk-reward ratios, drawdown control, cognitive biases, and how to build a disciplined trading process.',
+    instructor: 'Zerodha Varsity', youtube_link: 'https://zerodha.com/varsity/module/risk-management/',
+    is_curated: true, curated_source: 'Zerodha Varsity'
+  },
+  {
+    id: 'varsity-8', title: 'Personal Finance & Mutual Funds', category: 'Personal Finance',
+    description: 'Understand SIPs, NAV, expense ratios, direct vs regular plans, tax implications, and build a long-term wealth portfolio.',
+    instructor: 'Zerodha Varsity', youtube_link: 'https://zerodha.com/varsity/module/personalfinance/',
+    is_curated: true, curated_source: 'Zerodha Varsity'
+  },
+  {
+    id: 'popular-1', title: 'Complete Trading Masterclass 2024', category: 'Trading',
+    description: 'A comprehensive stock market course covering day trading, swing trading, technical analysis, and risk management with live examples.',
+    instructor: 'Rayner Teo (TradingwithRayner)', youtube_link: 'https://www.youtube.com/@TradingwithRayner',
+    is_curated: true, curated_source: 'YouTube'
+  },
+  {
+    id: 'popular-2', title: 'Price Action Trading – No Indicators', category: 'Technical Analysis',
+    description: 'Learn pure price action: structure, supply & demand zones, order blocks, and institutional trading concepts used by professionals.',
+    instructor: 'The Trading Channel', youtube_link: 'https://www.youtube.com/@ThetradingChannel',
+    is_curated: true, curated_source: 'YouTube'
+  },
+  {
+    id: 'popular-3', title: 'Intraday Trading Strategies – NSE/BSE', category: 'Intraday',
+    description: 'Top intraday setups for Indian markets: ORB, VWAP, gap-and-go, momentum trading, and how to select stocks for intraday.',
+    instructor: 'Nitin Bhatia', youtube_link: 'https://www.youtube.com/@NitinBhatia',
+    is_curated: true, curated_source: 'YouTube'
+  },
+  {
+    id: 'popular-4', title: 'Algo Trading & Python for Finance', category: 'Algo Trading',
+    description: 'Build automated trading bots in Python, backtest strategies with Backtrader, connect to broker APIs, and deploy live strategies.',
+    instructor: 'QuantInsti', youtube_link: 'https://www.youtube.com/@QuantInsti',
+    is_curated: true, curated_source: 'YouTube'
+  },
+];
+
+// ─── Curated popular contests (shown as external advertisements) ──────────────
+const CURATED_CONTESTS = [
+  {
+    id: 'ext-1',
+    title: 'NSE Emerge Virtual Trading Championship 2025',
+    description: 'NSE\'s flagship virtual stock trading competition for college students & young investors. Trade with ₹10L virtual capital on live NSE prices. Top performers win cash prizes and NSE certification.',
+    prize_pool: '₹5,00,000 + NSE Certificates',
+    start_date: 'Sep 1, 2025', end_date: 'Oct 31, 2025',
+    host_name: 'NSE India (External)', host_is_verified: true,
+    status: 'approved', is_private: false,
+    initial_capital: 1000000, allowed_assets: 'Equities & F&O', leverage_limit: 5,
+    participants: 12400, is_curated: true,
+    external_link: 'https://www.nseindia.com/'
+  },
+  {
+    id: 'ext-2',
+    title: 'Sensibull Options Trading Contest',
+    description: 'India\'s largest options paper trading league by Sensibull. Compete on strategy P&L, Sharpe ratio & risk-adjusted returns — not just raw profits. Open to all skill levels.',
+    prize_pool: '₹1,00,000 Cash + Sensibull Pro Subscription',
+    start_date: 'Aug 15, 2025', end_date: 'Sep 15, 2025',
+    host_name: 'Sensibull (External)', host_is_verified: true,
+    status: 'approved', is_private: false,
+    initial_capital: 500000, allowed_assets: 'Options', leverage_limit: 10,
+    participants: 8750, is_curated: true,
+    external_link: 'https://sensibull.com/'
+  },
+  {
+    id: 'ext-3',
+    title: 'Moneycontrol Virtual Stock Market League',
+    description: 'Trade stocks across NSE & BSE in real-time simulation during market hours. Weekly leaderboards, sectoral challenges and special IPO rounds make this contest exciting for traders of all levels.',
+    prize_pool: '₹2,00,000 Cash + Amazon Vouchers',
+    start_date: 'Ongoing (Monthly)', end_date: 'Rolling',
+    host_name: 'Moneycontrol (External)', host_is_verified: true,
+    status: 'approved', is_private: false,
+    initial_capital: 1000000, allowed_assets: 'All Equities', leverage_limit: 2,
+    participants: 23100, is_curated: true,
+    external_link: 'https://www.moneycontrol.com/'
+  },
+  {
+    id: 'ext-4',
+    title: 'Smallcase Investor Challenge',
+    description: 'Build the best smallcase basket of 5-15 stocks and compete on 3-month returns. Judges evaluate both performance and portfolio construction quality.',
+    prize_pool: '₹75,000 + Smallcase Premium Annual',
+    start_date: 'Oct 1, 2025', end_date: 'Dec 31, 2025',
+    host_name: 'Smallcase (External)', host_is_verified: true,
+    status: 'approved', is_private: false,
+    initial_capital: 200000, allowed_assets: 'Equities', leverage_limit: 1,
+    participants: 4200, is_curated: true,
+    external_link: 'https://smallcase.com/'
+  },
+];
+
+
 export default function Community() {
   const { user } = useAuth();
   const [tab, setTab] = useState('systems'); // systems | feed | educator | chats
@@ -1756,101 +1885,138 @@ export default function Community() {
               <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                 <RefreshCw className="animate-spin" />
               </div>
-            ) : contests.filter(ct => 
-              ct.title.toLowerCase().includes(eduSearchQuery.toLowerCase()) ||
-              ct.description.toLowerCase().includes(eduSearchQuery.toLowerCase())
-            ).length === 0 ? (
-              <div style={{
-                background: 'var(--bg-card-glass)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '16px',
-                padding: '32px',
-                textAlign: 'center',
-                color: 'var(--text-secondary)',
-                fontSize: '13px'
-              }}>
-                No active contests found matching filters.
-              </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '16px' }}>
-                {contests.filter(ct => 
+              (() => {
+                const allContests = [
+                  ...contests,
+                  ...CURATED_CONTESTS.filter(cc => !contests.some(c => c.id === cc.id))
+                ].filter(ct =>
                   ct.title.toLowerCase().includes(eduSearchQuery.toLowerCase()) ||
                   ct.description.toLowerCase().includes(eduSearchQuery.toLowerCase())
-                ).map(ct => (
-                  <div key={ct.id} style={{
-                    background: 'var(--bg-card-glass)',
-                    border: ct.is_private ? '1px solid rgba(255, 179, 0, 0.4)' : '1px solid rgba(0, 255, 136, 0.25)',
-                    borderRadius: '16px',
-                    padding: '24px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {ct.title}
-                          {ct.is_private && (
-                            <span style={{ fontSize: '9px', background: 'rgba(255, 179, 0, 0.1)', color: '#ffb300', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                              <Lock size={10} /> Private
+                );
+                return allContests.length === 0 ? (
+                  <div style={{ background: 'var(--bg-card-glass)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                    No active contests found matching filters.
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '16px' }}>
+                    {allContests.map(ct => (
+                      <div key={ct.id} style={{
+                        background: ct.is_curated
+                          ? 'linear-gradient(135deg, rgba(255,179,0,0.04) 0%, rgba(16,20,39,0.6) 100%)'
+                          : 'var(--bg-card-glass)',
+                        border: ct.is_curated
+                          ? '1px solid rgba(255,179,0,0.3)'
+                          : ct.is_private ? '1px solid rgba(255, 179, 0, 0.4)' : '1px solid rgba(0, 255, 136, 0.25)',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        position: 'relative'
+                      }}>
+                        {/* Curated Ad badge */}
+                        {ct.is_curated && (
+                          <span style={{
+                            position: 'absolute', top: '14px', right: '14px',
+                            fontSize: '9px', background: 'rgba(255,179,0,0.12)', color: '#ffb300',
+                            padding: '2px 8px', borderRadius: '4px', fontWeight: '800',
+                            border: '1px solid rgba(255,179,0,0.2)', letterSpacing: '0.5px'
+                          }}>🌐 FEATURED AD</span>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingRight: ct.is_curated ? '80px' : '0' }}>
+                          <div>
+                            <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              {ct.title}
+                              {ct.is_private && (
+                                <span style={{ fontSize: '9px', background: 'rgba(255, 179, 0, 0.1)', color: '#ffb300', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                  <Lock size={10} /> Private
+                                </span>
+                              )}
+                            </h3>
+                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              Hosted by: <strong>{ct.host_name}</strong>
+                              {ct.host_is_verified && (
+                                <CheckCircle size={10} style={{ color: '#00ff88', fill: 'rgba(0,255,136,0.1)' }} />
+                              )}
+                            </span>
+                          </div>
+                          {!ct.is_curated && (
+                            <span style={{ fontSize: '10px', background: ct.status === 'approved' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 179, 0, 0.1)', color: ct.status === 'approved' ? '#00ff88' : '#ffb300', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>
+                              {ct.status ? ct.status.toUpperCase() : 'ACTIVE'}
                             </span>
                           )}
-                        </h3>
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          Hosted by: <strong>{ct.host_name}</strong>
-                          {ct.host_is_verified && (
-                            <CheckCircle size={10} style={{ color: '#00ff88', fill: 'rgba(0,255,136,0.1)' }} />
-                          )}
-                        </span>
-                      </div>
-                      <span style={{ fontSize: '10px', background: ct.status === 'approved' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 179, 0, 0.1)', color: ct.status === 'approved' ? '#00ff88' : '#ffb300', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>
-                        {ct.status ? ct.status.toUpperCase() : 'ACTIVE'}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>{ct.description}</p>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', fontSize: '11px' }}>
-                      <div>
-                        <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Prize Pool</span>
-                        <strong style={{ color: '#00ff88', fontSize: '13px' }}>{ct.prize_pool}</strong>
-                      </div>
-                      <div>
-                        <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Timeline</span>
-                        <strong>{ct.start_date} - {ct.end_date}</strong>
-                      </div>
-                      <div>
-                        <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Initial Capital</span>
-                        <strong>₹{(parseFloat(ct.initial_capital) || 1000000).toLocaleString('en-IN')}</strong>
-                      </div>
-                      <div>
-                        <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Allowed / Leverage</span>
-                        <strong>{ct.allowed_assets ? ct.allowed_assets.toUpperCase() : 'ALL'} / {ct.leverage_limit || 1}x</strong>
-                      </div>
-                    </div>
+                        </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Participants: <strong>{ct.participants} students</strong></span>
-                      {ct.status === 'approved' && (
-                        <button
-                          onClick={() => handleJoinContest(ct.id, ct.title, ct.is_private)}
-                          style={{
-                            background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
-                            border: 'none',
-                            borderRadius: '6px',
-                            color: '#0a0e27',
-                            padding: '8px 16px',
-                            fontWeight: '800',
-                            fontSize: '11px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Join Contest
-                        </button>
-                      )}
-                    </div>
+                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>{ct.description}</p>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', fontSize: '11px' }}>
+                          <div>
+                            <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Prize Pool</span>
+                            <strong style={{ color: '#00ff88', fontSize: '13px' }}>{ct.prize_pool}</strong>
+                          </div>
+                          <div>
+                            <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Timeline</span>
+                            <strong>{ct.start_date} – {ct.end_date}</strong>
+                          </div>
+                          <div>
+                            <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Initial Capital</span>
+                            <strong>₹{(parseFloat(ct.initial_capital) || 1000000).toLocaleString('en-IN')}</strong>
+                          </div>
+                          <div>
+                            <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Allowed / Leverage</span>
+                            <strong>{ct.allowed_assets ? ct.allowed_assets.toUpperCase() : 'ALL'} / {ct.leverage_limit || 1}x</strong>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Participants: <strong>{(ct.participants || 0).toLocaleString()} traders</strong></span>
+                          {ct.is_curated ? (
+                            <a
+                              href={ct.external_link}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                background: 'linear-gradient(135deg, #ffb300 0%, #ff8f00 100%)',
+                                border: 'none',
+                                borderRadius: '6px',
+                                color: '#0a0e27',
+                                padding: '8px 16px',
+                                fontWeight: '800',
+                                fontSize: '11px',
+                                cursor: 'pointer',
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              Visit Website <ExternalLink size={11} />
+                            </a>
+                          ) : ct.status === 'approved' && (
+                            <button
+                              onClick={() => handleJoinContest(ct.id, ct.title, ct.is_private)}
+                              style={{
+                                background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                                border: 'none',
+                                borderRadius: '6px',
+                                color: '#0a0e27',
+                                padding: '8px 16px',
+                                fontWeight: '800',
+                                fontSize: '11px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Join Contest
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()
             )}
           </div>
 
@@ -1865,64 +2031,91 @@ export default function Community() {
               <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                 <RefreshCw className="animate-spin" />
               </div>
-            ) : courses.filter(course => 
-              course.title.toLowerCase().includes(eduSearchQuery.toLowerCase()) ||
-              course.description.toLowerCase().includes(eduSearchQuery.toLowerCase()) ||
-              course.category.toLowerCase().includes(eduSearchQuery.toLowerCase())
-            ).length === 0 ? (
-              <div style={{
-                background: 'var(--bg-card-glass)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '16px',
-                padding: '32px',
-                textAlign: 'center',
-                color: 'var(--text-secondary)',
-                fontSize: '13px'
-              }}>
-                No courses found matching filters.
-              </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-                {courses.filter(course => 
+              (() => {
+                const allCourses = [
+                  ...courses,
+                  ...CURATED_COURSES.filter(cc => !courses.some(c => c.id === cc.id))
+                ].filter(course =>
                   course.title.toLowerCase().includes(eduSearchQuery.toLowerCase()) ||
                   course.description.toLowerCase().includes(eduSearchQuery.toLowerCase()) ||
-                  course.category.toLowerCase().includes(eduSearchQuery.toLowerCase())
-                ).map(course => (
-                  <div key={course.id} style={{
-                    background: 'var(--bg-card-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '16px',
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
-                  }}>
-                    <span style={{ fontSize: '9px', background: 'rgba(0, 255, 136, 0.1)', color: '#00ff88', padding: '2px 6px', borderRadius: '4px', alignSelf: 'flex-start', fontWeight: '800' }}>
-                      {course.category}
-                    </span>
-                    <h3 style={{ fontSize: '14px', fontWeight: '800', margin: 0, color: '#ffffff', minHeight: '38px', lineHeight: '1.4' }}>{course.title}</h3>
-                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0, minHeight: '50px', lineHeight: '1.4' }}>{course.description}</p>
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Instructor: <strong>{course.instructor}</strong></span>
-                      <a
-                        href={course.youtube_link}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          color: '#00bcd4',
-                          textDecoration: 'none',
-                          fontWeight: '800',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                      >
-                        Watch <ExternalLink size={11} />
-                      </a>
-                    </div>
+                  (course.category || '').toLowerCase().includes(eduSearchQuery.toLowerCase())
+                );
+                return allCourses.length === 0 ? (
+                  <div style={{ background: 'var(--bg-card-glass)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                    No courses found matching filters.
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                    {allCourses.map(course => (
+                      <div key={course.id} style={{
+                        background: course.is_curated
+                          ? 'linear-gradient(135deg, rgba(0,188,212,0.04) 0%, rgba(16,20,39,0.6) 100%)'
+                          : 'var(--bg-card-glass)',
+                        border: course.is_curated
+                          ? '1px solid rgba(0,188,212,0.25)'
+                          : '1px solid var(--border-color)',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        position: 'relative'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <span style={{
+                            fontSize: '9px',
+                            background: 'rgba(0, 255, 136, 0.1)',
+                            color: '#00ff88',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontWeight: '800'
+                          }}>
+                            {course.category}
+                          </span>
+                          {course.is_curated && (
+                            <span style={{
+                              fontSize: '9px',
+                              background: course.curated_source === 'Zerodha Varsity'
+                                ? 'rgba(255,100,0,0.12)'
+                                : 'rgba(255,0,0,0.10)',
+                              color: course.curated_source === 'Zerodha Varsity' ? '#ff6600' : '#ff4444',
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              fontWeight: '800',
+                              border: course.curated_source === 'Zerodha Varsity'
+                                ? '1px solid rgba(255,100,0,0.2)'
+                                : '1px solid rgba(255,0,0,0.2)',
+                            }}>
+                              {course.curated_source === 'Zerodha Varsity' ? '📘 Varsity' : '▶ YouTube'}
+                            </span>
+                          )}
+                        </div>
+                        <h3 style={{ fontSize: '14px', fontWeight: '800', margin: 0, color: '#ffffff', lineHeight: '1.4' }}>{course.title}</h3>
+                        <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4', flex: 1 }}>{course.description}</p>
+                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>By: <strong>{course.instructor}</strong></span>
+                          <a
+                            href={course.youtube_link}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              color: course.curated_source === 'Zerodha Varsity' ? '#ff6600' : '#00bcd4',
+                              textDecoration: 'none',
+                              fontWeight: '800',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            {course.curated_source === 'Zerodha Varsity' ? 'Read Module' : 'Watch'} <ExternalLink size={11} />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()
             )}
           </div>
         </div>
