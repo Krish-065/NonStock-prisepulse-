@@ -9,7 +9,8 @@ import {
   Calculator,
   Briefcase,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  Wrench
 } from 'lucide-react';
 
 export default function Tools() {
