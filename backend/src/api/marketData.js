@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { fetchAngelHistory, isAngelConfigured } = require('../services/angelApi');
 const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
+const NodeCache = require('node-cache');
 
 // Yahoo Finance headers to avoid IP blocks
 const YAHOO_HEADERS = {
@@ -12,15 +13,14 @@ const YAHOO_HEADERS = {
   'Origin': 'https://finance.yahoo.com',
 };
 
-const quoteCache = {};
-const CACHE_TTL = 1000; // 1 second
+// 30-second TTL cache for market quotes — prevents Yahoo Finance rate-limiting
+const quoteCache = new NodeCache({ stdTTL: 30, checkperiod: 60 });
 
 async function fetchYahooQuote(symbol) {
   try {
-    const now = Date.now();
-    if (quoteCache[symbol] && (now - quoteCache[symbol].timestamp < CACHE_TTL)) {
-      return quoteCache[symbol].data;
-    }
+    // Return from cache if fresh
+    const cached = quoteCache.get(symbol);
+    if (cached) return cached;
 
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
     let res = await fetch(url, { headers: YAHOO_HEADERS });
@@ -32,19 +32,22 @@ async function fetchYahooQuote(symbol) {
       );
     }
     if (!res.ok) {
-      return quoteCache[symbol] ? quoteCache[symbol].data : null;
+      // Return last known cached value with stale flag
+      const stale = quoteCache.get(`${symbol}_stale`);
+      if (stale) return { ...stale, isStale: true };
+      return null;
     }
     const data = await res.json();
     const parsed = parseYahooData(data);
     if (parsed) {
-      quoteCache[symbol] = {
-        timestamp: now,
-        data: parsed
-      };
+      quoteCache.set(symbol, parsed);
+      quoteCache.set(`${symbol}_stale`, parsed, 300); // 5-min stale fallback
     }
     return parsed;
   } catch (err) {
-    return quoteCache[symbol] ? quoteCache[symbol].data : null;
+    const stale = quoteCache.get(`${symbol}_stale`);
+    if (stale) return { ...stale, isStale: true };
+    return null;
   }
 }
 

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
-import { Sparkles, Check, CreditCard, ShieldCheck, Loader2 } from 'lucide-react';
+import { Sparkles, Check, CreditCard, ShieldCheck, Loader2, Zap } from 'lucide-react';
 
 export default function UpgradePro() {
   const { user, fetchUser } = useAuth();
@@ -63,6 +63,75 @@ export default function UpgradePro() {
   const startCheckout = () => {
     setStep('checkout');
   };
+
+  // ── Razorpay Checkout ────────────────────────────────────────────────────
+  const handleRazorpayPayment = useCallback(async (planId) => {
+    const toastId = toast.loading('Opening secure payment gateway...');
+    try {
+      // 1. Create order on backend
+      const { data } = await apiClient.post('/payment/create-order', { plan: planId });
+
+      // 2. Load Razorpay checkout script dynamically
+      if (!window.Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.body.appendChild(script);
+        });
+      }
+
+      toast.dismiss(toastId);
+
+      // 3. Open Razorpay checkout modal
+      const rzp = new window.Razorpay({
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: 'PrisePulse',
+        description: data.description,
+        order_id: data.orderId,
+        prefill: {
+          email: user?.email || '',
+          name: user?.name || '',
+        },
+        theme: { color: '#00f2fe' },
+        handler: async (response) => {
+          // 4. Verify on backend → set is_pro = true in DB
+          const verifyToast = toast.loading('Verifying payment...');
+          try {
+            const verify = await apiClient.post('/payment/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              plan: planId,
+            });
+            toast.dismiss(verifyToast);
+            if (verify.data.success) {
+              await fetchUser(false);
+              setStep('success');
+              toast.success('🎉 Welcome to PrisePulse Pro!');
+            }
+          } catch (verifyErr) {
+            toast.dismiss(verifyToast);
+            toast.error('Payment received but verification failed. Contact support.');
+          }
+        },
+        modal: { ondismiss: () => toast('Payment cancelled', { icon: '⚠️' }) },
+      });
+      rzp.open();
+    } catch (err) {
+      toast.dismiss(toastId);
+      if (err.response?.status === 503) {
+        toast.error('Razorpay not configured yet. Use UPI QR below as alternative.');
+        setSelectedPlan(planId);
+        startCheckout();
+      } else {
+        toast.error(err.response?.data?.error || 'Failed to initiate payment');
+      }
+    }
+  }, [user, fetchUser]);
 
   const handleVerifyPayment = async (e) => {
     e.preventDefault();
@@ -379,37 +448,33 @@ export default function UpgradePro() {
                   ))}
                 </div>
 
-                <button 
-                  onClick={() => {
-                    setSelectedPlan(plan.id);
-                    startCheckout();
-                  }}
+                {/* Primary: Razorpay */}
+                <button
+                  onClick={() => handleRazorpayPayment(plan.id)}
                   style={{
-                    width: '100%',
-                    padding: '12px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    background: plan.popular ? 'linear-gradient(135deg, #ffe082, #ffb300)' : 'rgba(255, 255, 255, 0.05)',
-                    color: plan.popular ? '#0b0803' : '#ffffff',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    boxShadow: plan.popular ? '0 4px 15px rgba(255, 179, 0, 0.3)' : 'none'
-                  }}
-                  onMouseOver={(e) => {
-                    if (!plan.popular) {
-                      e.currentTarget.style.background = 'rgba(255, 179, 0, 0.15)';
-                      e.currentTarget.style.color = '#ffb300';
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    if (!plan.popular) {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                      e.currentTarget.style.color = '#ffffff';
-                    }
+                    width: '100%', padding: '12px', borderRadius: '12px', border: 'none',
+                    background: plan.popular ? 'linear-gradient(135deg, #ffe082, #ffb300)' : 'rgba(0, 242, 254, 0.12)',
+                    color: plan.popular ? '#0b0803' : '#00f2fe',
+                    fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s',
+                    boxShadow: plan.popular ? '0 4px 15px rgba(255, 179, 0, 0.3)' : '0 0 12px rgba(0, 242, 254, 0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    marginBottom: '8px'
                   }}
                 >
-                  Choose {plan.name}
+                  <Zap size={14} />
+                  Pay with Razorpay
+                </button>
+                {/* Fallback: UPI Manual */}
+                <button
+                  onClick={() => { setSelectedPlan(plan.id); startCheckout(); }}
+                  style={{
+                    width: '100%', padding: '9px 12px', borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'transparent', color: 'var(--text-secondary)',
+                    fontWeight: 600, cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s'
+                  }}
+                >
+                  or Pay via UPI QR Code
                 </button>
               </div>
             ))}

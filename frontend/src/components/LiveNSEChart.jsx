@@ -406,9 +406,21 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
             <span>Bearish Candle</span>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-slate-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Real-time OHLC Socket Engine</span>
+        {/* Simulated Feed Disclaimer */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          background: 'rgba(245, 158, 11, 0.1)',
+          border: '1px solid rgba(245, 158, 11, 0.35)',
+          borderRadius: '8px',
+          padding: '4px 10px',
+          color: '#f59e0b',
+          fontSize: '10px',
+          fontWeight: '700',
+        }}>
+          <Zap style={{ width: '11px', height: '11px' }} />
+          <span>⚡ Simulated Price Feed — For Educational Purposes Only · Not Real Market Data</span>
         </div>
       </div>
     </div>

@@ -93,6 +93,10 @@ app.use('/api/alerts', alertsRoutes);
 const chartDrawingsRoutes = require('./api/chartDrawings');
 app.use('/api/chart', chartDrawingsRoutes);
 
+// Razorpay Payment & Pro Upgrade Routes
+const paymentRoutes = require('./api/payments');
+app.use('/api/payment', paymentRoutes);
+
 // User profile & Password routes
 app.post('/api/auth/change-password', authenticate, authRoutes.changePassword);
 
