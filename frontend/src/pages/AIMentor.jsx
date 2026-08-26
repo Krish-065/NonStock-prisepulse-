@@ -233,7 +233,8 @@ export default function AIMentor() {
           macd = 'bullish_cross';
           pattern = `Double Bottom pattern near support floor at ${data.support}`;
         } else {
-          macd = Math.random() > 0.5 ? 'bullish_cross' : 'bearish_cross';
+          const symHash = (data.symbol || '').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+          macd = (symHash % 2 === 0) ? 'bullish_cross' : 'bearish_cross';
           pattern = `Symmetric Triangle consolidation near support floor at ${data.support}`;
         }
         
@@ -255,13 +256,14 @@ export default function AIMentor() {
           setActiveNews([]);
         }
 
+        const symHashVal = (data.symbol || '').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
         setActiveMLEnsemble({
           overall: {
             buy: data.rsi < 35 ? 75 : data.rsi > 65 ? 15 : data.trend === 'BULLISH' ? 60 : 35,
             hold: 25,
             sell: data.rsi > 65 ? 60 : data.rsi < 35 ? 10 : data.trend === 'BEARISH' ? 50 : 40
           },
-          confidence: Math.floor(75 + Math.random() * 15),
+          confidence: 75 + (symHashVal % 15),
           components: [
             { name: 'LSTM Neural Network', signal: data.rsi < 35 ? 'Buy' : data.rsi > 65 ? 'Sell' : 'Hold', strength: 78 },
             { name: 'XGBoost Classifier', signal: data.trend === 'BULLISH' ? 'Buy' : 'Sell', strength: 82 },
@@ -402,7 +404,8 @@ export default function AIMentor() {
             activeMacd = 'bullish_cross';
             activePattern = `Double Bottom pattern near support floor at ${data.support}`;
           } else {
-            activeMacd = Math.random() > 0.5 ? 'bullish_cross' : 'bearish_cross';
+            const symHash = (data.symbol || '').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+            activeMacd = (symHash % 2 === 0) ? 'bullish_cross' : 'bearish_cross';
             activePattern = `Symmetric Triangle consolidation near support floor at ${data.support}`;
           }
 
@@ -422,13 +425,14 @@ export default function AIMentor() {
             resistance: data.resistance
           });
 
+          const symHashVal = (data.symbol || '').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
           setActiveMLEnsemble({
             overall: {
               buy: data.rsi < 35 ? 75 : data.rsi > 65 ? 15 : data.trend === 'BULLISH' ? 60 : 35,
               hold: 25,
               sell: data.rsi > 65 ? 60 : data.rsi < 35 ? 10 : data.trend === 'BEARISH' ? 50 : 40
             },
-            confidence: Math.floor(75 + Math.random() * 15),
+            confidence: 75 + (symHashVal % 15),
             components: [
               { name: 'LSTM Neural Network', signal: data.rsi < 35 ? 'Buy' : data.rsi > 65 ? 'Sell' : 'Hold', strength: 78 },
               { name: 'XGBoost Classifier', signal: data.trend === 'BULLISH' ? 'Buy' : 'Sell', strength: 82 },

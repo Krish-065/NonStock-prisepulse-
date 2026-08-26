@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { fetchAngelHistory, isAngelConfigured } = require('../services/angelApi');
+const { isIndianMarketOpen } = require('../utils/marketHours');
 const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
 const NodeCache = require('node-cache');
 
@@ -1193,7 +1194,8 @@ router.get('/sector-rotation', async (req, res) => {
       // Calculate dynamic simulated OI changes based on sector price action
       // E.g., if price is up, generate fresh buy interest; if down, generate short sell interest
       const oiBase = Math.sin(sectorName.charCodeAt(0)) * 5; // Fixed sector offset
-      const tickFluctuation = (Math.random() - 0.5) * 1.5;
+      const marketLive = isIndianMarketOpen();
+      const tickFluctuation = marketLive ? (Math.random() - 0.5) * 1.5 : 0;
       const avgOiChange = parseFloat((oiBase + (avgPriceChange * 1.8) + tickFluctuation).toFixed(2));
       
       // Map to 4-Quadrant Sector Rotation State:

@@ -12,6 +12,7 @@ const { loginLimiter } = require('./middleware/rateLimit');
 const { query } = require('./db/index');
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('./utils/email');
+const { isIndianMarketOpen } = require('./utils/marketHours');
 
 const app = express();
 const httpServer = createServer(app);
@@ -996,8 +997,10 @@ setInterval(async () => {
         const price = parseFloat(quote.price);
         const change = parseFloat(quote.change) || 0;
         
-        // Minor trade walk: -0.04% to +0.04% fluctuation
-        const walkPercent = (Math.random() - 0.5) * 0.0008;
+        // 24/7 assets (Crypto/Forex) fluctuate continuously; Indian stocks/indices only walk when Indian market is open
+        const is24x7 = isCrypto || isForex;
+        const marketActive = is24x7 || isIndianMarketOpen();
+        const walkPercent = marketActive ? (Math.random() - 0.5) * 0.0008 : 0;
         const tickPrice = parseFloat((price * (1 + walkPercent)).toFixed(2));
         
         const originalPrevClose = price - change;
@@ -1011,7 +1014,7 @@ setInterval(async () => {
           changePercent: tickChangePercent.toFixed(2),
           dayHigh: Math.max(parseFloat(quote.dayHigh || price), tickPrice).toFixed(2),
           dayLow: Math.min(parseFloat(quote.dayLow || price), tickPrice).toFixed(2),
-          volume: Math.round((quote.volume || 10000) * (1 + (Math.random() - 0.5) * 0.05)),
+          volume: quote.volume || 10000,
           timestamp: Date.now()
         };
 

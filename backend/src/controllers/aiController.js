@@ -373,16 +373,18 @@ exports.getLiveTechnicals = async (req, res) => {
       else if (cleanSym === 'TCS') basePrice = 3850;
       else if (cleanSym === 'INFY') basePrice = 1420;
       else {
-        let charSum = 0;
-        for (let i = 0; i < cleanSym.length; i++) {
-          charSum += cleanSym.charCodeAt(i);
-        }
+      let charSum = 0;
+      for (let i = 0; i < cleanSym.length; i++) {
+        charSum += cleanSym.charCodeAt(i);
+      }
+      if (basePrice === 100) {
         basePrice = (charSum % 400) + 10;
       }
 
       const sup = parseFloat((basePrice * 0.95).toFixed(2));
       const resVal = parseFloat((basePrice * 1.05).toFixed(2));
-      const rsi = Math.floor(35 + Math.random() * 40);
+      const rsi = 35 + (charSum % 40);
+      const trendVal = (charSum % 2 === 0) ? 'BULLISH' : 'BEARISH';
 
       return res.json({
         success: true,
@@ -391,7 +393,7 @@ exports.getLiveTechnicals = async (req, res) => {
         support: sup,
         resistance: resVal,
         rsi: rsi,
-        trend: Math.random() > 0.5 ? 'BULLISH' : 'BEARISH',
+        trend: trendVal,
         volume: 1200000,
         currency: resolved.currency,
         tvSymbol: resolved.tvTicker,
