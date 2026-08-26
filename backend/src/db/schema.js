@@ -355,7 +355,7 @@ async function createTables() {
   if (parseInt(courseCount.rows[0].count) === 0) {
     console.log('Seeding default educational courses...');
     const defaultCourses = [
-      ['c1', 'Stock Investing 101 for Beginners', 'Learn the basics of stock market, how shares work, and your first steps in investing.', 'PrisePulse Academy', 'https://www.youtube.com/watch?v=Xn7KWR97DQA', 'Basics'],
+      ['c1', 'Stock Investing 101 for Beginners', 'Learn the basics of stock market, how shares work, and your first steps in investing.', 'NonStock Academy', 'https://www.youtube.com/watch?v=Xn7KWR97DQA', 'Basics'],
       ['c2', 'Mastering RSI & EMA Technical Indicators', 'In-depth guide to technical indicators, standard parameters, and setups.', 'QuantPro Teacher', 'https://www.youtube.com/watch?v=fn24_D3L4z8', 'Technicals'],
       ['c3', 'Introduction to Futures & Options (F&O)', 'Learn option chains, Open Interest, Call-Put ratios, and contract definitions.', 'OptionGeek YouTuber', 'https://www.youtube.com/watch?v=1u4bWvjFpxM', 'F&O'],
       ['c4', 'Building & Backtesting Algorithmic Strategies', 'Step-by-step walkthrough on creating risk-managed backtest systems.', 'NonStock AI Mentor', 'https://www.youtube.com/watch?v=8mG_E15_l_0', 'Algorithms']

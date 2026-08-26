@@ -97,7 +97,7 @@ export default function StockDetail() {
     const cleanSym = symbol.toUpperCase();
 
     // 1. Instant local restore
-    const localSaved = localStorage.getItem(`prisepulse_drawings_${cleanSym}`);
+    const localSaved = localStorage.getItem(`nonstock_drawings_${cleanSym}`);
     if (localSaved) {
       try {
         const parsed = JSON.parse(localSaved);
@@ -115,7 +115,7 @@ export default function StockDetail() {
         const res = await apiClient.get(`/chart/drawings/${cleanSym}`);
         if (res.data && Array.isArray(res.data.drawings) && res.data.drawings.length > 0) {
           setUserDrawings(res.data.drawings);
-          localStorage.setItem(`prisepulse_drawings_${cleanSym}`, JSON.stringify(res.data.drawings));
+          localStorage.setItem(`nonstock_drawings_${cleanSym}`, JSON.stringify(res.data.drawings));
         }
       } catch (err) {
         // Silently fall back to local storage
@@ -131,7 +131,7 @@ export default function StockDetail() {
     const cleanSym = symbol.toUpperCase();
 
     // Save to LocalStorage for instant refresh persistence
-    localStorage.setItem(`prisepulse_drawings_${cleanSym}`, JSON.stringify(updatedDrawings));
+    localStorage.setItem(`nonstock_drawings_${cleanSym}`, JSON.stringify(updatedDrawings));
 
     // Async sync to server database
     apiClient.post('/chart/drawings', {

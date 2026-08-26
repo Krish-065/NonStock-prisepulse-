@@ -89,7 +89,7 @@ export default function UpgradePro() {
         key: data.keyId,
         amount: data.amount,
         currency: data.currency,
-        name: 'PrisePulse',
+        name: 'NonStock',
         description: data.description,
         order_id: data.orderId,
         prefill: {
@@ -111,7 +111,7 @@ export default function UpgradePro() {
             if (verify.data.success) {
               await fetchUser(false);
               setStep('success');
-              toast.success('🎉 Welcome to PrisePulse Pro!');
+              toast.success('🎉 Welcome to NonStock Pro!');
             }
           } catch (verifyErr) {
             toast.dismiss(verifyToast);

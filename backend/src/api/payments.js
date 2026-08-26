@@ -7,9 +7,9 @@ const { authenticate } = require('../middleware/auth');
 
 // Plans configuration
 const PLANS = {
-  monthly: { amount: 49900, currency: 'INR', name: 'PrisePulse Pro — Monthly', description: 'Unlimited AI Mentor, Live Charts, Option Greeks' },
-  quarterly: { amount: 129900, currency: 'INR', name: 'PrisePulse Pro — Quarterly', description: '3 months of full Pro access' },
-  annual: { amount: 399900, currency: 'INR', name: 'PrisePulse Pro — Annual (Best Value)', description: '12 months — save 33%' },
+  monthly: { amount: 49900, currency: 'INR', name: 'NonStock Pro — Monthly', description: 'Unlimited AI Mentor, Live Charts, Option Greeks' },
+  quarterly: { amount: 129900, currency: 'INR', name: 'NonStock Pro — Quarterly', description: '3 months of full Pro access' },
+  annual: { amount: 399900, currency: 'INR', name: 'NonStock Pro — Annual (Best Value)', description: '12 months — save 33%' },
 };
 
 // Initialize Razorpay (gracefully handles missing keys for dev)
@@ -108,7 +108,7 @@ router.post('/verify', authenticate, async (req, res) => {
 
     res.json({
       success: true,
-      message: `Welcome to PrisePulse Pro! Your ${plan} plan is now active.`,
+      message: `Welcome to NonStock Pro! Your ${plan} plan is now active.`,
       proExpiresAt: expiresAt.toISOString(),
       plan,
     });

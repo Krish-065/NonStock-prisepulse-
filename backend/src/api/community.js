@@ -618,9 +618,9 @@ router.get('/chat/:groupId', authenticate, async (req, res) => {
           { author: 'ThetaDecay', msg: 'Extremely! Stick to paper trading here until you master risk management.' }
         ],
         basics: [
-          { author: 'PrisePulseMentor', msg: 'Welcome to Investing Basics! Ask anything about indicators or stock terminologies.' },
+          { author: 'NonStockMentor', msg: 'Welcome to Investing Basics! Ask anything about indicators or stock terminologies.' },
           { author: 'Newbie99', msg: 'What does "Spread" mean in bid-ask quotes?' },
-          { author: 'PrisePulseMentor', msg: 'It is the difference between the highest price a buyer is willing to pay (bid) and the lowest price a seller is willing to accept (ask).' }
+          { author: 'NonStockMentor', msg: 'It is the difference between the highest price a buyer is willing to pay (bid) and the lowest price a seller is willing to accept (ask).' }
         ],
         crypto: [
           { author: 'CryptoWhale', msg: 'BTC holding strong above key support of $60K.' },

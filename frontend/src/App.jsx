@@ -70,7 +70,7 @@ function PageLoader() {
         fontWeight: '700',
         letterSpacing: '1px',
       }}>
-        Loading PrisePulse...
+        Loading NonStock...
       </div>
     </div>
   );
