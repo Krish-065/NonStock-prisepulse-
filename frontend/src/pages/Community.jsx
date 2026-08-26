@@ -141,7 +141,7 @@ const CURATED_CONTESTS = [
 
 export default function Community() {
   const { user } = useAuth();
-  const [tab, setTab] = useState('systems'); // systems | feed | educator | chats
+  const [tab, setTab] = useState('feed'); // feed | systems | educator | chats
   
   // Shared Strategies & Leaderboard
   const [sharedStrategies, setSharedStrategies] = useState([]);

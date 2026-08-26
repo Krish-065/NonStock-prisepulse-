@@ -482,6 +482,20 @@ async function createTables() {
     )
   `);
 
+  // Saved Chart Drawings & Tools Persistence table
+  await query(`
+    CREATE TABLE IF NOT EXISTS saved_chart_drawings (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+      symbol VARCHAR(50) NOT NULL,
+      drawings_data TEXT NOT NULL,
+      indicators_data TEXT,
+      chart_type VARCHAR(20) DEFAULT 'candlestick',
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, symbol)
+    )
+  `);
+
   // 9. Google Sign-in migration
   try {
     await query(`ALTER TABLE users ALTER COLUMN password DROP NOT NULL`);

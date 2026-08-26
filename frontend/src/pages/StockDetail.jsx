@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiClient } from '../services/api';
+import LiveNSEChart from '../components/LiveNSEChart';
 import { createChart, CandlestickSeries, LineSeries, createSeriesMarkers } from 'lightweight-charts';
 import { 
   TrendingUp, Activity, Play, RefreshCw, BarChart2, 
-  Settings, Award, ShieldAlert, CheckCircle, ChevronRight, HelpCircle, Sparkles, Briefcase, ShoppingBag
+  Settings, Award, ShieldAlert, CheckCircle, ChevronRight, HelpCircle, Sparkles, Briefcase, ShoppingBag,
+  Plus, Trash2, Layers, Bookmark
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -81,6 +83,96 @@ export default function StockDetail() {
 
   // Interactive Hover Crosshair
   const [hoverIndex, setHoverIndex] = useState(null);
+
+  // ─── Chart Drawing & Persistence State ───
+  const [userDrawings, setUserDrawings] = useState([]);
+  const [drawingPrice, setDrawingPrice] = useState('');
+  const [drawingLabel, setDrawingLabel] = useState('');
+  const [drawingColor, setDrawingColor] = useState('#00ff88');
+  const [showAddDrawingModal, setShowAddDrawingModal] = useState(false);
+
+  // Restore drawings from LocalStorage and Backend Database
+  useEffect(() => {
+    if (!symbol) return;
+    const cleanSym = symbol.toUpperCase();
+
+    // 1. Instant local restore
+    const localSaved = localStorage.getItem(`prisepulse_drawings_${cleanSym}`);
+    if (localSaved) {
+      try {
+        const parsed = JSON.parse(localSaved);
+        if (Array.isArray(parsed)) setUserDrawings(parsed);
+      } catch (e) {
+        console.warn('Failed to parse local chart drawings');
+      }
+    } else {
+      setUserDrawings([]);
+    }
+
+    // 2. Cross-device sync from backend
+    const fetchBackendDrawings = async () => {
+      try {
+        const res = await apiClient.get(`/chart/drawings/${cleanSym}`);
+        if (res.data && Array.isArray(res.data.drawings) && res.data.drawings.length > 0) {
+          setUserDrawings(res.data.drawings);
+          localStorage.setItem(`prisepulse_drawings_${cleanSym}`, JSON.stringify(res.data.drawings));
+        }
+      } catch (err) {
+        // Silently fall back to local storage
+      }
+    };
+
+    fetchBackendDrawings();
+  }, [symbol]);
+
+  const saveDrawings = (updatedDrawings) => {
+    setUserDrawings(updatedDrawings);
+    if (!symbol) return;
+    const cleanSym = symbol.toUpperCase();
+
+    // Save to LocalStorage for instant refresh persistence
+    localStorage.setItem(`prisepulse_drawings_${cleanSym}`, JSON.stringify(updatedDrawings));
+
+    // Async sync to server database
+    apiClient.post('/chart/drawings', {
+      symbol: cleanSym,
+      drawings: updatedDrawings,
+      indicators: { buyConditions, sellConditions, stopLossPct, takeProfitPct, chartInterval, timeRange }
+    }).catch((e) => console.warn('Server draw sync skipped:', e.message));
+  };
+
+  const handleAddDrawing = (type = 'horizontalLine', customPrice = null, customLabel = null, customColor = null) => {
+    const priceVal = parseFloat(customPrice !== null ? customPrice : drawingPrice);
+    if (isNaN(priceVal) || priceVal <= 0) {
+      toast.error('Please enter a valid price level');
+      return;
+    }
+
+    const labelVal = customLabel !== null ? customLabel : (drawingLabel.trim() || 'Key Level');
+    const colorVal = customColor !== null ? customColor : drawingColor;
+
+    const newDrawing = {
+      id: `draw_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      type,
+      price: priceVal,
+      label: labelVal,
+      color: colorVal,
+      createdAt: new Date().toISOString()
+    };
+
+    const updated = [...userDrawings, newDrawing];
+    saveDrawings(updated);
+    toast.success(`Added ${labelVal} (₹${priceVal}) to chart`);
+    setDrawingPrice('');
+    setDrawingLabel('');
+    setShowAddDrawingModal(false);
+  };
+
+  const handleRemoveDrawing = (drawingId) => {
+    const updated = userDrawings.filter(d => d.id !== drawingId);
+    saveDrawings(updated);
+    toast.success('Drawing removed');
+  };
 
   // ─── Smart TradingView Symbol Resolver ───
   // Maps Yahoo Finance symbols to correct TradingView exchange:ticker format
@@ -829,7 +921,27 @@ export default function StockDetail() {
     sma50Series.setData(formattedSma50);
     rsiLineSeries.setData(formattedRsi);
 
-    // 5. Draw Signals as interactive markers
+    // 5. Render Saved User Drawings / Horizontal Price Lines
+    if (Array.isArray(userDrawings)) {
+      userDrawings.forEach((drawing) => {
+        if (drawing.price && !isNaN(drawing.price)) {
+          try {
+            candlestickSeries.createPriceLine({
+              price: parseFloat(drawing.price),
+              color: drawing.color || '#ffb300',
+              lineWidth: 2,
+              lineStyle: 0,
+              axisLabelVisible: true,
+              title: drawing.label || 'Level',
+            });
+          } catch (e) {
+            console.warn('Failed to render drawing price line:', e);
+          }
+        }
+      });
+    }
+
+    // 6. Draw Signals as interactive markers
     const markers = [];
     for (let i = 0; i < history.length; i++) {
       if (signals[i] === 'BUY') {
@@ -899,7 +1011,7 @@ export default function StockDetail() {
         rsiChartRef.current = null;
       }
     };
-  }, [history, signals, activeTab, chartInterval]);
+  }, [history, signals, activeTab, chartInterval, userDrawings]);
 
   // Strategy Presets Loader
   const applyPreset = (presetType) => {
@@ -1087,39 +1199,10 @@ export default function StockDetail() {
         </div>
       </div>
 
-      {/* 1. TradingView Widget Block */}
-      {!isNSE ? (
-        <div style={{
-          background: 'rgba(16, 20, 39, 0.95)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '16px',
-          padding: '16px',
-          overflow: 'hidden',
-          marginBottom: '24px'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ color: '#00bcd4', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>TradingView Widget (International Only)</span>
-          </div>
-          <div id="tradingview-chart-element" ref={tvContainerRef} style={{ height: '600px', borderRadius: '8px' }}></div>
-        </div>
-      ) : (
-        <div style={{
-          background: 'rgba(255, 68, 68, 0.05)',
-          border: '1px solid rgba(255, 68, 68, 0.25)',
-          borderRadius: '16px',
-          padding: '20px',
-          marginBottom: '24px',
-          color: '#ff4444',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px'
-        }}>
-          <strong style={{ fontSize: '15px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>⚠️ TradingView Domain Restrictions</strong>
-          <span style={{ fontSize: '13px', color: '#9b9eac', lineHeight: '1.6' }}>
-            TradingView restricts data licensing for Indian market equities on external host domains. NonStock has automatically configured the **NonStock Live Chart / Strategy Backtester** below to pull live rates and full historical charts from AngelOne.
-          </span>
-        </div>
-      )}
+      {/* 1. Live Streaming NSE Chart Engine */}
+      <div className="mb-8">
+        <LiveNSEChart symbol={symbol || 'RELIANCE'} height={480} />
+      </div>
 
       {/* 2. Custom Strategy Lab Block */}
       <div>
@@ -1507,6 +1590,227 @@ export default function StockDetail() {
             {/* Price Graph Canvas - TradingView Lightweight Charts */}
             {history.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(10, 14, 39, 0.2)', borderRadius: '12px', padding: '12px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                
+                {/* ─── Chart Analysis & Drawing Tools Toolbar ─── */}
+                <div style={{
+                  display: 'flex',
+                  justify: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.05)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '800', color: '#00ff88', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Layers size={13} /> Chart Tools:
+                    </span>
+
+                    {/* Quick Add Resistance */}
+                    <button
+                      onClick={() => {
+                        if (history.length > 0) {
+                          const maxHigh = Math.max(...history.slice(-30).map(h => h.high));
+                          handleAddDrawing('horizontalLine', maxHigh, 'Resistance Level', '#ff4444');
+                        }
+                      }}
+                      style={{
+                        background: 'rgba(255, 68, 68, 0.12)',
+                        border: '1px solid rgba(255, 68, 68, 0.3)',
+                        color: '#ff4444',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <Plus size={12} /> Resistance
+                    </button>
+
+                    {/* Quick Add Support */}
+                    <button
+                      onClick={() => {
+                        if (history.length > 0) {
+                          const minLow = Math.min(...history.slice(-30).map(h => h.low));
+                          handleAddDrawing('horizontalLine', minLow, 'Support Level', '#00ff88');
+                        }
+                      }}
+                      style={{
+                        background: 'rgba(0, 255, 136, 0.12)',
+                        border: '1px solid rgba(0, 255, 136, 0.3)',
+                        color: '#00ff88',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <Plus size={12} /> Support
+                    </button>
+
+                    {/* Add Custom Level Modal Toggle */}
+                    <button
+                      onClick={() => setShowAddDrawingModal(!showAddDrawingModal)}
+                      style={{
+                        background: 'rgba(0, 188, 212, 0.12)',
+                        border: '1px solid rgba(0, 188, 212, 0.3)',
+                        color: '#00bcd4',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <Plus size={12} /> Custom Level
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                      <Bookmark size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />
+                      {userDrawings.length} Saved {userDrawings.length === 1 ? 'Level' : 'Levels'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Custom Drawing Form Inline Modal */}
+                {showAddDrawingModal && (
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                    alignItems: 'center',
+                    padding: '10px',
+                    background: 'rgba(16, 20, 39, 0.8)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(0, 188, 212, 0.3)'
+                  }}>
+                    <input
+                      type="number"
+                      placeholder="Price level (e.g. 2450)"
+                      value={drawingPrice}
+                      onChange={(e) => setDrawingPrice(e.target.value)}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                        color: '#fff',
+                        fontSize: '11px',
+                        width: '130px'
+                      }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Label (e.g. Breakout Target)"
+                      value={drawingLabel}
+                      onChange={(e) => setDrawingLabel(e.target.value)}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                        color: '#fff',
+                        fontSize: '11px',
+                        width: '160px'
+                      }}
+                    />
+                    <select
+                      value={drawingColor}
+                      onChange={(e) => setDrawingColor(e.target.value)}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                        color: '#fff',
+                        fontSize: '11px'
+                      }}
+                    >
+                      <option value="#00ff88">Green (#00ff88)</option>
+                      <option value="#ff4444">Red (#ff4444)</option>
+                      <option value="#ffb300">Yellow (#ffb300)</option>
+                      <option value="#00bcd4">Cyan (#00bcd4)</option>
+                      <option value="#e040fb">Purple (#e040fb)</option>
+                    </select>
+
+                    <button
+                      onClick={() => handleAddDrawing('horizontalLine')}
+                      style={{
+                        background: 'linear-gradient(135deg, #00ff88, #00b058)',
+                        color: '#0b0803',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '4px 12px',
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Save Level
+                    </button>
+                    <button
+                      onClick={() => setShowAddDrawingModal(false)}
+                      style={{
+                        background: 'transparent',
+                        color: 'var(--text-secondary)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+
+                {/* Active Drawings Pill Tags */}
+                {userDrawings.length > 0 && (
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', padding: '2px 4px' }}>
+                    {userDrawings.map((draw) => (
+                      <div
+                        key={draw.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: `1px solid ${draw.color || '#ffb300'}44`,
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          fontSize: '10px',
+                          color: '#ffffff'
+                        }}
+                      >
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: draw.color || '#ffb300' }} />
+                        <span style={{ fontWeight: '700' }}>{draw.label}:</span>
+                        <span style={{ color: draw.color || '#ffb300' }}>₹{draw.price}</span>
+                        <Trash2
+                          size={11}
+                          style={{ cursor: 'pointer', color: '#ff4444', marginLeft: '2px' }}
+                          onClick={() => handleRemoveDrawing(draw.id)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Candlestick & SMA Chart container */}
                 <div style={{ position: 'relative' }}>
                   <div style={{ position: 'absolute', top: '8px', left: '12px', zIndex: 10, display: 'flex', gap: '16px', pointerEvents: 'none' }}>

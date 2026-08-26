@@ -58,14 +58,14 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
 
   const isDark = theme === 'dark';
   const sidebarBg = isDark 
-    ? (user?.is_pro ? 'rgba(14, 11, 4, 0.98)' : 'rgba(10, 14, 39, 0.98)')
+    ? (user?.is_pro ? 'rgba(14, 10, 26, 0.98)' : 'rgba(11, 13, 25, 0.98)')
     : (user?.is_pro ? 'rgba(252, 248, 237, 0.98)' : '#ffffff');
   const sidebarBorderRight = isDark
-    ? (user?.is_pro ? '1px solid rgba(255, 179, 0, 0.2)' : '1px solid rgba(0, 255, 136, 0.15)')
-    : (user?.is_pro ? '1px solid rgba(255, 179, 0, 0.25)' : '1px solid rgba(0, 0, 0, 0.08)');
+    ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(0, 242, 254, 0.2)')
+    : (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.3)' : '1px solid rgba(0, 0, 0, 0.08)');
   const sidebarBorderBottom = isDark
-    ? (user?.is_pro ? '1px solid rgba(255, 179, 0, 0.15)' : '1px solid rgba(0, 255, 136, 0.15)')
-    : (user?.is_pro ? '1px solid rgba(255, 179, 0, 0.25)' : '1px solid rgba(0, 0, 0, 0.08)');
+    ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.2)' : '1px solid rgba(121, 40, 202, 0.2)')
+    : (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(0, 0, 0, 0.08)');
 
   return (
     <aside style={{
@@ -110,17 +110,17 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
             onClick={isMobile ? onClose : undefined}
             style={({ isActive }) => {
               const activeColor = item.isSpecial 
-                ? '#ffb300' 
-                : (isDark ? '#00ff88' : '#00796b');
+                ? '#ffd700' 
+                : (isDark ? '#00f2fe' : '#7928ca');
               const activeBg = item.isSpecial 
-                ? 'rgba(255, 179, 0, 0.08)' 
-                : (isDark ? 'rgba(0, 255, 136, 0.05)' : 'rgba(0, 121, 107, 0.06)');
+                ? 'rgba(255, 215, 0, 0.12)' 
+                : (isDark ? 'rgba(0, 242, 254, 0.1)' : 'rgba(121, 40, 202, 0.08)');
               const activeBorder = item.isSpecial 
-                ? '1px solid rgba(255, 179, 0, 0.3)' 
-                : (isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 121, 107, 0.15)');
+                ? '1px solid rgba(255, 215, 0, 0.4)' 
+                : (isDark ? '1px solid rgba(0, 242, 254, 0.3)' : '1px solid rgba(121, 40, 202, 0.2)');
               const defaultColor = item.isSpecial 
-                ? '#ffb300' 
-                : (isDark ? '#9b9eac' : '#4a5568');
+                ? '#ffd700' 
+                : (isDark ? '#94a3b8' : '#4a5568');
               return {
                 display: 'flex',
                 alignItems: 'center',

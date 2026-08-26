@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import CandlestickBg from './CandlestickBg';
+import FlyingCurrencyBg from './FlyingCurrencyBg';
 import { Menu, Star, Briefcase, Coins, LineChart, Award, Search, Newspaper, Activity, TrendingUp, LayoutDashboard, MessageSquare } from 'lucide-react';
 import { apiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -157,6 +158,7 @@ export default function Layout({ children }) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', position: 'relative', width: '100%', overflowX: 'hidden' }}>
       <CandlestickBg />
+      <FlyingCurrencyBg />
       
       {/* Mobile Header */}
       {isMobile && (
@@ -282,9 +284,9 @@ export default function Layout({ children }) {
           left: '260px',
           right: 0,
           height: '115px',
-          background: isDark ? 'rgba(10, 14, 39, 0.85)' : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: isDark ? '1px solid rgba(0, 255, 136, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)',
+          background: isDark ? (user?.is_pro ? 'rgba(14, 10, 26, 0.92)' : 'rgba(11, 13, 25, 0.88)') : 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(16px)',
+          borderBottom: isDark ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.2)' : '1px solid rgba(121, 40, 202, 0.2)') : '1px solid rgba(0, 0, 0, 0.08)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -303,7 +305,7 @@ export default function Layout({ children }) {
                 <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#5a6a85', fontWeight: 700, letterSpacing: '0.5px' }}>NIFTY 50</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
                   <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#1a1a1a' }}>{indices.nifty.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.nifty.up ? (isDark ? '#00ff88' : '#2e7d32') : (isDark ? '#ff4444' : '#c62828') }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.nifty.up ? '#10b981' : '#ff0080' }}>
                     {indices.nifty.up ? '▲' : '▼'} {indices.nifty.percent}%
                   </span>
                 </div>
@@ -315,7 +317,7 @@ export default function Layout({ children }) {
                 <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#5a6a85', fontWeight: 700, letterSpacing: '0.5px' }}>SENSEX</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
                   <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#1a1a1a' }}>{indices.sensex.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.sensex.up ? (isDark ? '#00ff88' : '#2e7d32') : (isDark ? '#ff4444' : '#c62828') }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.sensex.up ? '#10b981' : '#ff0080' }}>
                     {indices.sensex.up ? '▲' : '▼'} {indices.sensex.percent}%
                   </span>
                 </div>
@@ -327,7 +329,7 @@ export default function Layout({ children }) {
                 <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#5a6a85', fontWeight: 700, letterSpacing: '0.5px' }}>BANK NIFTY</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
                   <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#1a1a1a' }}>{indices.banknifty.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.banknifty.up ? (isDark ? '#00ff88' : '#2e7d32') : (isDark ? '#ff4444' : '#c62828') }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.banknifty.up ? '#10b981' : '#ff0080' }}>
                     {indices.banknifty.up ? '▲' : '▼'} {indices.banknifty.percent}%
                   </span>
                 </div>
@@ -339,10 +341,10 @@ export default function Layout({ children }) {
               display: 'flex', 
               alignItems: 'center', 
               gap: '10px', 
-              background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)', 
+              background: isDark ? (user?.is_pro ? 'rgba(255, 215, 0, 0.06)' : 'rgba(121, 40, 202, 0.08)') : 'rgba(0, 0, 0, 0.02)', 
               padding: '6px 14px', 
               borderRadius: '20px', 
-              border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.08)' 
+              border: isDark ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(0, 242, 254, 0.2)') : '1px solid rgba(0, 0, 0, 0.08)' 
             }}>
               <span style={{
                 width: '8px',
@@ -367,7 +369,7 @@ export default function Layout({ children }) {
             background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
             padding: '4px 8px',
             borderRadius: '12px',
-            border: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(0, 0, 0, 0.06)',
+            border: isDark ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.15)' : '1px solid rgba(121, 40, 202, 0.12)') : '1px solid rgba(0, 0, 0, 0.06)',
             alignSelf: 'flex-start',
             marginTop: '8px'
           }}>
@@ -380,11 +382,11 @@ export default function Layout({ children }) {
                   alignItems: 'center',
                   gap: '6px',
                   padding: '6px 12px',
-                  color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
+                  color: isActive ? (isDark ? (user?.is_pro ? '#ffd700' : '#00f2fe') : '#7928ca') : (isDark ? '#94a3b8' : '#5a6a85'),
                   textDecoration: 'none',
                   borderRadius: '8px',
-                  background: isActive ? (isDark ? 'rgba(0, 255, 136, 0.08)' : 'rgba(0, 121, 107, 0.08)') : 'transparent',
-                  border: isActive ? (isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 121, 107, 0.15)') : '1px solid transparent',
+                  background: isActive ? (isDark ? (user?.is_pro ? 'rgba(255, 215, 0, 0.12)' : 'rgba(0, 242, 254, 0.1)') : 'rgba(121, 40, 202, 0.08)') : 'transparent',
+                  border: isActive ? (isDark ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.35)' : '1px solid rgba(0, 242, 254, 0.25)') : '1px solid rgba(121, 40, 202, 0.15)') : '1px solid transparent',
                   fontSize: '13px',
                   fontWeight: isActive ? '700' : '500',
                   transition: 'all 0.2s'

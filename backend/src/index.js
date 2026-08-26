@@ -89,6 +89,10 @@ app.use('/api/community', communityHubRoutes);
 const alertsRoutes = require('./api/alerts');
 app.use('/api/alerts', alertsRoutes);
 
+// Chart Drawings & Tool Persistence
+const chartDrawingsRoutes = require('./api/chartDrawings');
+app.use('/api/chart', chartDrawingsRoutes);
+
 // User profile & Password routes
 app.post('/api/auth/change-password', authenticate, authRoutes.changePassword);
 
