@@ -13,8 +13,8 @@ const YAHOO_HEADERS = {
   'Origin': 'https://finance.yahoo.com',
 };
 
-// 30-second TTL cache for market quotes — prevents Yahoo Finance rate-limiting
-const quoteCache = new NodeCache({ stdTTL: 30, checkperiod: 60 });
+// 5-second TTL cache for market quotes — ensures real-time Screener & quote updates with zero delay
+const quoteCache = new NodeCache({ stdTTL: 5, checkperiod: 15 });
 
 async function fetchYahooQuote(symbol) {
   try {
