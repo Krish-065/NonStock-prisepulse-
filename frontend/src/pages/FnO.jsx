@@ -55,6 +55,16 @@ export default function FnO() {
     return () => clearInterval(interval);
   }, [underlying, selectedExpiry]);
 
+  const isMarketOpen = () => {
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const ist = new Date(utc + (360 * 60000));
+    const day = ist.getDay();
+    if (day === 0 || day === 6) return false; // Weekend closed
+    const timeInMinutes = ist.getHours() * 60 + ist.getMinutes();
+    return timeInMinutes >= 555 && timeInMinutes <= 930; // 9:15 AM to 3:30 PM IST
+  };
+
   const fetchFnOData = async (showLoadingIndicator = false) => {
     if (showLoadingIndicator) setLoading(true);
     try {
@@ -74,15 +84,16 @@ export default function FnO() {
 
         const nearestStrike = Math.round(spotPrice / strikeInterval) * strikeInterval;
         
-        // Introduce dynamic PCR bias per symbol to move the gauge needle away from exact 1.0
+        // Introduce dynamic PCR bias per symbol
         let symbolBias = 1.0;
         if (underlying === 'NIFTY') symbolBias = 1.14;       // Bullish bias
         else if (underlying === 'BANKNIFTY') symbolBias = 0.88;  // Bearish bias
         else if (underlying === 'RELIANCE') symbolBias = 1.28;   // Strong bullish bias
         else if (underlying === 'TCS') symbolBias = 0.72;        // Strong bearish bias
         
-        // Add random walk fluctuation to the bias for live ticks
-        const liveBias = symbolBias * (0.95 + Math.random() * 0.1);
+        // Only apply live tick fluctuation if Indian market is open (9:15 AM - 3:30 PM IST)
+        const marketLive = isMarketOpen();
+        const liveBias = marketLive ? (symbolBias * (0.98 + Math.random() * 0.04)) : symbolBias;
 
         const strikesCount = 7;
         const startStrike = nearestStrike - Math.floor(strikesCount / 2) * strikeInterval;
@@ -92,10 +103,8 @@ export default function FnO() {
           const strike = startStrike + i * strikeInterval;
           const atm = strike === nearestStrike;
           
-          // Generate realistic open interest based on distance to strike and underlying
-          // Out-of-the-money options have lower premium but high OI, ATM has moderate, etc.
-          // Add slight live fluctuation ticks to simulate live order flow
-          const randomFactor = 0.96 + Math.random() * 0.08; // +/- 4% live fluctuation
+          // Generate OI: static when market is closed, subtle live flow when market is open
+          const randomFactor = marketLive ? (0.98 + Math.random() * 0.04) : 1.0;
           
           // Center-weighted distribution for OI
           const distanceFactor = Math.max(1, 10 - Math.abs(strike - nearestStrike) / strikeInterval);
