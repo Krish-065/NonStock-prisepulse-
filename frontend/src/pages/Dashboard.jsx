@@ -44,7 +44,22 @@ export default function Dashboard() {
     fetchMovers();
     fetchNews();
     
-    const interval = setInterval(fetchMovers, 3000);
+    const interval = setInterval(() => {
+      fetchMovers();
+      
+      // Simulate live F&O sector updates
+      setFnoSectors(prevSectors => prevSectors.map(sector => {
+        const volatility = 0.05; // 0.05% volatility per tick
+        const tick = (Math.random() - 0.5) * volatility;
+        const newChange = sector.change + tick;
+        return { 
+          ...sector, 
+          change: newChange, 
+          isPositive: newChange >= 0 
+        };
+      }));
+    }, 3000);
+    
     const timeInt = setInterval(() => setCurrentTime(new Date()), 1000);
     
     return () => {
@@ -90,18 +105,18 @@ export default function Dashboard() {
     { name: 'Kross Limited', status: 'ANNOUNCED', closes: '11 Sep 2026', minInvest: '₹14,400', subscription: '4.8x', price: '₹228 - ₹240' }
   ];
 
-  const fnoSectors = [
-    { name: 'IT', change: '+0.80%', isPositive: true },
-    { name: 'Energy', change: '+0.65%', isPositive: true },
-    { name: 'Metal', change: '+0.52%', isPositive: true },
-    { name: 'Pharma', change: '+0.40%', isPositive: true },
-    { name: 'Infra', change: '+0.35%', isPositive: true },
-    { name: 'Services', change: '+0.25%', isPositive: true },
-    { name: 'Finance', change: '+0.15%', isPositive: true },
-    { name: 'Banking', change: '+0.10%', isPositive: true },
-    { name: 'Auto', change: '-0.15%', isPositive: false },
-    { name: 'Realty', change: '-0.45%', isPositive: false },
-  ];
+  const [fnoSectors, setFnoSectors] = useState([
+    { name: 'IT', change: 0.80, isPositive: true },
+    { name: 'Energy', change: 0.65, isPositive: true },
+    { name: 'Metal', change: 0.52, isPositive: true },
+    { name: 'Pharma', change: 0.40, isPositive: true },
+    { name: 'Infra', change: 0.35, isPositive: true },
+    { name: 'Services', change: 0.25, isPositive: true },
+    { name: 'Finance', change: 0.15, isPositive: true },
+    { name: 'Banking', change: 0.10, isPositive: true },
+    { name: 'Auto', change: -0.15, isPositive: false },
+    { name: 'Realty', change: -0.45, isPositive: false },
+  ]);
 
   const optionContracts = [
     { symbol: 'NIFTY 24800 CE', ltp: '₹142.50', change: '+24.50 (+20.7%)', pcr: '1.25 (Bullish)', isPositive: true },
@@ -323,7 +338,7 @@ export default function Dashboard() {
                 }}
               >
                 <div style={{ fontSize: '12px' }}>{sec.name}</div>
-                <div style={{ fontSize: '11px', marginTop: '2px', opacity: 0.9 }}>{sec.change}</div>
+                <div style={{ fontSize: '11px', marginTop: '2px', opacity: 0.9 }}>{sec.change >= 0 ? '+' : ''}{sec.change.toFixed(2)}%</div>
               </div>
             ))}
           </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, Activity, BarChart2 } from 'lucide-react';
+import { Search, Activity, BarChart2, TrendingUp, Play } from 'lucide-react';
 import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { apiClient } from '../services/api';
 import { io } from 'socket.io-client';
@@ -614,11 +614,15 @@ export default function Markets() {
     }
   }, [selectedMarket, activeCategory]);
 
-  const [activeTab, setActiveTab] = useState(
-    (symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || activeCategory === 'Indian Stocks' || symbol.endsWith('=F') || symbol.startsWith('TVC:') || activeCategory === 'Commodities')
-      ? 'custom'
-      : 'tradingview'
-  );
+  const [activeTab, setActiveTab] = useState(() => {
+    const isCrypto = initialSymbol.includes('-USD') || initialSymbol.includes('USDT') || initialSymbol.includes('BINANCE:') || ['BTC-USD', 'ETH-USD', 'SOL-USD'].includes(initialSymbol);
+    const isForex = initialSymbol.endsWith('=X');
+    const isUSStock = ['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOG', 'META', 'NVDA', 'NFLX'].includes(initialSymbol) || initialSymbol.startsWith('NASDAQ:') || initialSymbol.startsWith('SP:');
+    
+    // Default to AngelOne custom chart for Indian stocks & commodities, and TradingView for US/Crypto
+    const useAngelOneChart = !isCrypto && !isForex && !isUSStock;
+    return useAngelOneChart ? 'custom' : 'tradingview';
+  });
 
   useEffect(() => {
     if (location.state && location.state.selectSymbol) {
@@ -748,7 +752,7 @@ export default function Markets() {
 
     // 5. Standard Equities
     if (s.endsWith('.NS')) {
-      return `NSE:${s.replace('.NS', '')}`;
+      return `BSE:${s.replace('.NS', '')}`;
     }
     if (s.endsWith('.BO')) {
       return `BSE:${s.replace('.BO', '')}`;
@@ -760,7 +764,7 @@ export default function Markets() {
       return `NASDAQ:${s}`;
     }
 
-    return `NSE:${s}`;
+    return `BSE:${s}`;
   };
 
   // 1. Render TradingView Widget (Official Script version)
@@ -1445,73 +1449,6 @@ export default function Markets() {
         </div>
       </div>
 
-      {/* Global Insights & Recommendations - Interactive */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📡 Live Market Intelligence — Click to expand, then visit source</span>
-          <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: 600 }}>Updated {formatNewsTime(Date.now() - 60000)}</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-          {NEWS_ITEMS.map((rec, i) => {
-            const isExpanded = expandedNews === i;
-            const sentColors = { Bullish: { bg: 'rgba(0,255,136,0.1)', text: '#00b060', border: 'rgba(0,255,136,0.2)' }, Bearish: { bg: 'rgba(255,68,68,0.1)', text: '#ff4444', border: 'rgba(255,68,68,0.2)' }, Volatile: { bg: 'rgba(255,152,0,0.1)', text: '#ff9800', border: 'rgba(255,152,0,0.2)' }, Neutral: { bg: 'rgba(100,120,255,0.1)', text: '#8899ff', border: 'rgba(100,120,255,0.2)' } };
-            const sc = sentColors[rec.sentiment] || sentColors.Neutral;
-            return (
-              <div
-                key={i}
-                onClick={() => setExpandedNews(isExpanded ? null : i)}
-                style={{
-                  background: isExpanded ? 'rgba(0,255,136,0.04)' : 'var(--bg-card-glass)',
-                  border: `1px solid ${isExpanded ? sc.border : 'var(--border-color)'}`,
-                  borderRadius: '12px',
-                  padding: '14px 16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  transform: isExpanded ? 'none' : undefined
-                }}
-                onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.borderColor = sc.border; }}
-                onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-                    {rec.source} • {formatNewsTime(newsTimestamps[rec.tsIdx])}
-                  </span>
-                  <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: sc.bg, color: sc.text }}>{rec.sentiment}</span>
-                </div>
-                <h4 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)', lineHeight: '1.3' }}>{rec.title}</h4>
-                <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{rec.desc}</p>
-                {isExpanded && (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '10px', marginTop: '2px' }}>
-                    <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.6', opacity: 0.9 }}>{rec.fullDesc}</p>
-                    <a
-                      href={rec.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '6px',
-                        padding: '6px 14px', borderRadius: '6px',
-                        background: sc.bg, color: sc.text,
-                        border: `1px solid ${sc.border}`,
-                        fontSize: '11px', fontWeight: 700, textDecoration: 'none',
-                        transition: 'opacity 0.15s'
-                      }}
-                    >
-                      Read at {rec.source} →
-                    </a>
-                  </div>
-                )}
-                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px', opacity: 0.6 }}>
-                  {isExpanded ? '▲ Click to collapse' : '▼ Click for full analysis & source'}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Workspace Chart Card */}
       <div className="mobile-reduced-height" style={{ flex: 1, background: '#0a0e27', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', overflow: 'hidden', minHeight: '620px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
@@ -1742,6 +1679,144 @@ export default function Markets() {
       <p style={{ color: '#9b9eac', fontSize: '12px', marginTop: '10px', textAlign: 'center' }}>
         Charts powered by <a href="https://www.tradingview.com" target="_blank" rel="noopener noreferrer" style={{ color: '#00bcd4', textDecoration: 'none' }}>TradingView</a> and Yahoo Finance. Data is for informational purposes only.
       </p>
+
+      {/* Advanced Market Intelligence & Live Expert Streams */}
+      <div style={{ marginTop: '32px', background: 'rgba(16, 20, 45, 0.4)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', padding: '24px' }}>
+        <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Activity size={20} style={{ color: '#00bcd4' }} />
+          Advanced Market Data & Live Advisors
+        </h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+          
+          {/* Processed Quant Data Container */}
+          <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.03)' }}>
+            <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#00ff88', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <TrendingUp size={16} /> Processed Quant Metrics (Live)
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Institutional Dark Pool Flow</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#ffb300' }}>Moderate Buy Bias (62%)</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Algorithmic Order Book Skew</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#00ff88' }}>+14,500 Contracts (Bid Side)</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Short-Term Volatility (HV)</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#ff4444' }}>Expanding (14.2% &rarr; 18.5%)</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Retail Sentiment Index</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#00bcd4' }}>Extreme Fear (22/100)</span>
+              </div>
+            </div>
+            <button style={{ width: '100%', marginTop: '16px', background: 'rgba(0, 255, 136, 0.1)', border: '1px solid #00ff88', color: '#00ff88', padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+              Access Full Screener Data
+            </button>
+          </div>
+
+          {/* Live Expert Streams */}
+          <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.03)' }}>
+            <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#ff4444', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Play size={16} /> Live Trading Advisors & Mentors
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }} onMouseOver={e => e.currentTarget.style.borderColor = '#ff4444'} onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
+                <div style={{ position: 'relative' }}>
+                  <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80" alt="Advisor" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
+                  <span style={{ position: 'absolute', bottom: -2, right: -2, background: '#ff4444', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '2px 4px', borderRadius: '4px' }}>LIVE</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>Nifty Options Live Expiry Trade</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>by TradeMaster Pro • 12K watching</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }} onMouseOver={e => e.currentTarget.style.borderColor = '#ff4444'} onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
+                <div style={{ position: 'relative' }}>
+                  <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80" alt="Advisor" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
+                  <span style={{ position: 'absolute', bottom: -2, right: -2, background: '#ff4444', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '2px 4px', borderRadius: '4px' }}>LIVE</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>Global Market Pre-Open Analysis</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>by Sarah Capital • 4.5K watching</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Global Insights & Recommendations - Interactive (below chart) */}
+      <div style={{ marginTop: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📡 Live Market Intelligence — Click to expand, then visit source</span>
+          <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: 600 }}>Updated {formatNewsTime(Date.now() - 60000)}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+          {NEWS_ITEMS.map((rec, i) => {
+            const isExpanded = expandedNews === i;
+            const sentColors = { Bullish: { bg: 'rgba(0,255,136,0.1)', text: '#00b060', border: 'rgba(0,255,136,0.2)' }, Bearish: { bg: 'rgba(255,68,68,0.1)', text: '#ff4444', border: 'rgba(255,68,68,0.2)' }, Volatile: { bg: 'rgba(255,152,0,0.1)', text: '#ff9800', border: 'rgba(255,152,0,0.2)' }, Neutral: { bg: 'rgba(100,120,255,0.1)', text: '#8899ff', border: 'rgba(100,120,255,0.2)' } };
+            const sc = sentColors[rec.sentiment] || sentColors.Neutral;
+            return (
+              <div
+                key={i}
+                onClick={() => setExpandedNews(isExpanded ? null : i)}
+                style={{
+                  background: isExpanded ? 'rgba(0,255,136,0.04)' : 'var(--bg-card-glass)',
+                  border: `1px solid ${isExpanded ? sc.border : 'var(--border-color)'}`,
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.borderColor = sc.border; }}
+                onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                    {rec.source} • {formatNewsTime(newsTimestamps[rec.tsIdx])}
+                  </span>
+                  <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: sc.bg, color: sc.text }}>{rec.sentiment}</span>
+                </div>
+                <h4 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)', lineHeight: '1.3' }}>{rec.title}</h4>
+                <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{rec.desc}</p>
+                {isExpanded && (
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '10px', marginTop: '2px' }}>
+                    <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.6', opacity: 0.9 }}>{rec.fullDesc}</p>
+                    <a
+                      href={rec.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 14px', borderRadius: '6px',
+                        background: sc.bg, color: sc.text,
+                        border: `1px solid ${sc.border}`,
+                        fontSize: '11px', fontWeight: 700, textDecoration: 'none'
+                      }}
+                    >
+                      Read at {rec.source} →
+                    </a>
+                  </div>
+                )}
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px', opacity: 0.6 }}>
+                  {isExpanded ? '▲ Click to collapse' : '▼ Click for full analysis & source'}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

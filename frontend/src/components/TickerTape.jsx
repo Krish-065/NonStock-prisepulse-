@@ -26,7 +26,7 @@ const TickerWrapper = styled.div`
 const TickerRow = styled.div`
   display: flex;
   white-space: nowrap;
-  padding: 6px 0;
+  padding: 8px 0;
   border-bottom: ${props => props.isBottom ? 'none' : (props.isLight ? '1px solid #f3f4f6' : '1px solid rgba(255, 255, 255, 0.05)')};
 `;
 
@@ -43,8 +43,8 @@ const TickerTrack = styled.div`
 const TickerItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 24px;
+  gap: 12px;
+  padding: 0 40px;
   cursor: pointer;
   border-right: 1px solid ${props => props.isLight ? '#e5e7eb' : 'rgba(255,255,255,0.1)'};
   transition: all 0.2s;

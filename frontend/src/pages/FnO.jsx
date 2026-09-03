@@ -21,6 +21,7 @@ export default function FnO() {
   const [optionChain, setOptionChain] = useState([]);
   const [maxPain, setMaxPain] = useState(0);
   const [pcr, setPcr] = useState(1.0);
+  const [heatmapData, setHeatmapData] = useState([]);
 
   // Predefined expiry list (dynamic next 3 Thursdays)
   const getNextThursdays = (count) => {
@@ -121,7 +122,7 @@ export default function FnO() {
         const marketLive = isMarketOpen();
         const liveBias = marketLive ? (symbolBias * (0.98 + Math.random() * 0.04)) : symbolBias;
 
-        const strikesCount = 7;
+        const strikesCount = 25;
         const startStrike = nearestStrike - Math.floor(strikesCount / 2) * strikeInterval;
         
         const chain = [];
@@ -189,6 +190,51 @@ export default function FnO() {
         setOptionChain(chain);
         setMaxPain(bestStrike);
         setPcr(calculatedPcr);
+        
+        if (underlying === 'NIFTY') {
+          const constituents = [
+            { symbol: 'RELIANCE', weight: 10.5, price: 2465.30, chg: 1.85 },
+            { symbol: 'HDFCBANK', weight: 8.4, price: 1510.20, chg: -1.25 },
+            { symbol: 'ICICIBANK', weight: 7.2, price: 992.50, chg: -0.85 },
+            { symbol: 'INFY', weight: 6.8, price: 1532.50, chg: 0.95 },
+            { symbol: 'ITC', weight: 5.2, price: 422.30, chg: -0.95 },
+            { symbol: 'TCS', weight: 4.6, price: 3890.10, chg: 2.10 },
+            { symbol: 'LT', weight: 4.1, price: 3450.20, chg: 1.10 },
+            { symbol: 'KOTAKBANK', weight: 3.5, price: 1780.40, chg: 1.65 },
+            { symbol: 'AXISBANK', weight: 3.2, price: 1040.60, chg: -1.50 },
+            { symbol: 'SBIN', weight: 3.0, price: 725.10, chg: -2.10 },
+            { symbol: 'BHARTIARTL', weight: 2.8, price: 1120.40, chg: 1.45 },
+            { symbol: 'HINDUNILVR', weight: 2.5, price: 2380.50, chg: -1.40 },
+            { symbol: 'BAJFINANCE', weight: 2.2, price: 7100.20, chg: 0.85 },
+            { symbol: 'ASIANPAINT', weight: 1.9, price: 2810.00, chg: -2.30 },
+            { symbol: 'MARUTI', weight: 1.7, price: 10450.10, chg: 1.15 },
+            { symbol: 'TITAN', weight: 1.6, price: 3120.50, chg: -0.40 },
+            { symbol: 'SUNPHARMA', weight: 1.5, price: 1150.80, chg: 0.60 },
+            { symbol: 'M&M', weight: 1.4, price: 1950.40, chg: -1.15 },
+            { symbol: 'ULTRACEMCO', weight: 1.2, price: 8450.20, chg: 0.55 },
+            { symbol: 'TATASTEEL', weight: 1.1, price: 140.50, chg: -0.80 },
+            { symbol: 'POWERGRID', weight: 1.0, price: 285.30, chg: 0.40 },
+            { symbol: 'NTPC', weight: 0.9, price: 340.20, chg: 1.20 },
+            { symbol: 'HCLTECH', weight: 0.8, price: 1450.60, chg: -0.50 },
+            { symbol: 'TATAMOTORS', weight: 0.7, price: 945.10, chg: 3.15 }
+          ];
+
+          const marketLive = true;
+          if (marketLive) {
+            const liveHeatmap = constituents.map(c => {
+              const r = (Math.random() - 0.5) * 0.4; 
+              return {
+                ...c,
+                chg: parseFloat((c.chg + r).toFixed(2)),
+                price: parseFloat((c.price * (1 + (r/100))).toFixed(2))
+              };
+            });
+            setHeatmapData(liveHeatmap);
+          } else {
+            setHeatmapData(constituents);
+          }
+        }
+        
         setFirstLoad(false);
       }
     } catch (error) {
@@ -286,6 +332,66 @@ export default function FnO() {
           ))}
         </div>
       </div>
+
+      {/* Nifty 50 Heatmap */}
+      {underlying === 'NIFTY' && heatmapData.length > 0 && (
+        <div className="section-card">
+          <div className="section-header" style={{ marginBottom: '16px' }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Compass size={20} style={{ color: '#ffb300' }} /> NIFTY 50 Live Constituent Heatmap
+            </h2>
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gap: '8px'
+          }}>
+            {heatmapData.map((stock, idx) => {
+              const isPositive = stock.chg >= 0;
+              // Shade intensity based on absolute change percentage (up to 3%)
+              const intensity = Math.min(Math.abs(stock.chg) / 3, 1);
+              // Green: 0, 255, 136 | Red: 255, 68, 68
+              const bgColor = isPositive 
+                ? `rgba(0, 255, 136, ${0.1 + (intensity * 0.3)})` 
+                : `rgba(255, 68, 68, ${0.1 + (intensity * 0.3)})`;
+              const borderColor = isPositive
+                ? `rgba(0, 255, 136, ${0.2 + (intensity * 0.5)})`
+                : `rgba(255, 68, 68, ${0.2 + (intensity * 0.5)})`;
+
+              return (
+                <div key={idx} style={{
+                  background: bgColor,
+                  border: `1px solid ${borderColor}`,
+                  borderRadius: '8px',
+                  padding: '10px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {stock.symbol}
+                    </span>
+                    <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', fontWeight: 700 }}>
+                      {stock.weight}%
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+                      ₹{stock.price.toFixed(2)}
+                    </span>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: isPositive ? '#00ff88' : '#ff4444' }}>
+                      {isPositive ? '+' : ''}{stock.chg}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Top Row: Sentiment Gauge & F&O Build-up Scanner */}
       <div style={{ 
@@ -543,10 +649,10 @@ export default function FnO() {
           </h2>
         </div>
         
-        <div className="screener-table">
-          <table>
+        <div className="screener-table" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+          <table style={{ position: 'relative' }}>
             <thead>
-              <tr style={{ background: 'rgba(255, 255, 255, 0.02)' }}>
+              <tr style={{ background: 'rgba(255, 255, 255, 0.02)', position: 'sticky', top: 0, zIndex: 10 }}>
                 <th style={{ textAlign: 'center', padding: '16px', color: '#ffb300' }}>CE Delta</th>
                 <th style={{ textAlign: 'center', padding: '16px', color: '#ffb300' }}>CE Theta</th>
                 <th style={{ textAlign: 'center', padding: '16px' }}>CE OI Change</th>

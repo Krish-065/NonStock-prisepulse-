@@ -626,8 +626,218 @@ const ALL_CATEGORIZED_FUNDS = [
     minSip: 500,
     amc: 'Axis Mutual Fund',
     riskType: 'high'
+  },
+  {
+    schemeCode: '118558',
+    name: 'HDFC Small Cap Fund Direct Growth',
+    category: 'Equity',
+    subCategory: 'Small Cap',
+    nav: '121.50',
+    aum: '18,400',
+    risk: 'Very High Risk',
+    rating: 4,
+    returns1Y: '+34.2%',
+    returns3Y: '+29.8%',
+    returns5Y: '+25.4%',
+    minSip: 500,
+    amc: 'HDFC Mutual Fund',
+    riskType: 'high'
+  },
+  {
+    schemeCode: '118825',
+    name: 'SBI Midcap Fund Direct Growth',
+    category: 'Equity',
+    subCategory: 'Mid Cap',
+    nav: '198.20',
+    aum: '12,900',
+    risk: 'High Risk',
+    rating: 5,
+    returns1Y: '+31.4%',
+    returns3Y: '+27.6%',
+    returns5Y: '+24.1%',
+    minSip: 500,
+    amc: 'SBI Mutual Fund',
+    riskType: 'high'
+  },
+  {
+    schemeCode: '120716',
+    name: 'Motilal Oswal Midcap Fund Direct Growth',
+    category: 'Equity',
+    subCategory: 'Mid Cap',
+    nav: '85.60',
+    aum: '8,750',
+    risk: 'High Risk',
+    rating: 5,
+    returns1Y: '+35.1%',
+    returns3Y: '+29.2%',
+    returns5Y: '+26.8%',
+    minSip: 500,
+    amc: 'Motilal Oswal',
+    riskType: 'high'
+  },
+  {
+    schemeCode: '119598',
+    name: 'ICICI Prudential Bluechip Fund Direct',
+    category: 'Equity',
+    subCategory: 'Large Cap',
+    nav: '95.40',
+    aum: '42,100',
+    risk: 'Moderate Risk',
+    rating: 5,
+    returns1Y: '+19.8%',
+    returns3Y: '+16.5%',
+    returns5Y: '+15.2%',
+    minSip: 1000,
+    amc: 'ICICI Prudential',
+    riskType: 'medium'
+  },
+  {
+    schemeCode: '125354',
+    name: 'Tata Digital India Fund Direct Growth',
+    category: 'Equity',
+    subCategory: 'Sectoral',
+    nav: '154.20',
+    aum: '7,800',
+    risk: 'Very High Risk',
+    rating: 4,
+    returns1Y: '+42.5%',
+    returns3Y: '+35.2%',
+    returns5Y: '+31.5%',
+    minSip: 500,
+    amc: 'Tata Mutual Fund',
+    riskType: 'high'
   }
 ];
+
+const RowScrollContainer = styled.div`
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+`;
+
+const FundCard = ({ fund, selectedFund, fetchFundDetails, handleAddToCompare }) => {
+  const isSelected = selectedFund?.schemeCode === fund.schemeCode;
+  return (
+    <div 
+      onClick={() => fetchFundDetails(fund.schemeCode)}
+      style={{
+        minWidth: '280px',
+        flexShrink: 0,
+        background: isSelected ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+        border: isSelected ? '1px solid #00ff88' : '1px solid rgba(255, 255, 255, 0.06)',
+        borderRadius: '12px',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        gap: '12px',
+        transition: 'all 0.2s',
+        boxShadow: isSelected ? '0 0 15px rgba(0, 255, 136, 0.15)' : 'none',
+        cursor: 'pointer'
+      }}
+      onMouseEnter={(e) => {
+        if (!isSelected) {
+          e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.4)';
+          e.currentTarget.style.transform = 'translateY(-2px)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isSelected) {
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+          e.currentTarget.style.transform = 'none';
+        }
+      }}
+    >
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: 'rgba(0, 188, 212, 0.1)', color: '#00bcd4', border: '1px solid rgba(0, 188, 212, 0.2)' }}>
+            {fund.subCategory}
+          </span>
+          <span style={{ color: '#ffc107', fontSize: '11px', fontWeight: 700 }}>
+            {'★'.repeat(fund.rating)}
+          </span>
+        </div>
+        <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: '#ffffff', lineHeight: '1.3' }}>
+          {fund.name}
+        </h4>
+        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{fund.amc}</div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px' }}>
+        <div>
+          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>3Y CAGR</div>
+          <div style={{ fontSize: '14px', fontWeight: 800, color: '#00ff88' }}>{fund.returns3Y}</div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>NAV</div>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>₹{fund.nav}</div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={(e) => { e.stopPropagation(); fetchFundDetails(fund.schemeCode); }}
+          style={{
+            flex: 1,
+            background: isSelected ? '#00ff88' : 'rgba(0, 255, 136, 0.1)',
+            color: isSelected ? '#0a0e27' : '#00ff88',
+            border: '1px solid #00ff88',
+            padding: '8px',
+            borderRadius: '6px',
+            fontWeight: 800,
+            fontSize: '12px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '4px'
+          }}
+        >
+          {isSelected ? 'Active View' : 'Analyze'} <ArrowRight size={12} />
+        </button>
+        <button
+          onClick={(e) => { 
+            e.stopPropagation();
+            handleAddToCompare({
+              schemeCode: fund.schemeCode,
+              name: fund.name,
+              category: fund.category,
+              nav: fund.nav,
+              aum: fund.aum,
+              risk: fund.risk,
+              rating: fund.rating,
+              returns: { '1Y': fund.returns1Y, '3Y': fund.returns3Y, '5Y': fund.returns5Y }
+            }); 
+          }}
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            color: '#ffffff',
+            border: '1px solid rgba(255,255,255,0.1)',
+            padding: '8px',
+            borderRadius: '6px',
+            fontWeight: 700,
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+          title="Add to comparison"
+        >
+          + Compare
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default function MutualFunds() {
   const { user } = useAuth();
@@ -919,119 +1129,110 @@ export default function MutualFunds() {
           </div>
         </div>
 
-        {/* Fund Cards Responsive Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-          {ALL_CATEGORIZED_FUNDS
-            .filter(f => categoryFilter === 'ALL' || f.category === categoryFilter)
-            .map(fund => {
-              const isSelected = selectedFund?.schemeCode === fund.schemeCode;
-              return (
-                <div 
-                  key={fund.schemeCode}
-                  onClick={() => fetchFundDetails(fund.schemeCode)}
-                  style={{
-                    background: isSelected ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-                    border: isSelected ? '1px solid #00ff88' : '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    gap: '12px',
-                    transition: 'all 0.2s',
-                    boxShadow: isSelected ? '0 0 15px rgba(0, 255, 136, 0.15)' : 'none',
-                    cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.4)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
-                      e.currentTarget.style.transform = 'none';
-                    }
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: 'rgba(0, 188, 212, 0.1)', color: '#00bcd4', border: '1px solid rgba(0, 188, 212, 0.2)' }}>
-                        {fund.subCategory}
-                      </span>
-                      <span style={{ color: '#ffc107', fontSize: '11px', fontWeight: 700 }}>
-                        {'★'.repeat(fund.rating)}
-                      </span>
-                    </div>
-                    <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 800, color: '#ffffff', lineHeight: '1.3' }}>
-                      {fund.name}
-                    </h4>
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{fund.amc}</div>
-                  </div>
+        {/* Netflix-style Category Rows or Filtered Grid */}
+        {categoryFilter === 'ALL' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            
+            {/* 🔥 High Return Funds Row */}
+            <div>
+              <h4 style={{ color: '#ffb300', fontSize: '15px', fontWeight: 800, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🔥 Highest 3Y Returns
+              </h4>
+              <RowScrollContainer>
+                {ALL_CATEGORIZED_FUNDS
+                  .filter(f => parseFloat(f.returns3Y) > 28)
+                  .sort((a, b) => parseFloat(b.returns3Y) - parseFloat(a.returns3Y))
+                  .map(fund => <FundCard key={fund.schemeCode} fund={fund} selectedFund={selectedFund} fetchFundDetails={fetchFundDetails} handleAddToCompare={handleAddToCompare} />)}
+              </RowScrollContainer>
+            </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px' }}>
+            {/* 🚀 Small Cap Funds Row */}
+            <div>
+              <h4 style={{ color: '#00bcd4', fontSize: '15px', fontWeight: 800, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🚀 Small Cap High Growth
+              </h4>
+              <RowScrollContainer>
+                {ALL_CATEGORIZED_FUNDS
+                  .filter(f => f.subCategory === 'Small Cap')
+                  .map(fund => <FundCard key={fund.schemeCode} fund={fund} selectedFund={selectedFund} fetchFundDetails={fetchFundDetails} handleAddToCompare={handleAddToCompare} />)}
+              </RowScrollContainer>
+            </div>
+
+            {/* ⚖️ Mid Cap Funds Row */}
+            <div>
+              <h4 style={{ color: '#00ff88', fontSize: '15px', fontWeight: 800, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                ⚖️ Mid Cap Balanced
+              </h4>
+              <RowScrollContainer>
+                {ALL_CATEGORIZED_FUNDS
+                  .filter(f => f.subCategory === 'Mid Cap' || f.subCategory === 'Flexi Cap')
+                  .map(fund => <FundCard key={fund.schemeCode} fund={fund} selectedFund={selectedFund} fetchFundDetails={fetchFundDetails} handleAddToCompare={handleAddToCompare} />)}
+              </RowScrollContainer>
+            </div>
+
+            {/* 🏢 Large Cap & Index Funds Row */}
+            <div>
+              <h4 style={{ color: '#ff4444', fontSize: '15px', fontWeight: 800, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🏢 Large Cap & Bluechip Stability
+              </h4>
+              <RowScrollContainer>
+                {ALL_CATEGORIZED_FUNDS
+                  .filter(f => f.subCategory === 'Large Cap' || f.subCategory === 'Index Fund')
+                  .map(fund => <FundCard key={fund.schemeCode} fund={fund} selectedFund={selectedFund} fetchFundDetails={fetchFundDetails} handleAddToCompare={handleAddToCompare} />)}
+              </RowScrollContainer>
+            </div>
+
+            {/* Line-by-Line Comprehensive View */}
+            <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>
+              <h4 style={{ color: '#ffffff', fontSize: '15px', fontWeight: 800, marginBottom: '16px' }}>
+                All Available Funds (Line-by-Line)
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {ALL_CATEGORIZED_FUNDS.map(fund => (
+                  <div 
+                    key={fund.schemeCode} 
+                    onClick={() => fetchFundDetails(fund.schemeCode)}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr auto',
+                      alignItems: 'center',
+                      background: 'rgba(255,255,255,0.01)',
+                      border: '1px solid rgba(255,255,255,0.03)',
+                      padding: '12px 16px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.01)'}
+                  >
                     <div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>3Y CAGR</div>
-                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#00ff88' }}>{fund.returns3Y}</div>
+                      <div style={{ fontWeight: 700, fontSize: '13px', color: '#ffffff' }}>{fund.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{fund.amc} • {fund.subCategory}</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>NAV</div>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>₹{fund.nav}</div>
-                    </div>
+                    <div style={{ fontSize: '13px', color: '#00ff88', fontWeight: 600 }}>{fund.returns3Y} (3Y)</div>
+                    <div style={{ fontSize: '12px', color: '#ffc107' }}>{'★'.repeat(fund.rating)}</div>
+                    <div style={{ fontSize: '12px' }}><Badge $type={fund.risk}>{fund.risk}</Badge></div>
+                    <div style={{ fontSize: '12px', fontWeight: 600 }}>₹{fund.nav}</div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleAddToCompare(fund); }}
+                      style={{ background: 'transparent', border: '1px solid #00bcd4', color: '#00bcd4', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Compare
+                    </button>
                   </div>
+                ))}
+              </div>
+            </div>
 
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={() => fetchFundDetails(fund.schemeCode)}
-                      style={{
-                        flex: 1,
-                        background: isSelected ? '#00ff88' : 'rgba(0, 255, 136, 0.1)',
-                        color: isSelected ? '#0a0e27' : '#00ff88',
-                        border: '1px solid #00ff88',
-                        padding: '8px',
-                        borderRadius: '6px',
-                        fontWeight: 800,
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '4px'
-                      }}
-                    >
-                      {isSelected ? 'Active View' : 'Analyze & Chart'} <ArrowRight size={12} />
-                    </button>
-                    <button
-                      onClick={() => handleAddToCompare({
-                        schemeCode: fund.schemeCode,
-                        name: fund.name,
-                        category: fund.category,
-                        nav: fund.nav,
-                        aum: fund.aum,
-                        risk: fund.risk,
-                        rating: fund.rating,
-                        returns: { '1Y': fund.returns1Y, '3Y': fund.returns3Y, '5Y': fund.returns5Y }
-                      })}
-                      style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        color: '#ffffff',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        padding: '8px',
-                        borderRadius: '6px',
-                        fontWeight: 700,
-                        fontSize: '12px',
-                        cursor: 'pointer'
-                      }}
-                      title="Add to comparison"
-                    >
-                      + Compare
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-        </div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+            {ALL_CATEGORIZED_FUNDS
+              .filter(f => f.category === categoryFilter)
+              .map(fund => <FundCard key={fund.schemeCode} fund={fund} selectedFund={selectedFund} fetchFundDetails={fetchFundDetails} handleAddToCompare={handleAddToCompare} />)}
+          </div>
+        )}
       </div>
 
       <Grid>
