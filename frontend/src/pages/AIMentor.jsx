@@ -1276,18 +1276,28 @@ export default function AIMentor() {
               const getTVSymbol = () => {
                 if (activeTechnicals?.tvSymbol) return activeTechnicals.tvSymbol;
                 const raw = (activeTechnicals?.symbol || symbol || 'AAPL').toUpperCase();
-                const s = raw.replace('.NS', '').replace('.BO', '').replace('NSE:', '').replace('NASDAQ:', '');
+                if (raw.includes(':')) return raw;
+                const s = raw.replace('.NS', '').replace('.BO', '');
+                
                 if (s === 'NIFTY' || s === '^NSEI') return 'NSE:NIFTY';
                 if (s === 'SENSEX' || s === '^BSESN') return 'BSE:SENSEX';
                 if (s === 'NIFTYBANK' || s === 'BANKNIFTY' || s === '^NSEBANK') return 'NSE:BANKNIFTY';
+                
+                // Crypto / Forex handling
+                if (s.includes('-USD') || s.includes('/USD') || s.endsWith('USD') || ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE'].includes(s)) {
+                  const base = s.replace('-USD', '').replace('/USD', '').replace('USD', '');
+                  return `BINANCE:${base}USDT`;
+                }
+                
+                if (s.endsWith('=X') || s.endsWith('=F')) return s; // Handle Yahoo symbols blindly for now if they got this far
+                
                 if (['TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX', 'AMD', 'SPY', 'QQQ', 'COIN'].includes(s)) return `NASDAQ:${s}`;
                 if (['BABA', 'DIS', 'BA', 'JPM', 'NKE'].includes(s)) return `NYSE:${s}`;
-                if (['BTC', 'ETH', 'SOL'].includes(s)) return `BINANCE:${s}USDT`;
                 return `NSE:${s}`;
               };
               const tvSymbol = getTVSymbol();
               
-              const isUSStock = ['TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX', 'AMD', 'SPY', 'QQQ', 'COIN', 'BTC', 'ETH', 'SOL'].includes((activeTechnicals?.symbol || symbol || '').toUpperCase());
+              const isUSStock = ['TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX', 'AMD', 'SPY', 'QQQ', 'COIN'].includes((activeTechnicals?.symbol || symbol || '').toUpperCase()) || getTVSymbol().includes('BINANCE');
               const currSymbol = activeTechnicals?.currency || (isUSStock ? '$' : '₹');
               const formatPrice = (val) => `${currSymbol}${Number(val).toLocaleString(isUSStock ? 'en-US' : 'en-IN')}`;
 

@@ -6,7 +6,13 @@ import { useAuth } from '../contexts/AuthContext';
 export default function FnO() {
   const { user } = useAuth();
   const [underlying, setUnderlying] = useState('NIFTY');
-  const [selectedExpiry, setSelectedExpiry] = useState('28 Nov 2024');
+  const [selectedExpiry, setSelectedExpiry] = useState(''); // Will initialize after expiries are generated
+
+  useEffect(() => {
+    if (!selectedExpiry && expiries.length > 0) {
+      setSelectedExpiry(expiries[0]);
+    }
+  }, [expiries, selectedExpiry]);
   const [buildupTab, setBuildupTab] = useState('long');
   const [loading, setLoading] = useState(true);
 
@@ -16,8 +22,28 @@ export default function FnO() {
   const [maxPain, setMaxPain] = useState(0);
   const [pcr, setPcr] = useState(1.0);
 
-  // Predefined expiry list
-  const expiries = ['28 Nov 2024', '05 Dec 2024', '12 Dec 2024'];
+  // Predefined expiry list (dynamic next 3 Thursdays)
+  const getNextThursdays = (count) => {
+    const dates = [];
+    let d = new Date();
+    // Move to next Thursday if today is after Thursday
+    d.setDate(d.getDate() + ((4 + 7 - d.getDay()) % 7));
+    // If today is Thursday and it's past 3:30 PM IST, skip to next week
+    if (d.getDay() === 4) {
+        const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
+        const ist = new Date(utc + (360 * 60000));
+        if (ist.getHours() > 15 || (ist.getHours() === 15 && ist.getMinutes() > 30)) {
+           d.setDate(d.getDate() + 7);
+        }
+    }
+    
+    while (dates.length < count) {
+      dates.push(d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+      d.setDate(d.getDate() + 7);
+    }
+    return dates;
+  };
+  const [expiries] = useState(getNextThursdays(3));
 
   // Mock stock list for Build-up Scanner
   const buildupStocks = {
