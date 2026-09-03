@@ -125,6 +125,14 @@ export default function StockActionModal({ symbol, onClose }) {
   if (normalizedSym === 'NIFTY50') routeSym = '^NSEI';
   if (normalizedSym === 'BANKNIFTY') routeSym = '^NSEBANK';
   if (normalizedSym === 'SENSEX') routeSym = '^BSESN';
+  if (symbol === 'XAU/USD') routeSym = 'GC=F';
+  if (symbol === 'BTC/USD') routeSym = 'BTC-USD';
+  if (symbol === 'GBP/USD') routeSym = 'GBPUSD=X';
+  if (symbol === 'EUR/USD') routeSym = 'EURUSD=X';
+  if (symbol === 'S&P 500') routeSym = '^GSPC';
+  if (symbol === 'DOW JONES') routeSym = '^DJI';
+  if (symbol === 'NASDAQ') routeSym = '^IXIC';
+  if (symbol === 'CRUDE OIL') routeSym = 'CL=F';
 
   return (
     <Overlay onClick={onClose} style={{ justifyContent: 'center' }}>

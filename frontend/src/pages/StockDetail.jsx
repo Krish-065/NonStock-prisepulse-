@@ -1179,7 +1179,7 @@ export default function StockDetail() {
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>LIVE SPOT PRICE</div>
             <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)', marginTop: '2px' }}>
-              {currencySymbol}{stockInfo.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              {currencySymbol}{(stockInfo.price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -1187,14 +1187,14 @@ export default function StockDetail() {
             <div style={{ 
               fontSize: '18px', 
               fontWeight: '700', 
-              color: stockInfo.changePercent >= 0 ? '#00ff88' : '#ff4444', 
+              color: (stockInfo.changePercent || 0) >= 0 ? '#00ff88' : '#ff4444', 
               marginTop: '4px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
               gap: '4px'
             }}>
-              {stockInfo.changePercent >= 0 ? '+' : ''}{stockInfo.changePercent.toFixed(2)}%
+              {(stockInfo.changePercent || 0) >= 0 ? '+' : ''}{(stockInfo.changePercent || 0).toFixed(2)}%
             </div>
           </div>
         </div>
