@@ -462,7 +462,7 @@ export default function FnO() {
               <div style={{ fontSize: '22px', fontWeight: 800, color: '#ffffff', marginTop: '6px' }}>
                 ₹{futures[0]?.price || '--'}
               </div>
-              <div style={{ fontSize: '10px', color: futures[0]?.change.includes('+') ? '#00ff88' : '#ff4444', fontWeight: 700, marginTop: '2px' }}>
+              <div style={{ fontSize: '10px', color: futures[0]?.change?.includes('+') ? '#00ff88' : '#ff4444', fontWeight: 700, marginTop: '2px' }}>
                 {futures[0]?.change || '--'}
               </div>
             </div>

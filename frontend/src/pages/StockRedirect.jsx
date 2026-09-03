@@ -8,7 +8,7 @@ export default function StockRedirect() {
   useEffect(() => {
     // Gracefully redirect legacy /stock/:symbol routes to the Market page
     if (symbol) {
-      navigate('/market', { state: { selectSymbol: symbol }, replace: true });
+      navigate('/markets', { state: { selectSymbol: symbol }, replace: true });
     }
   }, [symbol, navigate]);
 
