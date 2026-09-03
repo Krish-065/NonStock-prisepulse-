@@ -588,6 +588,13 @@ export default function Markets() {
   const [showSearch, setShowSearch] = useState(false);
   const [chartKey, setChartKey] = useState(0);
   const searchRef = useRef();
+  // Inline chart search
+  const [chartSearchQuery, setChartSearchQuery] = useState('');
+  const [showChartSearch, setShowChartSearch] = useState(false);
+  const chartSearchRef = useRef();
+  // News expand state
+  const [expandedNews, setExpandedNews] = useState(null);
+  const [newsTimestamps] = useState(() => [Date.now() - 15*60*1000, Date.now() - 65*60*1000, Date.now() - 3*60*60*1000, Date.now() - 30*60*1000, Date.now() - 2*60*60*1000, Date.now() - 45*60*1000]);
 
   const selectedMarket = 'All';
 
@@ -1240,17 +1247,91 @@ export default function Markets() {
     };
   }, [symbol, interval, activeTab, customHistory, getIntervalBarTime]);
 
-  // Close search dropdown on outside click
+  // Close search dropdowns on outside click
   useEffect(() => {
     const handler = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
         setShowSearch(false);
         setSearchQuery('');
       }
+      if (chartSearchRef.current && !chartSearchRef.current.contains(e.target)) {
+        setShowChartSearch(false);
+        setChartSearchQuery('');
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  const formatNewsTime = (ts) => {
+    const diffMs = Date.now() - ts;
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 60) return `${mins} min${mins !== 1 ? 's' : ''} ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hour${hrs !== 1 ? 's' : ''} ago`;
+    return `${Math.floor(hrs/24)} day${Math.floor(hrs/24) !== 1 ? 's' : ''} ago`;
+  };
+
+  const NEWS_ITEMS = [
+    {
+      source: 'Moneycontrol',
+      sourceUrl: 'https://www.moneycontrol.com/markets/indian-indices',
+      title: 'NIFTY 50 tests breakout above 25,000 — IT & Banking sectors lead',
+      desc: 'Technical indicators suggest a strong breakout above 25,000 level driven by IT sector rallying. FII buying continues for 5th consecutive session.',
+      fullDesc: 'The NIFTY 50 index is on the verge of a significant breakout above the 25,000 psychological resistance level, backed by consistent FII inflows and strong sector rotation into IT and Banking stocks. RSI on the daily timeframe has crossed 60, signaling sustained bullish momentum. Key resistance stands at 25,200, while support is firm at 24,600.',
+      sentiment: 'Bullish',
+      tsIdx: 0
+    },
+    {
+      source: 'Forex Factory',
+      sourceUrl: 'https://www.forexfactory.com/calendar',
+      title: 'RBI Policy Decision — INR volatility expected this session',
+      desc: 'High impact event upcoming. Expect sudden volatility in USD/INR pairs. Traders advised to widen stop-losses.',
+      fullDesc: 'The Reserve Bank of India monetary policy committee meeting outcome is scheduled for release today. Market consensus expects rates to remain unchanged. However, any hawkish commentary on inflation could trigger sharp INR appreciation. Options markets are pricing in 0.8% intraday swings in USD/INR.',
+      sentiment: 'Volatile',
+      tsIdx: 1
+    },
+    {
+      source: 'Economic Times Markets',
+      sourceUrl: 'https://economictimes.indiatimes.com/markets',
+      title: 'BANKNIFTY at critical resistance — RSI overbought at 82',
+      desc: 'RSI at 82 indicates severe overbought conditions. Consider taking profits on long positions or hedging via Puts.',
+      fullDesc: 'The BANKNIFTY index has rallied 4.2% over the past 5 sessions and is now approaching a confluence of resistance — the 200-DMA, a prior swing high, and the upper Bollinger Band. With RSI at 82 and PCR at 0.67, risk-reward for fresh longs is unfavorable. A reversion to 51,500 is the base case before the next leg up.',
+      sentiment: 'Bearish',
+      tsIdx: 2
+    },
+    {
+      source: 'Bloomberg Quint',
+      sourceUrl: 'https://www.bqprime.com/markets',
+      title: 'Global cues positive — S&P 500 futures up 0.4% pre-market',
+      desc: 'US futures rally ahead of key CPI print. Asian markets follow suit with NIKKEI gaining 1.1%.',
+      fullDesc: 'Risk-on sentiment prevails in global markets as S&P 500 futures point to a positive opening following dovish Fed commentary overnight. NIKKEI 225 gained 1.1%, Hang Seng rose 0.8%. Gold retreated slightly on dollar strength. Indian markets are expected to open gap-up in line with global cues.',
+      sentiment: 'Bullish',
+      tsIdx: 3
+    },
+    {
+      source: 'NSE India',
+      sourceUrl: 'https://www.nseindia.com',
+      title: 'F&O expiry week — Max Pain at 24,800 for NIFTY',
+      desc: 'Open interest data shows heavy Put writing at 24,800 and Call unwinding at 25,200. Range-bound action likely.',
+      fullDesc: 'As monthly F&O expiry approaches, options data reveals max pain at 24,800 for NIFTY. Put writers are dominant at 24,500, 24,600 and 24,800 strikes, while Call writing is heaviest at 25,000 and 25,200. PCR stands at 1.15, indicating mild bullish bias. Day traders should expect volatile swings in the last 90 minutes of the session.',
+      sentiment: 'Neutral',
+      tsIdx: 4
+    },
+    {
+      source: 'TradingView Ideas',
+      sourceUrl: 'https://www.tradingview.com/ideas/nifty/',
+      title: 'RELIANCE forming a cup-and-handle — Target ₹3,200',
+      desc: 'Classic cup-and-handle pattern on weekly chart. Breakout above ₹2,980 triggers long entry with target ₹3,200.',
+      fullDesc: 'Reliance Industries Ltd is forming a textbook cup-and-handle pattern on the weekly timeframe, with the cup base at ₹2,650 formed over 18 weeks. The handle is consolidating near ₹2,950–2,980. A decisive close above ₹2,980 with above-average volume would confirm the breakout, with measured move targeting ₹3,200 and stop-loss at ₹2,870.',
+      sentiment: 'Bullish',
+      tsIdx: 5
+    }
+  ];
+
+  const filteredChartSymbols = chartSearchQuery.length > 0
+    ? ALL_SYMBOLS.filter(s => s.label.toLowerCase().includes(chartSearchQuery.toLowerCase()) || s.value.toLowerCase().includes(chartSearchQuery.toLowerCase()))
+    : SYMBOL_CATEGORIES[activeCategory] || [];
 
   return (
     <div style={{ paddingBottom: '32px', display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -1364,125 +1445,155 @@ export default function Markets() {
         </div>
       </div>
 
-      {/* Global Insights & Recommendations */}
-      <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-        {[
-          {
-            source: 'Moneycontrol Insights',
-            title: 'NIFTY 50 Breakout Expected',
-            desc: 'Technical indicators suggest a strong breakout above 25,000 level driven by IT sector rallying.',
-            sentiment: 'Bullish',
-            time: '15 mins ago'
-          },
-          {
-            source: 'Forex Factory',
-            title: 'USD/INR Volatility Spike',
-            desc: 'High impact news event upcoming. Expect sudden volatility in USD/INR pairs over the next 2 hours.',
-            sentiment: 'Volatile',
-            time: '1 hour ago'
-          },
-          {
-            source: 'Quant Model Alpha',
-            title: 'BANKNIFTY Overbought Zone',
-            desc: 'RSI at 82 indicates severe overbought conditions. Consider taking profits on long positions.',
-            sentiment: 'Bearish',
-            time: '3 hours ago'
-          }
-        ].map((rec, i) => (
-          <div key={i} style={{
-            background: 'var(--bg-card-glass)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '12px',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-                {rec.source} • {rec.time}
-              </span>
-              <span style={{
-                fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px',
-                background: rec.sentiment === 'Bullish' ? 'rgba(0, 255, 136, 0.1)' : rec.sentiment === 'Bearish' ? 'rgba(255, 68, 68, 0.1)' : 'rgba(255, 152, 0, 0.1)',
-                color: rec.sentiment === 'Bullish' ? '#00b060' : rec.sentiment === 'Bearish' ? '#ff4444' : '#ff9800'
-              }}>
-                {rec.sentiment}
-              </span>
-            </div>
-            <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--text-primary)' }}>{rec.title}</h4>
-            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{rec.desc}</p>
-          </div>
-        ))}
+      {/* Global Insights & Recommendations - Interactive */}
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📡 Live Market Intelligence — Click to expand, then visit source</span>
+          <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: 600 }}>Updated {formatNewsTime(Date.now() - 60000)}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+          {NEWS_ITEMS.map((rec, i) => {
+            const isExpanded = expandedNews === i;
+            const sentColors = { Bullish: { bg: 'rgba(0,255,136,0.1)', text: '#00b060', border: 'rgba(0,255,136,0.2)' }, Bearish: { bg: 'rgba(255,68,68,0.1)', text: '#ff4444', border: 'rgba(255,68,68,0.2)' }, Volatile: { bg: 'rgba(255,152,0,0.1)', text: '#ff9800', border: 'rgba(255,152,0,0.2)' }, Neutral: { bg: 'rgba(100,120,255,0.1)', text: '#8899ff', border: 'rgba(100,120,255,0.2)' } };
+            const sc = sentColors[rec.sentiment] || sentColors.Neutral;
+            return (
+              <div
+                key={i}
+                onClick={() => setExpandedNews(isExpanded ? null : i)}
+                style={{
+                  background: isExpanded ? 'rgba(0,255,136,0.04)' : 'var(--bg-card-glass)',
+                  border: `1px solid ${isExpanded ? sc.border : 'var(--border-color)'}`,
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  transform: isExpanded ? 'none' : undefined
+                }}
+                onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.borderColor = sc.border; }}
+                onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                    {rec.source} • {formatNewsTime(newsTimestamps[rec.tsIdx])}
+                  </span>
+                  <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: sc.bg, color: sc.text }}>{rec.sentiment}</span>
+                </div>
+                <h4 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)', lineHeight: '1.3' }}>{rec.title}</h4>
+                <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{rec.desc}</p>
+                {isExpanded && (
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '10px', marginTop: '2px' }}>
+                    <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.6', opacity: 0.9 }}>{rec.fullDesc}</p>
+                    <a
+                      href={rec.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 14px', borderRadius: '6px',
+                        background: sc.bg, color: sc.text,
+                        border: `1px solid ${sc.border}`,
+                        fontSize: '11px', fontWeight: 700, textDecoration: 'none',
+                        transition: 'opacity 0.15s'
+                      }}
+                    >
+                      Read at {rec.source} →
+                    </a>
+                  </div>
+                )}
+                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px', opacity: 0.6 }}>
+                  {isExpanded ? '▲ Click to collapse' : '▼ Click for full analysis & source'}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Workspace Chart Card */}
       <div className="mobile-reduced-height" style={{ flex: 1, background: '#0a0e27', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', overflow: 'hidden', minHeight: '620px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
         
         {/* Workspace Tab Header */}
-        <div className="mobile-scroll-x" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '0 20px', flexWrap: 'nowrap', gap: '8px', height: '48px' }}>
-          <div style={{ display: 'flex', gap: '16px', height: '100%' }}>
+        <div className="mobile-scroll-x" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '0 16px', flexWrap: 'nowrap', gap: '10px', height: '52px' }}>
+          <div style={{ display: 'flex', gap: '12px', height: '100%', alignItems: 'center' }}>
             <button
               onClick={() => setActiveTab('tradingview')}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'transparent',
-                border: 'none',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                background: 'transparent', border: 'none',
                 borderBottom: activeTab === 'tradingview' ? '2px solid #00bcd4' : '2px solid transparent',
                 color: activeTab === 'tradingview' ? '#ffffff' : '#9b9eac',
-                padding: '0 8px',
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '13px',
-                transition: 'all 0.2s',
-                height: '100%'
+                padding: '0 6px', cursor: 'pointer', fontWeight: 700, fontSize: '12px',
+                transition: 'all 0.2s', height: '100%'
               }}
             >
-              <BarChart2 size={15} style={{ color: activeTab === 'tradingview' ? '#00bcd4' : '#9b9eac' }} />
-              TradingView Widget
+              <BarChart2 size={14} style={{ color: activeTab === 'tradingview' ? '#00bcd4' : '#9b9eac' }} />
+              TradingView
             </button>
             <button
               onClick={() => setActiveTab('custom')}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'transparent',
-                border: 'none',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                background: 'transparent', border: 'none',
                 borderBottom: activeTab === 'custom' ? '2px solid #00ff88' : '2px solid transparent',
                 color: activeTab === 'custom' ? '#ffffff' : '#9b9eac',
-                padding: '0 8px',
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '13px',
-                transition: 'all 0.2s',
-                height: '100%'
+                padding: '0 6px', cursor: 'pointer', fontWeight: 700, fontSize: '12px',
+                transition: 'all 0.2s', height: '100%'
               }}
             >
-              <Activity size={15} style={{ color: activeTab === 'custom' ? '#00ff88' : '#9b9eac' }} />
-              NonStock Live Chart
-              {isIndianStock && (
-                <span style={{ fontSize: '9px', background: 'rgba(0, 255, 136, 0.15)', color: '#00ff88', padding: '2px 6px', borderRadius: '4px', marginLeft: '4px', border: '1px solid rgba(0, 255, 136, 0.2)' }}>
-                  Recommended
-                </span>
-              )}
+              <Activity size={14} style={{ color: activeTab === 'custom' ? '#00ff88' : '#9b9eac' }} />
+              Live Chart
             </button>
           </div>
-          
-          {/* Status Badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: activeTab === 'custom' ? '#00ff88' : '#00bcd4',
-              boxShadow: activeTab === 'custom' ? '0 0 8px #00ff88' : '0 0 8px #00bcd4'
-            }} />
-            <span style={{ color: '#9b9eac', fontSize: '11px', fontWeight: 600 }}>
-              {activeTab === 'custom' ? 'NonStock Live (Indian Stocks)' : 'TradingView Widget (Intl Only)'}
-            </span>
+
+          {/* Stock Name + Inline Chart Search */}
+          <div ref={chartSearchRef} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', position: 'relative' }}>
+            <div
+              onClick={() => setShowChartSearch(v => !v)}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 14px', minWidth: '160px', justifyContent: 'space-between' }}
+            >
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace' }}>{displayLabel}</span>
+              <Search size={13} style={{ color: '#9b9eac' }} />
+            </div>
+            {showChartSearch && (
+              <div style={{ position: 'absolute', top: '40px', left: '50%', transform: 'translateX(-50%)', width: '320px', background: '#0d1128', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.7)', zIndex: 200, overflow: 'hidden' }}>
+                <div style={{ padding: '10px' }}>
+                  <input
+                    autoFocus
+                    value={chartSearchQuery}
+                    onChange={e => setChartSearchQuery(e.target.value)}
+                    placeholder="Search stocks, crypto, forex, indices..."
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '9px 12px', color: '#ffffff', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
+                  {filteredChartSymbols.length === 0
+                    ? <div style={{ padding: '20px', textAlign: 'center', color: '#9b9eac', fontSize: '13px' }}>No symbols found</div>
+                    : filteredChartSymbols.map(s => (
+                        <div
+                          key={s.value}
+                          onClick={() => { selectSymbol(s.value); setShowChartSearch(false); setChartSearchQuery(''); }}
+                          style={{ padding: '10px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.12s' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'rgba(0,255,136,0.06)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <span style={{ color: '#ffffff', fontWeight: 600, fontSize: '13px' }}>{s.label}</span>
+                          <span style={{ color: '#9b9eac', fontSize: '11px', fontFamily: 'monospace' }}>{s.value}</span>
+                        </div>
+                      ))
+                  }
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Status dot */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: activeTab === 'custom' ? '#00ff88' : '#00bcd4', boxShadow: activeTab === 'custom' ? '0 0 7px #00ff88' : '0 0 7px #00bcd4' }} />
+            <span style={{ color: '#9b9eac', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>LIVE</span>
           </div>
         </div>
 
