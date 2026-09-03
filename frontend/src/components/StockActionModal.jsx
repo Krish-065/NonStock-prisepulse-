@@ -1,7 +1,7 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { LineChart, Activity, X } from 'lucide-react';
+import { LineChart, Activity, X, Crown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const fadeIn = keyframes`
@@ -173,6 +173,26 @@ export default function StockActionModal({ symbol, onClose }) {
             <TextWrap>
               <BtnTitle isLight={isLight}>Paper Trading Desk</BtnTitle>
               <BtnDesc isLight={isLight}>Execute risk-free simulated trades</BtnDesc>
+            </TextWrap>
+          </ActionBtn>
+
+          <ActionBtn 
+            isLight={isLight} 
+            color="#ffb300"
+            onClick={() => {
+              navigate(`/pro-analytics/${routeSym}`);
+              onClose();
+            }}
+          >
+            <IconWrap bg="rgba(255,179,0,0.15)" color="#ffb300">
+              <Crown size={24} />
+            </IconWrap>
+            <TextWrap>
+              <BtnTitle isLight={isLight} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                Strategy Lab
+                <span style={{ fontSize: '10px', background: '#ffb300', color: '#000', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>PRO</span>
+              </BtnTitle>
+              <BtnDesc isLight={isLight}>Algorithmic backtesting & trade automation</BtnDesc>
             </TextWrap>
           </ActionBtn>
         </ActionGrid>
