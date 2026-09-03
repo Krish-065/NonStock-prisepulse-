@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, Star, Briefcase, Coins, LineChart, Award, Search, 
   Newspaper, Activity, TrendingUp, LayoutDashboard, MessageSquare,
-  ChevronDown, Sun, Moon, User, Zap, Shield, PieChart
+  ChevronDown, Sun, Moon, User, Zap, Shield, PieChart, Users
 } from 'lucide-react';
 import { apiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,7 +29,7 @@ export default function Layout({ children }) {
   const [marketStatus, setMarketStatus] = useState({ status: 'Open', label: 'Equity & F&O Markets Live', color: '#00b060' });
 
   const navLinks = [
-    { path: '/', label: 'Home', icon: <LayoutDashboard size={15} /> },
+    { path: '/community', label: 'Community Hub', icon: <Users size={15} /> },
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={15} /> },
     { path: '/paper-trading', label: 'Trade Desk', icon: <LineChart size={15} /> },
     { path: '/fno', label: 'F&O Desk', icon: <Activity size={15} /> },
@@ -176,6 +176,20 @@ export default function Layout({ children }) {
                 <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{indices.sensex.value}</span>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: indices.sensex.up ? '#00b060' : '#dc2626' }}>
                   {indices.sensex.percent}%
+                </span>
+              </div>
+
+              <div style={{ width: '1px', height: '16px', background: isLight ? '#e5e7eb' : 'rgba(255,255,255,0.1)' }} />
+
+              <div 
+                onClick={() => navigate('/stock/^NSEBANK')}
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '6px' }}
+                title="View BANKNIFTY Live Chart"
+              >
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>BANKNIFTY</span>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{indices.banknifty.value}</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: indices.banknifty.up ? '#00b060' : '#dc2626' }}>
+                  {indices.banknifty.percent}%
                 </span>
               </div>
             </div>

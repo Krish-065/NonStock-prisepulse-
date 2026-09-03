@@ -809,7 +809,7 @@ export default function Community() {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', color: '#ffffff' }}>
+    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', color: 'var(--text-primary)' }}>
       
       {/* Top Banner */}
       <div style={{
@@ -842,10 +842,10 @@ export default function Community() {
               else if (tab === 'chats') { fetchChatMessages(activeGroupId); }
             }}
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
               borderRadius: '8px',
-              color: '#ffffff',
+              color: 'var(--text-primary)',
               padding: '8px 16px',
               fontSize: '12px',
               fontWeight: '700',
@@ -862,7 +862,7 @@ export default function Community() {
       </div>
 
       {/* Tabs Row */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
         {[
           { id: 'systems', name: 'Systems & Rankings', icon: <Flame size={16} /> },
           { id: 'feed', name: 'Market Discussion', icon: <MessageSquare size={16} /> },
@@ -936,7 +936,7 @@ export default function Community() {
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div>
-                        <h4 style={{ fontSize: '15px', fontWeight: '900', color: '#ffffff', margin: '0 0 4px 0' }}>{strat.strategyName}</h4>
+                        <h4 style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-primary)', margin: '0 0 4px 0' }}>{strat.strategyName}</h4>
                         <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Created by: <strong>{strat.authorName}</strong></span>
                       </div>
                       <span style={{ fontSize: '10px', background: 'rgba(0, 255, 136, 0.1)', color: '#00ff88', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>
@@ -944,7 +944,7 @@ export default function Community() {
                       </span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', background: 'var(--bg-secondary)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <span style={{ fontSize: '9px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Net Profit</span>
                         <span style={{ fontSize: '13px', fontWeight: '900', color: strat.netProfit >= 0 ? '#00ff88' : '#ff4444' }}>
@@ -1018,7 +1018,7 @@ export default function Community() {
               </p>
 
               {/* Leaderboard Tier Toggle */}
-              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', padding: '3px' }}>
+              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '3px' }}>
                 <button
                   type="button"
                   onClick={() => setLeaderboardTab('pro')}
@@ -1104,7 +1104,7 @@ export default function Community() {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        background: 'rgba(255,255,255,0.02)',
+                        background: 'var(--bg-secondary)',
                         border: '1px solid rgba(255,255,255,0.04)',
                         borderRadius: '8px',
                         padding: '10px 12px',
@@ -1220,7 +1220,7 @@ export default function Community() {
           {feedSubTab === 'channels' ? (
             <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                   <Users size={20} style={{ color: '#00ff88' }} />
                   Discover Creator Channels
                 </h2>
@@ -1263,7 +1263,7 @@ export default function Community() {
                             style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: chan.is_premium ? '2px solid #ffb300' : '2px solid rgba(0, 255, 136, 0.2)' }}
                           />
                           <div>
-                            <h4 style={{ fontSize: '15px', fontWeight: '900', color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h4 style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                               {chan.name}
                               {chan.is_premium && (
                                 <span style={{ fontSize: '9px', background: 'rgba(255, 179, 0, 0.1)', color: '#ffb300', padding: '1px 5px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
@@ -1370,7 +1370,7 @@ export default function Community() {
                           border: '1px solid rgba(255,255,255,0.08)',
                           borderRadius: '8px',
                           padding: '10px 12px',
-                          color: '#ffffff',
+                          color: 'var(--text-primary)',
                           fontSize: '12px',
                           outline: 'none'
                         }}
@@ -1392,7 +1392,7 @@ export default function Community() {
                         onChange={(e) => setNewPostIsPremium(e.target.checked)}
                         style={{ cursor: 'pointer' }}
                       />
-                      <label htmlFor="isPremiumPost" style={{ fontSize: '12px', color: '#ffffff', fontWeight: '750', cursor: 'pointer' }}>
+                      <label htmlFor="isPremiumPost" style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '750', cursor: 'pointer' }}>
                         Locked (Premium Followers Only)
                       </label>
                     </div>
@@ -1405,7 +1405,7 @@ export default function Community() {
                       value={newPostTitle}
                       onChange={(e) => setNewPostTitle(e.target.value)}
                       placeholder="e.g. Nifty Breakout Setup"
-                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: '#ffffff', fontSize: '12px', outline: 'none' }}
+                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
                       required
                     />
                   </div>
@@ -1417,7 +1417,7 @@ export default function Community() {
                       onChange={(e) => setNewPostContent(e.target.value)}
                       placeholder="Explain your technical indicators, target price, and trading logic..."
                       rows={5}
-                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: '#ffffff', fontSize: '12px', resize: 'none', outline: 'none' }}
+                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px', resize: 'none', outline: 'none' }}
                       required
                     />
                   </div>
@@ -1429,7 +1429,7 @@ export default function Community() {
                       value={newPostImageUrl}
                       onChange={(e) => setNewPostImageUrl(e.target.value)}
                       placeholder="https://example.com/chart.png"
-                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: '#ffffff', fontSize: '12px', outline: 'none' }}
+                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
                     />
                   </div>
 
@@ -1496,7 +1496,7 @@ export default function Community() {
                               style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: post.is_premium ? '1.5px solid #ffb300' : '1.5px solid #00ff88' }}
                             />
                             <div>
-                              <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 {post.channel_name}
                                 <span style={{ fontSize: '9px', background: post.is_premium ? 'rgba(255, 179, 0, 0.1)' : 'rgba(0, 255, 136, 0.1)', color: post.is_premium ? '#ffb300' : '#00ff88', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
                                   {post.is_premium ? 'PREMIUM CHANNEL' : 'CHANNEL'}
@@ -1515,7 +1515,7 @@ export default function Community() {
                           </div>
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
                               <Users size={14} style={{ color: 'var(--text-secondary)' }} />
                             </div>
                             <div>
@@ -1574,7 +1574,7 @@ export default function Community() {
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                           {post.title}
                           {post.is_premium && (
                             <span style={{ fontSize: '9px', background: 'rgba(255, 179, 0, 0.1)', color: '#ffb300', padding: '1px 5px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
@@ -1596,7 +1596,7 @@ export default function Community() {
                             gap: '8px'
                           }}>
                             <Lock size={24} style={{ color: '#ffb300' }} />
-                            <span style={{ fontSize: '12px', fontWeight: '800', color: '#ffffff' }}>This post contains premium educator content</span>
+                            <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-primary)' }}>This post contains premium educator content</span>
                             <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Subscribe to this channel to unlock premium insights and strategy updates.</span>
                             {post.channel_id && (
                               <button
@@ -1653,7 +1653,7 @@ export default function Community() {
                         </div>
                       )}
                       
-                      <div style={{ display: 'flex', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', borderTop: '1px solid var(--border-color)', paddingTop: '12px', marginTop: '4px' }}>
                         <button
                           onClick={() => handleLikePost(post.id)}
                           style={{
@@ -1692,7 +1692,7 @@ export default function Community() {
             gap: '16px',
             flexWrap: 'wrap',
             background: 'rgba(255,255,255,0.01)',
-            border: '1px solid rgba(255,255,255,0.05)',
+            border: '1px solid var(--border-color)',
             borderRadius: '12px',
             padding: '16px 20px'
           }}>
@@ -1703,7 +1703,7 @@ export default function Community() {
                 placeholder="Filter contests or course playlists..."
                 value={eduSearchQuery}
                 onChange={(e) => setEduSearchQuery(e.target.value)}
-                style={{ background: 'transparent', border: 'none', color: '#ffffff', fontSize: '13px', outline: 'none', width: '100%' }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', width: '100%' }}
               />
             </div>
             
@@ -1783,7 +1783,7 @@ export default function Community() {
                   {pendingContests.map(req => (
                     <div key={req.id} style={{
                       background: 'rgba(10, 14, 39, 0.6)',
-                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                      border: '1px solid var(--border-color)',
                       borderRadius: '12px',
                       padding: '20px',
                       display: 'flex',
@@ -1792,7 +1792,7 @@ export default function Community() {
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                         <div>
-                          <h3 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 4px 0', color: '#ffffff' }}>{req.title}</h3>
+                          <h3 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 4px 0', color: 'var(--text-primary)' }}>{req.title}</h3>
                           <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
                             Requested by: <strong>{req.host_name}</strong> ({req.host_email})
                           </span>
@@ -1803,7 +1803,7 @@ export default function Community() {
                       </div>
                       <p style={{ fontSize: '12px', color: '#d0d2dd', margin: 0, lineHeight: '1.5' }}>{req.description}</p>
                       
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px 16px', borderRadius: '8px', fontSize: '11px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: '8px', fontSize: '11px' }}>
                         <div>
                           <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px', marginBottom: '2px' }}>Prize Pool</span>
                           <strong style={{ color: '#00ff88', fontSize: '13px' }}>{req.prize_pool}</strong>
@@ -1814,7 +1814,7 @@ export default function Community() {
                         </div>
                       </div>
 
-                      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', marginTop: '4px' }}>
+                      <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '4px' }}>
                         <span style={{ fontSize: '10px', color: '#ffb300', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
                           <ShieldCheck size={12} /> Host Credentials & Background Verification:
                         </span>
@@ -1927,7 +1927,7 @@ export default function Community() {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingRight: ct.is_curated ? '80px' : '0' }}>
                           <div>
-                            <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                               {ct.title}
                               {ct.is_private && (
                                 <span style={{ fontSize: '9px', background: 'rgba(255, 179, 0, 0.1)', color: '#ffb300', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
@@ -1951,7 +1951,7 @@ export default function Community() {
 
                         <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>{ct.description}</p>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', fontSize: '11px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'var(--bg-secondary)', padding: '12px', borderRadius: '8px', fontSize: '11px' }}>
                           <div>
                             <span style={{ display: 'block', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '9px' }}>Prize Pool</span>
                             <strong style={{ color: '#00ff88', fontSize: '13px' }}>{ct.prize_pool}</strong>
@@ -2093,9 +2093,9 @@ export default function Community() {
                             </span>
                           )}
                         </div>
-                        <h3 style={{ fontSize: '14px', fontWeight: '800', margin: 0, color: '#ffffff', lineHeight: '1.4' }}>{course.title}</h3>
+                        <h3 style={{ fontSize: '14px', fontWeight: '800', margin: 0, color: 'var(--text-primary)', lineHeight: '1.4' }}>{course.title}</h3>
                         <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4', flex: 1 }}>{course.description}</p>
-                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
+                        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
                           <span style={{ color: 'var(--text-secondary)' }}>By: <strong>{course.instructor}</strong></span>
                           <a
                             href={course.youtube_link}
@@ -2151,7 +2151,7 @@ export default function Community() {
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none',
                       width: '100%'
@@ -2200,7 +2200,7 @@ export default function Community() {
                             padding: '8px',
                             background: 'transparent',
                             border: 'none',
-                            color: '#ffffff',
+                            color: 'var(--text-primary)',
                             fontSize: '12px',
                             borderRadius: '4px',
                             cursor: 'pointer',
@@ -2395,7 +2395,7 @@ export default function Community() {
                       key={invite.id}
                       style={{
                         background: 'rgba(10, 14, 39, 0.6)',
-                        border: '1px solid rgba(255,255,255,0.05)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '8px',
                         padding: '10px',
                         display: 'flex',
@@ -2426,7 +2426,7 @@ export default function Community() {
                           onClick={() => handleRejectInvite(invite.id, invite.group_name)}
                           style={{
                             flex: 1,
-                            background: 'rgba(255,255,255,0.05)',
+                            background: 'var(--bg-secondary)',
                             color: '#ff4444',
                             border: '1px solid rgba(255,68,68,0.3)',
                             borderRadius: '4px',
@@ -2465,12 +2465,12 @@ export default function Community() {
               const isAdmin = activeGroup.my_role === 'admin';
               
               return (
-                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <h2 style={{ fontSize: '18px', fontWeight: '900', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {isPrivate ? <><Users size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />{activeGroup.name}</> : `# ${activeGroup.name}`}
                       {isPrivate && (
-                        <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', padding: '2px 6px', borderRadius: '4px', fontWeight: '500' }}>
+                        <span style={{ fontSize: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', padding: '2px 6px', borderRadius: '4px', fontWeight: '500' }}>
                           Private Group
                         </span>
                       )}
@@ -2502,7 +2502,7 @@ export default function Community() {
                         background: 'rgba(255,255,255,0.03)',
                         border: '1px solid rgba(255,255,255,0.08)',
                         borderRadius: '8px',
-                        color: '#ffffff',
+                        color: 'var(--text-primary)',
                         padding: '8px 14px',
                         fontSize: '12px',
                         fontWeight: '700',
@@ -2552,7 +2552,7 @@ export default function Community() {
                   chatMessages.map(msg => (
                     <div key={msg.id} style={{
                       alignSelf: 'flex-start',
-                      background: 'rgba(255,255,255,0.02)',
+                      background: 'var(--bg-secondary)',
                       border: '1px solid rgba(255,255,255,0.04)',
                       borderRadius: '12px',
                       padding: '12px 16px',
@@ -2565,7 +2565,7 @@ export default function Community() {
                           {new Date(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <p style={{ fontSize: '12px', color: '#e0e0e0', margin: 0, whiteSpace: 'pre-wrap' }}>{msg.message}</p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, whiteSpace: 'pre-wrap' }}>{msg.message}</p>
                     </div>
                   ))
                 )}
@@ -2577,7 +2577,7 @@ export default function Community() {
                 <div style={{
                   width: '320px',
                   background: 'rgba(10, 14, 39, 0.4)',
-                  border: '1px solid rgba(255,255,255,0.05)',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '12px',
                   padding: '16px',
                   display: 'flex',
@@ -2595,11 +2595,11 @@ export default function Community() {
                         value={inviteEmails}
                         onChange={(e) => setInviteEmails(e.target.value)}
                         style={{
-                          background: 'rgba(255,255,255,0.02)',
+                          background: 'var(--bg-secondary)',
                           border: '1px solid rgba(255,255,255,0.08)',
                           borderRadius: '6px',
                           padding: '8px 10px',
-                          color: '#ffffff',
+                          color: 'var(--text-primary)',
                           fontSize: '11px',
                           outline: 'none'
                         }}
@@ -2634,7 +2634,7 @@ export default function Community() {
                           <div
                             key={member.id}
                             style={{
-                              background: 'rgba(255,255,255,0.02)',
+                              background: 'var(--bg-secondary)',
                               borderRadius: '6px',
                               padding: '8px',
                               display: 'flex',
@@ -2696,7 +2696,7 @@ export default function Community() {
                     border: '1px solid rgba(0, 255, 136, 0.15)',
                     borderRadius: '8px',
                     padding: '12px 16px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     fontWeight: '700'
                   }}>
@@ -2744,7 +2744,7 @@ export default function Community() {
               }
 
               return (
-                <form onSubmit={handleSendChatMessage} style={{ display: 'flex', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                <form onSubmit={handleSendChatMessage} style={{ display: 'flex', gap: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
                   <input
                     type="text"
                     value={chatInput}
@@ -2756,7 +2756,7 @@ export default function Community() {
                       border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: '8px',
                       padding: '12px 14px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none'
                     }}
@@ -2813,7 +2813,7 @@ export default function Community() {
             boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
           }}>
             <div>
-              <h3 style={{ fontSize: '18px', fontWeight: '950', margin: '0 0 6px 0', color: '#ffffff' }}>Create Discussion Group</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: '950', margin: '0 0 6px 0', color: 'var(--text-primary)' }}>Create Discussion Group</h3>
               <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>Establish a new hub and invite members by email.</p>
             </div>
             
@@ -2830,7 +2830,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '13px',
                     outline: 'none'
                   }}
@@ -2889,7 +2889,7 @@ export default function Community() {
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     padding: '10px',
                     fontSize: '12px',
                     fontWeight: '700',
@@ -2947,7 +2947,7 @@ export default function Community() {
             boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
           }}>
             <div>
-              <h3 style={{ fontSize: '18px', fontWeight: '950', margin: '0 0 6px 0', color: '#ffffff' }}>Create Public Channel</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: '950', margin: '0 0 6px 0', color: 'var(--text-primary)' }}>Create Public Channel</h3>
               <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>Establish a new public channel searchable by any user.</p>
             </div>
             
@@ -2964,7 +2964,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '13px',
                     outline: 'none'
                   }}
@@ -2984,7 +2984,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '13px',
                     outline: 'none'
                   }}
@@ -3040,7 +3040,7 @@ export default function Community() {
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     padding: '10px',
                     fontSize: '12px',
                     fontWeight: '700',
@@ -3124,7 +3124,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none'
                   }}
@@ -3145,7 +3145,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none',
                     resize: 'none'
@@ -3166,7 +3166,7 @@ export default function Community() {
                       border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: '8px',
                       padding: '10px 12px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none'
                     }}
@@ -3184,7 +3184,7 @@ export default function Community() {
                       border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: '8px',
                       padding: '10px 12px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none'
                     }}
@@ -3205,7 +3205,7 @@ export default function Community() {
                       border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: '8px',
                       padding: '10px 12px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none'
                     }}
@@ -3225,7 +3225,7 @@ export default function Community() {
                       border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: '8px',
                       padding: '10px 12px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none'
                     }}
@@ -3244,7 +3244,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none'
                   }}
@@ -3264,7 +3264,7 @@ export default function Community() {
                   onChange={(e) => setNewContestIsPrivate(e.target.checked)}
                   style={{ cursor: 'pointer' }}
                 />
-                <label htmlFor="isPrivate" style={{ fontSize: '12px', color: '#ffffff', fontWeight: '750', cursor: 'pointer' }}>
+                <label htmlFor="isPrivate" style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '750', cursor: 'pointer' }}>
                   Make this contest Private (Requires passcode)
                 </label>
               </div>
@@ -3282,7 +3282,7 @@ export default function Community() {
                       border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: '8px',
                       padding: '10px 12px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none'
                     }}
@@ -3303,7 +3303,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none'
                   }}
@@ -3326,7 +3326,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none',
                     resize: 'none'
@@ -3344,7 +3344,7 @@ export default function Community() {
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     padding: '10px',
                     fontSize: '12px',
                     fontWeight: '700',
@@ -3428,7 +3428,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none'
                   }}
@@ -3448,7 +3448,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none',
                     resize: 'none'
@@ -3468,7 +3468,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none'
                   }}
@@ -3483,7 +3483,7 @@ export default function Community() {
                   onChange={(e) => setNewChannelIsPremium(e.target.checked)}
                   style={{ cursor: 'pointer' }}
                 />
-                <label htmlFor="isPremiumChannel" style={{ fontSize: '12px', color: '#ffffff', fontWeight: '750', cursor: 'pointer' }}>
+                <label htmlFor="isPremiumChannel" style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '750', cursor: 'pointer' }}>
                   Premium Creator Channel (Paid Subscription)
                 </label>
               </div>
@@ -3502,7 +3502,7 @@ export default function Community() {
                       border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: '8px',
                       padding: '10px 12px',
-                      color: '#ffffff',
+                      color: 'var(--text-primary)',
                       fontSize: '12px',
                       outline: 'none'
                     }}
@@ -3520,7 +3520,7 @@ export default function Community() {
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     padding: '10px',
                     fontSize: '12px',
                     fontWeight: '700',
@@ -3604,7 +3604,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none'
                   }}
@@ -3624,7 +3624,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none',
                     resize: 'none'
@@ -3645,7 +3645,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none'
                   }}
@@ -3663,7 +3663,7 @@ export default function Community() {
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
                     padding: '10px 12px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     fontSize: '12px',
                     outline: 'none'
                   }}
@@ -3685,7 +3685,7 @@ export default function Community() {
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '8px',
-                    color: '#ffffff',
+                    color: 'var(--text-primary)',
                     padding: '10px',
                     fontSize: '12px',
                     fontWeight: '700',
