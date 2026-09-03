@@ -2,12 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { createChart, ColorType } from 'lightweight-charts';
 import { io } from 'socket.io-client';
 import { apiClient } from '../services/api';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   TrendingUp, TrendingDown, Maximize2, RefreshCw, Layers, 
   Activity, Zap, Clock, ShieldCheck 
 } from 'lucide-react';
 
 export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+
   const chartContainerRef = useRef(null);
   const chartInstanceRef = useRef(null);
   const candleSeriesRef = useRef(null);
@@ -38,25 +42,25 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
       height: height,
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#94a3b8',
+        textColor: isLight ? '#4b5563' : '#94a3b8',
         fontSize: 12,
         fontFamily: "'Outfit', 'Inter', system-ui, sans-serif"
       },
       grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.04)', style: 1 },
-        horzLines: { color: 'rgba(255, 255, 255, 0.04)', style: 1 },
+        vertLines: { color: isLight ? '#e5e7eb' : 'rgba(255, 255, 255, 0.04)', style: 1 },
+        horzLines: { color: isLight ? '#e5e7eb' : 'rgba(255, 255, 255, 0.04)', style: 1 },
       },
       crosshair: {
         mode: 1,
-        vertLine: { color: '#00f2fe', width: 1, style: 2, labelBackgroundColor: '#00f2fe' },
-        horzLine: { color: '#00f2fe', width: 1, style: 2, labelBackgroundColor: '#00f2fe' },
+        vertLine: { color: isLight ? '#00b060' : '#00f2fe', width: 1, style: 2, labelBackgroundColor: isLight ? '#00b060' : '#00f2fe' },
+        horzLine: { color: isLight ? '#00b060' : '#00f2fe', width: 1, style: 2, labelBackgroundColor: isLight ? '#00b060' : '#00f2fe' },
       },
       rightPriceScale: {
-        borderColor: 'rgba(255, 255, 255, 0.08)',
+        borderColor: isLight ? '#e5e7eb' : 'rgba(255, 255, 255, 0.08)',
         scaleMargins: { top: 0.1, bottom: 0.25 },
       },
       timeScale: {
-        borderColor: 'rgba(255, 255, 255, 0.08)',
+        borderColor: isLight ? '#e5e7eb' : 'rgba(255, 255, 255, 0.08)',
         timeVisible: true,
         secondsVisible: false,
       },
@@ -279,23 +283,31 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
   const isPositive = parseFloat(priceChangePercent || 0) >= 0;
 
   return (
-    <div className="relative w-full rounded-2xl bg-[#0f172a]/80 backdrop-blur-xl border border-white/10 p-5 shadow-2xl overflow-hidden">
+    <div className={`relative w-full rounded-2xl p-5 shadow-sm border transition-all overflow-hidden ${
+      isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-[#0f172a]/80 backdrop-blur-xl border-white/10 text-white'
+    }`}>
       {/* Header Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
+      <div className={`flex flex-wrap items-center justify-between gap-4 pb-4 border-b ${
+        isLight ? 'border-slate-200' : 'border-white/10'
+      }`}>
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 text-cyan-400 font-bold text-sm">
+          <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-bold text-sm border ${
+            isLight ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-gradient-to-tr from-cyan-500/20 to-blue-600/20 border-cyan-500/30 text-cyan-400'
+          }`}>
             NSE
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-white tracking-wide">{symbol}</h2>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <h2 className={`text-xl font-bold tracking-wide ${isLight ? 'text-slate-900' : 'text-white'}`}>{symbol}</h2>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                isLight ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                 LIVE WS
               </span>
             </div>
-            <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-              <Clock className="w-3 h-3 text-slate-500" />
+            <p className={`text-xs flex items-center gap-1.5 mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <Clock className="w-3 h-3 text-slate-400" />
               NSE India Realtime Tick • {lastUpdated.toLocaleTimeString()}
             </p>
           </div>
@@ -303,30 +315,32 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
 
         {/* Live Price & Flash Indicator */}
         <div className="flex items-center gap-6">
-          <div className={`transition-all duration-300 ${tickFlash === 'up' ? 'scale-105 text-emerald-400' : tickFlash === 'down' ? 'scale-105 text-red-400' : ''}`}>
-            <div className="text-2xl font-extrabold text-white tracking-tight flex items-center justify-end gap-2">
+          <div className={`transition-all duration-300 ${tickFlash === 'up' ? 'scale-105 text-emerald-600' : tickFlash === 'down' ? 'scale-105 text-red-600' : ''}`}>
+            <div className={`text-2xl font-extrabold tracking-tight flex items-center justify-end gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
               ₹{livePrice ? livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '---'}
               {isPositive ? (
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
+                <TrendingUp className="w-5 h-5 text-emerald-600" />
               ) : (
-                <TrendingDown className="w-5 h-5 text-red-400" />
+                <TrendingDown className="w-5 h-5 text-red-600" />
               )}
             </div>
-            <div className={`text-xs font-bold text-right ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+            <div className={`text-xs font-bold text-right ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
               {isPositive ? '+' : ''}{priceChange} ({isPositive ? '+' : ''}{priceChangePercent}%)
             </div>
           </div>
 
           {/* Timeframe Selectors */}
-          <div className="flex items-center bg-slate-900/80 p-1 rounded-xl border border-white/10">
+          <div className={`flex items-center p-1 rounded-xl border ${
+            isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-900/80 border-white/10'
+          }`}>
             {['1m', '5m', '15m', '1h', '1d'].map((tf) => (
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   timeframe === tf
-                    ? 'bg-cyan-500 text-slate-950 font-bold shadow-lg shadow-cyan-500/20'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? (isLight ? 'bg-[#00b060] text-white font-bold shadow' : 'bg-cyan-500 text-slate-950 font-bold shadow-lg shadow-cyan-500/20')
+                    : (isLight ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-200' : 'text-slate-400 hover:text-white hover:bg-white/5')
                 }`}
               >
                 {tf.toUpperCase()}
@@ -340,8 +354,8 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
               onClick={() => setShowEMA(!showEMA)}
               className={`p-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
                 showEMA
-                  ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                  : 'bg-slate-900/60 text-slate-400 border-white/5 hover:text-white'
+                  ? (isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40')
+                  : (isLight ? 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200' : 'bg-slate-900/60 text-slate-400 border-white/5 hover:text-white')
               }`}
               title="Toggle EMA 20 & 50"
             >
@@ -353,8 +367,8 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
               onClick={() => setShowVolume(!showVolume)}
               className={`p-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
                 showVolume
-                  ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
-                  : 'bg-slate-900/60 text-slate-400 border-white/5 hover:text-white'
+                  ? (isLight ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/20 text-blue-300 border-blue-500/40')
+                  : (isLight ? 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200' : 'bg-slate-900/60 text-slate-400 border-white/5 hover:text-white')
               }`}
               title="Toggle Volume Histogram"
             >
@@ -364,7 +378,9 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
 
             <button
               onClick={loadChartData}
-              className="p-2 rounded-xl bg-slate-900/60 text-slate-400 border border-white/5 hover:text-white hover:bg-white/5 transition-all"
+              className={`p-2 rounded-xl border transition-all ${
+                isLight ? 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200' : 'bg-slate-900/60 text-slate-400 border-white/5 hover:text-white hover:bg-white/5'
+              }`}
               title="Refresh Chart Data"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />

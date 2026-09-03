@@ -1,45 +1,51 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
 import SearchWithSuggestions from '../components/SearchWithSuggestions';
-import { TrendingUp, TrendingDown, Newspaper, Search, Activity, Briefcase, Award, Sparkles } from 'lucide-react';
+import { 
+  TrendingUp, TrendingDown, Newspaper, Search, Activity, 
+  Briefcase, Award, Sparkles, PieChart, ShieldCheck, ArrowRight,
+  Zap, Layers, BarChart2, Flame, LineChart
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 
-const IconContainer = ({ children, color }) => (
-  <span style={{
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '32px',
-    height: '32px',
-    borderRadius: '8px',
-    background: `${color}15`,
-    border: `1px solid ${color}30`,
-    color: color,
-    boxShadow: `0 0 10px ${color}12`,
-    flexShrink: 0
-  }}>
-    {children}
-  </span>
-);
+const MiniSparkline = ({ points, isPositive }) => {
+  const color = isPositive ? '#00b060' : '#dc2626';
+  return (
+    <svg width="90" height="30" viewBox="0 0 90 30" style={{ overflow: 'visible' }}>
+      <path
+        d={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const navigate = useNavigate();
+  const isLight = theme === 'light';
+
   const [topGainers, setTopGainers] = useState([]);
   const [topLosers, setTopLosers] = useState([]);
-  const [crypto, setCrypto] = useState([]);
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeMoverTab, setActiveMoverTab] = useState('gainers');
 
   useEffect(() => {
     fetchMovers();
-    fetchCrypto();
     fetchNews();
     
     const interval = setInterval(() => {
       fetchMovers();
-      fetchCrypto();
-    }, 1000);
+    }, 3000);
     
     const timeInt = setInterval(() => setCurrentTime(new Date()), 1000);
     
@@ -61,16 +67,6 @@ export default function Dashboard() {
     }
   };
 
-  const fetchCrypto = async () => {
-    try {
-      const res = await apiClient.get('/market/crypto');
-      setCrypto(Array.isArray(res.data) ? res.data : []);
-    } catch (err) { 
-      console.error(err); 
-      setCrypto([]); 
-    }
-  };
-
   const fetchNews = async () => {
     try {
       const res = await apiClient.get('/market/news');
@@ -81,288 +77,324 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) return <div className="loading">Loading market data...</div>;
+  const indicesList = [
+    { name: 'NIFTY 50', symbol: 'NIFTY', value: '24,852.10', change: '+184.20', percent: '+0.75%', isPositive: true, sparkline: 'M 0,25 Q 22,10 45,18 T 90,5' },
+    { name: 'SENSEX', symbol: 'SENSEX', value: '81,215.45', change: '+520.10', percent: '+0.64%', isPositive: true, sparkline: 'M 0,22 Q 25,28 50,12 T 90,4' },
+    { name: 'BANK NIFTY', symbol: 'BANKNIFTY', value: '51,480.30', change: '+610.40', percent: '+1.20%', isPositive: true, sparkline: 'M 0,26 Q 30,8 60,15 T 90,2' },
+    { name: 'FINNIFTY', symbol: 'FINNIFTY', value: '23,675.80', change: '+142.90', percent: '+0.61%', isPositive: true, sparkline: 'M 0,20 Q 20,24 55,10 T 90,6' }
+  ];
+
+  const sectorList = [
+    { name: 'NIFTY IT', change: '+1.45%', isPositive: true, topStock: 'TCS (+2.1%)' },
+    { name: 'NIFTY BANK', change: '+1.20%', isPositive: true, topStock: 'HDFCBANK (+1.8%)' },
+    { name: 'NIFTY AUTO', change: '+0.88%', isPositive: true, topStock: 'TATAMOTORS (+1.5%)' },
+    { name: 'NIFTY PHARMA', change: '-0.35%', isPositive: false, topStock: 'SUNPHARMA (-0.8%)' },
+    { name: 'NIFTY FMCG', change: '+0.25%', isPositive: true, topStock: 'ITC (+0.5%)' },
+    { name: 'NIFTY METAL', change: '-0.62%', isPositive: false, topStock: 'TATASTEEL (-1.1%)' },
+  ];
+
+  const activeMoversList = activeMoverTab === 'gainers' ? topGainers : topLosers;
 
   return (
-    <div>
-      <div className="welcome-section">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', width: '100%' }}>
-          <div>
-            <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
-              Command Center
-              {user?.is_pro && (
-                <span className="pro-badge-glow" style={{
-                  fontSize: '11px',
-                  fontWeight: 900,
-                  color: '#ffb300',
-                  background: 'linear-gradient(135deg, rgba(255,179,0,0.2), rgba(255,224,130,0.05))',
-                  border: '1px solid rgba(255,179,0,0.4)',
-                  padding: '4px 10px',
-                  borderRadius: '20px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  boxShadow: '0 0 10px rgba(255, 179, 0, 0.2)'
-                }}>
-                  <Award size={12} /> PRO
-                </span>
-              )}
-            </h1>
-            <p style={{ margin: '6px 0 0 0' }}>{currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} | {currentTime.toLocaleTimeString()} IST</p>
-          </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '40px' }}>
+      {/* Header Banner */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Market Command Center
+            <span style={{ 
+              fontSize: '11px', 
+              background: 'rgba(0, 176, 96, 0.12)', 
+              color: '#00b060', 
+              padding: '3px 10px', 
+              borderRadius: '20px', 
+              fontWeight: 800,
+              border: '1px solid rgba(0, 176, 96, 0.3)'
+            }}>
+              LIVE MARKET
+            </span>
+          </h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+            Real-time Indian Equity & Derivative Analytics • {currentTime.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })} | {currentTime.toLocaleTimeString()} IST
+          </p>
+        </div>
+
+        <SearchWithSuggestions 
+          onSelect={(stock) => navigate(`/stock/${stock.symbol}`)} 
+          placeholder="Search stocks, F&O or indices (e.g. Reliance, TCS)..." 
+          className="global-search" 
+        />
+      </div>
+
+      {/* Live Market Indices Cards */}
+      <div>
+        <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <LineChart size={18} style={{ color: '#00b060' }} /> Benchmark Indices
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
+          {indicesList.map((idx, i) => (
+            <div 
+              key={i}
+              onClick={() => navigate(`/stock/${idx.symbol}`)}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '14px',
+                padding: '18px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.borderColor = '#00b060';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-color)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.5px' }}>{idx.name}</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>₹{idx.value}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: idx.isPositive ? '#00b060' : '#dc2626' }}>
+                  {idx.change} ({idx.percent})
+                </div>
+              </div>
+              <MiniSparkline points={idx.sparkline} isPositive={idx.isPositive} />
+            </div>
+          ))}
         </div>
       </div>
-      
-      <SearchWithSuggestions 
-        onSelect={(stock) => window.location.href = `/markets?symbol=${stock.symbol}`} 
-        placeholder="Search any stock (e.g. Reliance, TCS, Infosys)..." 
-        className="global-search" 
-      />
 
-      {user && !user.is_pro && (
-        <div 
-          onClick={() => window.location.href = '/upgrade-pro'}
-          style={{
-            background: 'linear-gradient(135deg, rgba(255, 179, 0, 0.08), rgba(255, 224, 130, 0.02))',
-            border: '1px solid rgba(255, 179, 0, 0.25)',
-            borderRadius: '16px',
-            padding: '16px 24px',
-            marginBottom: '32px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '16px',
-            transition: 'all 0.2s',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.borderColor = '#ffb300'; e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 179, 0, 0.12), rgba(255, 224, 130, 0.04))'; }}
-          onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 179, 0, 0.25)'; e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 179, 0, 0.08), rgba(255, 224, 130, 0.02))'; }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255, 179, 0, 0.15)', color: '#ffb300' }}>
-              <Sparkles size={20} />
-            </span>
-            <div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>Unlock All Premium Features with NonStock Pro</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Gain access to real-time Option Greeks, Automated Trading Bots & instant SMS/WhatsApp alerts.</div>
-            </div>
-          </div>
-          <button style={{
-            background: 'linear-gradient(135deg, #ffe082, #ffb300)',
-            border: 'none',
-            borderRadius: '8px',
-            color: '#0b0803',
-            padding: '8px 16px',
-            fontSize: '12px',
-            fontWeight: 800,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap'
-          }}>
-            Upgrade Now
-          </button>
-        </div>
-      )}
-
-      {/* "What are you looking for today?" Intent Grid */}
-      <div style={{ marginBottom: '40px' }}>
-        <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px', color: 'var(--text-primary)' }}>What are you looking for today?</h3>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
-          gap: '24px' 
-        }}>
-          {/* Stock Discovery */}
+      {/* Quick Action Portals */}
+      <div>
+        <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Zap size={18} style={{ color: '#2563eb' }} /> Quick Trading Portals
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
           <div 
-            onClick={() => window.location.href = '/screener'}
-            style={{ 
-              background: 'var(--bg-card-glass)', 
-              border: '1px solid rgba(0, 255, 136, 0.12)', 
-              borderRadius: '16px', 
-              padding: '24px 20px', 
+            onClick={() => navigate('/screener')}
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '16px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '16px',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseOver={(e) => { 
-              e.currentTarget.style.borderColor = '#00ff88'; 
-              e.currentTarget.style.transform = 'translateY(-2px)'; 
-              e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 255, 136, 0.15)'; 
-            }}
-            onMouseOut={(e) => { 
-              e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.12)'; 
-              e.currentTarget.style.transform = 'translateY(0)'; 
-              e.currentTarget.style.boxShadow = 'none'; 
+              gap: '12px',
+              transition: 'all 0.2s'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(0, 255, 136, 0.1)', border: '1px solid rgba(0, 255, 136, 0.25)', color: '#00ff88' }}>
-              <Search size={22} />
+            <span style={{ padding: '10px', borderRadius: '10px', background: 'rgba(0, 176, 96, 0.1)', color: '#00b060' }}>
+              <Search size={20} />
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Stock Discovery</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Screen NSE stocks dynamically</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>Stock Screener</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Filter NSE Equities</div>
             </div>
           </div>
 
-          {/* Option Chain */}
           <div 
-            onClick={() => window.location.href = '/fno'}
-            style={{ 
-              background: 'var(--bg-card-glass)', 
-              border: '1px solid rgba(0, 188, 212, 0.12)', 
-              borderRadius: '16px', 
-              padding: '24px 20px', 
+            onClick={() => navigate('/fno')}
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '16px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '16px',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseOver={(e) => { 
-              e.currentTarget.style.borderColor = '#00bcd4'; 
-              e.currentTarget.style.transform = 'translateY(-2px)'; 
-              e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 188, 212, 0.15)'; 
-            }}
-            onMouseOut={(e) => { 
-              e.currentTarget.style.borderColor = 'rgba(0, 188, 212, 0.12)'; 
-              e.currentTarget.style.transform = 'translateY(0)'; 
-              e.currentTarget.style.boxShadow = 'none'; 
+              gap: '12px',
+              transition: 'all 0.2s'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(0, 188, 212, 0.1)', border: '1px solid rgba(0, 188, 212, 0.25)', color: '#00bcd4' }}>
-              <Activity size={22} />
+            <span style={{ padding: '10px', borderRadius: '10px', background: 'rgba(37, 99, 235, 0.1)', color: '#2563eb' }}>
+              <Activity size={20} />
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Option Chain</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Analyze Call/Put open interest</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>F&O Option Desk</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Live Option Chain</div>
             </div>
           </div>
 
-          {/* Interactive Analysis */}
           <div 
-            onClick={() => window.location.href = '/markets'}
-            style={{ 
-              background: 'var(--bg-card-glass)', 
-              border: '1px solid rgba(0, 255, 136, 0.12)', 
-              borderRadius: '16px', 
-              padding: '24px 20px', 
+            onClick={() => navigate('/mutual-funds')}
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '16px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '16px',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseOver={(e) => { 
-              e.currentTarget.style.borderColor = '#00ff88'; 
-              e.currentTarget.style.transform = 'translateY(-2px)'; 
-              e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 255, 136, 0.15)'; 
-            }}
-            onMouseOut={(e) => { 
-              e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.12)'; 
-              e.currentTarget.style.transform = 'translateY(0)'; 
-              e.currentTarget.style.boxShadow = 'none'; 
+              gap: '12px',
+              transition: 'all 0.2s'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(0, 255, 136, 0.1)', border: '1px solid rgba(0, 255, 136, 0.25)', color: '#00ff88' }}>
-              <TrendingUp size={22} />
+            <span style={{ padding: '10px', borderRadius: '10px', background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed' }}>
+              <PieChart size={20} />
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Interactive Charts</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Analyze technical stock charts</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>Mutual Funds</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>SIP & Fund Analysis</div>
             </div>
           </div>
 
-          {/* Track Portfolio */}
           <div 
-            onClick={() => window.location.href = '/portfolio'}
-            style={{ 
-              background: 'var(--bg-card-glass)', 
-              border: '1px solid rgba(0, 188, 212, 0.12)', 
-              borderRadius: '16px', 
-              padding: '24px 20px', 
+            onClick={() => navigate('/paper-trading')}
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '16px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '16px',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseOver={(e) => { 
-              e.currentTarget.style.borderColor = '#00bcd4'; 
-              e.currentTarget.style.transform = 'translateY(-2px)'; 
-              e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 188, 212, 0.15)'; 
-            }}
-            onMouseOut={(e) => { 
-              e.currentTarget.style.borderColor = 'rgba(0, 188, 212, 0.12)'; 
-              e.currentTarget.style.transform = 'translateY(0)'; 
-              e.currentTarget.style.boxShadow = 'none'; 
+              gap: '12px',
+              transition: 'all 0.2s'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(0, 188, 212, 0.1)', border: '1px solid rgba(0, 188, 212, 0.25)', color: '#00bcd4' }}>
-              <Briefcase size={22} />
+            <span style={{ padding: '10px', borderRadius: '10px', background: 'rgba(217, 119, 6, 0.1)', color: '#d97706' }}>
+              <Briefcase size={20} />
             </span>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Track Portfolio</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Manage holdings and net worth</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>Paper Trading</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Risk-Free Simulator</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="two-column">
-        <div className="left-column">
-          <div className="section-card">
-            <div className="section-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <IconContainer color="#00ff88"><TrendingUp size={16} /></IconContainer> Top Gainers
-              </h2>
-              <span className="live-badge">LIVE</span>
+      {/* Main Two Column Layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
+        {/* Left Column: Market Movers & Sectors */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Market Movers Tabbed Card */}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  onClick={() => setActiveMoverTab('gainers')}
+                  style={{
+                    background: activeMoverTab === 'gainers' ? 'rgba(0, 176, 96, 0.12)' : 'transparent',
+                    border: activeMoverTab === 'gainers' ? '1px solid #00b060' : 'none',
+                    color: activeMoverTab === 'gainers' ? '#00b060' : 'var(--text-secondary)',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Top Gainers
+                </button>
+                <button 
+                  onClick={() => setActiveMoverTab('losers')}
+                  style={{
+                    background: activeMoverTab === 'losers' ? 'rgba(220, 38, 38, 0.12)' : 'transparent',
+                    border: activeMoverTab === 'losers' ? '1px solid #dc2626' : 'none',
+                    color: activeMoverTab === 'losers' ? '#dc2626' : 'var(--text-secondary)',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Top Losers
+                </button>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>NSE REALTIME</span>
             </div>
-            <div className="movers-list">
-              {topGainers.map((s, i) => (
-                <div key={i} className="mover-item">
-                  <span>{s.symbol}</span>
-                  <span>₹{s.price}</span>
-                  <span className="positive">+{s.changePercent}%</span>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {activeMoversList.slice(0, 6).map((s, i) => (
+                <div 
+                  key={i} 
+                  onClick={() => navigate(`/stock/${s.symbol}`)}
+                  style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    padding: '12px 16px', 
+                    background: 'var(--bg-glass-light)', 
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div>
+                    <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>{s.symbol}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginLeft: '10px' }}>NSE</span>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>₹{s.price}</div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: activeMoverTab === 'gainers' ? '#00b060' : '#dc2626' }}>
+                      {activeMoverTab === 'gainers' ? '+' : ''}{s.changePercent}%
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-          
-          <div className="section-card">
-            <div className="section-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <IconContainer color="#ff3366"><TrendingDown size={16} /></IconContainer> Top Losers
-              </h2>
-              <span className="live-badge">LIVE</span>
-            </div>
-            <div className="movers-list">
-              {topLosers.map((s, i) => (
-                <div key={i} className="mover-item">
-                  <span>{s.symbol}</span>
-                  <span>₹{s.price}</span>
-                  <span className="negative">{s.changePercent}%</span>
+
+          {/* Sector Heatmap Grid */}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Layers size={18} style={{ color: '#00b060' }} /> Sector Performance
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+              {sectorList.map((sec, i) => (
+                <div 
+                  key={i}
+                  style={{
+                    background: sec.isPositive ? 'rgba(0, 176, 96, 0.06)' : 'rgba(220, 38, 38, 0.06)',
+                    border: sec.isPositive ? '1px solid rgba(0, 176, 96, 0.2)' : '1px solid rgba(220, 38, 38, 0.2)',
+                    borderRadius: '10px',
+                    padding: '12px 14px'
+                  }}
+                >
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{sec.name}</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: sec.isPositive ? '#00b060' : '#dc2626', margin: '4px 0' }}>
+                    {sec.change}
+                  </div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{sec.topStock}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-        
-        <div className="right-column">
-          <div className="section-card">
-            <div className="section-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <IconContainer color="#00bcd4"><Newspaper size={16} /></IconContainer> Market News
-              </h2>
-              <span className="live-badge">LIVE</span>
+
+        {/* Right Column: Live News Feed */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '20px', height: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Newspaper size={18} style={{ color: '#0284c7' }} /> Live Market News
+              </h3>
+              <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7', fontWeight: 700 }}>
+                FEED
+              </span>
             </div>
-            <div className="news-list">
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '520px', overflowY: 'auto' }}>
               {news.map((n, i) => (
-                <a key={i} href={n.url} target="_blank" rel="noopener noreferrer" className="news-item">
-                  <span className="news-time">{n.time}</span>
-                  <span className="news-title">{n.title}</span>
-                  <span className="news-link">→</span>
+                <a key={i} href={n.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                  <div style={{
+                    padding: '12px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-glass-light)',
+                    border: '1px solid var(--border-color)',
+                    transition: 'all 0.2s'
+                  }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '4px' }}>{n.time}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600, lineHeight: '1.4' }}>{n.title}</div>
+                  </div>
                 </a>
               ))}
             </div>

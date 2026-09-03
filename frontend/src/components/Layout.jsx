@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import CandlestickBg from './CandlestickBg';
 import FlyingCurrencyBg from './FlyingCurrencyBg';
@@ -12,6 +12,7 @@ import OnboardingTour from './OnboardingTour';
 export default function Layout({ children }) {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const isDark = theme === 'dark';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -300,36 +301,48 @@ export default function Layout({ children }) {
             alignItems: 'center',
             width: '100%'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#5a6a85', fontWeight: 700, letterSpacing: '0.5px' }}>NIFTY 50</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
+              <div 
+                onClick={() => navigate('/stock/NIFTY')}
+                style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.2s' }}
+                title="Click to view NIFTY 50 Live Chart"
+              >
+                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#4b5563', fontWeight: 700, letterSpacing: '0.5px' }}>NIFTY 50</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#1a1a1a' }}>{indices.nifty.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.nifty.up ? '#10b981' : '#ff0080' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#111827' }}>{indices.nifty.value}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.nifty.up ? '#00b060' : '#dc2626' }}>
                     {indices.nifty.up ? '▲' : '▼'} {indices.nifty.percent}%
                   </span>
                 </div>
               </div>
 
-              <div style={{ width: '1px', height: '28px', background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }}></div>
+              <div style={{ width: '1px', height: '28px', background: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e5e7eb' }}></div>
 
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#5a6a85', fontWeight: 700, letterSpacing: '0.5px' }}>SENSEX</span>
+              <div 
+                onClick={() => navigate('/stock/SENSEX')}
+                style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.2s' }}
+                title="Click to view SENSEX Live Chart"
+              >
+                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#4b5563', fontWeight: 700, letterSpacing: '0.5px' }}>SENSEX</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#1a1a1a' }}>{indices.sensex.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.sensex.up ? '#10b981' : '#ff0080' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#111827' }}>{indices.sensex.value}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.sensex.up ? '#00b060' : '#dc2626' }}>
                     {indices.sensex.up ? '▲' : '▼'} {indices.sensex.percent}%
                   </span>
                 </div>
               </div>
 
-              <div style={{ width: '1px', height: '28px', background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }}></div>
+              <div style={{ width: '1px', height: '28px', background: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e5e7eb' }}></div>
 
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#5a6a85', fontWeight: 700, letterSpacing: '0.5px' }}>BANK NIFTY</span>
+              <div 
+                onClick={() => navigate('/stock/BANKNIFTY')}
+                style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.2s' }}
+                title="Click to view BANK NIFTY Live Chart"
+              >
+                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#4b5563', fontWeight: 700, letterSpacing: '0.5px' }}>BANK NIFTY</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#1a1a1a' }}>{indices.banknifty.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.banknifty.up ? '#10b981' : '#ff0080' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#111827' }}>{indices.banknifty.value}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.banknifty.up ? '#00b060' : '#dc2626' }}>
                     {indices.banknifty.up ? '▲' : '▼'} {indices.banknifty.percent}%
                   </span>
                 </div>

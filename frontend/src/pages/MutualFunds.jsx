@@ -32,11 +32,7 @@ const Title = styled.h1`
   margin: 0;
   font-size: 28px;
   font-weight: 800;
-  background: linear-gradient(135deg, #00ff88, #00bcd4);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--text-primary);
 `;
 
 const Subtitle = styled.p`
@@ -294,9 +290,9 @@ const InfoRow = styled.div`
 `;
 
 const ContinueButton = styled.button`
-  background: linear-gradient(135deg, #00ff88 0%, #00bcd4 100%);
+  background: #00b060;
   border: none;
-  color: var(--bg-primary);
+  color: #ffffff;
   padding: 16px;
   border-radius: 12px;
   font-weight: 800;
@@ -313,7 +309,7 @@ const ContinueButton = styled.button`
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 255, 136, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 176, 96, 0.35);
   }
 `;
 
