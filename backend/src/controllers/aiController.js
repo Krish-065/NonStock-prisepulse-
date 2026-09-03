@@ -373,14 +373,19 @@ exports.getLiveTechnicals = async (req, res) => {
       else if (cleanSym === 'TCS') basePrice = 3850;
       else if (cleanSym === 'INFY') basePrice = 1420;
       else {
+        let charSum = 0;
+        for (let i = 0; i < cleanSym.length; i++) {
+          charSum += cleanSym.charCodeAt(i);
+        }
+        if (basePrice === 100) {
+          basePrice = (charSum % 400) + 10;
+        }
+      }
+
       let charSum = 0;
       for (let i = 0; i < cleanSym.length; i++) {
         charSum += cleanSym.charCodeAt(i);
       }
-      if (basePrice === 100) {
-        basePrice = (charSum % 400) + 10;
-      }
-
       const sup = parseFloat((basePrice * 0.95).toFixed(2));
       const resVal = parseFloat((basePrice * 1.05).toFixed(2));
       const rsi = 35 + (charSum % 40);
