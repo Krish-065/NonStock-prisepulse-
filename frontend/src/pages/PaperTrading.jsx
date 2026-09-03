@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -142,13 +142,20 @@ export default function PaperTrading() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const isPro = user?.is_pro || false;
+  const location = useLocation();
   // Navigation & Page State
-  const [selectedSymbol, setSelectedSymbol] = useState('BTC-USD');
+  const [selectedSymbol, setSelectedSymbol] = useState(location.state?.selectSymbol || 'BTC-USD');
   const [chartInterval, setChartInterval] = useState('1d');
   const [activeConsoleTab, setActiveConsoleTab] = useState('positions');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const selectedMarket = 'All';
+
+  useEffect(() => {
+    if (location.state && location.state.selectSymbol) {
+      setSelectedSymbol(location.state.selectSymbol);
+    }
+  }, [location.state]);
 
   const filteredPopularWatchlist = POPULAR_WATCHLIST.filter(item => {
     const isIndian = isIndianSymbol(item.symbol);

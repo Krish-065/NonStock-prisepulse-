@@ -146,7 +146,7 @@ export default function StockActionModal({ symbol, onClose }) {
             isLight={isLight} 
             color="#00b060"
             onClick={() => {
-              navigate(`/stock/${routeSym}`);
+              navigate('/market', { state: { selectSymbol: routeSym } });
               onClose();
             }}
           >
@@ -163,7 +163,7 @@ export default function StockActionModal({ symbol, onClose }) {
             isLight={isLight} 
             color="#3b82f6"
             onClick={() => {
-              navigate('/paper-trading');
+              navigate('/paper-trading', { state: { selectSymbol: routeSym } });
               onClose();
             }}
           >

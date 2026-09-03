@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import SearchWithSuggestions from '../components/SearchWithSuggestions';
 import { ClipboardList } from 'lucide-react';
+import StockActionModal from '../components/StockActionModal';
 
 export default function Watchlist() {
   const [watchlist, setWatchlist] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionSymbol, setActionSymbol] = useState(null);
 
   const fetchWatchlist = async (isSilent = false) => {
     if (!isSilent) setLoading(true);
@@ -96,14 +98,14 @@ export default function Watchlist() {
               {watchlist.map((stock, idx) => (
                 <tr key={idx}>
                   <td>
-                    <Link 
-                      to={`/stock/${stock.symbol}`} 
-                      style={{ color: '#00ff88', textDecoration: 'none', fontWeight: '700' }}
+                    <span 
+                      onClick={() => setActionSymbol(stock.symbol)}
+                      style={{ color: '#00ff88', textDecoration: 'none', fontWeight: '700', cursor: 'pointer' }}
                       onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                       onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                     >
                       {stock.symbol}
-                    </Link>
+                    </span>
                   </td>
                   <td>₹{stock.price}</td>
                   <td className={stock.up ? 'positive' : 'negative'}>{stock.change >= 0 ? '+' : ''}{stock.change}</td>
@@ -115,6 +117,7 @@ export default function Watchlist() {
           </table>
         </div>
       )}
+      {actionSymbol && <StockActionModal symbol={actionSymbol} onClose={() => setActionSymbol(null)} />}
     </div>
   );
 }

@@ -26,7 +26,7 @@ const Screener       = lazy(() => import('./pages/Screener'));
 const IPOs           = lazy(() => import('./pages/IPOs'));
 const FnO            = lazy(() => import('./pages/FnO'));
 const SectorRotation = lazy(() => import('./pages/SectorRotation'));
-const StockDetail    = lazy(() => import('./pages/StockDetail'));
+const StockRedirect  = lazy(() => import('./pages/StockRedirect'));
 const Markets        = lazy(() => import('./pages/Markets'));
 const Tools          = lazy(() => import('./pages/Tools'));
 const News           = lazy(() => import('./pages/News'));
@@ -103,7 +103,7 @@ function App() {
                 <Route path="/ipos"              element={<PrivateRoute><Layout><IPOs /></Layout></PrivateRoute>} />
                 <Route path="/fno"               element={<PrivateRoute><Layout><FnO /></Layout></PrivateRoute>} />
                 <Route path="/sector-rotation"   element={<PrivateRoute><Layout><SectorRotation /></Layout></PrivateRoute>} />
-                <Route path="/stock/:symbol"     element={<PrivateRoute><Layout><StockDetail /></Layout></PrivateRoute>} />
+                <Route path="/stock/:symbol"     element={<PrivateRoute><StockRedirect /></PrivateRoute>} />
                 <Route path="/markets"           element={<PrivateRoute><Layout><Markets /></Layout></PrivateRoute>} />
                 <Route path="/tools"             element={<PrivateRoute><Layout><Tools /></Layout></PrivateRoute>} />
                 <Route path="/news"              element={<PrivateRoute><Layout><News /></Layout></PrivateRoute>} />
