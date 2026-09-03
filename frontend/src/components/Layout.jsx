@@ -10,6 +10,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import SearchWithSuggestions from './SearchWithSuggestions';
 import OnboardingTour from './OnboardingTour';
+import TickerTape from './TickerTape';
+import StockActionModal from './StockActionModal';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -21,11 +23,7 @@ export default function Layout({ children }) {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [indices, setIndices] = useState({
-    nifty: { value: '24,852.10', change: '+184.20', percent: '+0.75', up: true },
-    sensex: { value: '81,215.45', change: '+520.10', percent: '+0.64', up: true },
-    banknifty: { value: '51,480.30', change: '+610.40', percent: '+1.20', up: true },
-  });
+  const [selectedTicker, setSelectedTicker] = useState(null);
   const [marketStatus, setMarketStatus] = useState({ status: 'Open', label: 'Equity & F&O Markets Live', color: '#00b060' });
 
   const navLinks = [
@@ -41,44 +39,10 @@ export default function Layout({ children }) {
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={15} /> },
   ];
 
-  const fetchIndices = async () => {
-    try {
-      const res = await apiClient.get('/market/indices');
-      if (res.data && res.data['^NSEI']) {
-        const d = res.data;
-        setIndices({
-          nifty: { 
-            value: d['^NSEI']?.price ? d['^NSEI'].price.toLocaleString('en-IN') : '24,852.10', 
-            change: d['^NSEI']?.change ? (d['^NSEI'].change >= 0 ? `+${d['^NSEI'].change.toFixed(2)}` : d['^NSEI'].change.toFixed(2)) : '+184.20',
-            percent: d['^NSEI']?.changePercent ? (d['^NSEI'].changePercent >= 0 ? `+${d['^NSEI'].changePercent.toFixed(2)}` : d['^NSEI'].changePercent.toFixed(2)) : '+0.75', 
-            up: (d['^NSEI']?.change || 0) >= 0 
-          },
-          sensex: { 
-            value: d['^BSESN']?.price ? d['^BSESN'].price.toLocaleString('en-IN') : '81,215.45', 
-            change: d['^BSESN']?.change ? (d['^BSESN'].change >= 0 ? `+${d['^BSESN'].change.toFixed(2)}` : d['^BSESN'].change.toFixed(2)) : '+520.10',
-            percent: d['^BSESN']?.changePercent ? (d['^BSESN'].changePercent >= 0 ? `+${d['^BSESN'].changePercent.toFixed(2)}` : d['^BSESN'].changePercent.toFixed(2)) : '+0.64', 
-            up: (d['^BSESN']?.change || 0) >= 0 
-          },
-          banknifty: { 
-            value: d['^NSEBANK']?.price ? d['^NSEBANK'].price.toLocaleString('en-IN') : '51,480.30', 
-            change: d['^NSEBANK']?.change ? (d['^NSEBANK'].change >= 0 ? `+${d['^NSEBANK'].change.toFixed(2)}` : d['^NSEBANK'].change.toFixed(2)) : '+610.40',
-            percent: d['^NSEBANK']?.changePercent ? (d['^NSEBANK'].changePercent >= 0 ? `+${d['^NSEBANK'].changePercent.toFixed(2)}` : d['^NSEBANK'].changePercent.toFixed(2)) : '+1.20', 
-            up: (d['^NSEBANK']?.change || 0) >= 0 
-          },
-        });
-      }
-    } catch (err) {
-      console.error('Error fetching layout indices:', err);
-    }
-  };
-
   useEffect(() => {
-    fetchIndices();
-    const interval = setInterval(fetchIndices, 5000);
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', handleResize);
     return () => {
-      clearInterval(interval);
       window.removeEventListener('resize', handleResize);
     };
   }, []);
@@ -107,7 +71,7 @@ export default function Layout({ children }) {
         zIndex: 1000,
         boxShadow: isLight ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none'
       }}>
-        {/* Left: Brand Logo & Clickable Indices */}
+        {/* Left: Brand Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <div 
             onClick={() => navigate('/')} 
@@ -150,50 +114,6 @@ export default function Layout({ children }) {
               </span>
             )}
           </div>
-
-          {!isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', borderLeft: isLight ? '1px solid #e5e7eb' : '1px solid rgba(255, 255, 255, 0.1)', paddingLeft: '16px' }}>
-              <div 
-                onClick={() => navigate('/stock/^NSEI')}
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '6px' }}
-                title="View NIFTY 50 Live Chart"
-              >
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>NIFTY</span>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{indices.nifty.value}</span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: indices.nifty.up ? '#00b060' : '#dc2626' }}>
-                  {indices.nifty.percent}%
-                </span>
-              </div>
-
-              <div style={{ width: '1px', height: '16px', background: isLight ? '#e5e7eb' : 'rgba(255,255,255,0.1)' }} />
-
-              <div 
-                onClick={() => navigate('/stock/^BSESN')}
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '6px' }}
-                title="View SENSEX Live Chart"
-              >
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>SENSEX</span>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{indices.sensex.value}</span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: indices.sensex.up ? '#00b060' : '#dc2626' }}>
-                  {indices.sensex.percent}%
-                </span>
-              </div>
-
-              <div style={{ width: '1px', height: '16px', background: isLight ? '#e5e7eb' : 'rgba(255,255,255,0.1)' }} />
-
-              <div 
-                onClick={() => navigate('/stock/^NSEBANK')}
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '6px' }}
-                title="View BANKNIFTY Live Chart"
-              >
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>BANKNIFTY</span>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{indices.banknifty.value}</span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: indices.banknifty.up ? '#00b060' : '#dc2626' }}>
-                  {indices.banknifty.percent}%
-                </span>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Middle: Desktop Navigation Links */}
@@ -340,17 +260,29 @@ export default function Layout({ children }) {
         </div>
       )}
 
+      {/* Dual Line Ticker Tape Wrapper */}
+      <div style={{ marginTop: '64px' }}>
+        <TickerTape onStockClick={(symbol) => setSelectedTicker(symbol)} />
+      </div>
+
       {/* Main Content Area */}
       <main style={{ 
         flex: 1, 
-        marginTop: '64px', 
+        marginTop: '0px', 
         padding: '24px 32px 40px 32px',
         maxWidth: '1500px',
         width: '100%',
-        margin: '64px auto 0 auto'
+        margin: '0 auto'
       }}>
         {children}
       </main>
+
+      {selectedTicker && (
+        <StockActionModal 
+          symbol={selectedTicker} 
+          onClose={() => setSelectedTicker(null)} 
+        />
+      )}
 
       <OnboardingTour />
     </div>

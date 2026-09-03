@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { fetchAngelHistory, isAngelConfigured } = require('../services/angelApi');
+const { fetchAngelHistory, fetchAngelLiveQuotes, isAngelConfigured } = require('../services/angelApi');
 const { isIndianMarketOpen } = require('../utils/marketHours');
 const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
 const NodeCache = require('node-cache');
@@ -97,10 +97,22 @@ async function fetchBatch(symbols) {
 
 router.get('/indices', async (req, res) => {
   const symbols = ['^NSEI', '^BSESN', '^NSEBANK', '^CNXIT'];
+  
+  // Try Angel One live API first for true 0-delay data
+  let angelQuotes = null;
+  try {
+    angelQuotes = await fetchAngelLiveQuotes(symbols);
+  } catch(e) {}
+  
   const fetched = await fetchBatch(symbols);
   const results = {};
+  
   for (const sym of symbols) {
-    results[sym] = fetched[sym] || { price: null, change: null, changePercent: null };
+    if (angelQuotes && angelQuotes[sym]) {
+      results[sym] = angelQuotes[sym];
+    } else {
+      results[sym] = fetched[sym] || { price: null, change: null, changePercent: null };
+    }
   }
   res.json(results);
 });

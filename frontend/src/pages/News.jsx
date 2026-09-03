@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
 import { 
   Search, Newspaper, TrendingUp, TrendingDown, Info, 
-  Calendar, Clock, ExternalLink, Sparkles, Filter, AlertCircle, X, ChevronRight
+  Calendar, Clock, ExternalLink, Sparkles, Filter, AlertCircle, X, ChevronRight, MonitorPlay
 } from 'lucide-react';
 
 export default function News() {
@@ -464,6 +464,48 @@ export default function News() {
                   <ChevronRight size={14} style={{ opacity: 0.6 }} />
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Live TV Channels */}
+          <div style={{
+            background: 'var(--bg-card-glass)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '20px'
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <MonitorPlay size={18} style={{ color: '#ff3366' }} />
+              Live Financial TV
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '8px' }}>CNBC AWAAZ LIVE (INDIAN)</div>
+                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '8px' }}>
+                  <iframe 
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                    src="https://www.youtube.com/embed/z5u9C6a0fB4?autoplay=0&mute=1" 
+                    title="CNBC Awaaz Live" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen>
+                  </iframe>
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '8px' }}>BLOOMBERG GLOBAL (US)</div>
+                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '8px' }}>
+                  <iframe 
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                    src="https://www.youtube.com/embed/dp8PhLsUcFE?autoplay=0&mute=1" 
+                    title="Bloomberg Live" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen>
+                  </iframe>
+                </div>
+              </div>
+
             </div>
           </div>
 

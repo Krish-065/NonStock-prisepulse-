@@ -296,6 +296,73 @@ async function fetchAngelHistory(symbol, range, interval) {
   });
 }
 
+async function fetchAngelLiveQuotes(symbols) {
+  if (!isAngelConfigured()) return null;
+  
+  try {
+    const { jwtToken } = await getAngelSession();
+    const apiKey = process.env.ANGEL_ONE_API_KEY;
+    const url = 'https://apiconnect.angelone.in/rest/secure/angelbroking/market/v1/quote';
+    
+    // Convert symbols to tokens
+    const exchangeTokens = { NSE: [], BSE: [] };
+    const symbolMap = {}; // mapping token back to requested symbol
+    
+    for (const sym of symbols) {
+      const inst = await getInstrumentToken(sym);
+      if (inst) {
+        if (inst.exchange === 'NSE') exchangeTokens.NSE.push(inst.token);
+        if (inst.exchange === 'BSE') exchangeTokens.BSE.push(inst.token);
+        symbolMap[`${inst.exchange}_${inst.token}`] = sym;
+      }
+    }
+    
+    const payload = { mode: "FULL", exchangeTokens };
+    
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-UserType': 'USER',
+        'X-SourceID': 'WEB',
+        'X-ClientLocalIP': '127.0.0.1',
+        'X-ClientPublicIP': '127.0.0.1',
+        'X-MACAddress': '00:00:00:00:00:00',
+        'X-PrivateKey': apiKey,
+        'Authorization': `Bearer ${jwtToken}`
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await res.json();
+    if (!data.status || !data.data || !data.data.fetched) return null;
+    
+    const results = {};
+    for (const quote of data.data.fetched) {
+      const originalSym = symbolMap[`${quote.exchange}_${quote.symbolToken}`];
+      if (originalSym) {
+        const ltp = parseFloat(quote.ltp);
+        const close = parseFloat(quote.close);
+        const change = ltp - close;
+        const changePercent = (change / close) * 100;
+        results[originalSym] = {
+          price: ltp,
+          change: change,
+          changePercent: changePercent,
+          dayHigh: parseFloat(quote.high),
+          dayLow: parseFloat(quote.low),
+          volume: parseInt(quote.volume) || 0
+        };
+      }
+    }
+    return results;
+  } catch (err) {
+    console.error('[AngelAPI] Live Quote Error:', err.message);
+    return null;
+  }
+}
+
 function isAngelConfigured() {
   return !!(
     process.env.ANGEL_ONE_API_KEY &&
@@ -307,5 +374,6 @@ function isAngelConfigured() {
 
 module.exports = {
   fetchAngelHistory,
+  fetchAngelLiveQuotes,
   isAngelConfigured
 };

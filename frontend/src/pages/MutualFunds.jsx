@@ -928,6 +928,7 @@ export default function MutualFunds() {
               return (
                 <div 
                   key={fund.schemeCode}
+                  onClick={() => fetchFundDetails(fund.schemeCode)}
                   style={{
                     background: isSelected ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255, 255, 255, 0.02)',
                     border: isSelected ? '1px solid #00ff88' : '1px solid rgba(255, 255, 255, 0.06)',
@@ -935,10 +936,23 @@ export default function MutualFunds() {
                     padding: '16px',
                     display: 'flex',
                     flexDirection: 'column',
-                    justify: 'space-between',
+                    justifyContent: 'space-between',
                     gap: '12px',
                     transition: 'all 0.2s',
-                    boxShadow: isSelected ? '0 0 15px rgba(0, 255, 136, 0.15)' : 'none'
+                    boxShadow: isSelected ? '0 0 15px rgba(0, 255, 136, 0.15)' : 'none',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.4)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                      e.currentTarget.style.transform = 'none';
+                    }
                   }}
                 >
                   <div>
