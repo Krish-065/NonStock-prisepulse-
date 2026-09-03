@@ -1,17 +1,52 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api';
+import { Globe, TrendingUp, TrendingDown, RefreshCw, BarChart2, ShieldAlert, Zap } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+
+const Sparkline = ({ points, color = '#00b060' }) => (
+  <svg width="90" height="28" viewBox="0 0 100 32" style={{ overflow: 'visible' }}>
+    <path
+      d={points}
+      fill="none"
+      stroke={color}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 export default function Commodities() {
   const [commodities, setCommodities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('all');
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+
+  const forexPairs = [
+    { symbol: 'USD/INR', name: 'US Dollar / Indian Rupee', price: '83.88', change: '-0.05%', up: false, high: '83.95', low: '83.82', sparkline: 'M 0,15 Q 30,18 60,12 T 100,16' },
+    { symbol: 'EUR/INR', name: 'Euro / Indian Rupee', price: '92.45', change: '+0.32%', up: true, high: '92.60', low: '92.10', sparkline: 'M 0,25 Q 30,12 60,18 T 100,6' },
+    { symbol: 'GBP/INR', name: 'British Pound / Indian Rupee', price: '109.80', change: '+0.45%', up: true, high: '110.15', low: '109.30', sparkline: 'M 0,22 Q 25,28 50,12 T 100,4' },
+    { symbol: 'JPY/INR', name: 'Japanese Yen / Indian Rupee', price: '0.575', change: '+0.80%', up: true, high: '0.580', low: '0.571', sparkline: 'M 0,26 Q 30,8 60,15 T 100,2' },
+    { symbol: 'EUR/USD', name: 'Euro / US Dollar', price: '1.1025', change: '+0.18%', up: true, high: '1.1045', low: '1.1002', sparkline: 'M 0,20 Q 30,12 60,16 T 100,8' },
+    { symbol: 'GBP/USD', name: 'British Pound / US Dollar', price: '1.3090', change: '+0.25%', up: true, high: '1.3120', low: '1.3060', sparkline: 'M 0,24 Q 30,10 60,14 T 100,5' },
+    { symbol: 'USD/JPY', name: 'US Dollar / Japanese Yen', price: '145.80', change: '-0.65%', up: false, high: '146.50', low: '145.20', sparkline: 'M 0,5 Q 30,18 60,12 T 100,28' },
+  ];
+
+  const macroInsights = [
+    { label: 'Gold / Silver Ratio', value: '85.33', desc: 'Metals valuation equilibrium' },
+    { label: 'US Crude Inventory', value: '-2.4M bbl', desc: 'Weekly drawdown supporting oil prices' },
+    { label: 'DXY Dollar Index', value: '101.42', desc: 'Weaker dollar boosting commodity spots' },
+    { label: 'RBI Repo Rate', value: '6.50%', desc: 'Monetary policy stability' }
+  ];
 
   useEffect(() => {
     const fetchCommodities = async () => {
       try {
         const res = await apiClient.get('/market/commodities');
-        setCommodities(res.data);
+        setCommodities(res.data || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -19,176 +54,147 @@ export default function Commodities() {
       }
     };
     fetchCommodities();
-    const interval = setInterval(fetchCommodities, 1000);
+    const interval = setInterval(fetchCommodities, 3000);
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: '4px solid rgba(0, 255, 136, 0.1)',
-          borderTop: '4px solid #00ff88',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
-      </div>
-    );
-  }
+  const filteredCommodities = commodities.filter(c => {
+    if (activeTab === 'precious') return ['GC=F', 'SI=F', 'PL=F', 'PA=F'].includes(c.symbol) || c.name.toLowerCase().includes('gold') || c.name.toLowerCase().includes('silver');
+    if (activeTab === 'energy') return ['CL=F', 'BZ=F', 'NG=F'].includes(c.symbol) || c.name.toLowerCase().includes('oil') || c.name.toLowerCase().includes('gas');
+    return true;
+  });
 
   return (
-    <div style={{ color: '#ffffff' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 800, background: 'linear-gradient(90deg, #ffb300, #fffae0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Commodities Market
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
-          Live global commodities spot pricing and futures charts.
-        </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      {/* Header Banner */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Commodities & Forex Desk
+            <span style={{ fontSize: '11px', background: 'rgba(0, 176, 96, 0.1)', color: '#00b060', padding: '3px 10px', borderRadius: '20px', fontWeight: 800 }}>
+              LIVE GLOBAL SPOTS
+            </span>
+          </h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+            Real-time Energy, Precious Metals, Industrial Materials & Currency Derivatives Feed
+          </p>
+        </div>
+
+        {/* Category Pills */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {[
+            { id: 'all', label: 'All Commodities' },
+            { id: 'precious', label: 'Precious Metals' },
+            { id: 'energy', label: 'Energy Desk' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                background: activeTab === tab.id ? '#00b060' : 'transparent',
+                color: activeTab === tab.id ? '#ffffff' : 'var(--text-secondary)',
+                border: activeTab === tab.id ? 'none' : '1px solid var(--border-color)',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="crypto-grid" style={{ 
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', 
-        gap: '20px' 
-      }}>
-        {commodities.map(item => (
-          <div 
-            key={item.symbol} 
-            className="index-card" 
-            style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              gap: '12px', 
-              cursor: 'pointer',
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              borderRadius: '16px',
-              padding: '24px 16px',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
-              backdropFilter: 'blur(8px)',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-              e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.3)';
-              e.currentTarget.style.transform = 'translateY(-4px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
-              e.currentTarget.style.transform = 'none';
-            }}
-            onClick={() => navigate('/markets', { state: { selectSymbol: item.symbol } })}
-          >
-            {/* Commodity icon — SVG symbol with image overlay */}
-            {(() => {
-              const svgIcons = {
-                'GC=F': ( // Gold — stacked bar
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                    <rect x="6" y="18" width="36" height="10" rx="3" fill="#FFB300" stroke="#FF8F00" strokeWidth="1.5"/>
-                    <rect x="10" y="26" width="28" height="8" rx="2" fill="#FFC107" stroke="#FF8F00" strokeWidth="1.2"/>
-                    <rect x="8" y="12" width="32" height="8" rx="2" fill="#FFD54F" stroke="#FF8F00" strokeWidth="1.2"/>
-                    <text x="24" y="24.5" textAnchor="middle" fill="#7B4F00" fontSize="7" fontWeight="bold" fontFamily="sans-serif">GOLD</text>
-                  </svg>
-                ),
-                'SI=F': ( // Silver — bar ingot
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                    <rect x="6" y="16" width="36" height="16" rx="4" fill="#B0BEC5" stroke="#78909C" strokeWidth="1.5"/>
-                    <rect x="10" y="20" width="28" height="8" rx="2" fill="#CFD8DC" stroke="#90A4AE" strokeWidth="1"/>
-                    <text x="24" y="25.5" textAnchor="middle" fill="#455A64" fontSize="7" fontWeight="bold" fontFamily="sans-serif">SILVER</text>
-                  </svg>
-                ),
-                'CL=F': ( // Crude Oil — barrel
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                    <ellipse cx="24" cy="14" rx="14" ry="5" fill="#4A4A4A" stroke="#222" strokeWidth="1.2"/>
-                    <rect x="10" y="14" width="28" height="22" fill="#333" stroke="#222" strokeWidth="1.2"/>
-                    <ellipse cx="24" cy="36" rx="14" ry="5" fill="#3D3D3D" stroke="#222" strokeWidth="1.2"/>
-                    <line x1="10" y1="22" x2="38" y2="22" stroke="#555" strokeWidth="1.5"/>
-                    <line x1="10" y1="28" x2="38" y2="28" stroke="#555" strokeWidth="1.5"/>
-                    <text x="24" y="26.5" textAnchor="middle" fill="#FFB300" fontSize="6.5" fontWeight="bold" fontFamily="sans-serif">OIL</text>
-                  </svg>
-                ),
-                'BZ=F': ( // Brent Crude — refinery tower
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                    <rect x="20" y="10" width="8" height="28" rx="1" fill="#546E7A" stroke="#37474F" strokeWidth="1.2"/>
-                    <rect x="14" y="20" width="20" height="14" rx="2" fill="#607D8B" stroke="#455A64" strokeWidth="1.2"/>
-                    <rect x="10" y="34" width="28" height="5" rx="1" fill="#78909C" stroke="#455A64" strokeWidth="1"/>
-                    <rect x="22" y="6" width="4" height="6" rx="1" fill="#FF7043"/>
-                    <ellipse cx="24" cy="6" rx="3" ry="2" fill="#FF5722"/>
-                    <text x="24" y="30" textAnchor="middle" fill="#FFB300" fontSize="5.5" fontWeight="bold" fontFamily="sans-serif">BRENT</text>
-                  </svg>
-                ),
-                'NG=F': ( // Natural Gas — flame
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                    <path d="M24 40 C14 36 10 28 14 20 C16 14 20 10 24 8 C22 16 26 18 26 18 C26 18 30 12 28 8 C34 14 36 22 34 30 C32 36 28 40 24 40Z" fill="#FF6D00"/>
-                    <path d="M24 40 C18 36 16 30 18 24 C20 20 22 18 24 16 C23 20 25 22 25 22 C26 18 28 16 28 16 C31 20 32 26 30 32 C28 37 26 40 24 40Z" fill="#FFD600"/>
-                    <path d="M24 40 C20 38 19 34 20 30 C21 27 23 26 24 24 C24 27 25 28 26 28 C26 32 25 37 24 40Z" fill="#FFF9C4"/>
-                  </svg>
-                ),
-                'HG=F': ( // Copper — coil/wire
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-                    <circle cx="24" cy="24" r="14" fill="none" stroke="#B84A00" strokeWidth="4"/>
-                    <circle cx="24" cy="24" r="9" fill="none" stroke="#E65100" strokeWidth="3"/>
-                    <circle cx="24" cy="24" r="4" fill="none" stroke="#BF360C" strokeWidth="2.5"/>
-                    <circle cx="24" cy="24" r="2" fill="#FF7043"/>
-                    <line x1="24" y1="10" x2="38" y2="10" stroke="#B84A00" strokeWidth="3" strokeLinecap="round"/>
-                  </svg>
-                )
-              };
-              const icon = svgIcons[item.symbol];
-              return (
-                <div style={{
-                  width: '72px', height: '72px', borderRadius: '50%',
-                  overflow: 'hidden',
-                  border: '2px solid rgba(255,179,0,0.25)',
-                  background: 'rgba(20,22,40,0.8)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={e => {
-                        e.currentTarget.style.display = 'none';
-                        // Show SVG wrapper div if image fails
-                        e.currentTarget.parentNode.style.background = 'rgba(20,22,40,0.8)';
-                      }}
-                    />
-                  ) : icon ? icon : null}
-                </div>
-              );
-            })()}
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff' }}>{item.name}</div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '2px', fontWeight: 600 }}>{item.symbol}</div>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginTop: '8px' }}>
-              <div style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.5px' }}>${item.price}</div>
-              <div 
-                style={{ 
-                  fontSize: '13px', 
-                  fontWeight: 700, 
-                  color: item.up ? '#00ff88' : '#ff4444',
-                  background: item.up ? 'rgba(0, 255, 136, 0.08)' : 'rgba(255, 68, 68, 0.08)',
-                  padding: '4px 10px',
-                  borderRadius: '20px',
-                  border: item.up ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(255, 68, 68, 0.15)'
-                }}
-              >
-                {item.up ? '+' : ''}{item.change}%
-              </div>
-            </div>
+      {/* Macro Insight Barometer */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+        {macroInsights.map((item, i) => (
+          <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>{item.label}</div>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: '#00b060', margin: '4px 0' }}>{item.value}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{item.desc}</div>
           </div>
         ))}
+      </div>
+
+      {/* Commodities Grid */}
+      <div>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '14px' }}>
+          Commodity Spot & Futures Contracts
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '18px' }}>
+          {filteredCommodities.map(item => (
+            <div
+              key={item.symbol}
+              onClick={() => navigate('/markets', { state: { selectSymbol: item.symbol } })}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '14px',
+                padding: '18px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.borderColor = '#00b060'}
+              onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
+            >
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>{item.name}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px' }}>{item.symbol}</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>${item.price}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: item.up ? '#00b060' : '#dc2626', marginTop: '2px' }}>
+                  {item.up ? '+' : ''}{item.change}%
+                </div>
+              </div>
+              <Sparkline points={item.up ? 'M 0,25 Q 30,10 60,18 T 100,4' : 'M 0,5 Q 30,18 60,12 T 100,28'} color={item.up ? '#00b060' : '#dc2626'} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Global Forex Currency Desk */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '20px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Globe size={18} style={{ color: '#2563eb' }} /> Global Currency & Forex Desk
+        </h2>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase' }}>
+                <th style={{ padding: '12px' }}>Currency Pair</th>
+                <th style={{ padding: '12px' }}>Spot Price</th>
+                <th style={{ padding: '12px' }}>24h Change</th>
+                <th style={{ padding: '12px' }}>Day Range (Low - High)</th>
+                <th style={{ padding: '12px', textAlign: 'right' }}>Trend Chart</th>
+              </tr>
+            </thead>
+            <tbody>
+              {forexPairs.map((pair, i) => (
+                <tr 
+                  key={i} 
+                  onClick={() => navigate('/markets', { state: { selectSymbol: pair.symbol } })}
+                  style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
+                >
+                  <td style={{ padding: '14px 12px' }}>
+                    <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{pair.symbol}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{pair.name}</div>
+                  </td>
+                  <td style={{ padding: '14px 12px', fontWeight: 800, color: 'var(--text-primary)' }}>{pair.price}</td>
+                  <td style={{ padding: '14px 12px', fontWeight: 700, color: pair.up ? '#00b060' : '#dc2626' }}>{pair.change}</td>
+                  <td style={{ padding: '14px 12px', color: 'var(--text-secondary)' }}>{pair.low} - {pair.high}</td>
+                  <td style={{ padding: '14px 12px', textAlign: 'right' }}>
+                    <Sparkline points={pair.sparkline} color={pair.up ? '#00b060' : '#dc2626'} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
