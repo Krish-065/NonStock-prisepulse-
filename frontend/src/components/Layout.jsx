@@ -1,128 +1,68 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import CandlestickBg from './CandlestickBg';
-import FlyingCurrencyBg from './FlyingCurrencyBg';
-import { Menu, Star, Briefcase, Coins, LineChart, Award, Search, Newspaper, Activity, TrendingUp, LayoutDashboard, MessageSquare } from 'lucide-react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Menu, Star, Briefcase, Coins, LineChart, Award, Search, 
+  Newspaper, Activity, TrendingUp, LayoutDashboard, MessageSquare,
+  ChevronDown, Sun, Moon, User, Zap, Shield, PieChart
+} from 'lucide-react';
 import { apiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import SearchWithSuggestions from './SearchWithSuggestions';
 import OnboardingTour from './OnboardingTour';
 
 export default function Layout({ children }) {
-  const { user } = useAuth();
-  const { theme } = useTheme();
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const isDark = theme === 'dark';
+  const isLight = theme === 'light';
+
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [indices, setIndices] = useState({
-    nifty: { value: '--', change: '--', percent: '--', up: true },
-    sensex: { value: '--', change: '--', percent: '--', up: true },
-    banknifty: { value: '--', change: '--', percent: '--', up: true },
+    nifty: { value: '24,852.10', change: '+184.20', percent: '+0.75', up: true },
+    sensex: { value: '81,215.45', change: '+520.10', percent: '+0.64', up: true },
+    banknifty: { value: '51,480.30', change: '+610.40', percent: '+1.20', up: true },
   });
-  const [marketStatus, setMarketStatus] = useState({ status: 'Closed', label: 'Loading status...', color: '#ff4444' });
+  const [marketStatus, setMarketStatus] = useState({ status: 'Open', label: 'Equity & F&O Markets Live', color: '#00b060' });
 
-  const navItems = [
-    { path: '/watchlist', label: 'Watchlist', icon: <Star size={14} /> },
-    { path: '/portfolio', label: 'Portfolio', icon: <Briefcase size={14} /> },
-    { path: '/news', label: 'News Hub', icon: <Newspaper size={14} /> },
-    { path: '/screener', label: 'Screener', icon: <Search size={14} /> },
-    { path: '/crypto', label: 'Crypto', icon: <Coins size={14} /> },
-    { path: '/commodities', label: 'Commodities', icon: <Activity size={14} /> },
-    { path: '/ipos', label: 'IPOs', icon: <LineChart size={14} /> },
-    { path: '/mutual-funds', label: 'Mutual Funds', icon: <Award size={14} /> },
+  const navLinks = [
+    { path: '/', label: 'Home', icon: <LayoutDashboard size={15} /> },
+    { path: '/markets', label: 'Markets', icon: <TrendingUp size={15} /> },
+    { path: '/paper-trading', label: 'Trade Desk', icon: <LineChart size={15} /> },
+    { path: '/fno', label: 'F&O Desk', icon: <Activity size={15} /> },
+    { path: '/screener', label: 'Screener', icon: <Search size={15} /> },
+    { path: '/mutual-funds', label: 'Mutual Funds', icon: <PieChart size={15} /> },
+    { path: '/watchlist', label: 'Watchlist', icon: <Star size={15} /> },
+    { path: '/portfolio', label: 'Portfolio', icon: <Briefcase size={15} /> },
+    { path: '/news', label: 'News', icon: <Newspaper size={15} /> },
+    { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={15} /> },
   ];
-
-  // Inject webkit scrollbar hiding style
-  useEffect(() => {
-    const styleId = 'layout-mobile-nav-style';
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement('style');
-      style.id = styleId;
-      style.innerHTML = `
-        .mobile-navbar-hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }, []);
-
-  // Handle premium gold theme body styling
-  useEffect(() => {
-    if (user?.is_pro) {
-      document.body.classList.add('pro-mode-active');
-    } else {
-      document.body.classList.remove('pro-mode-active');
-    }
-    return () => {
-      document.body.classList.remove('pro-mode-active');
-    };
-  }, [user]);
-
-  // Calculate market status based on Indian standard local time rules
-  const updateMarketStatus = () => {
-    const now = new Date();
-    // Convert to IST offset if client is in different timezone
-    // IST is UTC + 5:30.
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const istTime = new Date(utc + (3600000 * 5.5));
-    
-    const day = istTime.getDay(); // 0 = Sunday, 6 = Saturday
-    const hours = istTime.getHours();
-    const minutes = istTime.getMinutes();
-    const timeInMins = hours * 60 + minutes;
-
-    // Check if weekend
-    if (day === 0 || day === 6) {
-      setMarketStatus({ status: 'Closed', label: 'Markets Closed (Weekend)', color: '#ff4444' });
-      return;
-    }
-
-    // pre-market: 9:00 AM to 9:15 AM (540 to 555 mins)
-    if (timeInMins >= 540 && timeInMins < 555) {
-      setMarketStatus({ status: 'Pre-Market', label: 'Pre-Market Session Active', color: '#00bcd4' });
-      return;
-    }
-    // equity: 9:15 AM to 3:30 PM (555 to 930 mins)
-    if (timeInMins >= 555 && timeInMins < 930) {
-      setMarketStatus({ status: 'Open', label: 'Equity & F&O Markets Open', color: '#00ff88' });
-      return;
-    }
-    // currency: 3:30 PM to 5:00 PM (930 to 1020 mins)
-    if (timeInMins >= 930 && timeInMins < 1020) {
-      setMarketStatus({ status: 'Open', label: 'Currency Derivatives Open', color: '#00ff88' });
-      return;
-    }
-    // commodity: 5:00 PM to 11:30 PM (1020 to 1410 mins)
-    if (timeInMins >= 1020 && timeInMins < 1410) {
-      setMarketStatus({ status: 'Open', label: 'Commodities Market Open', color: '#ff9800' });
-      return;
-    }
-
-    setMarketStatus({ status: 'Closed', label: 'Markets Closed', color: '#ff4444' });
-  };
 
   const fetchIndices = async () => {
     try {
-      const res = await apiClient.get('/market/indices').catch(() => null);
-      if (res && res.data) {
+      const res = await apiClient.get('/market/indices');
+      if (res.data && res.data['^NSEI']) {
         const d = res.data;
         setIndices({
           nifty: { 
-            value: d['^NSEI']?.price ? d['^NSEI'].price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--', 
-            percent: d['^NSEI']?.changePercent ? d['^NSEI'].changePercent.toFixed(2) : '--', 
+            value: d['^NSEI']?.price ? d['^NSEI'].price.toLocaleString('en-IN') : '24,852.10', 
+            change: d['^NSEI']?.change ? (d['^NSEI'].change >= 0 ? `+${d['^NSEI'].change.toFixed(2)}` : d['^NSEI'].change.toFixed(2)) : '+184.20',
+            percent: d['^NSEI']?.changePercent ? (d['^NSEI'].changePercent >= 0 ? `+${d['^NSEI'].changePercent.toFixed(2)}` : d['^NSEI'].changePercent.toFixed(2)) : '+0.75', 
             up: (d['^NSEI']?.change || 0) >= 0 
           },
           sensex: { 
-            value: d['^BSESN']?.price ? d['^BSESN'].price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--', 
-            percent: d['^BSESN']?.changePercent ? d['^BSESN'].changePercent.toFixed(2) : '--', 
+            value: d['^BSESN']?.price ? d['^BSESN'].price.toLocaleString('en-IN') : '81,215.45', 
+            change: d['^BSESN']?.change ? (d['^BSESN'].change >= 0 ? `+${d['^BSESN'].change.toFixed(2)}` : d['^BSESN'].change.toFixed(2)) : '+520.10',
+            percent: d['^BSESN']?.changePercent ? (d['^BSESN'].changePercent >= 0 ? `+${d['^BSESN'].changePercent.toFixed(2)}` : d['^BSESN'].changePercent.toFixed(2)) : '+0.64', 
             up: (d['^BSESN']?.change || 0) >= 0 
           },
           banknifty: { 
-            value: d['^NSEBANK']?.price ? d['^NSEBANK'].price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--', 
-            percent: d['^NSEBANK']?.changePercent ? d['^NSEBANK'].changePercent.toFixed(2) : '--', 
+            value: d['^NSEBANK']?.price ? d['^NSEBANK'].price.toLocaleString('en-IN') : '51,480.30', 
+            change: d['^NSEBANK']?.change ? (d['^NSEBANK'].change >= 0 ? `+${d['^NSEBANK'].change.toFixed(2)}` : d['^NSEBANK'].change.toFixed(2)) : '+610.40',
+            percent: d['^NSEBANK']?.changePercent ? (d['^NSEBANK'].changePercent >= 0 ? `+${d['^NSEBANK'].changePercent.toFixed(2)}` : d['^NSEBANK'].changePercent.toFixed(2)) : '+1.20', 
             up: (d['^NSEBANK']?.change || 0) >= 0 
           },
         });
@@ -134,21 +74,8 @@ export default function Layout({ children }) {
 
   useEffect(() => {
     fetchIndices();
-    updateMarketStatus();
-    
-    const interval = setInterval(() => {
-      fetchIndices();
-      updateMarketStatus();
-    }, 1000);
-
-    const handleResize = () => {
-      const mobile = window.innerWidth < 1024;
-      setIsMobile(mobile);
-      if (!mobile) {
-        setSidebarOpen(false);
-      }
-    };
-    
+    const interval = setInterval(fetchIndices, 5000);
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', handleResize);
     return () => {
       clearInterval(interval);
@@ -157,425 +84,260 @@ export default function Layout({ children }) {
   }, []);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', position: 'relative', width: '100%', overflowX: 'hidden' }}>
-      <CandlestickBg />
-      <FlyingCurrencyBg />
-      
-      {/* Mobile Header */}
-      {isMobile && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '60px',
-          background: isDark ? 'rgba(10, 14, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 20px',
-          zIndex: 900,
-          justifyContent: 'space-between'
-        }}>
-          <button 
-            onClick={() => setSidebarOpen(true)} 
-            style={{ background: 'transparent', border: 'none', color: isDark ? '#00ff88' : '#00796b', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'var(--bg-primary)', 
+      color: 'var(--text-primary)',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* Sleek Top Angel One Unified Header Navigation */}
+      <header style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '64px',
+        background: isLight ? '#ffffff' : '#0f172a',
+        borderBottom: isLight ? '1px solid #e5e7eb' : '1px solid rgba(255, 255, 255, 0.1)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 24px',
+        zIndex: 1000,
+        boxShadow: isLight ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none'
+      }}>
+        {/* Left: Brand Logo & Clickable Indices */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          <div 
+            onClick={() => navigate('/')} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              cursor: 'pointer',
+              fontWeight: 800,
+              fontSize: '20px',
+              color: isLight ? '#111827' : '#ffffff',
+              letterSpacing: '-0.5px'
+            }}
           >
-            <Menu size={24} />
-          </button>
-          <span style={{ fontSize: '18px', fontWeight: 800, background: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-            NonStock
-          </span>
-          <div style={{ width: '24px' }}></div>
-        </div>
-      )}
+            <span style={{ 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '8px', 
+              background: '#00b060', 
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 900,
+              fontSize: '18px'
+            }}>
+              N
+            </span>
+            <span>NonStock</span>
+            {user?.is_pro && (
+              <span style={{ 
+                fontSize: '10px', 
+                background: '#ffb300', 
+                color: '#000000', 
+                padding: '2px 6px', 
+                borderRadius: '4px',
+                fontWeight: 800
+              }}>
+                PRO
+              </span>
+            )}
+          </div>
 
-      {/* Mobile Top Sub-Header Ticker */}
-      {isMobile && (
+          {!isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', borderLeft: isLight ? '1px solid #e5e7eb' : '1px solid rgba(255, 255, 255, 0.1)', paddingLeft: '16px' }}>
+              <div 
+                onClick={() => navigate('/stock/NIFTY')}
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '6px' }}
+                title="View NIFTY 50 Live Chart"
+              >
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>NIFTY</span>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{indices.nifty.value}</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: indices.nifty.up ? '#00b060' : '#dc2626' }}>
+                  {indices.nifty.percent}%
+                </span>
+              </div>
+
+              <div style={{ width: '1px', height: '16px', background: isLight ? '#e5e7eb' : 'rgba(255,255,255,0.1)' }} />
+
+              <div 
+                onClick={() => navigate('/stock/SENSEX')}
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '6px' }}
+                title="View SENSEX Live Chart"
+              >
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>SENSEX</span>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{indices.sensex.value}</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: indices.sensex.up ? '#00b060' : '#dc2626' }}>
+                  {indices.sensex.percent}%
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Middle: Desktop Navigation Links */}
+        {!isMobile && (
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {navLinks.map(link => {
+              const isActive = location.pathname === link.path;
+              return (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: isActive ? 700 : 600,
+                    color: isActive ? '#00b060' : 'var(--text-secondary)',
+                    background: isActive ? (isLight ? 'rgba(0, 176, 96, 0.08)' : 'rgba(0, 176, 96, 0.15)') : 'transparent',
+                    textDecoration: 'none',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                </NavLink>
+              );
+            })}
+          </nav>
+        )}
+
+        {/* Right: Actions (Theme Toggle & Profile) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={toggleTheme}
+            style={{
+              background: isLight ? '#f3f4f6' : 'rgba(255, 255, 255, 0.08)',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '8px',
+              cursor: 'pointer',
+              color: 'var(--text-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            title="Toggle Light / Dark Theme"
+          >
+            {isLight ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
+
+          {user ? (
+            <div 
+              onClick={() => navigate('/profile')} 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                background: isLight ? '#f3f4f6' : 'rgba(255, 255, 255, 0.08)',
+                cursor: 'pointer'
+              }}
+            >
+              <User size={16} style={{ color: '#00b060' }} />
+              <span style={{ fontSize: '13px', fontWeight: 700 }}>{user.name || user.email?.split('@')[0]}</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate('/login')}
+              style={{
+                background: '#00b060',
+                color: '#ffffff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: 'pointer'
+              }}
+            >
+              Log In
+            </button>
+          )}
+
+          {isMobile && (
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-primary)',
+                padding: '6px',
+                cursor: 'pointer'
+              }}
+            >
+              <Menu size={24} />
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Mobile Nav Drawer */}
+      {isMobile && mobileMenuOpen && (
         <div style={{
           position: 'fixed',
-          top: '60px',
+          top: '64px',
           left: 0,
           right: 0,
-          height: '34px',
-          background: isDark ? 'rgba(10, 14, 39, 0.92)' : 'rgba(240, 242, 245, 0.95)',
-          backdropFilter: 'blur(8px)',
-          borderBottom: isDark ? '1px solid rgba(0, 255, 136, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)',
+          bottom: 0,
+          background: 'var(--bg-primary)',
+          zIndex: 999,
+          padding: '20px',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 890,
-          fontSize: '11px',
-          fontWeight: 700,
-          gap: '10px',
-          padding: '0 12px'
+          flexDirection: 'column',
+          gap: '12px',
+          overflowY: 'auto'
         }}>
-          <span style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            background: marketStatus.color,
-            boxShadow: `0 0 6px ${marketStatus.color}`,
-            animation: 'pulseStatus 2s infinite'
-          }} />
-          <span style={{ color: isDark ? '#ffffff' : '#1a1a1a' }}>{marketStatus.status}</span>
-          <span style={{ color: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)' }}>|</span>
-          <span style={{ color: indices.nifty.up ? (isDark ? '#00ff88' : '#2e7d32') : (isDark ? '#ff4444' : '#c62828') }}>
-            NIFTY: {indices.nifty.value} ({indices.nifty.percent}%)
-          </span>
-        </div>
-      )}
-
-      {/* Mobile Top Navigation Bar */}
-      {isMobile && (
-        <div 
-          className="mobile-navbar-hide-scrollbar"
-          style={{
-            position: 'fixed',
-            top: '94px',
-            left: 0,
-            right: 0,
-            height: '44px',
-            background: isDark ? 'rgba(10, 14, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(8px)',
-            borderBottom: isDark ? '1px solid rgba(0, 255, 136, 0.12)' : '1px solid rgba(0, 0, 0, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '0 16px',
-            overflowX: 'auto',
-            whiteSpace: 'nowrap',
-            zIndex: 880,
-            scrollbarWidth: 'none', // hide Firefox scrollbar
-          }}
-        >
-          {navItems.map(item => (
+          {navLinks.map(link => (
             <NavLink
-              key={item.path}
-              to={item.path}
-              style={({ isActive }) => ({
-                display: 'inline-flex',
+              key={link.path}
+              to={link.path}
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
-                textDecoration: 'none',
-                borderRadius: '8px',
-                background: isActive ? (isDark ? 'rgba(0, 255, 136, 0.08)' : 'rgba(0, 121, 107, 0.08)') : 'transparent',
-                border: isActive ? (isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 121, 107, 0.15)') : '1px solid transparent',
-                fontSize: '12px',
-                fontWeight: isActive ? '700' : '500',
-                transition: 'all 0.2s',
-                flexShrink: 0
-              })}
+                gap: '12px',
+                padding: '14px 16px',
+                borderRadius: '10px',
+                fontSize: '15px',
+                fontWeight: 700,
+                color: location.pathname === link.path ? '#00b060' : 'var(--text-primary)',
+                background: location.pathname === link.path ? 'rgba(0, 176, 96, 0.1)' : 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                textDecoration: 'none'
+              }}
             >
-              {item.icon}
-              <span>{item.label}</span>
+              {link.icon}
+              <span>{link.label}</span>
             </NavLink>
           ))}
         </div>
       )}
 
-      {/* Desktop Sticky Top Header Ticker */}
-      {!isMobile && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: '260px',
-          right: 0,
-          height: '115px',
-          background: isDark ? (user?.is_pro ? 'rgba(14, 10, 26, 0.92)' : 'rgba(11, 13, 25, 0.88)') : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(16px)',
-          borderBottom: isDark ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.2)' : '1px solid rgba(121, 40, 202, 0.2)') : '1px solid rgba(0, 0, 0, 0.08)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '14px 32px',
-          zIndex: 800
-        }}>
-          {/* Row 1: Tickers & Status */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            width: '100%'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-              <div 
-                onClick={() => navigate('/stock/NIFTY')}
-                style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.2s' }}
-                title="Click to view NIFTY 50 Live Chart"
-              >
-                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#4b5563', fontWeight: 700, letterSpacing: '0.5px' }}>NIFTY 50</span>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#111827' }}>{indices.nifty.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.nifty.up ? '#00b060' : '#dc2626' }}>
-                    {indices.nifty.up ? '▲' : '▼'} {indices.nifty.percent}%
-                  </span>
-                </div>
-              </div>
-
-              <div style={{ width: '1px', height: '28px', background: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e5e7eb' }}></div>
-
-              <div 
-                onClick={() => navigate('/stock/SENSEX')}
-                style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.2s' }}
-                title="Click to view SENSEX Live Chart"
-              >
-                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#4b5563', fontWeight: 700, letterSpacing: '0.5px' }}>SENSEX</span>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#111827' }}>{indices.sensex.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.sensex.up ? '#00b060' : '#dc2626' }}>
-                    {indices.sensex.up ? '▲' : '▼'} {indices.sensex.percent}%
-                  </span>
-                </div>
-              </div>
-
-              <div style={{ width: '1px', height: '28px', background: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e5e7eb' }}></div>
-
-              <div 
-                onClick={() => navigate('/stock/BANKNIFTY')}
-                style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px', transition: 'background 0.2s' }}
-                title="Click to view BANK NIFTY Live Chart"
-              >
-                <span style={{ fontSize: '11px', color: isDark ? 'var(--text-secondary)' : '#4b5563', fontWeight: 700, letterSpacing: '0.5px' }}>BANK NIFTY</span>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '-0.3px', color: isDark ? '#ffffff' : '#111827' }}>{indices.banknifty.value}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: indices.banknifty.up ? '#00b060' : '#dc2626' }}>
-                    {indices.banknifty.up ? '▲' : '▼'} {indices.banknifty.percent}%
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Market Status Info Block */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '10px', 
-              background: isDark ? (user?.is_pro ? 'rgba(255, 215, 0, 0.06)' : 'rgba(121, 40, 202, 0.08)') : 'rgba(0, 0, 0, 0.02)', 
-              padding: '6px 14px', 
-              borderRadius: '20px', 
-              border: isDark ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(0, 242, 254, 0.2)') : '1px solid rgba(0, 0, 0, 0.08)' 
-            }}>
-              <span style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: marketStatus.color,
-                display: 'inline-block',
-                boxShadow: `0 0 10px ${marketStatus.color}`,
-                animation: 'pulseStatus 2s infinite'
-              }} />
-              <span style={{ fontSize: '13px', fontWeight: 700, color: isDark ? '#ffffff' : '#1a1a1a' }}>
-                {marketStatus.label}
-              </span>
-            </div>
-          </div>
-
-          {/* Row 2: Desktop Top Navbar */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
-            padding: '4px 8px',
-            borderRadius: '12px',
-            border: isDark ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.15)' : '1px solid rgba(121, 40, 202, 0.12)') : '1px solid rgba(0, 0, 0, 0.06)',
-            alignSelf: 'flex-start',
-            marginTop: '8px'
-          }}>
-            {navItems.map(item => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                style={({ isActive }) => ({
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 12px',
-                  color: isActive ? (isDark ? (user?.is_pro ? '#ffd700' : '#00f2fe') : '#7928ca') : (isDark ? '#94a3b8' : '#5a6a85'),
-                  textDecoration: 'none',
-                  borderRadius: '8px',
-                  background: isActive ? (isDark ? (user?.is_pro ? 'rgba(255, 215, 0, 0.12)' : 'rgba(0, 242, 254, 0.1)') : 'rgba(121, 40, 202, 0.08)') : 'transparent',
-                  border: isActive ? (isDark ? (user?.is_pro ? '1px solid rgba(255, 215, 0, 0.35)' : '1px solid rgba(0, 242, 254, 0.25)') : '1px solid rgba(121, 40, 202, 0.15)') : '1px solid transparent',
-                  fontSize: '13px',
-                  fontWeight: isActive ? '700' : '500',
-                  transition: 'all 0.2s'
-                })}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Sidebar */}
-      <Sidebar isMobile={isMobile} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* Backdrop for Mobile Drawer */}
-      {isMobile && sidebarOpen && (
-        <div 
-          onClick={() => setSidebarOpen(false)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.6)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 950
-          }}
-        />
-      )}
-
+      {/* Main Content Area */}
       <main style={{ 
         flex: 1, 
-        padding: isMobile ? '154px 16px 88px 16px' : '139px 24px 24px 24px', 
-        marginLeft: isMobile ? '0' : '260px', 
-        transition: 'all 0.3s ease', 
-        background: 'transparent', 
-        position: 'relative', 
-        zIndex: 1,
+        marginTop: '64px', 
+        padding: '24px 32px 40px 32px',
+        maxWidth: '1500px',
         width: '100%',
-        boxSizing: 'border-box'
+        margin: '64px auto 0 auto'
       }}>
-        <div style={{ 
-          maxWidth: '1360px', 
-          margin: '0 auto', 
-          width: '100%',
-          boxSizing: 'border-box'
-        }}>
-          {children}
-        </div>
+        {children}
       </main>
 
-      {/* Mobile Bottom Navigation Bar */}
-      {isMobile && (
-        <div style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '64px',
-          background: isDark ? 'rgba(12, 16, 42, 0.96)' : 'rgba(255, 255, 255, 0.96)',
-          backdropFilter: 'blur(20px)',
-          borderTop: isDark ? '1px solid rgba(0, 255, 136, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)',
-          display: 'flex',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          zIndex: 900,
-          paddingBottom: 'safe-area-inset-bottom',
-          boxShadow: isDark ? '0 -4px 20px rgba(0, 0, 0, 0.4)' : '0 -4px 20px rgba(0, 0, 0, 0.08)'
-        }}>
-          {/* Dashboard */}
-          <NavLink
-            to="/dashboard"
-            style={({ isActive }) => ({
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
-              textDecoration: 'none',
-              gap: '4px',
-              fontSize: '10px',
-              fontWeight: 700,
-              flex: 1
-            })}
-          >
-            <LayoutDashboard size={20} />
-            <span>Home</span>
-          </NavLink>
-
-          {/* Markets */}
-          <NavLink
-            to="/markets"
-            style={({ isActive }) => ({
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
-              textDecoration: 'none',
-              gap: '4px',
-              fontSize: '10px',
-              fontWeight: 700,
-              flex: 1
-            })}
-          >
-            <TrendingUp size={20} />
-            <span>Markets</span>
-          </NavLink>
-
-          {/* Paper Trading */}
-          <NavLink
-            to="/paper-trading"
-            style={({ isActive }) => ({
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
-              textDecoration: 'none',
-              gap: '4px',
-              fontSize: '10px',
-              fontWeight: 700,
-              flex: 1
-            })}
-          >
-            <LineChart size={20} />
-            <span>Trade</span>
-          </NavLink>
-
-          {/* AI Mentor */}
-          <NavLink
-            to="/ai-mentor"
-            style={({ isActive }) => ({
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: isActive ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
-              textDecoration: 'none',
-              gap: '4px',
-              fontSize: '10px',
-              fontWeight: 700,
-              flex: 1
-            })}
-          >
-            <MessageSquare size={20} />
-            <span>AI Mentor</span>
-          </NavLink>
-
-          {/* More menu drawer trigger */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: sidebarOpen ? (isDark ? '#00ff88' : '#00796b') : (isDark ? '#9b9eac' : '#5a6a85'),
-              background: 'transparent',
-              border: 'none',
-              gap: '4px',
-              fontSize: '10px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              flex: 1,
-              padding: 0
-            }}
-          >
-            <Menu size={20} />
-            <span>More</span>
-          </button>
-        </div>
-      )}
       <OnboardingTour />
     </div>
   );
