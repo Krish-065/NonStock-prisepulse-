@@ -292,7 +292,8 @@ export default function StockDetail() {
 
     try {
       const histRes = await apiClient.get(`/market/stock-history/${symbol}?range=${timeRange}&interval=${chartInterval}`);
-      setHistory(histRes.data);
+      const historyData = Array.isArray(histRes.data) ? histRes.data : [];
+      setHistory(historyData);
 
       const nsSymbol = symbol.endsWith('.NS') ? symbol : `${symbol}.NS`;
       const quotesRes = await apiClient.get('/market/indices'); 
@@ -302,9 +303,9 @@ export default function StockDetail() {
           price: matched.price,
           changePercent: matched.changePercent
         });
-      } else if (histRes.data.length > 0) {
-        const latest = histRes.data[histRes.data.length - 1];
-        const prev = histRes.data[histRes.data.length - 2] || latest;
+      } else if (historyData.length > 0) {
+        const latest = historyData[historyData.length - 1];
+        const prev = historyData[historyData.length - 2] || latest;
         const changePct = prev.close ? ((latest.close - prev.close) / prev.close) * 100 : 0;
         setStockInfo({
           price: latest.close,
@@ -383,7 +384,7 @@ export default function StockDetail() {
 
   // Math functions for indicator values
   const computeIndicators = () => {
-    if (history.length === 0) return { sma20: [], sma50: [], rsi14: [] };
+    if (!history || !Array.isArray(history) || history.length === 0) return { sma20: [], sma50: [], rsi14: [] };
 
     // 1. Calculate SMA 20
     const sma20 = new Array(history.length).fill(null);

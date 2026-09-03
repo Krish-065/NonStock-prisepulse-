@@ -2174,12 +2174,12 @@ export default function PaperTrading() {
                 <Link
                   to={`/ai-mentor?symbol=${selectedSymbol}`}
                   style={{
-                    background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 188, 212, 0.1) 100%)',
-                    border: '1px solid rgba(0, 255, 136, 0.3)',
-                    boxShadow: '0 0 8px rgba(0, 255, 136, 0.1)',
+                    background: theme === 'light' ? 'linear-gradient(135deg, rgba(0, 176, 96, 0.1) 0%, rgba(0, 150, 212, 0.1) 100%)' : 'linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 188, 212, 0.1) 100%)',
+                    border: theme === 'light' ? '1px solid rgba(0, 176, 96, 0.3)' : '1px solid rgba(0, 255, 136, 0.3)',
+                    boxShadow: theme === 'light' ? '0 0 5px rgba(0, 176, 96, 0.1)' : '0 0 8px rgba(0, 255, 136, 0.1)',
                     borderRadius: '8px',
                     padding: '4px 10px',
-                    color: '#ffffff',
+                    color: theme === 'light' ? '#00b060' : '#ffffff',
                     fontSize: '11px',
                     fontWeight: '700',
                     textDecoration: 'none',
@@ -2188,7 +2188,7 @@ export default function PaperTrading() {
                     gap: '6px',
                     transition: 'all 0.3s ease',
                     cursor: 'pointer',
-                    textShadow: '0 0 3px rgba(0, 255, 136, 0.4)'
+                    textShadow: theme === 'light' ? 'none' : '0 0 3px rgba(0, 255, 136, 0.4)'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = 'linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 188, 212, 0.2) 100%)';
@@ -2202,7 +2202,7 @@ export default function PaperTrading() {
                   }}
                 >
                   <Zap size={12} />
-                  <span>Ask None AI</span>
+                  <span>Ask AI Mentor</span>
                 </Link>
               </div>
             </div>
@@ -2773,7 +2773,7 @@ export default function PaperTrading() {
                       </button>
                     )}
                     <span style={{ fontSize: '8px', fontWeight: 800, color: '#ff4444' }}>SL</span>
-                    <span style={{ fontSize: '9px', fontWeight: 700, color: '#ffffff' }}>
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: theme === 'light' ? '#111827' : '#ffffff' }}>
                       {hasSL ? parseFloat(slValue).toFixed(1) : 'Drag'}
                     </span>
                   </div>
@@ -2844,7 +2844,7 @@ export default function PaperTrading() {
                       </button>
                     )}
                     <span style={{ fontSize: '8px', fontWeight: 800, color: '#00ff88' }}>TP</span>
-                    <span style={{ fontSize: '9px', fontWeight: 700, color: '#ffffff' }}>
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: theme === 'light' ? '#111827' : '#ffffff' }}>
                       {hasTP ? parseFloat(tpValue).toFixed(1) : 'Drag'}
                     </span>
                   </div>
@@ -3314,11 +3314,11 @@ export default function PaperTrading() {
                 onChange={e => setQuantity(parseFloat(e.target.value) || '')}
                 onWheel={handleWheelQtyInput}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '8px',
                   padding: '10px 14px',
-                  color: 'white',
+                  color: 'var(--text-primary)',
                   fontSize: '14px',
                   outline: 'none'
                 }}
@@ -3340,11 +3340,11 @@ export default function PaperTrading() {
                   placeholder={parseFloat(livePrice || 0).toFixed(2)}
                   onChange={e => setLimitPrice(e.target.value)}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '8px',
                     padding: '10px 14px',
-                    color: 'white',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     outline: 'none'
                   }}
@@ -3367,11 +3367,11 @@ export default function PaperTrading() {
                   placeholder={parseFloat(livePrice || 0).toFixed(2)}
                   onChange={e => setTriggerPrice(e.target.value)}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '8px',
                     padding: '10px 14px',
-                    color: 'white',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     outline: 'none'
                   }}
@@ -3397,11 +3397,11 @@ export default function PaperTrading() {
                 onChange={e => setFormStopLoss(e.target.value)}
                 onWheel={handleWheelFormSlInput}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '8px',
                   padding: '10px 14px',
-                  color: 'white',
+                  color: 'var(--text-primary)',
                   fontSize: '14px',
                   outline: 'none'
                 }}
@@ -3425,11 +3425,11 @@ export default function PaperTrading() {
                 onChange={e => setFormTakeProfit(e.target.value)}
                 onWheel={handleWheelFormTpInput}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '8px',
                   padding: '10px 14px',
-                  color: 'white',
+                  color: 'var(--text-primary)',
                   fontSize: '14px',
                   outline: 'none'
                 }}
@@ -3591,11 +3591,11 @@ export default function PaperTrading() {
                               onWheel={e => handleWheelPriceInput(e, h.symbol, 'sl', slInputs[h.symbol])}
                               style={{
                                 width: '100px',
-                                background: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(255,255,255,0.08)',
+                                background: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-color)',
                                 borderRadius: '6px',
                                 padding: '4px 8px',
-                                color: 'white',
+                                color: 'var(--text-primary)',
                                 fontSize: '12px',
                                 outline: 'none'
                               }}
@@ -3613,11 +3613,11 @@ export default function PaperTrading() {
                               onWheel={e => handleWheelPriceInput(e, h.symbol, 'tp', tpInputs[h.symbol])}
                               style={{
                                 width: '100px',
-                                background: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(255,255,255,0.08)',
+                                background: 'var(--bg-secondary)',
+                                border: '1px solid var(--border-color)',
                                 borderRadius: '6px',
                                 padding: '4px 8px',
-                                color: 'white',
+                                color: 'var(--text-primary)',
                                 fontSize: '12px',
                                 outline: 'none'
                               }}

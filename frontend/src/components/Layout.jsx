@@ -154,7 +154,7 @@ export default function Layout({ children }) {
           {!isMobile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', borderLeft: isLight ? '1px solid #e5e7eb' : '1px solid rgba(255, 255, 255, 0.1)', paddingLeft: '16px' }}>
               <div 
-                onClick={() => navigate('/stock/NIFTY')}
+                onClick={() => navigate('/stock/^NSEI')}
                 style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '6px' }}
                 title="View NIFTY 50 Live Chart"
               >
@@ -168,7 +168,7 @@ export default function Layout({ children }) {
               <div style={{ width: '1px', height: '16px', background: isLight ? '#e5e7eb' : 'rgba(255,255,255,0.1)' }} />
 
               <div 
-                onClick={() => navigate('/stock/SENSEX')}
+                onClick={() => navigate('/stock/^BSESN')}
                 style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '6px' }}
                 title="View SENSEX Live Chart"
               >
