@@ -794,14 +794,14 @@ export default function StockDetail() {
 
     const chartTheme = {
       layout: {
-        background: { color: '#0a0e27' },
-        textColor: '#9b9eaf',
+        background: { color: theme === 'light' ? '#ffffff' : '#0a0e27' },
+        textColor: theme === 'light' ? '#4b5563' : '#9b9eaf',
         fontSize: 10,
         fontFamily: 'Inter, sans-serif',
       },
       grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.02)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.02)' },
+        vertLines: { color: theme === 'light' ? '#e5e7eb' : 'rgba(255, 255, 255, 0.02)' },
+        horzLines: { color: theme === 'light' ? '#e5e7eb' : 'rgba(255, 255, 255, 0.02)' },
       },
       crosshair: {
         mode: 0,

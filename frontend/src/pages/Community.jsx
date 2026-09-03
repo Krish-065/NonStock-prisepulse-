@@ -813,8 +813,8 @@ export default function Community() {
       
       {/* Top Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(16, 20, 39, 0.6) 0%, rgba(22, 28, 59, 0.4) 100%)',
-        border: '1px solid rgba(0, 255, 136, 0.15)',
+        background: 'var(--bg-card-glass)',
+        border: '1px solid rgba(0, 255, 136, 0.3)',
         borderRadius: '16px',
         padding: '24px',
         marginBottom: '24px',

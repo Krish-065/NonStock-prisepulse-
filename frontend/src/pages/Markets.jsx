@@ -1364,6 +1364,58 @@ export default function Markets() {
         </div>
       </div>
 
+      {/* Global Insights & Recommendations */}
+      <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        {[
+          {
+            source: 'Moneycontrol Insights',
+            title: 'NIFTY 50 Breakout Expected',
+            desc: 'Technical indicators suggest a strong breakout above 25,000 level driven by IT sector rallying.',
+            sentiment: 'Bullish',
+            time: '15 mins ago'
+          },
+          {
+            source: 'Forex Factory',
+            title: 'USD/INR Volatility Spike',
+            desc: 'High impact news event upcoming. Expect sudden volatility in USD/INR pairs over the next 2 hours.',
+            sentiment: 'Volatile',
+            time: '1 hour ago'
+          },
+          {
+            source: 'Quant Model Alpha',
+            title: 'BANKNIFTY Overbought Zone',
+            desc: 'RSI at 82 indicates severe overbought conditions. Consider taking profits on long positions.',
+            sentiment: 'Bearish',
+            time: '3 hours ago'
+          }
+        ].map((rec, i) => (
+          <div key={i} style={{
+            background: 'var(--bg-card-glass)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                {rec.source} • {rec.time}
+              </span>
+              <span style={{
+                fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px',
+                background: rec.sentiment === 'Bullish' ? 'rgba(0, 255, 136, 0.1)' : rec.sentiment === 'Bearish' ? 'rgba(255, 68, 68, 0.1)' : 'rgba(255, 152, 0, 0.1)',
+                color: rec.sentiment === 'Bullish' ? '#00b060' : rec.sentiment === 'Bearish' ? '#ff4444' : '#ff9800'
+              }}>
+                {rec.sentiment}
+              </span>
+            </div>
+            <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--text-primary)' }}>{rec.title}</h4>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{rec.desc}</p>
+          </div>
+        ))}
+      </div>
+
       {/* Workspace Chart Card */}
       <div className="mobile-reduced-height" style={{ flex: 1, background: '#0a0e27', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', overflow: 'hidden', minHeight: '620px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
         

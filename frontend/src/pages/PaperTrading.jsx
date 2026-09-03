@@ -30,7 +30,9 @@ import {
   AlertTriangle,
   Lock,
   Crown,
-  Zap
+  Zap,
+  MessageSquare,
+  Newspaper
 } from 'lucide-react';
 
 const POPULAR_WATCHLIST = [
@@ -177,6 +179,13 @@ export default function PaperTrading() {
   const [balanceHistory, setBalanceHistory] = useState([]);
   const [bots, setBots] = useState([]);
   const [selectedAdvisoryBot, setSelectedAdvisoryBot] = useState(null);
+
+  // AI & News State
+  const [aiChatMessages, setAiChatMessages] = useState([
+    { role: 'assistant', content: 'Hello! I am your AI Trading Mentor. Ask me to analyze the current chart, identify support/resistance, or explain trading concepts.' }
+  ]);
+  const [aiChatInput, setAiChatInput] = useState('');
+  const [aiChatLoading, setAiChatLoading] = useState(false);
   
   // Form State
   const [isBuy, setIsBuy] = useState(true);
@@ -3511,7 +3520,9 @@ export default function PaperTrading() {
             { id: 'history', label: 'Order History', icon: <History size={14} /> },
             { id: 'balance', label: 'Balance History', icon: <TrendingUp size={14} /> },
             { id: 'bots', label: `Automated Bots (${bots.length})`, icon: <Activity size={14} /> },
-            { id: 'leaderboard', label: 'Rankings Leaderboard', icon: <Award size={14} /> }
+            { id: 'leaderboard', label: 'Rankings', icon: <Award size={14} /> },
+            { id: 'ai-chat', label: 'AI Mentor', icon: <MessageSquare size={14} /> },
+            { id: 'news', label: 'Live News', icon: <Newspaper size={14} /> }
           ].map(t => (
             <button
               key={t.id}
