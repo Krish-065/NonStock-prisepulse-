@@ -219,8 +219,8 @@ export default function FnO() {
             { symbol: 'TATAMOTORS', weight: 0.7, price: 945.10, chg: 3.15 }
           ];
 
-          const marketLive = true;
-          if (marketLive) {
+          const isNiftyLive = true;
+          if (isNiftyLive) {
             const liveHeatmap = constituents.map(c => {
               const r = (Math.random() - 0.5) * 0.4; 
               return {
