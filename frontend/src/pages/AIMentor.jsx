@@ -34,25 +34,25 @@ function formatAIMessage(text) {
     
     // Check headers
     if (cleanLine.startsWith('###')) {
-      return <h4 key={idx} style={{ fontSize: '13px', fontWeight: '800', color: '#00ff88', marginTop: '12px', marginBottom: '6px', textTransform: 'uppercase' }}>{cleanLine.replace('###', '')}</h4>;
+      return <h4 key={idx} style={{ fontSize: '13px', fontWeight: '800', color: '#059669', marginTop: '12px', marginBottom: '6px', textTransform: 'uppercase' }}>{cleanLine.replace('###', '')}</h4>;
     }
     if (cleanLine.startsWith('##')) {
-      return <h3 key={idx} style={{ fontSize: '15px', fontWeight: '800', color: '#00bcd4', marginTop: '16px', marginBottom: '8px' }}>{cleanLine.replace('##', '')}</h3>;
+      return <h3 key={idx} style={{ fontSize: '15px', fontWeight: '800', color: '#0369a1', marginTop: '16px', marginBottom: '8px' }}>{cleanLine.replace('##', '')}</h3>;
     }
     if (cleanLine.startsWith('#')) {
-      return <h2 key={idx} style={{ fontSize: '18px', fontWeight: '900', color: '#ffffff', marginTop: '20px', marginBottom: '10px' }}>{cleanLine.replace('#', '')}</h2>;
+      return <h2 key={idx} style={{ fontSize: '18px', fontWeight: '900', color: '#111827', marginTop: '20px', marginBottom: '10px' }}>{cleanLine.replace('#', '')}</h2>;
     }
 
     // Check bullet points
     if (cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
       const content = cleanLine.substring(1).trim();
-      return <li key={idx} style={{ marginLeft: '16px', marginBottom: '4px', fontSize: '13px', color: 'var(--text-secondary)' }}>{parseBoldText(content)}</li>;
+      return <li key={idx} style={{ marginLeft: '16px', marginBottom: '4px', fontSize: '13px', color: '#374151' }}>{parseBoldText(content)}</li>;
     }
 
     // Check bold disclaimers
     if (cleanLine.includes('**Disclaimer:') || cleanLine.includes('**Not Financial Advice:')) {
       return (
-        <div key={idx} style={{ background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.2)', padding: '12px', borderRadius: '8px', color: '#ffb300', fontSize: '11px', marginTop: '16px', lineHeight: '1.4' }}>
+        <div key={idx} style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '12px', borderRadius: '8px', color: '#b45309', fontSize: '11px', marginTop: '16px', lineHeight: '1.4' }}>
           {cleanLine.replace(/\*\*/g, '')}
         </div>
       );
@@ -60,10 +60,10 @@ function formatAIMessage(text) {
 
     if (cleanLine === '') return <div key={idx} style={{ height: '8px' }} />;
 
-    return <p key={idx} style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#e0e0e0' }}>{parseBoldText(cleanLine)}</p>;
+    return <p key={idx} style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#1f2937' }}>{parseBoldText(cleanLine)}</p>;
   });
   } catch (e) {
-    return <p style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#e0e0e0' }}>{String(text)}</p>;
+    return <p style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#1f2937' }}>{String(text)}</p>;
   }
 }
 
@@ -71,7 +71,7 @@ function parseBoldText(text) {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
   return parts.map((part, i) => {
     if (i % 2 === 1) {
-      return <strong key={i} style={{ color: '#ffffff', fontWeight: '800' }}>{part}</strong>;
+      return <strong key={i} style={{ color: '#111827', fontWeight: '800' }}>{part}</strong>;
     }
     return part;
   });
@@ -829,14 +829,14 @@ export default function AIMentor() {
 
         {/* CENTER COLUMN: SPACIOUS CHAT CANVAS */}
         <div style={{
-          background: 'var(--bg-card-glass)',
-          border: '1px solid var(--border-color)',
+          background: '#ffffff',
+          border: '1px solid #e5e7eb',
           borderRadius: '16px',
           padding: '20px',
           display: isMobile && mobileTab !== 'chat' ? 'none' : 'flex',
           flexDirection: 'column',
           height: '640px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)'
         }}>
           
           {/* None Active Header Core */}
@@ -844,8 +844,8 @@ export default function AIMentor() {
             display: 'flex', 
             alignItems: 'center', 
             gap: '12px', 
-            background: accountMode === 'pro' || user?.is_pro ? 'rgba(255, 215, 0, 0.05)' : 'rgba(0, 188, 212, 0.04)', 
-            border: accountMode === 'pro' || user?.is_pro ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(0, 188, 212, 0.15)', 
+            background: accountMode === 'pro' || user?.is_pro ? 'rgba(255, 215, 0, 0.1)' : 'rgba(0, 188, 212, 0.1)', 
+            border: accountMode === 'pro' || user?.is_pro ? '1px solid rgba(255, 215, 0, 0.4)' : '1px solid rgba(0, 188, 212, 0.3)', 
             borderRadius: '12px', 
             padding: '10px 14px', 
             marginBottom: '12px' 
@@ -857,7 +857,7 @@ export default function AIMentor() {
               background: accountMode === 'pro' || user?.is_pro
                 ? 'radial-gradient(circle, #ffd700 20%, rgba(0, 243, 255, 0.4) 60%, transparent 100%)'
                 : 'radial-gradient(circle, #00ffff 20%, rgba(0, 188, 212, 0.3) 60%, transparent 100%)', 
-              border: accountMode === 'pro' || user?.is_pro ? '2px dashed #ffd700' : '2px dashed #00ffff', 
+              border: accountMode === 'pro' || user?.is_pro ? '2px dashed #b45309' : '2px dashed #0369a1', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
@@ -868,14 +868,14 @@ export default function AIMentor() {
                 height: '12px', 
                 borderRadius: '50%', 
                 background: '#ffffff', 
-                boxShadow: accountMode === 'pro' || user?.is_pro ? '0 0 10px #ffd700' : '0 0 10px #ffffff' 
+                boxShadow: accountMode === 'pro' || user?.is_pro ? '0 0 10px #b45309' : '0 0 10px #0369a1' 
               }} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '11px', fontWeight: '800', color: accountMode === 'pro' || user?.is_pro ? '#ffd700' : '#00bcd4', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: accountMode === 'pro' || user?.is_pro ? '#b45309' : '#0369a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {accountMode === 'pro' || user?.is_pro ? 'None Pro Core Enabled' : 'None Core Enabled'}
               </div>
-              <div style={{ fontSize: '10px', color: '#c0c2cc' }}>Ingesting context: **{symbol}** • {timeframe} • {accountMode.toUpperCase()} MODE</div>
+              <div style={{ fontSize: '10px', color: '#4b5563' }}>Ingesting context: **{symbol}** • {timeframe} • {accountMode.toUpperCase()} MODE</div>
             </div>
           </div>
 
@@ -888,15 +888,15 @@ export default function AIMentor() {
                 return (
                   <div 
                     key={idx} 
-                    className={isProAccount ? 'neon-border-wrapper-pro' : 'neon-border-wrapper-standard'}
+                    style={{ alignSelf: 'flex-end', maxWidth: '85%' }}
                   >
-                    <div className="bubble-content">
+                    <div style={{ background: '#f8f9fa', border: isProAccount ? '1px solid #fcd34d' : '1px solid #e5e7eb', borderRadius: '12px 12px 2px 12px', padding: '12px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: '900', color: isProAccount ? '#ffd700' : '#00ff88', letterSpacing: '0.5px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: '900', color: isProAccount ? '#b45309' : '#059669', letterSpacing: '0.5px' }}>
                           {isProAccount ? 'PRO TRADER' : 'YOU'}
                         </span>
                       </div>
-                      <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '700', lineHeight: '1.45', color: isProAccount ? '#e0f7fc' : '#ffffff' }}>
+                      <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '600', lineHeight: '1.45', color: '#111827' }}>
                         {msg.text}
                       </p>
                     </div>
@@ -910,13 +910,13 @@ export default function AIMentor() {
                   style={{
                     alignSelf: 'flex-start',
                     maxWidth: '85%',
-                    background: isProAccount ? 'linear-gradient(145deg, rgba(16, 20, 42, 0.95), rgba(12, 15, 32, 0.98))' : 'rgba(255,255,255,0.02)',
-                    border: isProAccount ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(0, 188, 212, 0.12)',
-                    borderTop: isProAccount ? '2px solid #ffd700' : '1px solid rgba(0, 188, 212, 0.12)',
+                    background: '#ffffff',
+                    border: isProAccount ? '1px solid #fcd34d' : '1px solid #e5e7eb',
+                    borderTop: isProAccount ? '2px solid #f59e0b' : '1px solid #00bcd4',
                     borderRadius: '12px 12px 12px 2px',
                     padding: '14px 18px',
-                    color: '#ffffff',
-                    boxShadow: isProAccount ? '0 4px 20px rgba(255, 215, 0, 0.08)' : 'none'
+                    color: '#111827',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                   }}
                 >
                   <div>
@@ -926,9 +926,9 @@ export default function AIMentor() {
               );
             })}
             {sending && (
-              <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '12px 12px 12px 2px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#c0c2cc' }}>
-                <RefreshCw className="animate-spin" size={13} />
-                <span style={{ fontSize: '11px' }}>
+              <div style={{ alignSelf: 'flex-start', background: '#f8f9fa', border: '1px solid #e5e7eb', borderRadius: '12px 12px 12px 2px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#4b5563' }}>
+                <RefreshCw className="animate-spin" size={13} style={{ color: '#0369a1' }} />
+                <span style={{ fontSize: '11px', fontWeight: '600' }}>
                   None is compiling on-point setup indicators...
                 </span>
               </div>
@@ -946,11 +946,11 @@ export default function AIMentor() {
                     key={i}
                     onClick={() => handleSendMessage(p)}
                     style={{
-                      background: 'rgba(255, 255, 255, 0.02)',
-                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                      background: '#f9fafb',
+                      border: '1px solid #e5e7eb',
                       borderRadius: '16px',
                       padding: '6px 12px',
-                      color: 'var(--text-primary)',
+                      color: '#111827',
                       fontSize: '11px',
                       fontWeight: '700',
                       cursor: 'pointer',
@@ -959,10 +959,10 @@ export default function AIMentor() {
                       alignItems: 'center',
                       gap: '4px'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 188, 212, 0.08)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#f9fafb'}
                   >
-                    <HelpCircle size={11} style={{ color: '#00bcd4' }} />
+                    <HelpCircle size={11} style={{ color: '#0369a1' }} />
                     {p}
                   </button>
                 ))}
@@ -971,7 +971,7 @@ export default function AIMentor() {
           )}
 
           {/* Chat input */}
-          <div style={{ display: 'flex', gap: '10px', borderTop: (accountMode === 'pro' || user?.is_pro) ? '1px solid rgba(255, 215, 0, 0.15)' : '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
+          <div style={{ display: 'flex', gap: '10px', borderTop: '1px solid #e5e7eb', paddingTop: '12px' }}>
             <input 
               type="text"
               value={inputText}
@@ -980,14 +980,14 @@ export default function AIMentor() {
               placeholder={accountMode === 'pro' || user?.is_pro ? "Ask None Pro AI (e.g. 'Evaluate options Greeks' or 'Identify liquidity trap')..." : "Ask None AI (e.g. 'Explain risk zones for this setup' or 'Is this a trap?')..."}
               style={{
                 flex: 1,
-                background: (accountMode === 'pro' || user?.is_pro) ? 'rgba(255, 215, 0, 0.03)' : 'rgba(255,255,255,0.02)',
-                border: (accountMode === 'pro' || user?.is_pro) ? '1px solid rgba(255, 215, 0, 0.25)' : '1px solid rgba(255,255,255,0.06)',
+                background: '#f9fafb',
+                border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 padding: '10px 14px',
-                color: '#ffffff',
+                color: '#111827',
                 fontSize: '13px',
                 outline: 'none',
-                boxShadow: (accountMode === 'pro' || user?.is_pro) ? 'inset 0 0 10px rgba(255, 215, 0, 0.03)' : 'none'
+                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)'
               }}
             />
             <button
