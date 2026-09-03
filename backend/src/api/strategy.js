@@ -224,7 +224,8 @@ router.post('/backtest', async (req, res) => {
     }
 
     symbol = symbol.toUpperCase();
-    if (!symbol.endsWith('.NS') && !symbol.includes('-USD') && !symbol.includes('^')) {
+    const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'GOOGL', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR', 'SPY', 'QQQ'];
+    if (!symbol.endsWith('.NS') && !symbol.includes('-USD') && !symbol.includes('^') && !usTickers.includes(symbol)) {
       symbol = `${symbol}.NS`;
     }
 

@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import Logo from './Logo';
@@ -31,11 +31,14 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
+  const location = useLocation();
+  const currentSymbol = location.state?.selectSymbol || null;
+
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={16} /> },
     { path: '/paper-trading', label: 'Paper Trading', icon: <LineChart size={16} /> },
-    { path: '/strategy-lab', label: 'Strategy Lab', icon: <Sparkles size={16} /> },
+    { path: '/strategy-lab', label: 'Strategy Lab', icon: <Sparkles size={16} />, state: currentSymbol ? { selectSymbol: currentSymbol } : null },
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={16} /> },
     { path: '/alerts', label: 'Alerts Hub', icon: <Bell size={16} /> },
     { path: '/community', label: 'Community Hub', icon: <Users size={16} /> },
@@ -106,6 +109,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
           <NavLink
             key={item.path}
             to={item.path}
+            state={item.state}
             id={item.path === '/' ? 'tour-nav-dashboard' : `tour-nav-${item.path.replace('/', '')}`}
             onClick={isMobile ? onClose : undefined}
             style={({ isActive }) => {

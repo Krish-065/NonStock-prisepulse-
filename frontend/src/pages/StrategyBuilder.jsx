@@ -7,22 +7,28 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+import { useLocation } from 'react-router-dom';
+
 const POPULAR_STOCKS = [
-  { label: 'RELIANCE', value: 'RELIANCE' },
-  { label: 'SBIN', value: 'SBIN' },
-  { label: 'TCS', value: 'TCS' },
-  { label: 'INFY', value: 'INFY' },
-  { label: 'HDFCBANK', value: 'HDFCBANK' },
-  { label: 'ICICIBANK', value: 'ICICIBANK' },
-  { label: 'TATAMOTORS', value: 'TATAMOTORS' },
-  { label: 'ZOMATO', value: 'ZOMATO' },
-  { label: 'Bitcoin (BTC)', value: 'BTC' },
-  { label: 'Ethereum (ETH)', value: 'ETH' }
+  { label: 'RELIANCE (NSE)', value: 'RELIANCE' },
+  { label: 'SBIN (NSE)', value: 'SBIN' },
+  { label: 'TCS (NSE)', value: 'TCS' },
+  { label: 'INFY (NSE)', value: 'INFY' },
+  { label: 'HDFCBANK (NSE)', value: 'HDFCBANK' },
+  { label: 'ICICIBANK (NSE)', value: 'ICICIBANK' },
+  { label: 'TATAMOTORS (NSE)', value: 'TATAMOTORS' },
+  { label: 'Apple (US)', value: 'AAPL' },
+  { label: 'Tesla (US)', value: 'TSLA' },
+  { label: 'Nvidia (US)', value: 'NVDA' },
+  { label: 'Microsoft (US)', value: 'MSFT' },
+  { label: 'Bitcoin', value: 'BTC-USD' }
 ];
 
 export default function StrategyBuilder() {
   const { user } = useAuth();
-  const [symbol, setSymbol] = useState('RELIANCE');
+  const location = useLocation();
+  const initialSymbol = location.state?.selectSymbol || 'RELIANCE';
+  const [symbol, setSymbol] = useState(initialSymbol);
 
   const handleDeployBot = async () => {
     if (!user?.is_pro) {
@@ -377,15 +383,19 @@ export default function StrategyBuilder() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase' }}>Target Asset</label>
-                <select
+                <input
+                  type="text"
+                  list="popular-stocks"
                   value={symbol}
-                  onChange={(e) => setSymbol(e.target.value)}
+                  onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                  placeholder="e.g. RELIANCE, AAPL"
                   style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: '#ffffff', fontSize: '13px', fontWeight: '700' }}
-                >
+                />
+                <datalist id="popular-stocks">
                   {POPULAR_STOCKS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
-                </select>
+                </datalist>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
