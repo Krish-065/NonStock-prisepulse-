@@ -1,8 +1,9 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { LineChart, Activity, X, Crown } from 'lucide-react';
+import { LineChart, Activity, X, Crown, Briefcase } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { apiClient } from '../services/api';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
@@ -173,6 +174,38 @@ export default function StockActionModal({ symbol, onClose }) {
             <TextWrap>
               <BtnTitle isLight={isLight}>Paper Trading Desk</BtnTitle>
               <BtnDesc isLight={isLight}>Execute risk-free simulated trades</BtnDesc>
+            </TextWrap>
+          </ActionBtn>
+
+          <ActionBtn 
+            isLight={isLight} 
+            color="#00f2fe"
+            onClick={async () => {
+              const qty = prompt(`Enter quantity of ${symbol} to add to your Portfolio:`, '10');
+              if (qty && parseFloat(qty) > 0) {
+                try {
+                  const quoteRes = await apiClient.get(`/market/stock/${routeSym}`);
+                  const price = quoteRes.data?.price || 100;
+                  await apiClient.post('/portfolio', {
+                    symbol: routeSym,
+                    quantity: parseFloat(qty),
+                    buyPrice: parseFloat(price)
+                  });
+                  alert(`Successfully added ${qty} shares of ${symbol} to your portfolio!`);
+                  navigate('/portfolio');
+                  onClose();
+                } catch (e) {
+                  alert('Failed to add to portfolio: ' + (e.response?.data?.error || e.message));
+                }
+              }
+            }}
+          >
+            <IconWrap bg="rgba(0,242,254,0.15)" color="#00f2fe">
+              <Briefcase size={24} />
+            </IconWrap>
+            <TextWrap>
+              <BtnTitle isLight={isLight}>Add to Portfolio</BtnTitle>
+              <BtnDesc isLight={isLight}>Sync directly to your personal asset allocation bag</BtnDesc>
             </TextWrap>
           </ActionBtn>
 

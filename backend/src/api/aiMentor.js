@@ -35,30 +35,71 @@ function cosineSimilarity(vecA, vecB) {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+// Trading concept synonym and expansion map for high-accuracy RAG retrieval
+const TRADING_SYNONYMS = {
+  'rsi': ['relative strength index', 'momentum', 'overbought', 'oversold', 'divergence'],
+  'macd': ['moving average convergence divergence', 'crossover', 'signal line', 'histogram'],
+  'options': ['derivatives', 'call', 'put', 'strike', 'premium', 'greeks', 'delta', 'theta', 'gamma', 'vega', 'implied volatility'],
+  'option': ['derivatives', 'call', 'put', 'strike', 'premium', 'greeks', 'delta', 'theta', 'gamma', 'vega', 'implied volatility'],
+  'fno': ['futures', 'options', 'derivatives', 'expiry', 'open interest', 'lot size'],
+  'support': ['floor', 'demand zone', 'pivot', 'accumulation', 'reversal'],
+  'resistance': ['ceiling', 'supply zone', 'liquidity pool', 'distribution', 'rejection'],
+  'trap': ['fakeout', 'bear trap', 'bull trap', 'liquidity trap', 'false breakout', 'whipsaw'],
+  'breakout': ['continuation', 'expansion', 'volume surge', 'resistance break'],
+  'breakdown': ['support crack', 'selloff', 'panic', 'liquidation'],
+  'risk': ['stop loss', 'position sizing', 'capital preservation', 'drawdown', 'risk reward', '1% rule'],
+  'sl': ['stop loss', 'invalidation', 'exit', 'risk management'],
+  'tp': ['take profit', 'target', 'risk reward ratio'],
+  'candlestick': ['candle', 'doji', 'hammer', 'shooting star', 'engulfing', 'morning star', 'pin bar'],
+  'candle': ['candlestick', 'body', 'wick', 'shadow', 'price action'],
+  'moving average': ['sma', 'ema', 'golden cross', 'death cross', 'trendline', 'dynamic support'],
+  'ema': ['exponential moving average', 'trend filter', 'crossover'],
+  'sma': ['simple moving average', 'trendline'],
+  'vwap': ['volume weighted average price', 'institutional benchmark', 'intraday'],
+  'scalping': ['ultra short term', 'tick chart', 'fast execution', 'bid ask spread'],
+  'swing': ['swing trading', 'multi day', 'momentum swing', 'wave'],
+  'intraday': ['day trading', 'market close', 'zero overnight', 'timeframe']
+};
+
 function keywordSimilarity(query, item) {
-  const queryClean = query.toLowerCase().replace(/[^a-z0-9\s]/g, '');
-  const titleClean = item.title.toLowerCase().replace(/[^a-z0-9\s]/g, '');
-  const contentClean = item.content.toLowerCase().replace(/[^a-z0-9\s]/g, '');
-  const categoryClean = (item.category || '').toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  const queryClean = query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+  const titleClean = item.title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+  const contentClean = item.content.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+  const categoryClean = (item.category || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
   
-  const stopWords = new Set(['what', 'are', 'the', 'and', 'for', 'how', 'does', 'work', 'with', 'about', 'this', 'that', 'they', 'them', 'these', 'those', 'where', 'when', 'which', 'who', 'why', 'you', 'your', 'like', 'there', 'here', 'should', 'buy', 'sell']);
+  const stopWords = new Set(['what', 'are', 'the', 'and', 'for', 'how', 'does', 'work', 'with', 'about', 'this', 'that', 'they', 'them', 'these', 'those', 'where', 'when', 'which', 'who', 'why', 'you', 'your', 'like', 'there', 'here', 'should', 'buy', 'sell', 'can', 'please', 'tell', 'explain', 'give']);
   
-  const queryWords = queryClean.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
-  if (queryWords.length === 0) return 0;
-  
-  let score = 0;
-  for (const word of queryWords) {
-    if (titleClean.includes(word)) {
-      score += 5;
-    }
-    if (categoryClean.includes(word)) {
-      score += 3;
-    }
-    if (contentClean.includes(word)) {
-      score += 1.2;
+  const rawWords = queryClean.split(/\s+/).filter(w => w.length >= 2 && !stopWords.has(w));
+  if (rawWords.length === 0) return 0;
+
+  // Expand query words with known trading synonyms
+  const queryWords = new Set(rawWords);
+  for (const w of rawWords) {
+    if (TRADING_SYNONYMS[w]) {
+      TRADING_SYNONYMS[w].forEach(syn => syn.split(/\s+/).forEach(part => queryWords.add(part)));
     }
   }
-  return score / queryWords.length;
+
+  let score = 0;
+  
+  // Exact full title match bonus
+  if (titleClean.includes(queryClean.trim()) || queryClean.includes(titleClean)) {
+    score += 15;
+  }
+
+  for (const word of queryWords) {
+    if (titleClean.includes(word)) {
+      score += 6.0;
+    }
+    if (categoryClean.includes(word)) {
+      score += 3.5;
+    }
+    if (contentClean.includes(word)) {
+      score += 1.5;
+    }
+  }
+
+  return score / rawWords.length;
 }
 
 async function performRAG(queryText, GEMINI_API_KEY) {
@@ -87,18 +128,28 @@ async function performRAG(queryText, GEMINI_API_KEY) {
   const results = vectorStore.map(item => {
     let score = 0;
     if (queryVector && item.embedding && item.embedding.length > 0) {
-      score = cosineSimilarity(queryVector, item.embedding);
+      const cos = cosineSimilarity(queryVector, item.embedding);
+      const kw = keywordSimilarity(queryText, item);
+      score = cos * 0.7 + (kw / 10) * 0.3;
     } else {
       score = keywordSimilarity(queryText, item);
     }
     return { item, score };
   });
 
-  return results
+  const filtered = results
     .filter(r => r.score > 0.15)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
+    .slice(0, 4)
     .map(r => r.item);
+
+  // If no specific match was found, provide foundational risk & analysis chunks
+  if (filtered.length === 0 && vectorStore.length > 0) {
+    const defaultTopics = ['support_resistance', 'rsi_indicator', 'risk_management'];
+    return vectorStore.filter(v => defaultTopics.includes(v.id)).slice(0, 3);
+  }
+
+  return filtered;
 }
 
 // Yahoo Finance headers to avoid IP blocks
@@ -752,9 +803,15 @@ router.post('/ask', authenticate, async (req, res) => {
     const retrievedChunks = await performRAG(message, GEMINI_API_KEY);
     let ragContext = '';
     if (retrievedChunks.length > 0) {
-      ragContext = `\n\n[Retrieved Trading Knowledge Base Context]:\n` + 
-        retrievedChunks.map((chunk, index) => `${index + 1}. Topic: ${chunk.title}\nCategory: ${chunk.category}\nContent: ${chunk.content}`).join('\n\n') +
-        `\n\nWhen answering, verify terms and concepts against this retrieved context. Refer to these specific strategies or risk parameters to explain clearly.`;
+      ragContext = `\n\n=== RETRIEVED INSTITUTIONAL TRADING KNOWLEDGE BASE (GROUND TRUTH) ===\n` + 
+        retrievedChunks.map((chunk, index) => 
+          `[Source ${index + 1}: ${chunk.title} | Category: ${chunk.category}]\n${chunk.content}`
+        ).join('\n\n') +
+        `\n\n=== RAG SYNTHESIS & REASONING RULES ===\n` +
+        `1. Synthesize and directly integrate the principles, mechanics, formulas, and terminology from the retrieved knowledge above into your response.\n` +
+        `2. When discussing indicators or risk management, reference the specific parameters from the retrieved context (e.g., standard periods, overbought/oversold levels, support/resistance role reversal, 1-2% capital risk rule).\n` +
+        `3. If live technical indicators or a simulated setup are provided, bridge the retrieved theoretical concepts directly with the real-time numbers so the user gets an actionable, institutional-grade explanation.\n` +
+        `4. Explain with clarity, confidence, and real-world trading logic.`;
     }
 
     const GROQ_API_KEY = process.env.GROQ_API_KEY;

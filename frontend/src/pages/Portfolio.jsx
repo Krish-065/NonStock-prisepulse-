@@ -580,7 +580,7 @@ export default function Portfolio() {
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [portfolioMode, holdings, paperData]);
+  }, [portfolioMode]);
 
   // Compute active variables based on portfolioMode
   const activeHoldings = (portfolioMode === 'real' ? holdings : paperData.holdings).map(h => {

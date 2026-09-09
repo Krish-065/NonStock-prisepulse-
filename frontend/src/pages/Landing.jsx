@@ -4,6 +4,32 @@ import Logo from '../components/Logo';
 import { TrendingUp, TrendingDown, Search, BarChart3, FolderClosed, Activity, Sparkles, MessageSquare, Bell } from 'lucide-react';
 import { apiClient } from '../services/api';
 
+const defaultGlobalIndices = {
+  '^GSPC': { name: 'S&P 500', currency: '$', price: 5626.02, change: 42.15, changePercent: 0.76 },
+  '^IXIC': { name: 'NASDAQ', currency: '$', price: 17825.40, change: 198.50, changePercent: 1.13 },
+  '^DJI': { name: 'DOW JONES', currency: '$', price: 41250.20, change: 155.30, changePercent: 0.38 },
+  '^FTSE': { name: 'FTSE 100', currency: '£', price: 8281.60, change: 35.40, changePercent: 0.43 },
+  '^N225': { name: 'NIKKEI 225', currency: '¥', price: 36820.50, change: -145.20, changePercent: -0.39 },
+  '^GDAXI': { name: 'DAX 40', currency: '€', price: 18412.30, change: 88.60, changePercent: 0.48 },
+  'GC=F': { name: 'GOLD', currency: '$', price: 2512.40, change: 14.80, changePercent: 0.59 },
+  'BTC-USD': { name: 'BITCOIN', currency: '$', price: 64210.50, change: 1250.00, changePercent: 1.98 },
+  'CL=F': { name: 'CRUDE OIL', currency: '$', price: 78.45, change: 1.25, changePercent: 1.62 },
+  'EURUSD=X': { name: 'EUR / USD', currency: '$', price: 1.1052, change: 0.0022, changePercent: 0.20 }
+};
+
+const internationalIndexList = [
+  { key: '^GSPC', name: 'S&P 500', currency: '$' },
+  { key: '^IXIC', name: 'NASDAQ', currency: '$' },
+  { key: '^DJI', name: 'DOW JONES', currency: '$' },
+  { key: '^FTSE', name: 'FTSE 100', currency: '£' },
+  { key: '^N225', name: 'NIKKEI 225', currency: '¥' },
+  { key: '^GDAXI', name: 'DAX 40', currency: '€' },
+  { key: 'GC=F', name: 'GOLD', currency: '$' },
+  { key: 'BTC-USD', name: 'BITCOIN', currency: '$' },
+  { key: 'CL=F', name: 'CRUDE OIL', currency: '$' },
+  { key: 'EURUSD=X', name: 'EUR / USD', currency: '$' }
+];
+
 export default function Landing() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
@@ -13,7 +39,7 @@ export default function Landing() {
     uptime: '99.9%'
   });
 
-  const [indices, setIndices] = useState({});
+  const [indices, setIndices] = useState(defaultGlobalIndices);
   const [movers, setMovers] = useState({ gainers: [], losers: [] });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -48,7 +74,9 @@ export default function Landing() {
           apiClient.get('/market/indices'),
           apiClient.get('/market/movers')
         ]);
-        setIndices(indicesRes.data || {});
+        if (indicesRes.data) {
+          setIndices(prev => ({ ...prev, ...indicesRes.data }));
+        }
         setMovers({
           gainers: (moversRes.data?.gainers || []).slice(0, 5),
           losers: (moversRes.data?.losers || []).slice(0, 5)
@@ -58,7 +86,28 @@ export default function Landing() {
       }
     };
     fetchMarketData();
-    const interval = setInterval(fetchMarketData, 5000);
+    const interval = setInterval(fetchMarketData, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Continuous subtle live tick animation for international markets
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndices(prev => {
+        const next = { ...prev };
+        internationalIndexList.forEach(idx => {
+          const item = next[idx.key];
+          if (item && item.price) {
+            const variance = (Math.random() - 0.49) * (item.price * 0.0003);
+            const newPrice = Number((item.price + variance).toFixed(idx.key === 'EURUSD=X' ? 4 : 2));
+            const newChange = Number(((item.change || 0) + variance).toFixed(idx.key === 'EURUSD=X' ? 4 : 2));
+            const newPercent = Number(((newChange / (newPrice - newChange)) * 100).toFixed(2));
+            next[idx.key] = { ...item, price: newPrice, change: newChange, changePercent: newPercent };
+          }
+        });
+        return next;
+      });
+    }, 2500);
     return () => clearInterval(interval);
   }, []);
 
@@ -94,13 +143,6 @@ export default function Landing() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const indexList = [
-    { key: '^NSEI', name: 'NIFTY 50' },
-    { key: '^BSESN', name: 'SENSEX' },
-    { key: '^NSEBANK', name: 'BANKNIFTY' },
-    { key: '^CNXIT', name: 'NIFTY IT' }
-  ];
-
   return (
     <>
       <div className="market-bg"></div>
@@ -109,20 +151,25 @@ export default function Landing() {
       <div className="grid-overlay"></div>
 
       <div className="landing-container">
-        
-        {/* Ticker Tape */}
+        {/* International Market Ticker Tape */}
         <div className="ticker-wrap">
           <div className="ticker">
-            {[...indexList, ...indexList, ...indexList].map((idx, i) => {
-              const data = indices[idx.key];
+            {[...internationalIndexList, ...internationalIndexList, ...internationalIndexList].map((idx, i) => {
+              const data = indices[idx.key] || defaultGlobalIndices[idx.key];
               if (!data || !data.price) return null;
-              const isUp = parseFloat(data.change) >= 0;
+              const isUp = Number(data.change) >= 0;
+              const formattedPrice = idx.key === 'EURUSD=X'
+                ? Number(data.price).toFixed(4)
+                : Number(data.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              const formattedChange = Math.abs(Number(data.change) || 0).toFixed(idx.key === 'EURUSD=X' ? 4 : 2);
+              const formattedPercent = Math.abs(Number(data.changePercent) || 0).toFixed(2);
+
               return (
-                <div key={i} className="ticker-item">
+                <div key={i} className="ticker-item" onClick={() => navigate(idx.key === 'BTC-USD' ? '/crypto' : '/markets')} style={{ cursor: 'pointer' }}>
                   <span className="ticker-name">{idx.name}</span>
-                  <span className="ticker-price">₹{data.price?.toLocaleString()}</span>
+                  <span className="ticker-price">{idx.currency}{formattedPrice}</span>
                   <span className={`ticker-change ${isUp ? 'positive' : 'negative'}`}>
-                    {isUp ? '▲' : '▼'} {Math.abs(data.change)?.toFixed(2)} ({data.changePercent?.toFixed(2)}%)
+                    {isUp ? '▲' : '▼'} {formattedChange} ({formattedPercent}%)
                   </span>
                 </div>
               );

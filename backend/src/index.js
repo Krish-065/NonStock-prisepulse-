@@ -22,32 +22,43 @@ const io = new Server(httpServer, {
 app.set('io', io);
 
 
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const rawFrontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').trim();
+const frontendUrl = rawFrontendUrl.endsWith('/') ? rawFrontendUrl.slice(0, -1) : rawFrontendUrl;
 const allowedOrigin = frontendUrl.startsWith('http') ? frontendUrl : `https://${frontendUrl}`;
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || [allowedOrigin, frontendUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'].includes(origin)) {
+    if (!origin) return callback(null, true);
+    const isAllowed = 
+      origin === allowedOrigin || 
+      origin === frontendUrl ||
+      origin.includes('localhost') || 
+      origin.includes('127.0.0.1') || 
+      origin.endsWith('.vercel.app') || 
+      origin.endsWith('.onrender.com');
+    if (isAllowed) {
       callback(null, true);
     } else {
-      // Also allow any vercel app for this project specifically as a fallback
-      if (origin.endsWith('.vercel.app')) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+      console.warn(`[CORS Notice] Request from unlisted origin: ${origin}`);
+      callback(null, true);
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
+app.options('*', cors());
 app.use(express.json());
 
 createTables().catch(console.error);
 
-// Health check endpoint for Render self-ping (prevents cold starts)
-app.get('/api/health', (req, res) => {
-  res.status(200).send('OK');
+// Health check endpoints for Render self-ping (prevents cold starts)
+app.get(['/', '/health', '/api/health'], (req, res) => {
+  res.status(200).json({ status: 'OK', service: 'NonStock API', timestamp: new Date().toISOString() });
 });
 
 // Auth routes
@@ -687,9 +698,40 @@ app.get('/api/portfolio', authenticate, async (req, res) => {
   }
 });
 app.post('/api/portfolio', authenticate, async (req, res) => {
-  const { symbol, quantity, buyPrice } = req.body;
-  await query(`INSERT INTO portfolio_items (id, user_id, symbol, quantity, buy_price) VALUES ($1,$2,$3,$4,$5)`, [require('crypto').randomUUID(), req.user.id, symbol, quantity, buyPrice]);
-  res.json({ success: true });
+  try {
+    const { symbol, quantity, buyPrice } = req.body;
+    if (!symbol || !quantity) {
+      return res.status(400).json({ error: 'Symbol and quantity are required' });
+    }
+    const qty = parseFloat(quantity);
+    const price = parseFloat(buyPrice) || 0;
+
+    const existing = await query(
+      'SELECT id, quantity, buy_price FROM portfolio_items WHERE user_id = $1 AND symbol = $2',
+      [req.user.id, symbol]
+    );
+
+    if (existing.rows.length > 0) {
+      const item = existing.rows[0];
+      const curQty = parseFloat(item.quantity) || 0;
+      const curPrice = parseFloat(item.buy_price) || 0;
+      const newQty = curQty + qty;
+      const newPrice = newQty > 0 ? (curQty * curPrice + qty * price) / newQty : price;
+      await query(
+        'UPDATE portfolio_items SET quantity = $1, buy_price = $2 WHERE id = $3',
+        [newQty, parseFloat(newPrice.toFixed(2)), item.id]
+      );
+    } else {
+      await query(
+        'INSERT INTO portfolio_items (id, user_id, symbol, quantity, buy_price) VALUES ($1, $2, $3, $4, $5)',
+        [require('crypto').randomUUID(), req.user.id, symbol, qty, price]
+      );
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Update portfolio error:', err);
+    res.status(500).json({ error: 'Failed to update portfolio' });
+  }
 });
 // Angel One SmartAPI Connector
 async function syncAngelOne(clientCode, pin, totp) {

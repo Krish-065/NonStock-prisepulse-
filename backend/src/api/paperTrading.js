@@ -213,6 +213,32 @@ router.post('/trade', authenticate, async (req, res) => {
         [crypto.randomUUID(), req.user.id, symbol, 'BUY', qty, prc, 0, prc]
       );
 
+      // Automatically sync BUY trade into user's manual portfolio (portfolio_items)
+      try {
+        const manualHolding = await query(
+          'SELECT id, quantity, buy_price FROM portfolio_items WHERE user_id = $1 AND symbol = $2',
+          [req.user.id, symbol]
+        );
+        if (manualHolding.rows.length > 0) {
+          const item = manualHolding.rows[0];
+          const mQty = parseFloat(item.quantity) || 0;
+          const mBuyPrice = parseFloat(item.buy_price) || 0;
+          const updatedQty = mQty + qty;
+          const updatedPrice = updatedQty > 0 ? (mQty * mBuyPrice + qty * prc) / updatedQty : prc;
+          await query(
+            'UPDATE portfolio_items SET quantity = $1, buy_price = $2 WHERE id = $3',
+            [updatedQty, parseFloat(updatedPrice.toFixed(2)), item.id]
+          );
+        } else {
+          await query(
+            'INSERT INTO portfolio_items (id, user_id, symbol, quantity, buy_price) VALUES ($1, $2, $3, $4, $5)',
+            [crypto.randomUUID(), req.user.id, symbol, qty, prc]
+          );
+        }
+      } catch (syncErr) {
+        console.warn('[Auto-Sync] Failed to sync BUY into portfolio_items:', syncErr.message);
+      }
+
       return res.json({ 
         success: true, 
         message: isPendingOrderFill 
@@ -250,6 +276,26 @@ router.post('/trade', authenticate, async (req, res) => {
         await query('DELETE FROM paper_portfolio_items WHERE id = $1', [existing.id]);
       } else {
         await query('UPDATE paper_portfolio_items SET quantity = $1 WHERE id = $2', [newQty, existing.id]);
+      }
+
+      // Automatically sync SELL trade into user's manual portfolio (portfolio_items)
+      try {
+        const manualHolding = await query(
+          'SELECT id, quantity FROM portfolio_items WHERE user_id = $1 AND symbol = $2',
+          [req.user.id, symbol]
+        );
+        if (manualHolding.rows.length > 0) {
+          const item = manualHolding.rows[0];
+          const mQty = parseFloat(item.quantity) || 0;
+          const updatedQty = Math.max(0, mQty - qty);
+          if (updatedQty === 0) {
+            await query('DELETE FROM portfolio_items WHERE id = $1', [item.id]);
+          } else {
+            await query('UPDATE portfolio_items SET quantity = $1 WHERE id = $2', [updatedQty, item.id]);
+          }
+        }
+      } catch (syncErr) {
+        console.warn('[Auto-Sync] Failed to sync SELL into portfolio_items:', syncErr.message);
       }
 
       // Update balance

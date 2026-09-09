@@ -117,6 +117,7 @@ export default function AIMentor() {
   const [expandedCategory, setExpandedCategory] = useState(null);
   
   const chatEndRef = useRef(null);
+  const lastUserMsgRef = useRef(null);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [mobileTab, setMobileTab] = useState('chat');
@@ -207,7 +208,11 @@ export default function AIMentor() {
   }, []);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (lastUserMsgRef.current) {
+      lastUserMsgRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages, mentorType]);
 
   const loadStockForecast = async (stockSymbol, shouldInjectWelcomeMsg = false) => {
@@ -277,12 +282,16 @@ export default function AIMentor() {
         setRightTab('forecast');
 
         if (shouldInjectWelcomeMsg) {
-          setMessages([
-            {
-              sender: 'ai',
-              text: `### 🔍 Live Chart Ingested for **${data.symbol}**\nNone has successfully scanned the live charts and indicators for **${data.symbol}**.\n\n* **Last Price**: ₹${data.price}\n* **RSI (14)**: ${data.rsi} (${data.rsi > 70 ? 'Overbought' : data.rsi < 30 ? 'Oversold' : 'Neutral'})\n* **Calculated Support**: ₹${data.support}\n* **Calculated Resistance**: ₹${data.resistance}\n* **Primary Trend**: ${data.trend}\n\nAsk me any questions about this setup (e.g. "Is this a trap?" or "Should I enter a buy/sell trade?"). I am ready to guide you.`
-            }
-          ]);
+          setMessages(prev => {
+            if (prev && prev.length > 1) return prev;
+            return [
+              {
+                id: 'welcome_' + Date.now(),
+                sender: 'ai',
+                text: `### 🔍 Live Chart Ingested for **${data.symbol}**\nNone has successfully scanned the live charts and indicators for **${data.symbol}**.\n\n* **Last Price**: ₹${data.price}\n* **RSI (14)**: ${data.rsi} (${data.rsi > 70 ? 'Overbought' : data.rsi < 30 ? 'Oversold' : 'Neutral'})\n* **Calculated Support**: ₹${data.support}\n* **Calculated Resistance**: ₹${data.resistance}\n* **Primary Trend**: ${data.trend}\n\nAsk me any questions about this setup (e.g. "Is this a trap?" or "Should I enter a buy/sell trade?"). I am ready to guide you.`
+              }
+            ];
+          });
         }
         
         toast.success(`Live data for ${data.symbol} loaded into None Core!`);
@@ -317,9 +326,11 @@ export default function AIMentor() {
     try {
       setSending(true);
       const res = await apiClient.get(`/ai/conversations/${convId}/messages`);
-      const mapped = res.data.map(m => ({
+      const mapped = res.data.map((m, idx) => ({
+        id: m.id || `hist_${idx}_${Date.now()}`,
         sender: m.sender === 'model' ? 'ai' : m.sender,
-        text: m.text
+        text: m.text,
+        timestamp: m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null
       }));
       setMessages(mapped.length > 0 ? mapped : [
         { sender: 'ai', text: 'Conversation is empty. Ask me any investing questions!' }
@@ -451,13 +462,17 @@ export default function AIMentor() {
     }
 
     const userMsgCount = messages.filter(m => m.sender === 'user').length;
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     if (userMsgCount >= 5 && !user?.is_pro) {
       toast.error('Free limit reached! Please upgrade to Pro for unlimited None AI Mentor conversations.');
       setMessages(prev => [
         ...prev,
-        { sender: 'user', text },
+        { id: 'user_' + Date.now(), sender: 'user', text, timestamp: timeNow },
         {
+          id: 'ai_' + Date.now(),
           sender: 'ai',
+          replyTo: text,
+          timestamp: timeNow,
           text: '### 🔒 Pro Membership Required\n\nYou have completed your limit of 5 free messages with None AI Mentor. Upgrade to **NonStock Pro** to enjoy unlimited conversational guidance, options scanner metrics, and custom SMS/WhatsApp notifications.\n\n[Upgrade to Pro Membership](/upgrade-pro)'
         }
       ]);
@@ -465,7 +480,13 @@ export default function AIMentor() {
       return;
     }
 
-    setMessages(prev => [...prev, { sender: 'user', text }]);
+    const newUserMsg = {
+      id: 'msg_user_' + Date.now(),
+      sender: 'user',
+      text,
+      timestamp: timeNow
+    };
+    setMessages(prev => [...prev, newUserMsg]);
 
     try {
       const res = await apiClient.post('/ai/ask', {
@@ -482,7 +503,14 @@ export default function AIMentor() {
         }
       });
 
-      setMessages(prev => [...prev, { sender: 'ai', text: res.data.response }]);
+      const newAiMsg = {
+        id: 'msg_ai_' + Date.now(),
+        sender: 'ai',
+        text: res.data.response,
+        replyTo: text,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, newAiMsg]);
 
       if (!activeConversationId && res.data.conversationId) {
         setActiveConversationId(res.data.conversationId);
@@ -880,23 +908,38 @@ export default function AIMentor() {
           </div>
 
           {/* Messages log */}
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {messages.map((msg, idx) => {
               const isProAccount = user?.is_pro || accountMode === 'pro';
+              const isLatestUserMsg = msg.sender === 'user' && (idx === messages.length - 1 || idx === messages.length - 2);
 
               if (msg.sender === 'user') {
                 return (
                   <div 
-                    key={idx} 
+                    key={msg.id || idx} 
+                    ref={isLatestUserMsg ? lastUserMsgRef : null}
                     style={{ alignSelf: 'flex-end', maxWidth: '85%' }}
                   >
-                    <div style={{ background: '#f8f9fa', border: isProAccount ? '1px solid #fcd34d' : '1px solid #e5e7eb', borderRadius: '12px 12px 2px 12px', padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: '900', color: isProAccount ? '#b45309' : '#059669', letterSpacing: '0.5px' }}>
-                          {isProAccount ? 'PRO TRADER' : 'YOU'}
+                    <div style={{
+                      background: isProAccount 
+                        ? 'linear-gradient(135deg, rgba(254, 243, 199, 0.95) 0%, rgba(253, 230, 138, 0.95) 100%)' 
+                        : 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.95) 100%)',
+                      border: isProAccount ? '1.5px solid #f59e0b' : '1.5px solid #0284c7',
+                      borderRadius: '14px 14px 2px 14px',
+                      padding: '12px 16px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: '900', color: isProAccount ? '#b45309' : '#0369a1', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                          {isProAccount ? '👑 PRO TRADER' : '👤 YOU'}
                         </span>
+                        {msg.timestamp && (
+                          <span style={{ fontSize: '9px', color: '#6b7280', fontWeight: '600' }}>
+                            {msg.timestamp}
+                          </span>
+                        )}
                       </div>
-                      <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '600', lineHeight: '1.45', color: '#111827' }}>
+                      <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', lineHeight: '1.45', color: '#0f172a', wordBreak: 'break-word' }}>
                         {msg.text}
                       </p>
                     </div>
@@ -904,21 +947,64 @@ export default function AIMentor() {
                 );
               }
 
+              // Determine prompt question for this AI reply
+              let promptQuestion = msg.replyTo;
+              if (!promptQuestion && idx > 0) {
+                for (let i = idx - 1; i >= 0; i--) {
+                  if (messages[i].sender === 'user') {
+                    promptQuestion = messages[i].text;
+                    break;
+                  }
+                }
+              }
+
               return (
                 <div 
-                  key={idx} 
+                  key={msg.id || idx} 
                   style={{
                     alignSelf: 'flex-start',
-                    maxWidth: '85%',
+                    maxWidth: '88%',
                     background: '#ffffff',
                     border: isProAccount ? '1px solid #fcd34d' : '1px solid #e5e7eb',
-                    borderTop: isProAccount ? '2px solid #f59e0b' : '1px solid #00bcd4',
+                    borderTop: isProAccount ? '3px solid #f59e0b' : '3px solid #00bcd4',
                     borderRadius: '12px 12px 12px 2px',
-                    padding: '14px 18px',
+                    padding: '16px 18px',
                     color: '#111827',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.06)'
                   }}
                 >
+                  {/* Prompt Citation Box: User's question clearly visible above the AI Mentor's reply */}
+                  {promptQuestion && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '8px',
+                      background: isProAccount ? 'rgba(245, 158, 11, 0.08)' : 'rgba(0, 188, 212, 0.08)',
+                      borderLeft: isProAccount ? '3px solid #f59e0b' : '3px solid #00bcd4',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      marginBottom: '12px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, marginTop: '2px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: '800', color: isProAccount ? '#b45309' : '#0369a1', textTransform: 'uppercase' }}>
+                          Replying to:
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '12.5px', color: '#1e293b', fontWeight: '600', fontStyle: 'italic', wordBreak: 'break-word' }}>
+                        "{promptQuestion}"
+                      </span>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '800', color: isProAccount ? '#b45309' : '#0369a1', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Sparkles size={12} /> {isProAccount ? 'None Pro AI Mentor' : 'None AI Mentor'}
+                    </span>
+                    {msg.timestamp && (
+                      <span style={{ fontSize: '9px', color: '#9ca3af' }}>{msg.timestamp}</span>
+                    )}
+                  </div>
+
                   <div>
                     {formatAIMessage(msg.text)}
                   </div>
