@@ -242,9 +242,9 @@ export default function FnO() {
   // Determine sentiment details based on PCR
   const getSentiment = () => {
     if (pcr >= 1.3) return { label: 'Extremely Bullish', color: '#00ff88', rotation: 65 };
-    if (pcr >= 1.05) return { label: 'Moderately Bullish', color: '#00e5ff', rotation: 30 };
+    if (pcr >= 1.05) return { label: 'Moderately Bullish', color: '#00ff88', rotation: 30 };
     if (pcr >= 0.9) return { label: 'Neutral / Balanced', color: '#ffb300', rotation: 0 };
-    if (pcr >= 0.7) return { label: 'Moderately Bearish', color: '#ff6d00', rotation: -30 };
+    if (pcr >= 0.7) return { label: 'Moderately Bearish', color: '#ff4444', rotation: -30 };
     return { label: 'Extremely Bearish', color: '#ff4444', rotation: -65 };
   };
 
@@ -423,7 +423,7 @@ export default function FnO() {
         <div className="section-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div className="section-header" style={{ marginBottom: '24px' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Compass size={20} style={{ color: '#00ff88' }} /> F&O Sentiment Gauge
+              <Compass size={20} style={{ color: sentiment.color, transition: 'color 0.4s ease' }} /> F&O Sentiment Gauge
             </h2>
           </div>
           
@@ -441,19 +441,32 @@ export default function FnO() {
                 </linearGradient>
               </defs>
               
-              {/* Pointer Needle */}
+              {/* Pointer Needle - dynamically colored based on gauge zone (Green, Yellow, or Red) */}
               <line 
                 x1="100" 
                 y1="100" 
                 x2="100" 
-                y2="30" 
-                stroke="#ffffff" 
+                y2="28" 
+                stroke={sentiment.color} 
                 strokeWidth="4" 
                 strokeLinecap="round" 
                 transform={`rotate(${sentiment.rotation}, 100, 100)`}
-                style={{ transition: 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}
+                style={{ 
+                  transition: 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.4s ease',
+                  filter: `drop-shadow(0 0 6px ${sentiment.color})`
+                }}
               />
-              <circle cx="100" cy="100" r="8" fill="#ffffff" />
+              <circle 
+                cx="100" 
+                cy="100" 
+                r="7" 
+                fill={sentiment.color} 
+                style={{ 
+                  transition: 'fill 0.4s ease',
+                  filter: `drop-shadow(0 0 6px ${sentiment.color})`
+                }} 
+              />
+              <circle cx="100" cy="100" r="3" fill="#ffffff" />
             </svg>
             
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
