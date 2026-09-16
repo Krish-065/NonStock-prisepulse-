@@ -252,6 +252,7 @@ export default function PaperTrading() {
   
   // Chart Refs
   const chartContainerRef = useRef(null);
+  const chartWrapperRef = useRef(null);
   
   // Custom Chart States & Refs
   const [chartType, setChartType] = useState('tradingview'); // 'tradingview' or 'custom'
@@ -320,21 +321,24 @@ export default function PaperTrading() {
     const range = getRulerRange(selectedSymbol);
     const pctDiff = (price - basePrice) / basePrice;
     const clampedDiff = Math.max(-range, Math.min(range, pctDiff));
-    // map +range to 15% (top portion) and -range to 85% (bottom portion)
-    return 50 - (clampedDiff / range) * 35;
+    // map +range to 12% (top portion) and -range to 88% (bottom portion)
+    return 50 - (clampedDiff / range) * 38;
   };
 
   const getYPercentPrice = (yPercent, basePrice) => {
     if (!basePrice) return 0;
     const range = getRulerRange(selectedSymbol);
-    const pctDiff = ((50 - yPercent) / 35) * range;
+    const pctDiff = ((50 - yPercent) / 38) * range;
     return basePrice * (1 + pctDiff);
   };
 
   const handleDragStart = (e, type, activeHolding) => {
     e.preventDefault();
+    e.stopPropagation();
     isDraggingRef.current = true;
-    const trackElement = e.currentTarget.parentElement;
+    
+    // Measure against chartWrapperRef for full chart dragging
+    const trackElement = chartWrapperRef.current || e.currentTarget.parentElement;
     const rect = trackElement.getBoundingClientRect();
     
     // Initialize lastDraggedPriceRef to current value to prevent resetting if user just clicks without moving
@@ -343,18 +347,22 @@ export default function PaperTrading() {
         ? (slInputsRef.current[selectedSymbol] || activeHolding.stopLoss) 
         : (tpInputsRef.current[selectedSymbol] || activeHolding.takeProfit);
     } else {
-      lastDraggedPriceRef.current = type === 'sl' ? formStopLoss : formTakeProfit;
+      lastDraggedPriceRef.current = type === 'sl' ? (formStopLoss || panelSlPrice) : (formTakeProfit || panelTpPrice);
     }
     
     const handleMouseMove = (moveEvent) => {
       const y = moveEvent.clientY - rect.top;
-      const clampedY = Math.max(0, Math.min(rect.height, y));
+      const clampedY = Math.max(rect.height * 0.08, Math.min(rect.height * 0.92, y));
       const yPercent = (clampedY / rect.height) * 100;
       
-      const basePrice = activeHolding ? parseFloat(activeHolding.buyPrice) : livePriceRef.current;
+      const basePrice = activeHolding ? parseFloat(activeHolding.buyPrice) : (livePriceRef.current || 100);
       if (!basePrice) return;
       
-      const draggedPrice = parseFloat(getYPercentPrice(yPercent, basePrice).toFixed(4));
+      const range = getRulerRange(selectedSymbol);
+      const diff = ((50 - yPercent) / 38) * range;
+      const step = basePrice > 1000 ? 5 : basePrice > 100 ? 0.5 : 0.01;
+      const rawPrice = basePrice * (1 + diff);
+      const draggedPrice = parseFloat((Math.round(rawPrice / step) * step).toFixed(selectedSymbol.toUpperCase().endsWith('=X') ? 4 : 2));
       lastDraggedPriceRef.current = draggedPrice;
       
       if (activeHolding) {
@@ -366,23 +374,27 @@ export default function PaperTrading() {
       } else {
         if (type === 'sl') {
           setFormStopLoss(draggedPrice);
+          setPanelSlPrice(draggedPrice.toString());
         } else {
           setFormTakeProfit(draggedPrice);
+          setPanelTpPrice(draggedPrice.toString());
         }
       }
     };
     
-    const handleMouseUp = () => {
+    const handleMouseUp = async () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
       isDraggingRef.current = false;
       
+      const finalPrice = lastDraggedPriceRef.current;
       if (activeHolding) {
-        const finalPrice = lastDraggedPriceRef.current;
         if (type === 'sl') {
-          handleSaveSlTp(selectedSymbol, finalPrice, tpInputsRef.current[selectedSymbol]);
+          await handleSaveSlTp(selectedSymbol, finalPrice, tpInputsRef.current[selectedSymbol]);
+          toast.success(`Stop Loss moved to $${finalPrice.toLocaleString()}`);
         } else {
-          handleSaveSlTp(selectedSymbol, slInputsRef.current[selectedSymbol], finalPrice);
+          await handleSaveSlTp(selectedSymbol, slInputsRef.current[selectedSymbol], finalPrice);
+          toast.success(`Take Profit moved to $${finalPrice.toLocaleString()}`);
         }
       }
     };
@@ -2418,7 +2430,10 @@ export default function PaperTrading() {
             gap: '12px' 
           }}>
             {/* Chart Container */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', height: isChartFullscreen ? '100vh' : 'auto' }}>
+            <div 
+              ref={chartWrapperRef}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', height: isChartFullscreen ? '100vh' : 'auto' }}
+            >
               {/* Fullscreen Exit Header Bar */}
               {isChartFullscreen && (
                 <div style={{
@@ -2466,63 +2481,158 @@ export default function PaperTrading() {
                 <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
               </div>
 
-              {/* Interactive On-Chart Visual Order Overlay Lines (Entry, TP, SL) */}
+              {/* TradingView-Style On-Chart Interactive Order & SL/TP Overlay */}
               {(() => {
                 const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+                if (!activeHolding && !tpActive && !slActive) return null;
+
                 const entryP = activeHolding ? parseFloat(activeHolding.buyPrice) : (livePrice || 75723);
                 const curP = livePrice || entryP;
                 const posQty = activeHolding ? parseFloat(activeHolding.quantity) : panelQuantity;
                 const isShort = panelPositionSide === 'SHORT';
-                const tpP = activeHolding?.takeProfit || parseFloat(panelTpPrice) || (isShort ? entryP * 0.96 : entryP * 1.04);
-                const slP = activeHolding?.stopLoss || parseFloat(panelSlPrice) || (isShort ? entryP * 1.04 : entryP * 0.96);
-                
+
+                // Real or simulated SL & TP
+                const curSl = activeHolding ? (slInputs[selectedSymbol] || activeHolding.stopLoss) : (slActive ? (panelSlPrice || Math.round(isShort ? entryP * 1.04 : entryP * 0.96)) : null);
+                const curTp = activeHolding ? (tpInputs[selectedSymbol] || activeHolding.takeProfit) : (tpActive ? (panelTpPrice || Math.round(isShort ? entryP * 0.96 : entryP * 1.04)) : null);
+
+                const entryY = 50; // Reference midline for active position
+                const slY = curSl ? getPriceYPercent(parseFloat(curSl), entryP) : null;
+                const tpY = curTp ? getPriceYPercent(parseFloat(curTp), entryP) : null;
+
                 const curPnlUsd = isShort ? (entryP - curP) * posQty : (curP - entryP) * posQty;
-                const tpGainUsd = isShort ? (entryP - tpP) * posQty : (tpP - entryP) * posQty;
-                const slLossUsd = isShort ? (slP - entryP) * posQty : (entryP - slP) * posQty;
+                const curPnlPct = entryP > 0 ? ((curP - entryP) / entryP) * 100 * (isShort ? -1 : 1) : 0;
+
+                const slLossUsd = curSl ? (isShort ? (parseFloat(curSl) - entryP) * posQty : (entryP - parseFloat(curSl)) * posQty) : 0;
+                const tpGainUsd = curTp ? (isShort ? (entryP - parseFloat(curTp)) * posQty : (parseFloat(curTp) - entryP) * posQty) : 0;
 
                 return (
                   <div style={{
                     position: 'absolute',
-                    top: isChartFullscreen ? '56px' : '16px',
-                    left: '60px',
-                    right: '60px',
+                    top: isChartFullscreen ? '44px' : 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
                     pointerEvents: 'none',
-                    zIndex: 25,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px'
+                    zIndex: 20,
+                    overflow: 'hidden'
                   }}>
-                    {/* Visual SL Banner Line */}
-                    {slActive && (
+                    {/* 1. ON-CHART ENTRY POSITION LINE */}
+                    {activeHolding && (
                       <div style={{
+                        position: 'absolute',
+                        top: `${entryY}%`,
+                        left: 0,
+                        right: 0,
+                        transform: 'translateY(-50%)',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        background: 'rgba(255, 68, 68, 0.12)',
-                        border: '1px dashed #ff4444',
-                        borderRadius: '6px',
-                        padding: '4px 12px',
-                        pointerEvents: 'auto'
+                        pointerEvents: 'none'
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#ff4444', background: 'rgba(255, 68, 68, 0.2)', padding: '2px 6px', borderRadius: '4px' }}>
-                            SL
+                        {/* Horizontal Line across chart */}
+                        <div style={{
+                          flex: 1,
+                          borderTop: isShort ? '1.5px dashed #ff4444' : '1.5px dashed #00bcd4',
+                          opacity: 0.85
+                        }} />
+
+                        {/* TradingView Entry Badge */}
+                        <div style={{
+                          background: '#131722',
+                          border: `1px solid ${isShort ? '#ff4444' : '#00bcd4'}`,
+                          borderRadius: '4px',
+                          padding: '3px 10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+                          pointerEvents: 'auto',
+                          marginRight: '65px'
+                        }}>
+                          <span style={{
+                            fontSize: '10px',
+                            fontWeight: 900,
+                            color: '#ffffff',
+                            background: isShort ? '#ff4444' : '#00b060',
+                            padding: '1px 5px',
+                            borderRadius: '3px'
+                          }}>
+                            {isShort ? 'SHORT' : 'BUY'} {posQty}
                           </span>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
-                            Stop Loss @ ${slP.toLocaleString()}
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace' }}>
+                            ${entryP.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#ff4444' }}>
-                            {posQty} / -${Math.abs(slLossUsd).toFixed(2)} USD
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            color: curPnlUsd >= 0 ? '#00ff88' : '#ff4444',
+                            fontFamily: 'monospace'
+                          }}>
+                            {curPnlUsd >= 0 ? '+' : ''}${curPnlUsd.toFixed(2)} ({curPnlPct >= 0 ? '+' : ''}{curPnlPct.toFixed(2)}%)
                           </span>
+
+                          {/* Quick Add TP / SL buttons if not present */}
+                          {!curTp && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newTp = isShort ? Math.round(entryP * 0.96) : Math.round(entryP * 1.04);
+                                handleSaveSlTp(selectedSymbol, slInputs[selectedSymbol], newTp);
+                              }}
+                              style={{
+                                background: 'rgba(0,255,136,0.15)',
+                                border: '1px solid rgba(0,255,136,0.4)',
+                                color: '#00ff88',
+                                padding: '1px 6px',
+                                borderRadius: '3px',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                              title="Add Take Profit Line"
+                            >
+                              + TP
+                            </button>
+                          )}
+                          {!curSl && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newSl = isShort ? Math.round(entryP * 1.04) : Math.round(entryP * 0.96);
+                                handleSaveSlTp(selectedSymbol, newSl, tpInputs[selectedSymbol]);
+                              }}
+                              style={{
+                                background: 'rgba(255,68,68,0.15)',
+                                border: '1px solid rgba(255,68,68,0.4)',
+                                color: '#ff4444',
+                                padding: '1px 6px',
+                                borderRadius: '3px',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                              title="Add Stop Loss Line"
+                            >
+                              + SL
+                            </button>
+                          )}
+
+                          {/* Close Position button */}
                           <button
                             type="button"
-                            onClick={() => {
-                              setSlActive(false);
-                              toast('Stop Loss disabled for order');
+                            onClick={() => handleClosePosition(activeHolding)}
+                            style={{
+                              background: 'rgba(255,255,255,0.08)',
+                              border: 'none',
+                              color: '#9b9eac',
+                              padding: '1px 5px',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              cursor: 'pointer'
                             }}
-                            style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '0 2px' }}
+                            title="Market Close Position"
+                            onMouseOver={e => e.currentTarget.style.color = '#ff4444'}
+                            onMouseOut={e => e.currentTarget.style.color = '#9b9eac'}
                           >
                             ✕
                           </button>
@@ -2530,94 +2640,167 @@ export default function PaperTrading() {
                       </div>
                     )}
 
-                    {/* Visual Entry Position Banner Line */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      background: isShort ? 'rgba(255, 68, 68, 0.2)' : 'rgba(0, 255, 136, 0.2)',
-                      border: `1px solid ${isShort ? '#ff4444' : '#00ff88'}`,
-                      borderRadius: '6px',
-                      padding: '5px 12px',
-                      pointerEvents: 'auto',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ 
-                          fontSize: '11px', 
-                          fontWeight: 900, 
-                          color: '#ffffff', 
-                          background: isShort ? '#ff4444' : '#00ff88', 
-                          padding: '2px 6px', 
-                          borderRadius: '4px' 
-                        }}>
-                          {isShort ? 'SHORT' : 'LONG'}
-                        </span>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#ffffff' }}>
-                          {posQty} @ ${entryP.toLocaleString()}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ 
-                          fontSize: '11px', 
-                          fontWeight: 800, 
-                          color: curPnlUsd >= 0 ? '#00ff88' : '#ff4444',
-                          background: 'rgba(0, 0, 0, 0.4)',
-                          padding: '2px 6px',
-                          borderRadius: '4px'
-                        }}>
-                          {curPnlUsd >= 0 ? '+' : ''}${curPnlUsd.toFixed(2)} USD
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setShowTradePanel(true)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                            color: '#ffffff',
-                            borderRadius: '4px',
-                            padding: '2px 6px',
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Modify SL/TP
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Visual TP Banner Line */}
-                    {tpActive && (
+                    {/* 2. TAKE PROFIT (TP) DRAGGABLE LINE ACROSS CHART */}
+                    {curTp && tpY !== null && (
                       <div style={{
+                        position: 'absolute',
+                        top: `${tpY}%`,
+                        left: 0,
+                        right: 0,
+                        transform: 'translateY(-50%)',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        background: 'rgba(0, 255, 136, 0.12)',
-                        border: '1px dashed #00ff88',
-                        borderRadius: '6px',
-                        padding: '4px 12px',
-                        pointerEvents: 'auto'
+                        pointerEvents: 'none'
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#00ff88', background: 'rgba(0, 255, 136, 0.2)', padding: '2px 6px', borderRadius: '4px' }}>
-                            TP
+                        {/* Interactive Drag Line */}
+                        <div 
+                          onMouseDown={(e) => handleDragStart(e, 'tp', activeHolding)}
+                          title="Click and drag to modify Take Profit directly on chart"
+                          style={{
+                            flex: 1,
+                            borderTop: '2px dashed #00b060',
+                            height: '14px',
+                            cursor: 'ns-resize',
+                            pointerEvents: 'auto',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        />
+
+                        {/* TradingView TP Badge */}
+                        <div 
+                          onMouseDown={(e) => handleDragStart(e, 'tp', activeHolding)}
+                          title="Drag to modify TP"
+                          style={{
+                            background: '#00b060',
+                            color: '#ffffff',
+                            borderRadius: '4px',
+                            padding: '3px 10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            boxShadow: '0 4px 12px rgba(0, 176, 96, 0.4)',
+                            pointerEvents: 'auto',
+                            cursor: 'ns-resize',
+                            userSelect: 'none',
+                            marginRight: '65px'
+                          }}
+                        >
+                          <span style={{ fontSize: '10px', fontWeight: 900, background: 'rgba(0,0,0,0.25)', padding: '1px 4px', borderRadius: '2px' }}>
+                            ↕ TP
                           </span>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
-                            Take Profit @ ${tpP.toLocaleString()}
+                          <span style={{ fontSize: '11px', fontWeight: 800, fontFamily: 'monospace' }}>
+                            ${parseFloat(curTp).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#00ff88' }}>
-                            {posQty} / +${Math.abs(tpGainUsd).toFixed(2)} USD
+                          <span style={{ fontSize: '11px', fontWeight: 700, opacity: 0.9 }}>
+                            (+${Math.abs(tpGainUsd).toFixed(2)} USD)
                           </span>
                           <button
                             type="button"
-                            onClick={() => {
-                              setTpActive(false);
-                              toast('Take Profit disabled for order');
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (activeHolding) {
+                                handleSaveSlTp(selectedSymbol, slInputs[selectedSymbol], null);
+                              } else {
+                                setFormTakeProfit('');
+                                setPanelTpPrice('');
+                              }
+                              toast('Take Profit removed');
                             }}
-                            style={{ background: 'transparent', border: 'none', color: '#00ff88', cursor: 'pointer', padding: '0 2px' }}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#ffffff',
+                              fontSize: '11px',
+                              fontWeight: 900,
+                              cursor: 'pointer',
+                              padding: '0 2px'
+                            }}
+                            title="Cancel Take Profit"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 3. STOP LOSS (SL) DRAGGABLE LINE ACROSS CHART */}
+                    {curSl && slY !== null && (
+                      <div style={{
+                        position: 'absolute',
+                        top: `${slY}%`,
+                        left: 0,
+                        right: 0,
+                        transform: 'translateY(-50%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        pointerEvents: 'none'
+                      }}>
+                        {/* Interactive Drag Line */}
+                        <div 
+                          onMouseDown={(e) => handleDragStart(e, 'sl', activeHolding)}
+                          title="Click and drag to modify Stop Loss directly on chart"
+                          style={{
+                            flex: 1,
+                            borderTop: '2px dashed #ff4444',
+                            height: '14px',
+                            cursor: 'ns-resize',
+                            pointerEvents: 'auto',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        />
+
+                        {/* TradingView SL Badge */}
+                        <div 
+                          onMouseDown={(e) => handleDragStart(e, 'sl', activeHolding)}
+                          title="Drag to modify SL"
+                          style={{
+                            background: '#ff4444',
+                            color: '#ffffff',
+                            borderRadius: '4px',
+                            padding: '3px 10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            boxShadow: '0 4px 12px rgba(255, 68, 68, 0.4)',
+                            pointerEvents: 'auto',
+                            cursor: 'ns-resize',
+                            userSelect: 'none',
+                            marginRight: '65px'
+                          }}
+                        >
+                          <span style={{ fontSize: '10px', fontWeight: 900, background: 'rgba(0,0,0,0.25)', padding: '1px 4px', borderRadius: '2px' }}>
+                            ↕ SL
+                          </span>
+                          <span style={{ fontSize: '11px', fontWeight: 800, fontFamily: 'monospace' }}>
+                            ${parseFloat(curSl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, opacity: 0.9 }}>
+                            (-${Math.abs(slLossUsd).toFixed(2)} USD)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (activeHolding) {
+                                handleSaveSlTp(selectedSymbol, null, tpInputs[selectedSymbol]);
+                              } else {
+                                setFormStopLoss('');
+                                setPanelSlPrice('');
+                              }
+                              toast('Stop Loss removed');
+                            }}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#ffffff',
+                              fontSize: '11px',
+                              fontWeight: 900,
+                              cursor: 'pointer',
+                              padding: '0 2px'
+                            }}
+                            title="Cancel Stop Loss"
                           >
                             ✕
                           </button>
@@ -2923,475 +3106,7 @@ export default function PaperTrading() {
               );
             })()}
 
-              {/* Floating Position Control Bracket */}
-              {(() => {
-                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
-                if (!activeHolding) return null;
 
-                const isInd = isIndianSymbol(selectedSymbol);
-                const curPrice = livePrice;
-                const valuationUsd = parseFloat(activeHolding.quantity || 0) * (isInd ? parseFloat(curPrice || 0) / usdInrRate : parseFloat(curPrice || 0));
-                const costUsd = parseFloat(activeHolding.quantity || 0) * (isInd ? parseFloat(activeHolding.buyPrice || 0) / usdInrRate : parseFloat(activeHolding.buyPrice || 0));
-                const pnlUsd = valuationUsd - costUsd;
-
-                return (
-                  <div className="mobile-relative-position-bracket" style={{
-                    position: 'absolute',
-                    top: '12px',
-                    right: '60px',
-                    zIndex: 20,
-                    width: '280px',
-                    background: 'rgba(10, 14, 39, 0.85)',
-                    backdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(0, 255, 136, 0.25)',
-                    borderRadius: '12px',
-                    padding: '14px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-                    color: '#ffffff',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#00ff88' }}>
-                        Position: {parseFloat(activeHolding.quantity).toLocaleString()} {cleanSymbolName(selectedSymbol)}
-                      </span>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: pnlUsd >= 0 ? '#00ff88' : '#ff4444' }}>
-                        {pnlUsd >= 0 ? '+' : ''}${pnlUsd.toFixed(2)}
-                      </span>
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>
-                        <span>Stop Loss (SL)</span>
-                        <span style={{ color: '#ff4444' }}>Scroll wheel to modify</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <button
-                          type="button"
-                          onClick={() => modifySlTpViaButton('sl', -1)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: 'none',
-                            color: '#fff',
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          step="any"
-                          value={slInputs[selectedSymbol] ?? ''}
-                          onChange={e => setSlInputs({ ...slInputs, [selectedSymbol]: e.target.value })}
-                          onWheel={e => handleWheelPriceInput(e, selectedSymbol, 'sl', slInputs[selectedSymbol])}
-                          style={{
-                            flex: 1,
-                            background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '6px',
-                            padding: '6px 8px',
-                            color: 'white',
-                            fontSize: '12px',
-                            outline: 'none',
-                            textAlign: 'center'
-                          }}
-                          placeholder="None"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => modifySlTpViaButton('sl', 1)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: 'none',
-                            color: '#fff',
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>
-                        <span>Take Profit (TP)</span>
-                        <span style={{ color: '#00ff88' }}>Scroll wheel to modify</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <button
-                          type="button"
-                          onClick={() => modifySlTpViaButton('tp', -1)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: 'none',
-                            color: '#fff',
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          step="any"
-                          value={tpInputs[selectedSymbol] ?? ''}
-                          onChange={e => setTpInputs({ ...tpInputs, [selectedSymbol]: e.target.value })}
-                          onWheel={e => handleWheelPriceInput(e, selectedSymbol, 'tp', tpInputs[selectedSymbol])}
-                          style={{
-                            flex: 1,
-                            background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '6px',
-                            padding: '6px 8px',
-                            color: 'white',
-                            fontSize: '12px',
-                            outline: 'none',
-                            textAlign: 'center'
-                          }}
-                          placeholder="None"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => modifySlTpViaButton('tp', 1)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: 'none',
-                            color: '#fff',
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                      <button
-                        type="button"
-                        onClick={() => handleSaveSlTp(selectedSymbol, slInputs[selectedSymbol], tpInputs[selectedSymbol])}
-                        style={{
-                          flex: 1,
-                          background: '#00ff88',
-                          color: '#0a0e27',
-                          border: 'none',
-                          padding: '6px 0',
-                          borderRadius: '6px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        Save Brackets
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleClosePosition(activeHolding)}
-                        style={{
-                          flex: 1,
-                          background: 'rgba(255, 68, 68, 0.1)',
-                          border: '1px solid rgba(255, 68, 68, 0.3)',
-                          color: '#ff4444',
-                          padding: '6px 0',
-                          borderRadius: '6px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        Close Position
-                      </button>
-                    </div>
-                  </div>
-                );
-              })()}
-
-            {/* Draggable SL/TP Side Ruler */}
-            <div 
-              onWheel={handleWheelRulerRange}
-              title="Scroll here to zoom/adjust price scale range"
-              style={{
-                width: '80px',
-                height: '520px',
-                background: 'rgba(10, 14, 39, 0.5)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '8px',
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                userSelect: 'none',
-                overflow: 'hidden'
-              }}
-            >
-              {/* Range Info Header */}
-              <div style={{
-                position: 'absolute',
-                top: '4px',
-                fontSize: '8px',
-                color: 'rgba(255, 255, 255, 0.45)',
-                fontWeight: 700,
-                zIndex: 10,
-                textTransform: 'uppercase',
-                pointerEvents: 'none',
-                background: 'rgba(10, 14, 39, 0.75)',
-                padding: '1px 4px',
-                borderRadius: '3px',
-                border: '1px solid rgba(255, 255, 255, 0.05)'
-              }}>
-                ±{(getRulerRange(selectedSymbol) * 100).toFixed(1)}%
-              </div>
-
-              {/* Vertical Scale Line */}
-              <div style={{
-                position: 'absolute',
-                top: '12%',
-                bottom: '12%',
-                width: '2px',
-                background: 'rgba(255,255,255,0.08)',
-                left: '50%',
-                transform: 'translateX(-50%)'
-              }} />
-              
-              {/* Calibrated Ticks & Price Labels */}
-              {(() => {
-                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
-                const basePrice = activeHolding ? parseFloat(activeHolding.buyPrice) : livePrice;
-                if (!basePrice) return null;
-                
-                return [...Array(9)].map((_, i) => {
-                  const tickPct = 15 + i * 8.75; // distributed from 15% to 85%
-                  const tickPrice = getYPercentPrice(tickPct, basePrice);
-                  
-                  return (
-                    <div key={i} style={{
-                      position: 'absolute',
-                      top: `${tickPct}%`,
-                      left: 0,
-                      right: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0 4px',
-                      height: '1px',
-                      zIndex: 2,
-                      pointerEvents: 'none'
-                    }}>
-                      {/* Left tick mark */}
-                      <div style={{ width: i % 2 === 0 ? '6px' : '3px', height: '1px', background: 'rgba(255,255,255,0.15)' }} />
-                      
-                      {/* Price label (only show for even tick indices to avoid clutter) */}
-                      {i % 2 === 0 ? (
-                        <span style={{ 
-                          fontSize: '8px', 
-                          color: 'rgba(255, 255, 255, 0.4)', 
-                          fontFamily: 'monospace',
-                          background: '#0a0e27', // cover the vertical line
-                          padding: '0 2px',
-                          borderRadius: '2px',
-                          fontWeight: 500
-                        }}>
-                          {parseFloat(tickPrice).toFixed(selectedSymbol.toUpperCase().endsWith('=X') ? 4 : 0)}
-                        </span>
-                      ) : (
-                        <div style={{ width: '4px' }} />
-                      )}
-                      
-                      {/* Right tick mark */}
-                      <div style={{ width: i % 2 === 0 ? '6px' : '3px', height: '1px', background: 'rgba(255,255,255,0.15)' }} />
-                    </div>
-                  );
-                });
-              })()}
-              
-              {/* Base Price Line (Middle) */}
-              {(() => {
-                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
-                return (
-                  <>
-                    <div style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: 0,
-                      right: 0,
-                      height: '1px',
-                      borderTop: '1px dashed #00bcd4',
-                      zIndex: 5
-                    }} />
-                    <div style={{
-                      position: 'absolute',
-                      top: '52%',
-                      left: '2px',
-                      fontSize: '9px',
-                      color: '#00bcd4',
-                      fontWeight: 700,
-                      zIndex: 5
-                    }}>
-                      {activeHolding ? 'ENTRY' : 'PRICE'}
-                    </div>
-                  </>
-                );
-              })()}
-              
-              {/* Stop Loss (SL) Draggable Handle */}
-              {(() => {
-                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
-                const basePrice = activeHolding ? parseFloat(activeHolding.buyPrice) : livePrice;
-                const slValue = activeHolding ? slInputs[selectedSymbol] : formStopLoss;
-                const hasSL = slValue !== undefined && slValue !== '' && slValue !== null;
-                const yPct = hasSL ? getPriceYPercent(parseFloat(slValue), basePrice) : 80;
-                
-                return (
-                  <div 
-                    onMouseDown={(e) => handleDragStart(e, 'sl', activeHolding)}
-                    style={{
-                      position: 'absolute',
-                      top: `${yPct}%`,
-                      left: '4px',
-                      right: '4px',
-                      transform: 'translateY(-50%)',
-                      height: '34px',
-                      background: hasSL ? 'rgba(255, 68, 68, 0.25)' : 'rgba(255, 68, 68, 0.05)',
-                      border: `1px solid ${hasSL ? '#ff4444' : 'rgba(255, 68, 68, 0.3)'}`,
-                      borderRadius: '4px',
-                      cursor: 'ns-resize',
-                      zIndex: 10,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      transition: 'background 0.2s'
-                    }}
-                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 68, 68, 0.35)'}
-                    onMouseOut={e => e.currentTarget.style.background = hasSL ? 'rgba(255, 68, 68, 0.25)' : 'rgba(255, 68, 68, 0.05)'}
-                  >
-                    {hasSL && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (activeHolding) {
-                            handleSaveSlTp(selectedSymbol, null, tpInputs[selectedSymbol]);
-                          } else {
-                            setFormStopLoss('');
-                          }
-                        }}
-                        style={{
-                          position: 'absolute',
-                          top: '2px',
-                          right: '6px',
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#ff8888',
-                          cursor: 'pointer',
-                          fontSize: '11px',
-                          fontWeight: 900,
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          zIndex: 12
-                        }}
-                        title="Remove Stop Loss"
-                      >
-                        ✕
-                      </button>
-                    )}
-                    <span style={{ fontSize: '8px', fontWeight: 800, color: '#ff4444' }}>SL</span>
-                    <span style={{ fontSize: '9px', fontWeight: 700, color: theme === 'light' ? '#111827' : '#ffffff' }}>
-                      {hasSL ? parseFloat(slValue).toFixed(1) : 'Drag'}
-                    </span>
-                  </div>
-                );
-              })()}
-              
-              {/* Take Profit (TP) Draggable Handle */}
-              {(() => {
-                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
-                const basePrice = activeHolding ? parseFloat(activeHolding.buyPrice) : livePrice;
-                const tpValue = activeHolding ? tpInputs[selectedSymbol] : formTakeProfit;
-                const hasTP = tpValue !== undefined && tpValue !== '' && tpValue !== null;
-                const yPct = hasTP ? getPriceYPercent(parseFloat(tpValue), basePrice) : 20;
-                
-                return (
-                  <div 
-                    onMouseDown={(e) => handleDragStart(e, 'tp', activeHolding)}
-                    style={{
-                      position: 'absolute',
-                      top: `${yPct}%`,
-                      left: '4px',
-                      right: '4px',
-                      transform: 'translateY(-50%)',
-                      height: '34px',
-                      background: hasTP ? 'rgba(0, 255, 136, 0.25)' : 'rgba(0, 255, 136, 0.05)',
-                      border: `1px solid ${hasTP ? '#00ff88' : 'rgba(0, 255, 136, 0.3)'}`,
-                      borderRadius: '4px',
-                      cursor: 'ns-resize',
-                      zIndex: 10,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      transition: 'background 0.2s'
-                    }}
-                    onMouseOver={e => e.currentTarget.style.background = 'rgba(0, 255, 136, 0.35)'}
-                    onMouseOut={e => e.currentTarget.style.background = hasTP ? 'rgba(0, 255, 136, 0.25)' : 'rgba(0, 255, 136, 0.05)'}
-                  >
-                    {hasTP && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (activeHolding) {
-                            handleSaveSlTp(selectedSymbol, slInputs[selectedSymbol], null);
-                          } else {
-                            setFormTakeProfit('');
-                          }
-                        }}
-                        style={{
-                          position: 'absolute',
-                          top: '2px',
-                          right: '6px',
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#a3ffd6',
-                          cursor: 'pointer',
-                          fontSize: '11px',
-                          fontWeight: 900,
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          zIndex: 12
-                        }}
-                        title="Remove Take Profit"
-                      >
-                        ✕
-                      </button>
-                    )}
-                    <span style={{ fontSize: '8px', fontWeight: 800, color: '#00ff88' }}>TP</span>
-                    <span style={{ fontSize: '9px', fontWeight: 700, color: theme === 'light' ? '#111827' : '#ffffff' }}>
-                      {hasTP ? parseFloat(tpValue).toFixed(1) : 'Drag'}
-                    </span>
-                  </div>
-                );
-              })()}
-            </div>
 
             {/* Advisory Bot Panel */}
             {selectedAdvisoryBot && (() => {
