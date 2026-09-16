@@ -737,11 +737,11 @@ const STATIC_SYMBOLS = [
   { symbol: 'HG=F', name: 'Copper Futures', exchange: 'Commodity', type: 'EQUITY' }
 ];
 
-router.get('/search/:query', async (req, res) => {
+router.get('/search/indian/:query', async (req, res) => {
   const queryStr = req.params.query.toUpperCase();
   const staticMatches = STATIC_SYMBOLS.filter(item => 
-    item.symbol.toUpperCase().includes(queryStr) || 
-    item.name.toUpperCase().includes(queryStr)
+    (item.exchange === 'NSE' || item.exchange === 'BSE' || item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO')) &&
+    (item.symbol.toUpperCase().includes(queryStr) || item.name.toUpperCase().includes(queryStr))
   );
 
   try {
@@ -750,7 +750,65 @@ router.get('/search/:query', async (req, res) => {
     const data = await response.json();
     const quotes = data.quotes || [];
     const stocks = quotes
-      .filter(q => ['EQUITY', 'INDEX', 'ETF', 'MUTUALFUND', 'CRYPTOCURRENCY', 'CURRENCY'].includes(q.quoteType))
+      .filter(q => ['EQUITY', 'INDEX', 'ETF', 'MUTUALFUND'].includes(q.quoteType))
+      .filter(q => q.symbol.endsWith('.NS') || q.symbol.endsWith('.BO') || ['NSI', 'BOM', 'NSE', 'BSE'].includes(q.exchange))
+      .map(q => ({
+        symbol: q.symbol,
+        name: q.longname || q.shortname || q.symbol,
+        exchange: q.exchange || 'NSE',
+        type: q.quoteType
+      }));
+
+    const seen = new Set();
+    const merged = [];
+    for (const s of staticMatches) {
+      seen.add(s.symbol.toUpperCase());
+      merged.push(s);
+    }
+    for (const s of stocks) {
+      const symUpper = s.symbol.toUpperCase();
+      if (!seen.has(symUpper)) {
+        seen.add(symUpper);
+        merged.push(s);
+      }
+    }
+    res.json(merged.slice(0, 20));
+  } catch (err) {
+    res.json(staticMatches.slice(0, 20));
+  }
+});
+
+router.get('/search/:query', async (req, res) => {
+  const queryStr = req.params.query.toUpperCase();
+  const isIndianReq = req.query.market === 'indian';
+
+  // If Indian market requested, delegate to Indian search
+  if (isIndianReq) {
+    const staticMatches = STATIC_SYMBOLS.filter(item => 
+      (item.exchange === 'NSE' || item.exchange === 'BSE' || item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO')) &&
+      (item.symbol.toUpperCase().includes(queryStr) || item.name.toUpperCase().includes(queryStr))
+    );
+    return res.json(staticMatches.slice(0, 20));
+  }
+
+  // Pure International Search: Strictly filter OUT Indian stocks (.NS, .BO, NSE, BSE)
+  const staticMatches = STATIC_SYMBOLS.filter(item => 
+    !item.symbol.endsWith('.NS') && 
+    !item.symbol.endsWith('.BO') && 
+    item.exchange !== 'NSE' && 
+    item.exchange !== 'BSE' &&
+    (item.symbol.toUpperCase().includes(queryStr) || item.name.toUpperCase().includes(queryStr))
+  );
+
+  try {
+    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(req.params.query)}&quotesCount=30`;
+    const response = await fetch(url, { headers: YAHOO_HEADERS });
+    const data = await response.json();
+    const quotes = data.quotes || [];
+    const stocks = quotes
+      .filter(q => ['EQUITY', 'INDEX', 'ETF', 'CRYPTOCURRENCY', 'CURRENCY'].includes(q.quoteType))
+      // Strictly exclude Indian symbols from international search
+      .filter(q => !q.symbol.endsWith('.NS') && !q.symbol.endsWith('.BO') && !['NSI', 'BOM', 'NSE', 'BSE'].includes(q.exchange))
       .map(q => {
         let exchangeLabel = q.exchange;
         if (q.quoteType === 'CRYPTOCURRENCY') {
@@ -759,8 +817,6 @@ router.get('/search/:query', async (req, res) => {
           exchangeLabel = 'Forex';
         } else if (['NYQ', 'NMS', 'NGM', 'PCX'].includes(q.exchange)) {
           exchangeLabel = 'US Market';
-        } else if (['NSI', 'BOM', 'NSE', 'BSE'].includes(q.exchange) || (q.exchange || '').startsWith('NS') || (q.exchange || '').startsWith('BO')) {
-          exchangeLabel = q.exchange || 'NSE';
         } else {
           exchangeLabel = q.exchange || 'Global';
         }
@@ -1049,134 +1105,108 @@ const NEWS_API_KEY = process.env.NEWS_API_KEY;
 // Curated backup news feed with full analysis structure
 const FALLBACK_NEWS = [
   {
-    title: "Reliance Industries Announces New Solar Gigafactory in Gujarat",
-    description: "Reliance Industries has officially unveiled plans for a state-of-the-art solar photovoltaic giga-factory in Jamnagar, Gujarat. The company intends to invest ₹50,000 crores to accelerate its green energy transition targets.",
+    title: "NVIDIA Hits New Record High as Global AI Chip Demand Accelerates",
+    description: "NVIDIA Corporation surged over 5.2% following unprecedented hyperscaler demand for its next-generation Blackwell AI architecture, driving the S&P 500 and Nasdaq 100 to fresh historic peaks.",
     time: "10:15 AM",
-    date: "02 Jul 2026",
-    url: "https://finance.yahoo.com/quote/RELIANCE.NS",
-    source: "NonStock Research",
-    image: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&auto=format&fit=crop&q=60",
+    date: "16 Sep 2026",
+    url: "https://finance.yahoo.com/quote/NVDA",
+    source: "Wall Street Journal",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=60",
     category: "Equity",
     sentiment: "Bullish",
     impact: "High",
-    takeaway: "Jamnagar gigafactory will boost Reliance's green portfolio and open new high-margin revenue streams. Bullish for long-term investors."
+    takeaway: "Strong forward guidance on Blackwell accelerators cements Nvidia as the pillar of the AI hardware boom. Bullish for tech ETFs (QQQ, XLK)."
   },
   {
-    title: "RBI Holds Repo Rate at 6.5%, Projects FY27 GDP Growth at 7.2%",
-    description: "The Reserve Bank of India's Monetary Policy Committee (MPC) voted unanimously to maintain the benchmark repo rate at 6.50%. RBI Governor Shaktikanta Das highlighted that inflation control remains the priority.",
+    title: "US Federal Reserve Signals Benchmark Rate Reductions as Core PCE Cools",
+    description: "Federal Reserve Chairman Jerome Powell indicated that inflation is sustainably moderating toward the 2.0% objective, clearing the path for monetary policy easing and lower borrowing costs globally.",
     time: "11:30 AM",
-    date: "02 Jul 2026",
-    url: "https://finance.yahoo.com/quote/^NSEI",
-    source: "Reserve Bank of India",
+    date: "16 Sep 2026",
+    url: "https://finance.yahoo.com/quote/^GSPC",
+    source: "Federal Reserve",
     image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=60",
     category: "Economy",
-    sentiment: "Neutral",
-    impact: "High",
-    takeaway: "Steady interest rates prevent borrowing cost escalation for auto and real estate sectors. Positive for financial stability."
-  },
-  {
-    title: "Nifty Call Writers Trapped as Index Surges Past 24,200 Level",
-    description: "Massive short covering was triggered in Nifty 50 weekly options as the index broke through the major resistance level of 24,200, leading to a 170-point intraday rally.",
-    time: "01:45 PM",
-    date: "02 Jul 2026",
-    url: "https://finance.yahoo.com/quote/^NSEI",
-    source: "F&O Desk",
-    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&auto=format&fit=crop&q=60",
-    category: "F&O",
     sentiment: "Bullish",
     impact: "High",
-    takeaway: "Heavy short covering from call writers suggests Nifty could target 24,400 in the current series. Buy on dips recommended."
+    takeaway: "Fed pivot to lower rates provides substantial liquidity tailwinds for global risk assets, US equities, and emerging market currencies."
   },
   {
-    title: "Bitcoin Surges Past $68,000 on Renewed US Institutional ETF Inflows",
-    description: "Bitcoin rallied over 4% in 24 hours to cross $68,000, fueled by high trading volumes in spot Bitcoin ETFs and positive macroeconomic sentiment.",
-    time: "02:10 PM",
-    date: "02 Jul 2026",
+    title: "Bitcoin Surges Past $72,000 as Institutional Spot ETF Inflows Reach $1.2B",
+    description: "Spot Bitcoin ETFs recorded their largest weekly net inflow of the quarter, surpassing $1.2 billion in aggregate volume with sustained demand from global pension funds and asset managers.",
+    time: "01:45 PM",
+    date: "16 Sep 2026",
     url: "https://finance.yahoo.com/quote/BTC-USD",
-    source: "Crypto Intelligence",
+    source: "Bloomberg Crypto",
     image: "https://images.unsplash.com/photo-1516245834210-c4c142787335?w=800&auto=format&fit=crop&q=60",
     category: "Crypto",
     sentiment: "Bullish",
-    impact: "Medium",
-    takeaway: "Strong spot ETF demand indicates institutional accumulation. Next major resistance is seen at the $70,000 mark."
-  },
-  {
-    title: "TCS Q1 Net Profit Rises 8.4% YoY, Exceeds Street Estimates",
-    description: "Tata Consultancy Services (TCS) reported a solid start to the financial year with an 8.4% Year-on-Year increase in consolidated net profit, driven by strong execution in banking and retail verticals.",
-    time: "04:30 PM",
-    date: "02 Jul 2026",
-    url: "https://finance.yahoo.com/quote/TCS.NS",
-    source: "Corporate Disclosures",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=60",
-    category: "Equity",
-    sentiment: "Bullish",
     impact: "High",
-    takeaway: "Beating earnings estimates signals resilience in Indian IT service sector. Positive catalyst for IT stock indices."
+    takeaway: "Institutional accumulation provides a rising floor for Bitcoin. Key overhead resistance sits at $75,000."
   },
   {
-    title: "US Federal Reserve Signals September Rate Cuts as Inflation Moderates",
-    description: "Minutes from the latest Federal Reserve meeting show policy makers are increasingly confident that inflation is cooling toward their 2% target, paving the way for rate cuts.",
-    time: "06:00 PM",
-    date: "02 Jul 2026",
-    url: "https://finance.yahoo.com/quote/^GSPC",
-    source: "Federal Reserve",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=60",
-    category: "Economy",
-    sentiment: "Bullish",
-    impact: "High",
-    takeaway: "Fed pivot to rate cuts will trigger global liquidity inflows. Extremely bullish for emerging markets like India."
-  },
-  {
-    title: "Heavy Long Build-up Detected in Automobile Futures Following Strong Sales Data",
-    description: "Derivative indicators show a significant surge in open interest alongside rising prices for Tata Motors and Mahindra & Mahindra futures after strong monthly dispatch numbers.",
-    time: "03:15 PM",
-    date: "02 Jul 2026",
-    url: "https://finance.yahoo.com/quote/TATAMOTORS.NS",
-    source: "F&O Analytics",
-    image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=60",
+    title: "S&P 500 Call Volume Spikes Ahead of US Triple Witching Options Expiry",
+    description: "Derivatives desks report massive open interest concentration in S&P 500 and Nasdaq 100 call contracts, signaling institutional positioning for a continued momentum rally through the quarter.",
+    time: "02:10 PM",
+    date: "16 Sep 2026",
+    url: "https://finance.yahoo.com/quote/SPY",
+    source: "CBOE Global Markets",
+    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&auto=format&fit=crop&q=60",
     category: "F&O",
     sentiment: "Bullish",
     impact: "Medium",
-    takeaway: "F&O build-up suggests traders are positioning for further auto sector outperformance. Positive momentum trade setup."
+    takeaway: "Favorable gamma profile among market makers suggests reduced intraday volatility and a positive drift into expiry."
   },
   {
-    title: "Ethereum ETF Net Inflows Hit Record Highs as Staking Discussions Resume",
-    description: "Spot Ethereum ETFs recorded a record single-day net inflow of $120 million, prompting renewed optimism about native staking options in regulated funds.",
-    time: "07:45 PM",
-    date: "02 Jul 2026",
-    url: "https://finance.yahoo.com/quote/ETH-USD",
-    source: "CoinDesk",
-    image: "https://images.unsplash.com/photo-1622790698141-94e304bc7ef9?w=800&auto=format&fit=crop&q=60",
-    category: "Crypto",
-    sentiment: "Bullish",
-    impact: "Medium",
-    takeaway: "ETF flows are establishing a strong support floor for Ethereum. Watch out for a break past $3,800 soon."
-  },
-  {
-    title: "Indian Government Announces Infrastructure Capex Boost in Union Budget",
-    description: "The Finance Ministry has proposed an 11.1% increase in capital expenditure allocation for infrastructure projects, highlighting highway, railway, and port development.",
-    time: "09:00 AM",
-    date: "02 Jul 2026",
-    url: "https://finance.yahoo.com/quote/^NSEI",
-    source: "Ministry of Finance",
-    image: "https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=800&auto=format&fit=crop&q=60",
+    title: "Gold Futures Break Out to All-Time Highs on Central Bank Reserve Buying",
+    description: "COMEX Gold futures climbed above $2,580 per ounce as global central banks continued aggressive bullion accumulation alongside safe-haven demand amidst currency volatility.",
+    time: "04:30 PM",
+    date: "16 Sep 2026",
+    url: "https://finance.yahoo.com/quote/GC=F",
+    source: "Financial Times",
+    image: "https://images.unsplash.com/photo-1574607383476-f517f562d92b?w=800&auto=format&fit=crop&q=60",
     category: "Economy",
     sentiment: "Bullish",
     impact: "High",
-    takeaway: "Increased government capex will directly benefit capital goods, steel, and cement manufacturers (L&T, UltraTech)."
+    takeaway: "Sovereign de-dollarization and declining real yields make gold a prime multi-month tactical holding."
   },
   {
-    title: "HDFC Bank Shares Slip on Concern Over Credit-to-Deposit Ratio",
-    description: "Shares of HDFC Bank closed 1.8% lower today as analysts raised concerns that its high credit-to-deposit ratio might limit credit expansion in upcoming quarters.",
-    time: "03:45 PM",
-    date: "02 Jul 2026",
-    url: "https://finance.yahoo.com/quote/HDFCBANK.NS",
-    source: "Brokerage Notes",
-    image: "https://images.unsplash.com/photo-1601597111158-2fceff270190?w=800&auto=format&fit=crop&q=60",
-    category: "Equity",
-    sentiment: "Bearish",
+    title: "EUR/USD Extends Gains as European Central Bank Evaluates Growth Trajectory",
+    description: "The Euro strengthened against the US Dollar to 1.1150 following balanced ECB commentary on eurozone inflation dynamics and sovereign bond spread stabilization.",
+    time: "06:00 PM",
+    date: "16 Sep 2026",
+    url: "https://finance.yahoo.com/quote/EURUSD=X",
+    source: "Reuters FX",
+    image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=60",
+    category: "Economy",
+    sentiment: "Neutral",
     impact: "Medium",
-    takeaway: "Near-term pressure expected as the bank rebalances its loan book. Defensive approach suggested until ratios normalize."
+    takeaway: "Narrowing US-EU interest rate differentials favor continued Euro resilience against the dollar."
+  },
+  {
+    title: "Ethereum Options Open Interest Hits Record $14 Billion on Deribit",
+    description: "Deribit cryptocurrency derivatives exchange logged an unprecedented $14B in active Ethereum options open interest, with institutional traders heavily buying out-of-the-money $4,000 calls.",
+    time: "07:45 PM",
+    date: "16 Sep 2026",
+    url: "https://finance.yahoo.com/quote/ETH-USD",
+    source: "Deribit Insights",
+    image: "https://images.unsplash.com/photo-1622790698141-94e304bc7ef9?w=800&auto=format&fit=crop&q=60",
+    category: "Crypto",
+    sentiment: "Bullish",
+    impact: "High",
+    takeaway: "Elevated call/put ratio points to bullish options sentiment across September and December expirations."
+  },
+  {
+    title: "WTI Crude Oil Holds Steady at $78 as OPEC+ Confirms Voluntary Quota Discipline",
+    description: "Crude oil futures traded in a tight channel after OPEC+ delegates reaffirmed compliance with voluntary production cuts, offsetting concerns over global manufacturing activity.",
+    time: "09:00 AM",
+    date: "16 Sep 2026",
+    url: "https://finance.yahoo.com/quote/CL=F",
+    source: "Energy Intelligence",
+    image: "https://images.unsplash.com/photo-1473090826765-d54ac2fdc1eb?w=800&auto=format&fit=crop&q=60",
+    category: "Economy",
+    sentiment: "Neutral",
+    impact: "Medium",
+    takeaway: "OPEC supply management establishes firm support near $75, while macro resistance caps upside at $82."
   }
 ];
 
@@ -1185,7 +1215,7 @@ router.get('/news', async (req, res) => {
     let articles = [];
 
     if (NEWS_API_KEY) {
-      const url = `https://newsapi.org/v2/everything?q=stock%20market%20OR%20nifty%20OR%20sensex%20OR%20crypto%20OR%20rbi&language=en&sortBy=publishedAt&apiKey=${NEWS_API_KEY}`;
+      const url = `https://newsapi.org/v2/everything?q=wall%20street%20OR%20sp500%20OR%20nasdaq%20OR%20crypto%20OR%20bitcoin%20OR%20fed%20OR%20forex&language=en&sortBy=publishedAt&apiKey=${NEWS_API_KEY}`;
       const response = await fetch(url);
       const data = await response.json();
       

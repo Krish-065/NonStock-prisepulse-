@@ -190,7 +190,7 @@ export default function Landing() {
                 <Search size={20} className="search-icon" />
                 <input
                   type="text"
-                  placeholder="Search stocks, indices, crypto... (Try 'Reliance' or 'BTC')"
+                  placeholder="Search global assets, US stocks, crypto, forex... (Try 'AAPL' or 'BTC')"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="search-input"

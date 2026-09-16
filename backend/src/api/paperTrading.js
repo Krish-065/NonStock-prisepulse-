@@ -653,4 +653,36 @@ router.get('/leaderboard', authenticate, async (req, res) => {
   }
 });
 
+// PUT /api/paper/position/limits - Update stop loss and take profit for active open position
+router.put('/position/limits', authenticate, async (req, res) => {
+  try {
+    const { symbol, stopLoss, takeProfit } = req.body;
+    if (!symbol) {
+      return res.status(400).json({ error: 'Symbol is required' });
+    }
+
+    const slVal = stopLoss !== undefined && stopLoss !== null && stopLoss !== '' ? parseFloat(stopLoss) : null;
+    const tpVal = takeProfit !== undefined && takeProfit !== null && takeProfit !== '' ? parseFloat(takeProfit) : null;
+
+    const updateRes = await query(
+      'UPDATE paper_portfolio_items SET stop_loss = $1, take_profit = $2 WHERE user_id = $3 AND symbol = $4 RETURNING *',
+      [slVal, tpVal, req.user.id, symbol]
+    );
+
+    if (updateRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Active position not found for symbol' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: `Updated SL/TP for ${symbol}: SL = ${slVal !== null ? slVal : 'None'}, TP = ${tpVal !== null ? tpVal : 'None'}`,
+      position: updateRes.rows[0]
+    });
+  } catch (error) {
+    console.error('❌ Update position limits error:', error);
+    res.status(500).json({ error: 'Failed to update position stop loss / take profit' });
+  }
+});
+
 module.exports = router;
+

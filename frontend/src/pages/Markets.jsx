@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, Activity, BarChart2, TrendingUp, Play } from 'lucide-react';
+import { Search, Activity, BarChart2, TrendingUp, Play, Maximize2, Minimize2 } from 'lucide-react';
 import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { apiClient } from '../services/api';
 import { io } from 'socket.io-client';
@@ -10,48 +10,17 @@ import toast from 'react-hot-toast';
 
 // Symbol categories with popular options
 const SYMBOL_CATEGORIES = {
-  'Indian Stocks': [
-    { label: 'SENSEX',     value: 'BSE:SENSEX' },
-    { label: 'NIFTY 50',   value: 'NSE:NIFTY' },
-    { label: 'RELIANCE',   value: 'NSE:RELIANCE' },
-    { label: 'TCS',        value: 'NSE:TCS' },
-    { label: 'HDFC Bank',  value: 'NSE:HDFCBANK' },
-    { label: 'INFOSYS',    value: 'NSE:INFY' },
-    { label: 'ICICI Bank', value: 'NSE:ICICIBANK' },
-    { label: 'SBI',        value: 'NSE:SBIN' },
-    { label: 'ADANI ENT',  value: 'NSE:ADANIENT' },
-    { label: 'ZOMATO',     value: 'NSE:ZOMATO' },
-    { label: 'WIPRO',      value: 'NSE:WIPRO' },
-    { label: 'HCLTECH',    value: 'NSE:HCLTECH' },
-    { label: 'MARUTI',     value: 'NSE:MARUTI' },
-    { label: 'TATAMOTORS', value: 'NSE:TATAMOTORS' },
-    { label: 'BAJFINANCE', value: 'NSE:BAJFINANCE' },
-    { label: 'TITAN',      value: 'NSE:TITAN' },
-    { label: 'SUNPHARMA',  value: 'NSE:SUNPHARMA' },
-    { label: 'DRREDDY',    value: 'NSE:DRREDDY' },
-    { label: 'IRCTC',      value: 'NSE:IRCTC' },
-    { label: 'HAL',        value: 'NSE:HAL' },
-  ],
   'Crypto': [
     { label: 'Bitcoin',    value: 'BINANCE:BTCUSDT' },
     { label: 'Ethereum',   value: 'BINANCE:ETHUSDT' },
     { label: 'BNB',        value: 'BINANCE:BNBUSDT' },
     { label: 'Solana',     value: 'BINANCE:SOLUSDT' },
     { label: 'XRP',        value: 'BINANCE:XRPUSDT' },
-    { label: 'DOGE',       value: 'BINAGE:DOGEUSDT' },
-    { label: 'ADA',        value: 'BINANCE:ADAUSDT' },
-    { label: 'AVAX',       value: 'BINANCE:AVAXUSDT' },
-    { label: 'MATIC',      value: 'BINANCE:MATICUSDT' },
-    { label: 'LINK',       value: 'BINANCE:LINKUSDT' },
-  ],
-  'Forex': [
-    { label: 'USD/INR',  value: 'FX_IDC:USDINR' },
-    { label: 'EUR/INR',  value: 'FX_IDC:EURINR' },
-    { label: 'GBP/INR',  value: 'FX_IDC:GBPINR' },
-    { label: 'EUR/USD',  value: 'FX:EURUSD' },
-    { label: 'GBP/USD',  value: 'FX:GBPUSD' },
-    { label: 'USD/JPY',  value: 'FX:USDJPY' },
-    { label: 'AUD/USD',  value: 'FX:AUDUSD' },
+    { label: 'DOGE',       value: 'BINANCE:DOGEUSDT' },
+    { label: 'Cardano',    value: 'BINANCE:ADAUSDT' },
+    { label: 'Avalanche',  value: 'BINANCE:AVAXUSDT' },
+    { label: 'Polygon',    value: 'BINANCE:MATICUSDT' },
+    { label: 'Chainlink',  value: 'BINANCE:LINKUSDT' },
   ],
   'US Stocks': [
     { label: 'Apple',      value: 'NASDAQ:AAPL' },
@@ -62,8 +31,25 @@ const SYMBOL_CATEGORIES = {
     { label: 'Amazon',     value: 'NASDAQ:AMZN' },
     { label: 'Meta',       value: 'NASDAQ:META' },
     { label: 'Netflix',    value: 'NASDAQ:NFLX' },
+    { label: 'AMD',        value: 'NASDAQ:AMD' },
+    { label: 'Palantir',   value: 'NASDAQ:PLTR' },
+  ],
+  'Global Indices': [
     { label: 'S&P 500',    value: 'SP:SPX' },
-    { label: 'NASDAQ',     value: 'NASDAQ:NDX' },
+    { label: 'NASDAQ 100', value: 'NASDAQ:NDX' },
+    { label: 'Dow Jones',  value: 'DJ:DJI' },
+    { label: 'FTSE 100',   value: 'INDEX:FTSE' },
+    { label: 'DAX 40',     value: 'XETR:DAX' },
+    { label: 'Nikkei 225', value: 'TVC:NI225' },
+    { label: 'Hang Seng',  value: 'HSI:HSI' },
+  ],
+  'Forex': [
+    { label: 'EUR/USD',  value: 'FX:EURUSD' },
+    { label: 'GBP/USD',  value: 'FX:GBPUSD' },
+    { label: 'USD/JPY',  value: 'FX:USDJPY' },
+    { label: 'AUD/USD',  value: 'FX:AUDUSD' },
+    { label: 'USD/CAD',  value: 'FX:USDCAD' },
+    { label: 'USD/CHF',  value: 'FX:USDCHF' },
   ],
   'Commodities': [
     { label: 'Gold',       value: 'TVC:GOLD' },
@@ -551,14 +537,16 @@ export default function Markets() {
     vwap: false,
     sar: false
   });
-  const initialSymbol = location.state?.selectSymbol || 'NSE:NIFTY';
+  const initialSymbol = location.state?.selectSymbol || 'BINANCE:BTCUSDT';
   const initialCategory = (initialSymbol.endsWith('-USD') || initialSymbol.includes('USDT') || initialSymbol.includes('BINANCE:')) 
     ? 'Crypto' 
     : (initialSymbol.endsWith('=F') || initialSymbol.startsWith('TVC:'))
     ? 'Commodities'
     : (initialSymbol.startsWith('NASDAQ:') || initialSymbol.startsWith('SP:'))
     ? 'US Stocks'
-    : 'Indian Stocks';
+    : (initialSymbol.startsWith('FX:') || initialSymbol.includes('USD'))
+    ? 'Forex'
+    : 'Global Indices';
 
   const resolveYahooSymbol = useCallback((sym) => {
     if (!sym) return '';
@@ -587,6 +575,7 @@ export default function Markets() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [chartKey, setChartKey] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const searchRef = useRef();
   // Inline chart search
   const [chartSearchQuery, setChartSearchQuery] = useState('');
@@ -596,13 +585,9 @@ export default function Markets() {
   const [expandedNews, setExpandedNews] = useState(null);
   const [newsTimestamps] = useState(() => [Date.now() - 15*60*1000, Date.now() - 65*60*1000, Date.now() - 3*60*60*1000, Date.now() - 30*60*1000, Date.now() - 2*60*60*1000, Date.now() - 45*60*1000]);
 
-  const selectedMarket = 'All';
+  const selectedMarket = 'International';
 
-  const allowedCategories = Object.keys(SYMBOL_CATEGORIES).filter(cat => {
-    if (selectedMarket === 'Indian') return cat === 'Indian Stocks';
-    if (selectedMarket === 'International') return cat !== 'Indian Stocks';
-    return true;
-  });
+  const allowedCategories = Object.keys(SYMBOL_CATEGORIES);
 
   const isSymbolIndian = (s) => {
     return s.value.startsWith('NSE:') || s.value.startsWith('BSE:') || s.value.endsWith('.NS') || s.value.endsWith('.BO');
@@ -612,17 +597,20 @@ export default function Markets() {
     if (!allowedCategories.includes(activeCategory) && allowedCategories.length > 0) {
       setActiveCategory(allowedCategories[0]);
     }
-  }, [selectedMarket, activeCategory]);
+  }, [activeCategory]);
 
-  const [activeTab, setActiveTab] = useState(() => {
-    const isCrypto = initialSymbol.includes('-USD') || initialSymbol.includes('USDT') || initialSymbol.includes('BINANCE:') || ['BTC-USD', 'ETH-USD', 'SOL-USD'].includes(initialSymbol);
-    const isForex = initialSymbol.endsWith('=X');
-    const isUSStock = ['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOG', 'META', 'NVDA', 'NFLX'].includes(initialSymbol) || initialSymbol.startsWith('NASDAQ:') || initialSymbol.startsWith('SP:');
-    
-    // Default to AngelOne custom chart for Indian stocks & commodities, and TradingView for US/Crypto
-    const useAngelOneChart = !isCrypto && !isForex && !isUSStock;
-    return useAngelOneChart ? 'custom' : 'tradingview';
-  });
+  // Handle ESC key to exit full screen
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
+  const [activeTab, setActiveTab] = useState('tradingview');
 
   useEffect(() => {
     if (location.state && location.state.selectSymbol) {
@@ -635,13 +623,12 @@ export default function Markets() {
         setActiveCategory('Crypto');
       } else if (isCommodity) {
         setActiveCategory('Commodities');
+      } else if (selected.startsWith('FX:') || selected.includes('USD')) {
+        setActiveCategory('Forex');
+      } else if (selected.startsWith('NASDAQ:') || selected.startsWith('SP:')) {
+        setActiveCategory('US Stocks');
       } else {
-        const isUS = selected.startsWith('NASDAQ:') || selected.startsWith('SP:');
-        if (isUS) {
-          setActiveCategory('US Stocks');
-        } else {
-          setActiveCategory('Indian Stocks');
-        }
+        setActiveCategory('Global Indices');
       }
     }
   }, [location.state]);
@@ -662,10 +649,7 @@ export default function Markets() {
     ? ALL_SYMBOLS.filter(s => {
         const matchesQuery = s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
                              s.value.toLowerCase().includes(searchQuery.toLowerCase());
-        if (!matchesQuery) return false;
-        if (selectedMarket === 'Indian') return isSymbolIndian(s);
-        if (selectedMarket === 'International') return !isSymbolIndian(s);
-        return true;
+        return matchesQuery && !isSymbolIndian(s);
       })
     : SYMBOL_CATEGORIES[activeCategory] || [];
 
@@ -678,21 +662,15 @@ export default function Markets() {
 
   const displayLabel = ALL_SYMBOLS.find(s => s.value === symbol)?.label || symbol;
 
-  const isIndianStock = symbol.startsWith('NSE:') || symbol.startsWith('BSE:') || symbol.includes('.NS') || symbol.includes('.BO') || activeCategory === 'Indian Stocks' || !symbol.includes('-');
+  const isIndianStock = false;
 
   // Automatically switch tab when a new symbol is selected
   useEffect(() => {
     if (symbol !== lastSymbolRef.current) {
-      const isCrypto = symbol.includes('-USD') || symbol.includes('-USDT') || ['BTC-USD', 'ETH-USD', 'SOL-USD'].includes(symbol);
-      const isForex = symbol.endsWith('=X');
-      const isUSStock = ['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOG', 'META', 'NVDA', 'NFLX'].includes(symbol);
-      
-      // Default to AngelOne custom chart for Indian stocks & commodities, and TradingView for US/Crypto
-      const useAngelOneChart = !isCrypto && !isForex && !isUSStock;
-      setActiveTab(useAngelOneChart ? 'custom' : 'tradingview');
+      setActiveTab('tradingview');
       lastSymbolRef.current = symbol;
     }
-  }, [symbol, activeCategory]);
+  }, [symbol]);
 
   // Inject spinner styles
   useEffect(() => {
@@ -791,7 +769,7 @@ export default function Markets() {
           hide_side_toolbar: false,
           allow_symbol_change: true,
           width: '100%',
-          height: 540,
+          height: isFullscreen ? (window.innerHeight - 56) : 540,
           studies: ['Volume@tv-basicstudies']
         });
       }
@@ -811,7 +789,7 @@ export default function Markets() {
         script.onload = initTVWidget;
       }
     }
-  }, [symbol, interval, activeTab, chartKey]);
+  }, [symbol, interval, activeTab, chartKey, isFullscreen]);
 
   // 2. Custom Chart Mapping and Helper Functions
   const mapIntervalForApi = useCallback((v) => {
@@ -1278,57 +1256,57 @@ export default function Markets() {
 
   const NEWS_ITEMS = [
     {
-      source: 'Moneycontrol',
-      sourceUrl: 'https://www.moneycontrol.com/markets/indian-indices',
-      title: 'NIFTY 50 tests breakout above 25,000 — IT & Banking sectors lead',
-      desc: 'Technical indicators suggest a strong breakout above 25,000 level driven by IT sector rallying. FII buying continues for 5th consecutive session.',
-      fullDesc: 'The NIFTY 50 index is on the verge of a significant breakout above the 25,000 psychological resistance level, backed by consistent FII inflows and strong sector rotation into IT and Banking stocks. RSI on the daily timeframe has crossed 60, signaling sustained bullish momentum. Key resistance stands at 25,200, while support is firm at 24,600.',
+      source: 'Bloomberg Terminal',
+      sourceUrl: 'https://www.bloomberg.com/markets',
+      title: 'Nvidia Blackwell Ultra architecture crushes demand models as AI capex surges',
+      desc: 'Big tech infrastructure spend hits new record highs. Tech sector momentum propels S&P 500 and Nasdaq into uncharted territory.',
+      fullDesc: 'Morgan Stanley and Goldman Sachs equity desks highlight accelerating enterprise adoption for next-gen accelerators. Order backlog extends well through 2026, leading to widespread price target upgrades across semiconductor manufacturers and high-performance server integrators.',
       sentiment: 'Bullish',
       tsIdx: 0
     },
     {
-      source: 'Forex Factory',
-      sourceUrl: 'https://www.forexfactory.com/calendar',
-      title: 'RBI Policy Decision — INR volatility expected this session',
-      desc: 'High impact event upcoming. Expect sudden volatility in USD/INR pairs. Traders advised to widen stop-losses.',
-      fullDesc: 'The Reserve Bank of India monetary policy committee meeting outcome is scheduled for release today. Market consensus expects rates to remain unchanged. However, any hawkish commentary on inflation could trigger sharp INR appreciation. Options markets are pricing in 0.8% intraday swings in USD/INR.',
-      sentiment: 'Volatile',
+      source: 'Reuters Global',
+      sourceUrl: 'https://www.reuters.com/markets',
+      title: 'Federal Reserve rate cut probability rises to 85% following cooling CPI print',
+      desc: 'Benchmark 10-year Treasury yields drop to 3.82% as interest rate traders position for accelerated monetary easing cycles.',
+      fullDesc: 'Consumer Price Index data shows core inflation declining closer to the central bank 2.0% target. Interest rate swap contracts now reflect three consecutive rate adjustments over upcoming FOMC meetings, stimulating liquidity across equity and digital asset markets worldwide.',
+      sentiment: 'Bullish',
       tsIdx: 1
     },
     {
-      source: 'Economic Times Markets',
-      sourceUrl: 'https://economictimes.indiatimes.com/markets',
-      title: 'BANKNIFTY at critical resistance — RSI overbought at 82',
-      desc: 'RSI at 82 indicates severe overbought conditions. Consider taking profits on long positions or hedging via Puts.',
-      fullDesc: 'The BANKNIFTY index has rallied 4.2% over the past 5 sessions and is now approaching a confluence of resistance — the 200-DMA, a prior swing high, and the upper Bollinger Band. With RSI at 82 and PCR at 0.67, risk-reward for fresh longs is unfavorable. A reversion to 51,500 is the base case before the next leg up.',
-      sentiment: 'Bearish',
+      source: 'CoinDesk Intelligence',
+      sourceUrl: 'https://www.coindesk.com',
+      title: 'Bitcoin institutional ETF inflows hit $1.2B weekly milestone',
+      desc: 'Sovereign wealth funds and corporate treasuries expand digital asset allocations ahead of macroeconomic liquidity injection.',
+      fullDesc: 'Net inflows into US spot Bitcoin ETFs crossed nine figures for the fourth consecutive week. On-chain metrics reveal illiquid supply reaching all-time peaks while exchange balances decline to lowest levels since 2018.',
+      sentiment: 'Bullish',
       tsIdx: 2
     },
     {
-      source: 'Bloomberg Quint',
-      sourceUrl: 'https://www.bqprime.com/markets',
-      title: 'Global cues positive — S&P 500 futures up 0.4% pre-market',
-      desc: 'US futures rally ahead of key CPI print. Asian markets follow suit with NIKKEI gaining 1.1%.',
-      fullDesc: 'Risk-on sentiment prevails in global markets as S&P 500 futures point to a positive opening following dovish Fed commentary overnight. NIKKEI 225 gained 1.1%, Hang Seng rose 0.8%. Gold retreated slightly on dollar strength. Indian markets are expected to open gap-up in line with global cues.',
+      source: 'Wall Street Journal',
+      sourceUrl: 'https://www.wsj.com/finance/stocks',
+      title: 'S&P 500 records new all-time high amid broad-based market breadth expansion',
+      desc: 'Rally extends beyond mega-caps as cyclical, industrial, and financial sectors post notable quarterly gains.',
+      fullDesc: 'Market breadth indicators showcase over 74% of S&P 500 constituents trading above their 200-day simple moving average. Earnings revisions remain positive across 9 out of 11 sectors, reinforcing institutional fund manager allocations.',
       sentiment: 'Bullish',
       tsIdx: 3
     },
     {
-      source: 'NSE India',
-      sourceUrl: 'https://www.nseindia.com',
-      title: 'F&O expiry week — Max Pain at 24,800 for NIFTY',
-      desc: 'Open interest data shows heavy Put writing at 24,800 and Call unwinding at 25,200. Range-bound action likely.',
-      fullDesc: 'As monthly F&O expiry approaches, options data reveals max pain at 24,800 for NIFTY. Put writers are dominant at 24,500, 24,600 and 24,800 strikes, while Call writing is heaviest at 25,000 and 25,200. PCR stands at 1.15, indicating mild bullish bias. Day traders should expect volatile swings in the last 90 minutes of the session.',
+      source: 'Financial Times Energy',
+      sourceUrl: 'https://www.ft.com/commodities',
+      title: 'Crude Oil stabilizes near $78 as OPEC+ reaffirms voluntary supply discipline',
+      desc: 'Brent and WTI crude contracts exhibit tight trading ranges as geopolitical supply risks counter soft seasonal refining margins.',
+      fullDesc: 'OPEC+ delegates signal an extension of voluntary 2.2 million barrel-per-day production curbs. Physical prompt spreads continue backwardation, highlighting immediate tightness in Atlantic basin physical crude supplies.',
       sentiment: 'Neutral',
       tsIdx: 4
     },
     {
-      source: 'TradingView Ideas',
-      sourceUrl: 'https://www.tradingview.com/ideas/nifty/',
-      title: 'RELIANCE forming a cup-and-handle — Target ₹3,200',
-      desc: 'Classic cup-and-handle pattern on weekly chart. Breakout above ₹2,980 triggers long entry with target ₹3,200.',
-      fullDesc: 'Reliance Industries Ltd is forming a textbook cup-and-handle pattern on the weekly timeframe, with the cup base at ₹2,650 formed over 18 weeks. The handle is consolidating near ₹2,950–2,980. A decisive close above ₹2,980 with above-average volume would confirm the breakout, with measured move targeting ₹3,200 and stop-loss at ₹2,870.',
-      sentiment: 'Bullish',
+      source: 'ForexLive Global',
+      sourceUrl: 'https://www.forexlive.com',
+      title: 'EUR/USD tests key 1.1100 resistance as US Dollar Index weakens',
+      desc: 'Currency traders watch ECB policy tone and US labor data for breakout confirmation into fresh multi-month ranges.',
+      fullDesc: 'The US Dollar Index (DXY) slipped towards 101.20 as divergent central bank expectations favor European and commodity-linked currencies. Volatility indices in foreign exchange markets remain elevated around key macroeconomic announcements.',
+      sentiment: 'Volatile',
       tsIdx: 5
     }
   ];
@@ -1347,7 +1325,7 @@ export default function Markets() {
             Live Stream
           </h1>
           <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0 0', fontSize: '14px' }}>
-            Advanced live market streaming — Indian stocks, Crypto, Forex, US markets & more
+            Advanced live market streaming — US Equities, Crypto, Global Indices, Forex & Commodities
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1451,7 +1429,35 @@ export default function Markets() {
 
 
       {/* Workspace Chart Card */}
-      <div className="mobile-reduced-height" style={{ flex: 1, background: '#0a0e27', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)', overflow: 'hidden', minHeight: '620px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
+      <div
+        className={isFullscreen ? "" : "mobile-reduced-height"}
+        style={isFullscreen ? {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 999999,
+          background: '#0a0e27',
+          borderRadius: 0,
+          border: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        } : {
+          flex: 1,
+          background: '#0a0e27',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          overflow: 'hidden',
+          minHeight: '620px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
         
         {/* Workspace Tab Header */}
         <div className="mobile-scroll-x" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '0 16px', flexWrap: 'nowrap', gap: '10px', height: '52px' }}>
@@ -1527,10 +1533,30 @@ export default function Markets() {
             )}
           </div>
 
-          {/* Status dot */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: activeTab === 'custom' ? '#00ff88' : '#00bcd4', boxShadow: activeTab === 'custom' ? '0 0 7px #00ff88' : '0 0 7px #00bcd4' }} />
-            <span style={{ color: '#9b9eac', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>LIVE</span>
+          {/* Status dot + Fullscreen Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: activeTab === 'custom' ? '#00ff88' : '#00bcd4', boxShadow: activeTab === 'custom' ? '0 0 7px #00ff88' : '0 0 7px #00bcd4' }} />
+              <span style={{ color: '#9b9eac', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>LIVE</span>
+            </div>
+            <button
+              onClick={() => {
+                setIsFullscreen(prev => !prev);
+                setChartKey(k => k + 1);
+              }}
+              title={isFullscreen ? "Exit Fullscreen (Esc)" : "Full Screen TradingView"}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                background: isFullscreen ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.06)',
+                border: `1px solid ${isFullscreen ? '#00ff88' : 'rgba(255,255,255,0.12)'}`,
+                color: isFullscreen ? '#00ff88' : '#e1e3e6',
+                padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
+                fontSize: '12px', fontWeight: 700, transition: 'all 0.2s'
+              }}
+            >
+              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              {isFullscreen ? 'Exit' : 'Full Screen'}
+            </button>
           </div>
         </div>
 
@@ -1618,11 +1644,11 @@ export default function Markets() {
         )}
 
         {/* Chart Viewport */}
-        <div className="mobile-reduced-height-chart" style={{ flex: 1, position: 'relative', minHeight: '540px', background: '#0a0e27', display: 'flex', flexDirection: 'column' }}>
+        <div className={isFullscreen ? "" : "mobile-reduced-height-chart"} style={{ flex: 1, position: 'relative', minHeight: isFullscreen ? 'calc(100vh - 54px)' : '540px', background: '#0a0e27', display: 'flex', flexDirection: 'column' }}>
           
           {/* TradingView Container */}
-          <div className="mobile-reduced-height-chart" style={{ display: activeTab === 'tradingview' ? 'block' : 'none', width: '100%', height: '540px' }}>
-            <div id="tradingview_chart_container" className="mobile-reduced-height-chart" ref={tvContainerRef} style={{ width: '100%', height: '540px' }} />
+          <div style={{ display: activeTab === 'tradingview' ? 'block' : 'none', width: '100%', height: isFullscreen ? 'calc(100vh - 54px)' : '540px' }}>
+            <div id="tradingview_chart_container" ref={tvContainerRef} style={{ width: '100%', height: isFullscreen ? 'calc(100vh - 54px)' : '540px' }} />
           </div>
 
           {/* Custom NonStock Chart Container */}
@@ -1730,7 +1756,7 @@ export default function Markets() {
                   <span style={{ position: 'absolute', bottom: -2, right: -2, background: '#ff4444', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '2px 4px', borderRadius: '4px' }}>LIVE</span>
                 </div>
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>Nifty Options Live Expiry Trade</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>BTC & ETH Global Derivatives Expiry</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>by TradeMaster Pro • 12K watching</div>
                 </div>
               </div>

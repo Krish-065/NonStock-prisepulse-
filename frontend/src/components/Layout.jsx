@@ -3,11 +3,13 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, Star, Briefcase, Coins, LineChart, Award, Search, 
   Newspaper, Activity, TrendingUp, LayoutDashboard, MessageSquare,
-  ChevronDown, Sun, Moon, User, Zap, Shield, PieChart, Users
+  ChevronDown, Sun, Moon, User, Zap, Shield, PieChart, Users,
+  Landmark, Sparkles
 } from 'lucide-react';
 import { apiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import Logo from './Logo';
 import SearchWithSuggestions from './SearchWithSuggestions';
 import OnboardingTour from './OnboardingTour';
 import TickerTape from './TickerTape';
@@ -24,19 +26,19 @@ export default function Layout({ children }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState(null);
-  const [marketStatus, setMarketStatus] = useState({ status: 'Open', label: 'Equity & F&O Markets Live', color: '#00b060' });
+  const [marketStatus, setMarketStatus] = useState({ status: 'Open', label: 'Global Markets 24/7 Live', color: '#00ff88' });
 
   const navLinks = [
-    { path: '/community', label: 'Community Hub', icon: <Users size={15} /> },
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={15} /> },
     { path: '/paper-trading', label: 'Trade Desk', icon: <LineChart size={15} /> },
-    { path: '/fno', label: 'F&O Desk', icon: <Activity size={15} /> },
-    { path: '/screener', label: 'Screener', icon: <Search size={15} /> },
-    { path: '/mutual-funds', label: 'Mutual Funds', icon: <PieChart size={15} /> },
-    { path: '/watchlist', label: 'Watchlist', icon: <Star size={15} /> },
-    { path: '/portfolio', label: 'Portfolio', icon: <Briefcase size={15} /> },
-    { path: '/news', label: 'News', icon: <Newspaper size={15} /> },
+    { path: '/strategy-lab', label: 'Strategy Lab', icon: <Sparkles size={15} /> },
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={15} /> },
+    { path: '/community', label: 'Community Hub', icon: <Users size={15} /> },
+    { path: '/fno', label: 'Global F&O', icon: <Activity size={15} /> },
+    { path: '/indian-market', label: 'Indian Market', icon: <Landmark size={15} /> },
+    { path: '/news', label: 'Global News', icon: <Newspaper size={15} /> },
+    { path: '/portfolio', label: 'Portfolio', icon: <Briefcase size={15} /> },
+    { path: '/watchlist', label: 'Watchlist', icon: <Star size={15} /> },
   ];
 
   useEffect(() => {
@@ -55,15 +57,16 @@ export default function Layout({ children }) {
       display: 'flex',
       flexDirection: 'column'
     }}>
-      {/* Sleek Top Angel One Unified Header Navigation */}
+      {/* Sleek Top Unified Header Navigation */}
       <header style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         height: '64px',
-        background: isLight ? '#ffffff' : '#0f172a',
-        borderBottom: isLight ? '1px solid #e5e7eb' : '1px solid rgba(255, 255, 255, 0.1)',
+        background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.95)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: isLight ? '1px solid #e5e7eb' : '1px solid rgba(255, 255, 255, 0.08)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -71,48 +74,17 @@ export default function Layout({ children }) {
         zIndex: 1000,
         boxShadow: isLight ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none'
       }}>
-        {/* Left: Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        {/* Left: Brand Logo & Tagline */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div 
             onClick={() => navigate('/')} 
             style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
               cursor: 'pointer',
-              fontWeight: 800,
-              fontSize: '20px',
-              color: isLight ? '#111827' : '#ffffff',
-              letterSpacing: '-0.5px'
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            <span style={{ 
-              width: '32px', 
-              height: '32px', 
-              borderRadius: '8px', 
-              background: '#00b060', 
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 900,
-              fontSize: '18px'
-            }}>
-              N
-            </span>
-            <span>NonStock</span>
-            {user?.is_pro && (
-              <span style={{ 
-                fontSize: '10px', 
-                background: '#ffb300', 
-                color: '#000000', 
-                padding: '2px 6px', 
-                borderRadius: '4px',
-                fontWeight: 800
-              }}>
-                PRO
-              </span>
-            )}
+            <Logo size={36} showName={true} showTagline={!isMobile} nameSize="19px" />
           </div>
         </div>
 

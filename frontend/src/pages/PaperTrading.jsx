@@ -32,22 +32,33 @@ import {
   Crown,
   Zap,
   MessageSquare,
-  Newspaper
+  Newspaper,
+  Maximize2,
+  Minimize2,
+  Sliders,
+  ToggleLeft,
+  ToggleRight,
+  Check,
+  CornerDownRight
 } from 'lucide-react';
 
 const POPULAR_WATCHLIST = [
-  // Indian Equities
-  { symbol: 'RELIANCE.NS', name: 'Reliance Industries', category: 'Indian Stock' },
-  { symbol: 'TCS.NS', name: 'Tata Consultancy Services', category: 'Indian Stock' },
-  { symbol: 'INFY.NS', name: 'Infosys Ltd', category: 'Indian Stock' },
-  { symbol: 'HDFCBANK.NS', name: 'HDFC Bank', category: 'Indian Stock' },
   // Crypto
-  { symbol: 'BTC-USD', name: 'Bitcoin', category: 'Crypto' },
-  { symbol: 'ETH-USD', name: 'Ethereum', category: 'Crypto' },
-  { symbol: 'SOL-USD', name: 'Solana', category: 'Crypto' },
+  { symbol: 'BTC-USD', name: 'Bitcoin / USD', category: 'Crypto' },
+  { symbol: 'ETH-USD', name: 'Ethereum / USD', category: 'Crypto' },
+  { symbol: 'SOL-USD', name: 'Solana / USD', category: 'Crypto' },
+  { symbol: 'XRP-USD', name: 'Ripple / USD', category: 'Crypto' },
+  // US Equities
+  { symbol: 'AAPL', name: 'Apple Inc.', category: 'US Stock' },
+  { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'US Stock' },
+  { symbol: 'TSLA', name: 'Tesla, Inc.', category: 'US Stock' },
+  { symbol: 'MSFT', name: 'Microsoft Corporation', category: 'US Stock' },
+  // Global Indices & ETFs
+  { symbol: 'SPY', name: 'S&P 500 ETF Trust', category: 'Index / ETF' },
+  { symbol: 'QQQ', name: 'Invesco QQQ Trust', category: 'Index / ETF' },
   // Forex
-  { symbol: 'EURUSD=X', name: 'EUR/USD', category: 'Forex' },
-  { symbol: 'GBPUSD=X', name: 'GBP/USD', category: 'Forex' },
+  { symbol: 'EURUSD=X', name: 'EUR / USD', category: 'Forex' },
+  { symbol: 'GBPUSD=X', name: 'GBP / USD', category: 'Forex' },
   // Commodities
   { symbol: 'GC=F', name: 'Gold Futures', category: 'Commodity' },
   { symbol: 'CL=F', name: 'Crude Oil Futures', category: 'Commodity' }
@@ -207,6 +218,16 @@ export default function PaperTrading() {
   // Position SL/TP inputs state
   const [slInputs, setSlInputs] = useState({});
   const [tpInputs, setTpInputs] = useState({});
+  
+  // Fullscreen Trading Desk & Exits Panel State
+  const [isChartFullscreen, setIsChartFullscreen] = useState(false);
+  const [showTradePanel, setShowTradePanel] = useState(true);
+  const [tpActive, setTpActive] = useState(true);
+  const [slActive, setSlActive] = useState(true);
+  const [panelTpPrice, setPanelTpPrice] = useState('');
+  const [panelSlPrice, setPanelSlPrice] = useState('');
+  const [panelPositionSide, setPanelPositionSide] = useState('SHORT'); // SHORT or LONG
+  const [panelQuantity, setPanelQuantity] = useState(0.001);
   
   // Live Price & FX State
   const [livePrice, setLivePrice] = useState(0);
@@ -779,7 +800,7 @@ export default function PaperTrading() {
           container_id: chartContainerRef.current.id,
           symbol: tvSymbol,
           interval: tvInterval,
-          timezone: 'Asia/Kolkata',
+          timezone: 'Etc/UTC',
           theme: theme === 'dark' ? 'dark' : 'light',
           style: '1',
           locale: 'en',
@@ -788,7 +809,7 @@ export default function PaperTrading() {
           hide_side_toolbar: false,
           allow_symbol_change: true,
           width: '100%',
-          height: 520,
+          height: isChartFullscreen ? '100%' : 580,
           studies: studies
         });
       }
@@ -814,7 +835,7 @@ export default function PaperTrading() {
         script.removeEventListener('load', initWidget);
       }
     };
-  }, [selectedSymbol, chartInterval, activeIndicators, chartType]);
+  }, [selectedSymbol, chartInterval, activeIndicators, chartType, isChartFullscreen]);
 
   // ─── Custom Lightweight Charts Helpers & Effects ───
   const resolveYahooSymbol = (sym) => {
@@ -2305,47 +2326,52 @@ export default function PaperTrading() {
                 </div>
               </div>
 
-              {/* Chart Source Toggles */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '9px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Chart Engine <span style={{ color: '#00bcd4', textTransform: 'none', fontWeight: 500 }}>(TradingView: Intl | NonStock Live: Indian)</span>
-                </span>
-                <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.02)', padding: '4px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', gap: '4px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setChartType('tradingview')}
-                    style={{
-                      background: chartType === 'tradingview' ? 'rgba(0, 188, 212, 0.15)' : 'transparent',
-                      border: 'none',
-                      color: chartType === 'tradingview' ? '#00bcd4' : '#9b9eac',
-                      borderRadius: '6px',
-                      padding: '6px 10px',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    TradingView
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setChartType('custom')}
-                    style={{
-                      background: chartType === 'custom' ? 'rgba(0, 255, 136, 0.15)' : 'transparent',
-                      border: 'none',
-                      color: chartType === 'custom' ? '#00ff88' : '#9b9eac',
-                      borderRadius: '6px',
-                      padding: '6px 10px',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    NonStock Live {isIndianSymbol(selectedSymbol) && '⭐'}
-                  </button>
-                </div>
+              {/* Fullscreen & Trade Panel Action Buttons */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowTradePanel(!showTradePanel)}
+                  style={{
+                    background: showTradePanel ? 'rgba(0, 242, 254, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid rgba(0, 242, 254, 0.3)',
+                    color: showTradePanel ? '#00f2fe' : '#9b9eac',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Sliders size={13} />
+                  <span>{showTradePanel ? 'Hide Order Panel' : 'Show Order Panel'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsChartFullscreen(!isChartFullscreen)}
+                  style={{
+                    background: isChartFullscreen ? '#ff4444' : 'linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 242, 254, 0.15) 100%)',
+                    border: '1px solid rgba(0, 255, 136, 0.3)',
+                    color: isChartFullscreen ? '#ffffff' : '#00ff88',
+                    borderRadius: '8px',
+                    padding: '6px 14px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: isChartFullscreen ? '0 0 15px rgba(255, 68, 68, 0.4)' : '0 0 10px rgba(0, 255, 136, 0.2)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {isChartFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                  <span>{isChartFullscreen ? 'Exit Full Screen' : 'Full Screen Terminal'}</span>
+                </button>
               </div>
 
               {/* Interval Toggles */}
@@ -2373,29 +2399,529 @@ export default function PaperTrading() {
             </div>
           </div>
 
-          {/* Drawings and Chart Wrapper */}
-          <div style={{ display: 'flex', position: 'relative', width: '100%', gap: '10px' }}>
+          {/* Drawings and Chart Wrapper (Supports 100vw x 100vh Full Screen Mode) */}
+          <div style={isChartFullscreen ? {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 999999,
+            background: '#090e1a',
+            display: 'flex',
+            flexDirection: 'row',
+            overflow: 'hidden'
+          } : { 
+            display: 'flex', 
+            position: 'relative', 
+            width: '100%', 
+            gap: '12px' 
+          }}>
             {/* Chart Container */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', height: isChartFullscreen ? '100vh' : 'auto' }}>
+              {/* Fullscreen Exit Header Bar */}
+              {isChartFullscreen && (
+                <div style={{
+                  height: '44px',
+                  background: '#131722',
+                  borderBottom: '1px solid #2a2e39',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0 16px',
+                  zIndex: 30
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 900, color: '#00ff88' }}>
+                      {cleanSymbolName(selectedSymbol)}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#9b9eac' }}>
+                      Live International Advanced Chart
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsChartFullscreen(false)}
+                    style={{
+                      background: '#ff4444',
+                      border: 'none',
+                      color: '#ffffff',
+                      borderRadius: '6px',
+                      padding: '5px 12px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <Minimize2 size={12} />
+                    Exit Full Screen
+                  </button>
+                </div>
+              )}
+
               {/* TradingView Widget Container */}
-              <div className="mobile-reduced-height-chart" style={{ display: chartType === 'tradingview' ? 'block' : 'none', width: '100%', height: '520px' }}>
-                <div id="tradingview_paper_chart" className="mobile-reduced-height-chart" ref={chartContainerRef} style={{ width: '100%', height: '520px' }} />
+              <div style={{ width: '100%', height: isChartFullscreen ? 'calc(100vh - 44px)' : '580px' }}>
+                <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
               </div>
 
-              {/* Custom Candlestick Chart Container */}
-              <div className="mobile-reduced-height-chart" style={{ display: chartType === 'custom' ? 'block' : 'none', width: '100%', height: '520px', position: 'relative' }}>
-                {customLoading && (
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(10, 14, 39, 0.8)', zIndex: 10 }}>
-                    <div style={{ color: '#00ff88', fontSize: '14px', fontWeight: 600 }}>Loading custom chart data...</div>
+              {/* Interactive On-Chart Visual Order Overlay Lines (Entry, TP, SL) */}
+              {(() => {
+                const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+                const entryP = activeHolding ? parseFloat(activeHolding.buyPrice) : (livePrice || 75723);
+                const curP = livePrice || entryP;
+                const posQty = activeHolding ? parseFloat(activeHolding.quantity) : panelQuantity;
+                const isShort = panelPositionSide === 'SHORT';
+                const tpP = activeHolding?.takeProfit || parseFloat(panelTpPrice) || (isShort ? entryP * 0.96 : entryP * 1.04);
+                const slP = activeHolding?.stopLoss || parseFloat(panelSlPrice) || (isShort ? entryP * 1.04 : entryP * 0.96);
+                
+                const curPnlUsd = isShort ? (entryP - curP) * posQty : (curP - entryP) * posQty;
+                const tpGainUsd = isShort ? (entryP - tpP) * posQty : (tpP - entryP) * posQty;
+                const slLossUsd = isShort ? (slP - entryP) * posQty : (entryP - slP) * posQty;
+
+                return (
+                  <div style={{
+                    position: 'absolute',
+                    top: isChartFullscreen ? '56px' : '16px',
+                    left: '60px',
+                    right: '60px',
+                    pointerEvents: 'none',
+                    zIndex: 25,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}>
+                    {/* Visual SL Banner Line */}
+                    {slActive && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: 'rgba(255, 68, 68, 0.12)',
+                        border: '1px dashed #ff4444',
+                        borderRadius: '6px',
+                        padding: '4px 12px',
+                        pointerEvents: 'auto'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#ff4444', background: 'rgba(255, 68, 68, 0.2)', padding: '2px 6px', borderRadius: '4px' }}>
+                            SL
+                          </span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
+                            Stop Loss @ ${slP.toLocaleString()}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#ff4444' }}>
+                            {posQty} / -${Math.abs(slLossUsd).toFixed(2)} USD
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSlActive(false);
+                              toast('Stop Loss disabled for order');
+                            }}
+                            style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '0 2px' }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Visual Entry Position Banner Line */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: isShort ? 'rgba(255, 68, 68, 0.2)' : 'rgba(0, 255, 136, 0.2)',
+                      border: `1px solid ${isShort ? '#ff4444' : '#00ff88'}`,
+                      borderRadius: '6px',
+                      padding: '5px 12px',
+                      pointerEvents: 'auto',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ 
+                          fontSize: '11px', 
+                          fontWeight: 900, 
+                          color: '#ffffff', 
+                          background: isShort ? '#ff4444' : '#00ff88', 
+                          padding: '2px 6px', 
+                          borderRadius: '4px' 
+                        }}>
+                          {isShort ? 'SHORT' : 'LONG'}
+                        </span>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#ffffff' }}>
+                          {posQty} @ ${entryP.toLocaleString()}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ 
+                          fontSize: '11px', 
+                          fontWeight: 800, 
+                          color: curPnlUsd >= 0 ? '#00ff88' : '#ff4444',
+                          background: 'rgba(0, 0, 0, 0.4)',
+                          padding: '2px 6px',
+                          borderRadius: '4px'
+                        }}>
+                          {curPnlUsd >= 0 ? '+' : ''}${curPnlUsd.toFixed(2)} USD
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowTradePanel(true)}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            color: '#ffffff',
+                            borderRadius: '4px',
+                            padding: '2px 6px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Modify SL/TP
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Visual TP Banner Line */}
+                    {tpActive && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: 'rgba(0, 255, 136, 0.12)',
+                        border: '1px dashed #00ff88',
+                        borderRadius: '6px',
+                        padding: '4px 12px',
+                        pointerEvents: 'auto'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#00ff88', background: 'rgba(0, 255, 136, 0.2)', padding: '2px 6px', borderRadius: '4px' }}>
+                            TP
+                          </span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#ffffff' }}>
+                            Take Profit @ ${tpP.toLocaleString()}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#00ff88' }}>
+                            {posQty} / +${Math.abs(tpGainUsd).toFixed(2)} USD
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTpActive(false);
+                              toast('Take Profit disabled for order');
+                            }}
+                            style={{ background: 'transparent', border: 'none', color: '#00ff88', cursor: 'pointer', padding: '0 2px' }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-                {customError && (
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(10, 14, 39, 0.8)', zIndex: 10 }}>
-                    <div style={{ color: '#ff4444', fontSize: '14px', fontWeight: 600 }}>{customError}</div>
+                );
+              })()}
+            </div>
+
+            {/* TradingView-Style Trade & Exits Panel (As Shown in Image) */}
+            {showTradePanel && (() => {
+              const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+              const entryP = activeHolding ? parseFloat(activeHolding.buyPrice) : (livePrice || 75723);
+              const isShort = panelPositionSide === 'SHORT';
+              const tpP = parseFloat(panelTpPrice) || (activeHolding?.takeProfit ? parseFloat(activeHolding.takeProfit) : (isShort ? Math.round(entryP * 0.956) : Math.round(entryP * 1.044)));
+              const slP = parseFloat(panelSlPrice) || (activeHolding?.stopLoss ? parseFloat(activeHolding.stopLoss) : (isShort ? Math.round(entryP * 1.04) : Math.round(entryP * 0.96)));
+              
+              const rewardDistance = Math.abs(tpP - entryP);
+              const riskDistance = Math.abs(entryP - slP);
+              const rrRatio = riskDistance > 0 ? (rewardDistance / riskDistance).toFixed(1) : '1.0';
+              const tradeValUsd = (entryP * panelQuantity).toFixed(2);
+              const tpTicks = Math.round(rewardDistance);
+              const slTicks = Math.round(riskDistance);
+
+              return (
+                <div style={{
+                  width: '320px',
+                  minWidth: '320px',
+                  background: '#131722',
+                  borderLeft: '1px solid #2a2e39',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: isChartFullscreen ? '100vh' : '580px',
+                  color: '#d1d4dc',
+                  fontSize: '13px',
+                  overflowY: 'auto',
+                  boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.4)'
+                }}>
+                  {/* Panel Header */}
+                  <div style={{
+                    padding: '14px 16px',
+                    borderBottom: '1px solid #2a2e39',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 900, color: '#ffffff' }}>
+                          {cleanSymbolName(selectedSymbol)}
+                        </span>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          padding: '1px 5px',
+                          borderRadius: '4px',
+                          background: isShort ? 'rgba(255, 68, 68, 0.2)' : 'rgba(0, 255, 136, 0.2)',
+                          color: isShort ? '#ff4444' : '#00ff88'
+                        }}>
+                          {isShort ? 'SHORT' : 'LONG'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#787b86', marginTop: '2px' }}>
+                        {isShort ? 'Short' : 'Long'} {panelQuantity} @ {entryP.toLocaleString()}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowTradePanel(false)}
+                      style={{ background: 'transparent', border: 'none', color: '#787b86', cursor: 'pointer', fontSize: '16px' }}
+                    >
+                      ✕
+                    </button>
                   </div>
-                )}
-                <div ref={customChartContainerRef} className="mobile-reduced-height-chart" style={{ width: '100%', height: '520px' }} />
-              </div>
+
+                  {/* Position Direction Switcher */}
+                  <div style={{ padding: '12px 16px', display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setPanelPositionSide('LONG')}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: panelPositionSide === 'LONG' ? '#00b060' : '#1e222d',
+                        color: '#ffffff',
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      BUY / LONG
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPanelPositionSide('SHORT')}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: panelPositionSide === 'SHORT' ? '#ff4444' : '#1e222d',
+                        color: '#ffffff',
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      SELL / SHORT
+                    </button>
+                  </div>
+
+                  {/* Order Quantity Input */}
+                  <div style={{ padding: '0 16px 12px 16px' }}>
+                    <div style={{ fontSize: '11px', color: '#787b86', fontWeight: 700, marginBottom: '4px' }}>
+                      Position Size (Units)
+                    </div>
+                    <input
+                      type="number"
+                      step="any"
+                      value={panelQuantity}
+                      onChange={(e) => setPanelQuantity(parseFloat(e.target.value) || 0.001)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: '6px',
+                        background: '#1e222d',
+                        border: '1px solid #2a2e39',
+                        color: '#ffffff',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  {/* Exits Header */}
+                  <div style={{
+                    padding: '8px 16px',
+                    borderTop: '1px solid #2a2e39',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    color: '#787b86',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    Exits
+                  </div>
+
+                  {/* Take Profit Row */}
+                  <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', color: '#d1d4dc', fontWeight: 600 }}>Take profit, price</span>
+                      <input
+                        type="checkbox"
+                        checked={tpActive}
+                        onChange={(e) => setTpActive(e.target.checked)}
+                        style={{ cursor: 'pointer', accentColor: '#00b060' }}
+                      />
+                    </div>
+                    {tpActive && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="number"
+                          step="any"
+                          value={panelTpPrice || tpP}
+                          onChange={(e) => setPanelTpPrice(e.target.value)}
+                          style={{
+                            flex: 1,
+                            padding: '8px 10px',
+                            borderRadius: '6px',
+                            background: '#1e222d',
+                            border: '1px solid #2a2e39',
+                            color: '#00ff88',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            outline: 'none'
+                          }}
+                        />
+                        <span style={{ fontSize: '11px', color: '#787b86', minWidth: '70px', textAlign: 'right' }}>
+                          {tpTicks} ticks
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Stop Loss Row */}
+                  <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', color: '#d1d4dc', fontWeight: 600 }}>Stop loss, price</span>
+                      <input
+                        type="checkbox"
+                        checked={slActive}
+                        onChange={(e) => setSlActive(e.target.checked)}
+                        style={{ cursor: 'pointer', accentColor: '#ff4444' }}
+                      />
+                    </div>
+                    {slActive && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="number"
+                          step="any"
+                          value={panelSlPrice || slP}
+                          onChange={(e) => setPanelSlPrice(e.target.value)}
+                          style={{
+                            flex: 1,
+                            padding: '8px 10px',
+                            borderRadius: '6px',
+                            background: '#1e222d',
+                            border: '1px solid #2a2e39',
+                            color: '#ff4444',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            outline: 'none'
+                          }}
+                        />
+                        <span style={{ fontSize: '11px', color: '#787b86', minWidth: '70px', textAlign: 'right' }}>
+                          {slTicks} ticks
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Risk / Reward and Trade Value Metrics */}
+                  <div style={{ padding: '16px', borderTop: '1px solid #2a2e39', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: '#787b86' }}>Risk / Reward</span>
+                      <span style={{ fontWeight: 800, color: '#ffffff' }}>{rrRatio}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: '#787b86' }}>Trade value (10x)</span>
+                      <span style={{ fontWeight: 800, color: '#ffffff' }}>{tradeValUsd} USD</span>
+                    </div>
+                    <div style={{ color: '#2962ff', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
+                      + Add level
+                    </div>
+                  </div>
+
+                  {/* Confirm & Discard Action Buttons */}
+                  <div style={{ padding: '16px', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const targetTp = tpActive ? (parseFloat(panelTpPrice) || tpP) : null;
+                        const targetSl = slActive ? (parseFloat(panelSlPrice) || slP) : null;
+                        
+                        if (activeHolding) {
+                          // Update existing open position
+                          await handleSavePositionLimits(selectedSymbol, targetSl, targetTp);
+                        } else {
+                          // Execute simulated trade with attached SL/TP
+                          setIsBuy(!isShort);
+                          setQuantity(panelQuantity);
+                          setFormTakeProfit(targetTp ? targetTp.toString() : '');
+                          setFormStopLoss(targetSl ? targetSl.toString() : '');
+                          await handleTradeExecution(!isShort, 'market', panelQuantity, livePrice, targetSl, targetTp);
+                          toast.success(`Executed ${isShort ? 'SHORT' : 'BUY'} on ${selectedSymbol} with SL/TP!`);
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: isShort ? '#ff4444' : '#00b060',
+                        color: '#ffffff',
+                        fontWeight: 900,
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        boxShadow: isShort ? '0 4px 16px rgba(255, 68, 68, 0.4)' : '0 4px 16px rgba(0, 176, 96, 0.4)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPanelTpPrice('');
+                        setPanelSlPrice('');
+                        toast('Order inputs discarded');
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#787b86',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Discard
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
               {/* Floating Position Control Bracket */}
               {(() => {
@@ -2596,7 +3122,6 @@ export default function PaperTrading() {
                   </div>
                 );
               })()}
-            </div>
 
             {/* Draggable SL/TP Side Ruler */}
             <div 

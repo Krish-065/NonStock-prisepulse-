@@ -10,24 +10,24 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 
 const POPULAR_STOCKS = [
-  { label: 'RELIANCE (NSE)', value: 'RELIANCE' },
-  { label: 'SBIN (NSE)', value: 'SBIN' },
-  { label: 'TCS (NSE)', value: 'TCS' },
-  { label: 'INFY (NSE)', value: 'INFY' },
-  { label: 'HDFCBANK (NSE)', value: 'HDFCBANK' },
-  { label: 'ICICIBANK (NSE)', value: 'ICICIBANK' },
-  { label: 'TATAMOTORS (NSE)', value: 'TATAMOTORS' },
-  { label: 'Apple (US)', value: 'AAPL' },
-  { label: 'Tesla (US)', value: 'TSLA' },
-  { label: 'Nvidia (US)', value: 'NVDA' },
+  { label: 'Bitcoin (Crypto)', value: 'BTC-USD' },
+  { label: 'Ethereum (Crypto)', value: 'ETH-USD' },
+  { label: 'Solana (Crypto)', value: 'SOL-USD' },
+  { label: 'Apple Inc. (US)', value: 'AAPL' },
+  { label: 'Nvidia Corp (US)', value: 'NVDA' },
+  { label: 'Tesla Motors (US)', value: 'TSLA' },
   { label: 'Microsoft (US)', value: 'MSFT' },
-  { label: 'Bitcoin', value: 'BTC-USD' }
+  { label: 'S&P 500 ETF (US)', value: 'SPY' },
+  { label: 'Gold Futures (Global)', value: 'GC=F' },
+  { label: 'EUR / USD (Forex)', value: 'EURUSD=X' },
+  { label: 'Crude Oil (WTI)', value: 'CL=F' },
+  { label: 'Amazon (US)', value: 'AMZN' }
 ];
 
 export default function StrategyBuilder() {
   const { user } = useAuth();
   const location = useLocation();
-  const initialSymbol = location.state?.selectSymbol || 'RELIANCE';
+  const initialSymbol = location.state?.selectSymbol || 'BTC-USD';
   const [symbol, setSymbol] = useState(initialSymbol);
 
   const handleDeployBot = async () => {

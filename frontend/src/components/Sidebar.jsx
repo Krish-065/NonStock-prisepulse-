@@ -24,7 +24,8 @@ import {
   MessageSquare,
   Users,
   Bell,
-  Info
+  Info,
+  Landmark
 } from 'lucide-react';
 
 export default function Sidebar({ isMobile, isOpen, onClose }) {
@@ -37,9 +38,10 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={16} /> },
-    { path: '/paper-trading', label: 'Paper Trading', icon: <LineChart size={16} /> },
+    { path: '/paper-trading', label: 'Trade Desk', icon: <LineChart size={16} /> },
     { path: '/strategy-lab', label: 'Strategy Lab', icon: <Sparkles size={16} />, state: currentSymbol ? { selectSymbol: currentSymbol } : null },
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={16} /> },
+    { path: '/indian-market', label: 'Indian Market Desk', icon: <Landmark size={16} /> },
     { path: '/alerts', label: 'Alerts Hub', icon: <Bell size={16} /> },
     { path: '/community', label: 'Community Hub', icon: <Users size={16} /> },
     { path: '/fno', label: 'Futures & Options', icon: <Activity size={16} /> },

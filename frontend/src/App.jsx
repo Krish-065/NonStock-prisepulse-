@@ -35,6 +35,7 @@ const News           = lazy(() => import('./pages/News'));
 const Crypto         = lazy(() => import('./pages/Crypto'));
 const Commodities    = lazy(() => import('./pages/Commodities'));
 const MutualFunds    = lazy(() => import('./pages/MutualFunds'));
+const IndianMarket   = lazy(() => import('./pages/IndianMarket'));
 const Profile        = lazy(() => import('./pages/Profile'));
 const StrategyBuilder= lazy(() => import('./pages/StrategyBuilder'));
 const AIMentor       = lazy(() => import('./pages/AIMentor'));
@@ -113,6 +114,7 @@ function App() {
                   <Route path="/news"              element={<PrivateRoute><Layout><News /></Layout></PrivateRoute>} />
                   <Route path="/crypto"            element={<PrivateRoute><Layout><Crypto /></Layout></PrivateRoute>} />
                   <Route path="/commodities"       element={<PrivateRoute><Layout><Commodities /></Layout></PrivateRoute>} />
+                  <Route path="/indian-market"     element={<PrivateRoute><Layout><IndianMarket /></Layout></PrivateRoute>} />
                   <Route path="/mutual-funds"      element={<PrivateRoute><Layout><MutualFunds /></Layout></PrivateRoute>} />
                   <Route path="/profile"           element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
                   <Route path="/strategy-lab"      element={<PrivateRoute><Layout><StrategyBuilder /></Layout></PrivateRoute>} />
