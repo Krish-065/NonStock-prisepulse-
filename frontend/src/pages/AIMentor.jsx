@@ -125,40 +125,40 @@ export default function AIMentor() {
   // Scenario presets
   const presets = {
     trap: {
-      symbol: 'RELIANCE',
+      symbol: 'BTC',
       timeframe: '15m',
-      currentPrice: 2450.50,
+      currentPrice: 64200.00,
       rsi: 68.4,
       macdSignal: 'bearish_divergence',
-      trend: 'Upward Breakout (Weakening)',
-      patternDetected: 'Potential Liquidity Trap / Fakeout near 2460.00 resistance'
+      trend: 'Liquidity Sweep (Weakening)',
+      patternDetected: 'Potential Retail Liquidity Trap / Fakeout near 64,800.00 resistance'
     },
     breakout: {
-      symbol: 'TCS',
+      symbol: 'NVDA',
       timeframe: '1h',
-      currentPrice: 3890.00,
+      currentPrice: 128.50,
       rsi: 58.2,
       macdSignal: 'bullish_cross',
       trend: 'Strong Uptrend',
-      patternDetected: 'Cup & Handle Breakout above 3850.00 with high volume profile'
+      patternDetected: 'Bull Flag Continuation Breakout above 127.00 with institutional volume'
     },
     oversold: {
-      symbol: 'INFY',
+      symbol: 'AAPL',
       timeframe: '1d',
-      currentPrice: 1420.00,
+      currentPrice: 215.00,
       rsi: 26.8,
       macdSignal: 'oversold_convergence',
       trend: 'Downward Correction',
-      patternDetected: 'Double Bottom pattern near long-term support floor at 1400.00'
+      patternDetected: 'Double Bottom pattern near long-term support floor at 214.00'
     },
     bearTrap: {
-      symbol: 'AAPL',
+      symbol: 'TSLA',
       timeframe: '15m',
-      currentPrice: 185.50,
+      currentPrice: 242.50,
       rsi: 64.2,
       macdSignal: 'bearish_cross',
       trend: 'Slightly Bullish',
-      patternDetected: 'Fake Breakdown / Bear Trap near 184.00 support level'
+      patternDetected: 'Fake Breakdown / Bear Trap reclaim near 240.00 support level'
     }
   };
 
@@ -1361,37 +1361,58 @@ export default function AIMentor() {
             {rightTab === 'forecast' && (() => {
               const getTVSymbol = () => {
                 if (activeTechnicals?.tvSymbol) return activeTechnicals.tvSymbol;
-                const raw = (activeTechnicals?.symbol || symbol || 'AAPL').toUpperCase();
+                const raw = (activeTechnicals?.symbol || symbol || 'AAPL').toUpperCase().trim();
                 if (raw.includes(':')) return raw;
                 const s = raw.replace('.NS', '').replace('.BO', '');
-                
-                if (s === 'NIFTY' || s === '^NSEI') return 'NSE:NIFTY';
-                if (s === 'SENSEX' || s === '^BSESN') return 'BSE:SENSEX';
-                if (s === 'NIFTYBANK' || s === 'BANKNIFTY' || s === '^NSEBANK') return 'NSE:BANKNIFTY';
-                
-                // Crypto / Forex handling
-                if (s.includes('-USD') || s.includes('/USD') || s.endsWith('USD') || ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE'].includes(s)) {
-                  const base = s.replace('-USD', '').replace('/USD', '').replace('USD', '');
+
+                const cryptoAliases = {
+                  'BITCOIN': 'BTC',
+                  'ETHEREUM': 'ETH',
+                  'SOLANA': 'SOL',
+                  'DOGECOIN': 'DOGE',
+                  'RIPPLE': 'XRP',
+                  'CARDANO': 'ADA',
+                  'POLKADOT': 'DOT',
+                  'CHAINLINK': 'LINK'
+                };
+                const mappedCrypto = cryptoAliases[s];
+                if (mappedCrypto) return `BINANCE:${mappedCrypto}USDT`;
+
+                if (['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX', 'DOT', 'LINK'].includes(s) || s.includes('-USD') || s.includes('/USD') || s.endsWith('USDT') || (s.endsWith('USD') && s.length <= 7)) {
+                  const base = s.replace('-USD', '').replace('/USD', '').replace('USDT', '').replace('USD', '');
                   return `BINANCE:${base}USDT`;
                 }
-                
-                if (s.endsWith('=X') || s.endsWith('=F')) return s; // Handle Yahoo symbols blindly for now if they got this far
-                
-                if (['TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX', 'AMD', 'SPY', 'QQQ', 'COIN'].includes(s)) return `NASDAQ:${s}`;
-                if (['BABA', 'DIS', 'BA', 'JPM', 'NKE'].includes(s)) return `NYSE:${s}`;
-                return `NSE:${s}`;
+
+                if (['SPX', 'S&P 500', 'S&P500', 'SP500', '^GSPC'].includes(s)) return 'FOREXCOM:SPXUSD';
+                if (['NDX', 'NASDAQ', 'NASDAQ100', '^IXIC'].includes(s)) return 'FOREXCOM:NAS100USD';
+                if (['DJI', 'DOW'].includes(s)) return 'FOREXCOM:DJI';
+                if (['GOLD', 'XAUUSD', 'XAU-USD'].includes(s)) return 'OANDA:XAUUSD';
+                if (['CRUDE', 'OIL', 'WTI', 'CL'].includes(s)) return 'NYMEX:CL1!';
+                if (['EURUSD', 'EUR/USD'].includes(s)) return 'FX:EURUSD';
+                if (['GBPUSD', 'GBP/USD'].includes(s)) return 'FX:GBPUSD';
+
+                if (s === 'NIFTY' || s === '^NSEI') return 'NSE:NIFTY';
+                if (s === 'SENSEX' || s === '^BSESN') return 'BSE:SENSEX';
+                if (s === 'NIFTYBANK' || s === 'BANKNIFTY') return 'NSE:BANKNIFTY';
+                if (['RELIANCE', 'TCS', 'INFY', 'SBIN', 'HDFCBANK', 'ICICIBANK'].includes(s) || raw.endsWith('.NS')) return `NSE:${s}`;
+                if (raw.endsWith('.BO')) return `BSE:${s}`;
+
+                if (['BABA', 'DIS', 'BA', 'JPM', 'NKE', 'KO', 'WMT', 'V', 'MA'].includes(s)) return `NYSE:${s}`;
+                return `NASDAQ:${s}`;
               };
               const tvSymbol = getTVSymbol();
-              
-              const isUSStock = ['TSLA', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NFLX', 'AMD', 'SPY', 'QQQ', 'COIN'].includes((activeTechnicals?.symbol || symbol || '').toUpperCase()) || getTVSymbol().includes('BINANCE');
-              const currSymbol = activeTechnicals?.currency || (isUSStock ? '$' : '₹');
-              const formatPrice = (val) => `${currSymbol}${Number(val).toLocaleString(isUSStock ? 'en-US' : 'en-IN')}`;
+
+              const isIndianStock = activeTechnicals?.isIndian || ['NSE:', 'BSE:'].some(p => tvSymbol.startsWith(p));
+              const currSymbol = activeTechnicals?.currency || (isIndianStock ? '₹' : '$');
+              const formatPrice = (val) => `${currSymbol}${Number(val).toLocaleString(isIndianStock ? 'en-IN' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+              const quickSuggestions = ['BTC', 'ETH', 'SOL', 'NVDA', 'AAPL', 'TSLA', 'SPX', 'NASDAQ', 'GOLD', 'EURUSD'];
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   
-                  {/* Search Bar - PRO VERSION ONLY */}
-                  {(accountMode === 'pro' || user?.is_pro) && (
+                  {/* Search Bar & Auto-Suggestions - Open for all users */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <form 
                       onSubmit={(e) => {
                         e.preventDefault();
@@ -1404,15 +1425,15 @@ export default function AIMentor() {
                     >
                       <input
                         type="text"
-                        placeholder="Search stock symbol (e.g. AAPL, TSLA, RELIANCE, NIFTY)..."
+                        placeholder="Search global ticker (e.g. BTC, ETH, NVDA, TSLA, SPX, GOLD)..."
                         value={forecastSearch}
                         onChange={e => setForecastSearch(e.target.value)}
                         style={{
                           flex: 1,
-                          background: 'rgba(255,255,255,0.02)',
+                          background: 'rgba(255,255,255,0.04)',
                           border: '1px solid rgba(168, 85, 247, 0.4)',
                           borderRadius: '6px',
-                          padding: '6px 10px',
+                          padding: '7px 10px',
                           color: '#ffffff',
                           fontSize: '11px',
                           outline: 'none',
@@ -1424,20 +1445,56 @@ export default function AIMentor() {
                       <button
                         type="submit"
                         style={{
-                          background: 'rgba(168, 85, 247, 0.2)',
+                          background: 'rgba(168, 85, 247, 0.25)',
                           border: '1px solid #a855f7',
                           borderRadius: '6px',
-                          color: '#a855f7',
-                          padding: '6px 10px',
+                          color: '#c084fc',
+                          padding: '7px 12px',
                           cursor: 'pointer',
                           fontSize: '11px',
-                          fontWeight: '800'
+                          fontWeight: '800',
+                          whiteSpace: 'nowrap'
                         }}
                       >
                         Search
                       </button>
                     </form>
-                  )}
+
+                    {/* Quick Market Suggestions Bar */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary, #94a3b8)', marginRight: '2px', fontWeight: '600' }}>Quick:</span>
+                      {quickSuggestions.map(qs => (
+                        <button
+                          key={qs}
+                          type="button"
+                          onClick={() => loadStockForecast(qs, false)}
+                          style={{
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            color: '#94a3b8',
+                            borderRadius: '4px',
+                            padding: '2px 6px',
+                            fontSize: '10px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.borderColor = '#a855f7';
+                            e.currentTarget.style.color = '#c084fc';
+                            e.currentTarget.style.background = 'rgba(168, 85, 247, 0.15)';
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                            e.currentTarget.style.color = '#94a3b8';
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                          }}
+                        >
+                          {qs}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   {/* TradingView Live Chart widget */}
                   <div>

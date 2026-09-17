@@ -363,7 +363,7 @@ export default function Portfolio() {
     }
   }, [location]);
   
-  const [broker, setBroker] = useState('Angel One');
+  const [broker, setBroker] = useState('Exness');
   const [clientCode, setClientCode] = useState('');
   const [pin, setPin] = useState('');
   const [totp, setTotp] = useState('');
@@ -950,8 +950,16 @@ export default function Portfolio() {
 
             <form onSubmit={handleBrokerSync} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <FormGroup>
-                <label>Select Your Stock Broker</label>
+                <label>Select Your Broker / Exchange</label>
                 <select value={broker} onChange={(e) => setBroker(e.target.value)}>
+                  <option value="Exness">Exness (Global Multi-Asset & Forex)</option>
+                  <option value="Delta Exchange">Delta Exchange (Crypto Derivatives & Options)</option>
+                  <option value="CoinDCX">CoinDCX (Crypto Spot & Futures)</option>
+                  <option value="Binance">Binance (Global Crypto Terminal)</option>
+                  <option value="Interactive Brokers">Interactive Brokers (IBKR Global US Stocks)</option>
+                  <option value="Bybit">Bybit (Crypto Perps & Options)</option>
+                  <option value="OKX">OKX (Digital Assets & Futures)</option>
+                  <option value="Robinhood">Robinhood (US Equities & Crypto)</option>
                   <option value="Angel One">Angel One (SmartAPI)</option>
                   <option value="Zerodha">Zerodha (Kite Connect)</option>
                   <option value="Groww">Groww App</option>

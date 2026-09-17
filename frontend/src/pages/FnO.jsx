@@ -4,41 +4,33 @@ import { BarChart3, TrendingUp, ShieldAlert, Award, Compass, Eye, Lock } from 'l
 import { useAuth } from '../contexts/AuthContext';
 
 const DEFAULT_UNDERLYING_METRICS = {
-  NIFTY: { spot: 24852.10, change: 184.20, changePercent: 0.75, interval: 50, bias: 1.14, futOi: '48.2L' },
-  BANKNIFTY: { spot: 51480.30, change: 610.40, changePercent: 1.20, interval: 100, bias: 0.88, futOi: '31.5L' },
-  RELIANCE: { spot: 2980.50, change: 45.20, changePercent: 1.54, interval: 20, bias: 1.28, futOi: '1.2Cr' },
-  TCS: { spot: 4210.80, change: 85.10, changePercent: 2.06, interval: 20, bias: 0.72, futOi: '45.8L' }
+  BTC: { name: 'Bitcoin Derivatives', spot: 64250.00, change: 1820.00, changePercent: 2.91, interval: 500, bias: 1.18, futOi: '4.8B' },
+  ETH: { name: 'Ethereum Derivatives', spot: 3420.00, change: 65.50, changePercent: 1.95, interval: 50, bias: 0.95, futOi: '1.9B' },
+  SPX: { name: 'S&P 500 Index Options', spot: 5612.40, change: 42.10, changePercent: 0.75, interval: 25, bias: 1.12, futOi: '18.4M' },
+  NDX: { name: 'Nasdaq 100 Derivatives', spot: 19840.50, change: 210.30, changePercent: 1.07, interval: 50, bias: 1.25, futOi: '9.2M' },
+  NVDA: { name: 'Nvidia Options', spot: 128.50, change: 4.20, changePercent: 3.38, interval: 2.5, bias: 1.34, futOi: '24.1M' },
+  GC: { name: 'Gold CME Futures', spot: 2580.00, change: 18.50, changePercent: 0.72, interval: 10, bias: 1.22, futOi: '3.6M' }
 };
 
-const NIFTY_CONSTITUENTS = [
-  { symbol: 'RELIANCE', weight: 10.5, price: 2980.50, chg: 1.85 },
-  { symbol: 'HDFCBANK', weight: 8.4, price: 1640.25, chg: -0.74 },
-  { symbol: 'ICICIBANK', weight: 7.2, price: 1180.90, chg: 1.59 },
-  { symbol: 'INFY', weight: 6.8, price: 1850.40, chg: 1.21 },
-  { symbol: 'ITC', weight: 5.2, price: 432.30, chg: -0.45 },
-  { symbol: 'TCS', weight: 4.6, price: 4210.80, chg: 2.06 },
-  { symbol: 'LT', weight: 4.1, price: 3450.20, chg: 1.10 },
-  { symbol: 'KOTAKBANK', weight: 3.5, price: 1780.40, chg: 1.65 },
-  { symbol: 'AXISBANK', weight: 3.2, price: 1040.60, chg: -1.50 },
-  { symbol: 'SBIN', weight: 3.0, price: 825.10, chg: -0.80 },
-  { symbol: 'BHARTIARTL', weight: 2.8, price: 1120.40, chg: 1.45 },
-  { symbol: 'HINDUNILVR', weight: 2.5, price: 2380.50, chg: -1.40 },
-  { symbol: 'BAJFINANCE', weight: 2.2, price: 7100.20, chg: 0.85 },
-  { symbol: 'ASIANPAINT', weight: 1.9, price: 2810.00, chg: -2.30 },
-  { symbol: 'MARUTI', weight: 1.7, price: 10450.10, chg: 1.15 },
-  { symbol: 'TITAN', weight: 1.6, price: 3120.50, chg: -0.40 },
-  { symbol: 'SUNPHARMA', weight: 1.5, price: 1150.80, chg: 0.60 },
-  { symbol: 'M&M', weight: 1.4, price: 1950.40, chg: -1.15 },
-  { symbol: 'ULTRACEMCO', weight: 1.2, price: 8450.20, chg: 0.55 },
-  { symbol: 'TATASTEEL', weight: 1.1, price: 140.50, chg: -0.80 },
-  { symbol: 'POWERGRID', weight: 1.0, price: 285.30, chg: 0.40 },
-  { symbol: 'NTPC', weight: 0.9, price: 340.20, chg: 1.20 },
-  { symbol: 'HCLTECH', weight: 0.8, price: 1450.60, chg: -0.50 },
-  { symbol: 'TATAMOTORS', weight: 0.7, price: 945.10, chg: 3.15 }
+const GLOBAL_CONSTITUENTS = [
+  { symbol: 'BTC', name: 'Bitcoin', weight: 15.0, price: 64250.00, chg: 2.91 },
+  { symbol: 'ETH', name: 'Ethereum', weight: 8.0, price: 3420.00, chg: 1.95 },
+  { symbol: 'NVDA', name: 'Nvidia Corp', weight: 7.2, price: 128.50, chg: 3.38 },
+  { symbol: 'AAPL', name: 'Apple Inc', weight: 7.0, price: 224.20, chg: 1.12 },
+  { symbol: 'MSFT', name: 'Microsoft', weight: 6.5, price: 432.80, chg: 0.85 },
+  { symbol: 'AMZN', name: 'Amazon', weight: 3.8, price: 186.40, chg: 1.90 },
+  { symbol: 'META', name: 'Meta Platforms', weight: 2.6, price: 520.10, chg: 2.40 },
+  { symbol: 'GOOGL', name: 'Alphabet', weight: 2.4, price: 165.30, chg: -0.42 },
+  { symbol: 'TSLA', name: 'Tesla Inc', weight: 2.1, price: 242.50, chg: 4.25 },
+  { symbol: 'SOL', name: 'Solana', weight: 2.0, price: 152.40, chg: 5.40 },
+  { symbol: 'AVGO', name: 'Broadcom', weight: 2.0, price: 168.90, chg: 2.15 },
+  { symbol: 'JPM', name: 'JPMorgan Chase', weight: 1.8, price: 214.60, chg: 0.50 },
+  { symbol: 'GC', name: 'Gold Futures', weight: 3.5, price: 2580.00, chg: 0.72 },
+  { symbol: 'CL', name: 'Crude Oil WTI', weight: 2.0, price: 76.80, chg: -1.25 }
 ];
 
 function computeFnOState(symbol, spotPriceInput, changePercentInput, isLiveMarket = false) {
-  const meta = DEFAULT_UNDERLYING_METRICS[symbol] || DEFAULT_UNDERLYING_METRICS.NIFTY;
+  const meta = DEFAULT_UNDERLYING_METRICS[symbol] || DEFAULT_UNDERLYING_METRICS.BTC;
   const spot = (spotPriceInput && !isNaN(spotPriceInput) && spotPriceInput > 0) ? Number(spotPriceInput) : meta.spot;
   const chgPct = (changePercentInput !== undefined && !isNaN(changePercentInput)) ? Number(changePercentInput) : meta.changePercent;
   const changePercentText = (chgPct >= 0 ? '+' : '') + Number(chgPct).toFixed(2) + '%';
@@ -103,7 +95,7 @@ function computeFnOState(symbol, spotPriceInput, changePercentInput, isLiveMarke
 
 export default function FnO() {
   const { user } = useAuth();
-  const [underlying, setUnderlying] = useState('NIFTY');
+  const [underlying, setUnderlying] = useState('BTC');
   const [selectedExpiry, setSelectedExpiry] = useState('');
 
   // Predefined expiry list (dynamic next 3 Thursdays)
@@ -136,38 +128,38 @@ export default function FnO() {
   const [isSyncing, setIsSyncing] = useState(false);
 
   // States pre-populated immediately with full calculated metrics — prevents empty/blank desk
-  const initialData = computeFnOState('NIFTY');
+  const initialData = computeFnOState('BTC');
   const [futures, setFutures] = useState(initialData.futures);
   const [optionChain, setOptionChain] = useState(initialData.optionChain);
   const [maxPain, setMaxPain] = useState(initialData.maxPain);
   const [pcr, setPcr] = useState(initialData.pcr);
-  const [heatmapData, setHeatmapData] = useState(NIFTY_CONSTITUENTS);
+  const [heatmapData, setHeatmapData] = useState(GLOBAL_CONSTITUENTS);
 
-  // Mock stock list for Build-up Scanner
+  // Mock stock list for Build-up Scanner (Global & US Equities / Crypto)
   const buildupStocks = {
     long: [
-      { symbol: 'RELIANCE', price: '2,980.50', change: '+1.85%', oi: '1.2Cr', oiChange: '+8.4%' },
-      { symbol: 'TCS', price: '4,210.80', change: '+2.10%', oi: '45.8L', oiChange: '+12.1%' },
-      { symbol: 'INFY', price: '1,850.40', change: '+0.95%', oi: '82.4L', oiChange: '+5.6%' },
-      { symbol: 'BHARTIARTL', price: '1,120.40', change: '+1.45%', oi: '34.2L', oiChange: '+4.2%' },
+      { symbol: 'NVDA', price: '$128.50', change: '+3.38%', oi: '24.1M', oiChange: '+14.2%' },
+      { symbol: 'BTC', price: '$64,250.00', change: '+2.91%', oi: '4.8B', oiChange: '+9.4%' },
+      { symbol: 'TSLA', price: '$242.50', change: '+4.25%', oi: '16.5M', oiChange: '+11.8%' },
+      { symbol: 'SOL', price: '$152.40', change: '+5.40%', oi: '820M', oiChange: '+18.6%' },
     ],
     short: [
-      { symbol: 'HDFCBANK', price: '1,640.25', change: '-1.25%', oi: '2.8Cr', oiChange: '+14.5%' },
-      { symbol: 'ICICIBANK', price: '1,180.90', change: '-0.85%', oi: '1.4Cr', oiChange: '+9.2%' },
-      { symbol: 'SBIN', price: '825.40', change: '-2.10%', oi: '94.5L', oiChange: '+11.8%' },
-      { symbol: 'AXISBANK', price: '1,040.60', change: '-1.50%', oi: '52.1L', oiChange: '+6.5%' },
+      { symbol: 'GOOGL', price: '$165.30', change: '-0.42%', oi: '8.2M', oiChange: '+6.5%' },
+      { symbol: 'CL', price: '$76.80', change: '-1.25%', oi: '2.1M', oiChange: '+8.9%' },
+      { symbol: 'INTC', price: '$20.40', change: '-2.10%', oi: '14.5M', oiChange: '+12.4%' },
+      { symbol: 'NKE', price: '$82.10', change: '-1.80%', oi: '5.2M', oiChange: '+5.1%' },
     ],
     covering: [
-      { symbol: 'KOTAKBANK', price: '1,780.40', change: '+1.65%', oi: '38.2L', oiChange: '-6.4%' },
-      { symbol: 'LT', price: '3,450.20', change: '+1.10%', oi: '21.4L', oiChange: '-4.8%' },
-      { symbol: 'WIPRO', price: '468.20', change: '+2.85%', oi: '71.5L', oiChange: '-8.2%' },
-      { symbol: 'TATAMOTORS', price: '945.10', change: '+3.15%', oi: '63.9L', oiChange: '-9.1%' },
+      { symbol: 'AAPL', price: '$224.20', change: '+1.12%', oi: '19.8M', oiChange: '-5.4%' },
+      { symbol: 'ETH', price: '$3,420.00', change: '+1.95%', oi: '1.9B', oiChange: '-6.2%' },
+      { symbol: 'AMD', price: '$154.20', change: '+2.85%', oi: '11.4M', oiChange: '-7.8%' },
+      { symbol: 'AMZN', price: '$186.40', change: '+1.90%', oi: '9.2M', oiChange: '-4.6%' },
     ],
     unwinding: [
-      { symbol: 'ITC', price: '432.30', change: '-0.95%', oi: '1.9Cr', oiChange: '-5.1%' },
-      { symbol: 'HINDUNILVR', price: '2,380.50', change: '-1.40%', oi: '31.8L', oiChange: '-3.9%' },
-      { symbol: 'ASIANPAINT', price: '2,810.00', change: '-2.30%', oi: '18.4L', oiChange: '-7.2%' },
-      { symbol: 'M&M', price: '1,950.40', change: '-1.15%', oi: '24.2L', oiChange: '-4.5%' },
+      { symbol: 'XOM', price: '$114.50', change: '-1.40%', oi: '4.2M', oiChange: '-3.8%' },
+      { symbol: 'CVX', price: '$145.20', change: '-1.15%', oi: '3.1M', oiChange: '-4.1%' },
+      { symbol: 'DIS', price: '$95.40', change: '-1.60%', oi: '6.4M', oiChange: '-5.2%' },
+      { symbol: 'BA', price: '$162.10', change: '-2.30%', oi: '5.8M', oiChange: '-8.1%' },
     ]
   };
 
@@ -305,12 +297,19 @@ export default function FnO() {
       
       {/* Expiry and Symbol Filter Header */}
       <div className="section-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', padding: '20px 24px' }}>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {['NIFTY', 'BANKNIFTY', 'RELIANCE', 'TCS'].map(sym => (
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          {[
+            { id: 'BTC', label: 'BTC Perps' },
+            { id: 'ETH', label: 'ETH Options' },
+            { id: 'SPX', label: 'S&P 500' },
+            { id: 'NDX', label: 'Nasdaq 100' },
+            { id: 'NVDA', label: 'NVDA Options' },
+            { id: 'GC', label: 'Gold Futures' }
+          ].map(sym => (
             <button
-              key={sym}
-              onClick={() => setUnderlying(sym)}
-              className={underlying === sym ? 'active-filter' : ''}
+              key={sym.id}
+              onClick={() => setUnderlying(sym.id)}
+              className={underlying === sym.id ? 'active-filter' : ''}
               style={{
                 padding: '8px 18px',
                 borderRadius: '24px',
@@ -323,7 +322,7 @@ export default function FnO() {
                 transition: 'all 0.2s'
               }}
             >
-              {sym === 'NIFTY' || sym === 'BANKNIFTY' ? `${sym} Index` : sym}
+              {sym.label}
             </button>
           ))}
         </div>
@@ -352,12 +351,12 @@ export default function FnO() {
         </div>
       </div>
 
-      {/* Nifty 50 Heatmap */}
-      {underlying === 'NIFTY' && heatmapData.length > 0 && (
+      {/* Global Mega-Cap & Derivatives Heatmap */}
+      {heatmapData.length > 0 && (
         <div className="section-card">
           <div className="section-header" style={{ marginBottom: '16px' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Compass size={20} style={{ color: '#ffb300' }} /> NIFTY 50 Live Constituent Heatmap
+              <Compass size={20} style={{ color: '#ffb300' }} /> Global Mega-Cap & Derivatives Market Heatmap
             </h2>
           </div>
           <div style={{
@@ -399,7 +398,7 @@ export default function FnO() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
-                      ₹{stock.price.toFixed(2)}
+                      ${Number(stock.price).toLocaleString('en-US', { minimumFractionDigits: stock.price < 10 ? 2 : 0, maximumFractionDigits: 2 })}
                     </span>
                     <span style={{ fontSize: '11px', fontWeight: 800, color: isPositive ? '#00ff88' : '#ff4444' }}>
                       {isPositive ? '+' : ''}{stock.chg}%
@@ -485,14 +484,14 @@ export default function FnO() {
           }}>
             <div style={{ background: 'rgba(255,255,255,0.01)', padding: '14px', borderRadius: '12px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.03)' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Max Pain Level</div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: '#00bcd4', marginTop: '6px' }}>₹{maxPain}</div>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: '#00bcd4', marginTop: '6px' }}>${Number(maxPain).toLocaleString()}</div>
               <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>Maximum loss strike for buyers</div>
             </div>
             
             <div style={{ background: 'rgba(255,255,255,0.01)', padding: '14px', borderRadius: '12px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.03)' }}>
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Future Spot Price</div>
               <div style={{ fontSize: '22px', fontWeight: 800, color: '#ffffff', marginTop: '6px' }}>
-                ₹{futures[0]?.price || '--'}
+                ${futures[0]?.price || '--'}
               </div>
               <div style={{ fontSize: '10px', color: futures[0]?.change?.includes('+') ? '#00ff88' : '#ff4444', fontWeight: 700, marginTop: '2px' }}>
                 {futures[0]?.change || '--'}
@@ -505,7 +504,7 @@ export default function FnO() {
         <div className="section-card" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="section-header" style={{ marginBottom: '16px' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Award size={20} style={{ color: '#00bcd4' }} /> Nifty F&O Build-up Scanner
+              <Award size={20} style={{ color: '#00bcd4' }} /> Global Derivatives Build-up Scanner
             </h2>
           </div>
 
@@ -555,10 +554,9 @@ export default function FnO() {
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 700, fontSize: '13px' }}>₹{stk.price}</div>
+                  <div style={{ fontWeight: 700, fontSize: '13px' }}>{stk.price.startsWith('$') ? stk.price : '$' + stk.price}</div>
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', fontSize: '11px', fontWeight: 600, marginTop: '2px' }}>
                     <span style={{ color: stk.change.includes('+') ? '#00ff88' : '#ff4444' }}>{stk.change}</span>
-                    <span style={{ color: buildupTab.includes('build') ? '#00ff88' : '#ff4444' }}>OI {stk.oiChange}</span>
                   </div>
                 </div>
               </div>

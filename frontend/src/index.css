@@ -28,6 +28,7 @@
   --bg-card-glass: rgba(18, 22, 41, 0.75);
   --bg-glass-heavy: rgba(11, 13, 25, 0.95);
   --bg-glass-light: rgba(121, 40, 202, 0.05);
+  --bg-secondary: #161b33;
   --gradient-bg: radial-gradient(ellipse at 50% 0%, #1a103c 0%, #0b0d19 75%);
 }
 
@@ -73,6 +74,7 @@
   --bg-primary: #f8f9fa;
   --bg-card: #ffffff;
   --bg-elevated: #f1f5f9;
+  --bg-secondary: #f1f5f9;
   --text-primary: #111827;
   --text-secondary: #4b5563;
   --border-color: #e5e7eb;
@@ -82,8 +84,8 @@
   --accent-cyan: #0284c7;
   --accent-purple: #7c3aed;
   --accent-gold: #d97706;
-  --bg-card-glass: rgba(255, 255, 255, 0.98);
-  --bg-glass-heavy: rgba(255, 255, 255, 0.96);
+  --bg-card-glass: #ffffff;
+  --bg-glass-heavy: #ffffff;
   --bg-glass-light: #f8fafc;
   --gradient-bg: #f8f9fa;
   --pattern-opacity: 0.04;

@@ -240,9 +240,44 @@ const US_TICKERS = new Set([
   'CRUDE', 'GOLD', 'SILVER'
 ]);
 
+const CRYPTO_ALIASES = {
+  'BITCOIN': 'BTC',
+  'ETHEREUM': 'ETH',
+  'SOLANA': 'SOL',
+  'DOGECOIN': 'DOGE',
+  'RIPPLE': 'XRP',
+  'CARDANO': 'ADA',
+  'POLKADOT': 'DOT',
+  'CHAINLINK': 'LINK'
+};
+
 const CRYPTO_TICKERS = new Set([
   'BTC', 'ETH', 'SOL', 'DOGE', 'XRP', 'ADA', 'AVAX', 'DOT', 'LINK', 'BNB'
 ]);
+
+const INDEX_COMMODITY_MAP = {
+  'SPX': { yahoo: '^GSPC', tv: 'FOREXCOM:SPXUSD' },
+  'S&P500': { yahoo: '^GSPC', tv: 'FOREXCOM:SPXUSD' },
+  'S&P 500': { yahoo: '^GSPC', tv: 'FOREXCOM:SPXUSD' },
+  'SP500': { yahoo: '^GSPC', tv: 'FOREXCOM:SPXUSD' },
+  '^GSPC': { yahoo: '^GSPC', tv: 'FOREXCOM:SPXUSD' },
+  'SPY': { yahoo: 'SPY', tv: 'AMEX:SPY' },
+  'NDX': { yahoo: '^IXIC', tv: 'FOREXCOM:NAS100USD' },
+  'NASDAQ': { yahoo: '^IXIC', tv: 'FOREXCOM:NAS100USD' },
+  'NASDAQ100': { yahoo: '^IXIC', tv: 'FOREXCOM:NAS100USD' },
+  '^IXIC': { yahoo: '^IXIC', tv: 'FOREXCOM:NAS100USD' },
+  'QQQ': { yahoo: 'QQQ', tv: 'NASDAQ:QQQ' },
+  'DJI': { yahoo: '^DJI', tv: 'FOREXCOM:DJI' },
+  'DOW': { yahoo: '^DJI', tv: 'FOREXCOM:DJI' },
+  'GOLD': { yahoo: 'GC=F', tv: 'OANDA:XAUUSD' },
+  'XAUUSD': { yahoo: 'GC=F', tv: 'OANDA:XAUUSD' },
+  'CRUDE': { yahoo: 'CL=F', tv: 'NYMEX:CL1!' },
+  'OIL': { yahoo: 'CL=F', tv: 'NYMEX:CL1!' },
+  'WTI': { yahoo: 'CL=F', tv: 'NYMEX:CL1!' },
+  'SILVER': { yahoo: 'SI=F', tv: 'OANDA:XAGUSD' },
+  'EURUSD': { yahoo: 'EURUSD=X', tv: 'FX:EURUSD' },
+  'GBPUSD': { yahoo: 'GBPUSD=X', tv: 'FX:GBPUSD' }
+};
 
 const INDIAN_TICKERS = new Set([
   'RELIANCE', 'TCS', 'INFY', 'INFOSYS', 'SBIN', 'HDFCBANK', 'ICICIBANK', 'TATAMOTORS',
@@ -251,8 +286,13 @@ const INDIAN_TICKERS = new Set([
 ]);
 
 function resolveYahooTicker(rawSymbol) {
-  let s = (rawSymbol || 'NIFTY').toUpperCase().trim();
-  s = s.replace('NSE:', '').replace('BSE:', '').replace('NASDAQ:', '').replace('NYSE:', '');
+  let s = (rawSymbol || 'AAPL').toUpperCase().trim();
+  s = s.replace('NSE:', '').replace('BSE:', '').replace('NASDAQ:', '').replace('NYSE:', '').replace('BINANCE:', '');
+
+  if (INDEX_COMMODITY_MAP[s]) {
+    const item = INDEX_COMMODITY_MAP[s];
+    return { yahooTicker: item.yahoo, currency: '$', tvTicker: item.tv, isIndian: false };
+  }
 
   if (s === 'NIFTY' || s === 'NIFTY50' || s === 'NIFTY 50' || s === '^NSEI') {
     return { yahooTicker: '^NSEI', currency: '₹', tvTicker: 'NSE:NIFTY', isIndian: true };
@@ -264,14 +304,9 @@ function resolveYahooTicker(rawSymbol) {
     return { yahooTicker: '^NSEBANK', currency: '₹', tvTicker: 'NSE:BANKNIFTY', isIndian: true };
   }
 
-  if (CRYPTO_TICKERS.has(s) || s.endsWith('-USD')) {
-    const base = s.replace('-USD', '');
-    return { yahooTicker: `${base}-USD`, currency: '$', tvTicker: `BINANCE:${base}USDT`, isIndian: false };
-  }
-
-  if (US_TICKERS.has(s) || s.endsWith('.US')) {
-    const base = s.replace('.US', '');
-    return { yahooTicker: base, currency: '$', tvTicker: `NASDAQ:${base}`, isIndian: false };
+  const cryptoBase = CRYPTO_ALIASES[s] || (s.endsWith('-USD') ? s.replace('-USD', '') : (s.endsWith('USDT') ? s.replace('USDT', '') : (CRYPTO_TICKERS.has(s) ? s : null)));
+  if (cryptoBase) {
+    return { yahooTicker: `${cryptoBase}-USD`, currency: '$', tvTicker: `BINANCE:${cryptoBase}USDT`, isIndian: false };
   }
 
   if (s.endsWith('.NS')) {
@@ -287,8 +322,10 @@ function resolveYahooTicker(rawSymbol) {
     return { yahooTicker: `${s}.NS`, currency: '₹', tvTicker: `NSE:${s}`, isIndian: true };
   }
 
-  // Fallback default for 1-4 character symbols without explicit suffix: test US ticker first if clean symbol is US-like
-  return { yahooTicker: `${s}.NS`, currency: '₹', tvTicker: `NSE:${s}`, isIndian: true };
+  // International / US Stock default
+  const cleanSym = s.replace('.US', '');
+  const isNyse = ['BABA', 'DIS', 'BA', 'JPM', 'NKE', 'KO', 'WMT', 'V', 'MA', 'PFE', 'UNH'].includes(cleanSym);
+  return { yahooTicker: cleanSym, currency: '$', tvTicker: `${isNyse ? 'NYSE' : 'NASDAQ'}:${cleanSym}`, isIndian: false };
 }
 
 exports.getLiveTechnicals = async (req, res) => {

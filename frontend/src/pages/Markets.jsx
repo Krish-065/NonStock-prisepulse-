@@ -35,9 +35,9 @@ const SYMBOL_CATEGORIES = {
     { label: 'Palantir',   value: 'NASDAQ:PLTR' },
   ],
   'Global Indices': [
-    { label: 'S&P 500',    value: 'SP:SPX' },
-    { label: 'NASDAQ 100', value: 'NASDAQ:NDX' },
-    { label: 'Dow Jones',  value: 'DJ:DJI' },
+    { label: 'S&P 500',    value: 'FOREXCOM:SPXUSD' },
+    { label: 'NASDAQ 100', value: 'FOREXCOM:NAS100USD' },
+    { label: 'Dow Jones',  value: 'FOREXCOM:DJI' },
     { label: 'FTSE 100',   value: 'INDEX:FTSE' },
     { label: 'DAX 40',     value: 'XETR:DAX' },
     { label: 'Nikkei 225', value: 'TVC:NI225' },
@@ -583,7 +583,33 @@ export default function Markets() {
   const chartSearchRef = useRef();
   // News expand state
   const [expandedNews, setExpandedNews] = useState(null);
+  const [liveNews, setLiveNews] = useState([]);
+  const [liveNewsLoading, setLiveNewsLoading] = useState(false);
   const [newsTimestamps] = useState(() => [Date.now() - 15*60*1000, Date.now() - 65*60*1000, Date.now() - 3*60*60*1000, Date.now() - 30*60*1000, Date.now() - 2*60*60*1000, Date.now() - 45*60*1000]);
+
+  // Fetch live market intelligence news and update periodically
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMarketNews = async () => {
+      try {
+        setLiveNewsLoading(true);
+        const res = await apiClient.get('/market/news');
+        if (isMounted && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setLiveNews(res.data.slice(0, 8));
+        }
+      } catch (err) {
+        console.warn('Live news fetch fallback:', err);
+      } finally {
+        if (isMounted) setLiveNewsLoading(false);
+      }
+    };
+    fetchMarketNews();
+    const timer = setInterval(fetchMarketNews, 60000);
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
+  }, []);
 
   const selectedMarket = 'International';
 
@@ -692,30 +718,41 @@ export default function Markets() {
   const resolveTVSymbol = (rawSymbol) => {
     const s = rawSymbol.toUpperCase();
     
+    // S&P 500 & Index override (free Forex.com and index mapping with zero licensing errors)
+    if (s === 'SP:SPX' || s === 'SPX' || s === 'INDEX:SPX' || s === 'S&P 500' || s === 'S&P500' || s === '^GSPC') {
+      return 'FOREXCOM:SPXUSD';
+    }
+    if (s === 'NASDAQ:NDX' || s === 'NDX' || s === 'NASDAQ 100' || s === '^NDX') {
+      return 'FOREXCOM:NAS100USD';
+    }
+    if (s === 'DJ:DJI' || s === 'DJI' || s === 'DOW' || s === 'DOW JONES' || s === '^DJI') {
+      return 'FOREXCOM:DJI';
+    }
+    
     // 1. If it already has an exchange prefix
     if (s.includes(':')) {
       return s;
     }
 
-    // 2. Handle known indices
-    if (s === 'NIFTY' || s === '^NSEI' || s === 'NSE:NIFTY') return 'NSE:NIFTY';
-    if (s === 'SENSEX' || s === '^BSESN' || s === 'BSE:SENSEX') return 'BSE:SENSEX';
-    if (s === 'BANKNIFTY' || s === '^NSEBANK' || s === 'NSE:BANKNIFTY') return 'NSE:BANKNIFTY';
-
-    // 3. Cryptocurrencies (e.g., BTC-USD, ETH-USD)
-    const isCrypto = s.includes('-USD') || s.includes('-USDT') || s.endsWith('USD') || s.endsWith('USDT') || ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'TRX', 'SHIB', 'AVAX', 'DOT'].includes(s);
+    // 2. Cryptocurrencies (e.g., BTC, BITCOIN, BTC-USD, ETH-USD)
+    const isCrypto = s.includes('-USD') || s.includes('-USDT') || s.endsWith('USD') || s.endsWith('USDT') || ['BTC', 'BITCOIN', 'ETH', 'ETHEREUM', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'TRX', 'SHIB', 'AVAX', 'DOT', 'LINK', 'MATIC'].includes(s);
     if (isCrypto) {
-      const baseSymbol = s.replace('-USD', '').replace('-USDT', '').replace('USD', '').replace('USDT', '');
+      let baseSymbol = s.replace('-USD', '').replace('-USDT', '').replace('USD', '').replace('USDT', '');
+      if (baseSymbol === 'BITCOIN') baseSymbol = 'BTC';
+      if (baseSymbol === 'ETHEREUM') baseSymbol = 'ETH';
       return `BINANCE:${baseSymbol}USDT`;
     }
 
-    // 4. Forex Pairs (e.g., EURUSD=X)
+    // 3. Forex Pairs (e.g., EURUSD=X or EURUSD)
     if (s.endsWith('=X')) {
       const cleanForex = s.replace('=X', '');
-      return `FX_IDC:${cleanForex}`;
+      return `FX:${cleanForex}`;
+    }
+    if (['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF'].includes(s)) {
+      return `FX:${s}`;
     }
 
-    // 4b. Commodity Futures (e.g., GC=F, CL=F, SI=F)
+    // 4. Commodity Futures (e.g., GC=F, CL=F, SI=F)
     if (s.endsWith('=F')) {
       const mappings = {
         'GC=F': 'TVC:GOLD',
@@ -727,22 +764,24 @@ export default function Markets() {
       };
       return mappings[s] || s;
     }
+    if (s === 'GOLD') return 'TVC:GOLD';
+    if (s === 'SILVER') return 'TVC:SILVER';
+    if (s === 'CRUDE OIL' || s === 'OIL') return 'TVC:USOIL';
 
-    // 5. Standard Equities
+    // 5. Explicit Indian Equities with .NS or .BO
     if (s.endsWith('.NS')) {
-      return `BSE:${s.replace('.NS', '')}`;
+      return `NSE:${s.replace('.NS', '')}`;
     }
     if (s.endsWith('.BO')) {
       return `BSE:${s.replace('.BO', '')}`;
     }
 
-    // US Equities list check
-    const usStocks = ['AAPL', 'MSFT', 'TSLA', 'AMZN', 'GOOG', 'META', 'NVDA', 'NFLX'];
-    if (usStocks.includes(s)) {
-      return `NASDAQ:${s}`;
+    // 6. Default all other equities to NASDAQ or NYSE
+    const nyseStocks = ['BABA', 'DIS', 'BA', 'JPM', 'NKE', 'WMT', 'V', 'MA', 'PFE', 'KO'];
+    if (nyseStocks.includes(s)) {
+      return `NYSE:${s}`;
     }
-
-    return `BSE:${s}`;
+    return `NASDAQ:${s}`;
   };
 
   // 1. Render TradingView Widget (Official Script version)
@@ -760,7 +799,7 @@ export default function Markets() {
           container_id: tvContainerRef.current.id,
           symbol: tvSymbol,
           interval: interval === 'D' ? 'D' : interval === 'W' ? 'W' : interval === 'M' ? 'M' : '240',
-          timezone: 'Asia/Kolkata',
+          timezone: 'exchange',
           theme: theme === 'dark' ? 'dark' : 'light',
           style: '1',
           locale: 'en',
@@ -769,7 +808,7 @@ export default function Markets() {
           hide_side_toolbar: false,
           allow_symbol_change: true,
           width: '100%',
-          height: isFullscreen ? (window.innerHeight - 56) : 540,
+          height: isFullscreen ? (window.innerHeight - 56) : 720,
           studies: ['Volume@tv-basicstudies']
         });
       }
@@ -1319,76 +1358,102 @@ export default function Markets() {
     <div style={{ paddingBottom: '32px', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
       {/* Page Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ margin: 0, backgroundImage: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent' }}>
-            Live Stream
+          <h1 style={{ margin: 0, backgroundImage: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent', fontSize: '26px', fontWeight: 900 }}>
+            Live Global Terminal
           </h1>
-          <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0 0', fontSize: '14px' }}>
-            Advanced live market streaming — US Equities, Crypto, Global Indices, Forex & Commodities
+          <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0 0', fontSize: '13px' }}>
+            Streaming real-time international charts across US Equities, Crypto, Global Indices, Forex & Commodities
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="live-badge">LIVE</span>
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)', padding: '5px 14px', borderRadius: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span className="live-badge" style={{ background: 'rgba(0, 255, 136, 0.15)', color: '#00ff88', border: '1px solid rgba(0, 255, 136, 0.3)', padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00ff88', boxShadow: '0 0 8px #00ff88' }} />
+            LIVE
+          </span>
+          <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px 14px', borderRadius: '8px' }}>
             {displayLabel}
           </span>
         </div>
       </div>
 
-      {/* Controls Row */}
-      <div className="mobile-stack" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
-
-        {/* Symbol Search */}
-        <div ref={searchRef} style={{ position: 'relative' }}>
-          <button
-            onClick={() => setShowSearch(v => !v)}
-            style={{ padding: '9px 18px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#ffffff', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
-          >
-            <Search size={16} /> Search Symbol
-          </button>
+      {/* Single Unified International Search & Controls Bar */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', alignItems: 'center', justifyContent: 'space-between' }}>
+        
+        {/* Unified Search Input */}
+        <div ref={searchRef} style={{ position: 'relative', flex: '1 1 320px', maxWidth: '460px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '0 12px' }}>
+            <Search size={15} style={{ color: '#9b9eac', marginRight: '8px' }} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSearch(true);
+              }}
+              onFocus={() => setShowSearch(true)}
+              placeholder="Search global assets (e.g. S&P 500, BTC, AAPL, EUR/USD, Gold)..."
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: 'none',
+                padding: '10px 0',
+                color: '#ffffff',
+                fontSize: '13px',
+                outline: 'none'
+              }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(''); setShowSearch(false); }}
+                style={{ background: 'transparent', border: 'none', color: '#9b9eac', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
           {showSearch && (
-            <div className="mobile-full-width" style={{ position: 'absolute', top: '44px', left: 0, width: '100%', minWidth: '280px', maxWidth: '340px', background: '#0d1128', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 16px 40px rgba(0,0,0,0.6)', zIndex: 100, overflow: 'hidden' }}>
-              <div style={{ padding: '10px' }}>
-                <input
-                  autoFocus
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search stocks, crypto, forex..."
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px 12px', color: '#ffffff', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-                />
+            <div style={{ position: 'absolute', top: '48px', left: 0, right: 0, background: '#0d1128', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.75)', zIndex: 100, overflow: 'hidden' }}>
+              {/* Category selector pills inside search */}
+              <div style={{ display: 'flex', gap: '4px', padding: '10px', borderBottom: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap' }}>
+                {allowedCategories.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setActiveCategory(cat)}
+                    style={{
+                      padding: '4px 10px',
+                      background: activeCategory === cat ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${activeCategory === cat ? '#00ff88' : 'rgba(255,255,255,0.08)'}`,
+                      color: activeCategory === cat ? '#00ff88' : '#9b9eac',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      fontWeight: 700
+                    }}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
-
-              {/* Category Tabs */}
-              {!searchQuery && (
-                <div style={{ display: 'flex', gap: '4px', padding: '0 10px 10px', flexWrap: 'wrap' }}>
-                  {allowedCategories.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setActiveCategory(cat)}
-                      style={{ padding: '4px 10px', background: activeCategory === cat ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${activeCategory === cat ? '#00ff88' : 'rgba(255,255,255,0.08)'}`, color: activeCategory === cat ? '#00ff88' : '#9b9eac', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              )}
 
               {/* Symbol List */}
               <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
                 {filteredSymbols.length === 0 ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#9b9eac', fontSize: '13px' }}>No symbols found</div>
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#9b9eac', fontSize: '13px' }}>No global symbols match "{searchQuery}"</div>
                 ) : filteredSymbols.map(s => (
                   <div
                     key={s.value}
                     onClick={() => selectSymbol(s.value)}
                     style={{ padding: '10px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.15s', borderBottom: '1px solid rgba(255,255,255,0.03)' }}
-                    onMouseOver={e => e.currentTarget.style.background = 'rgba(0,255,136,0.06)'}
+                    onMouseOver={e => e.currentTarget.style.background = 'rgba(0,255,136,0.08)'}
                     onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                   >
-                    <span style={{ color: '#ffffff', fontWeight: 600, fontSize: '14px' }}>{s.label}</span>
-                    <span style={{ color: '#9b9eac', fontSize: '11px', fontFamily: 'monospace' }}>{s.value}</span>
+                    <span style={{ color: '#ffffff', fontWeight: 700, fontSize: '13px' }}>{s.label}</span>
+                    <span style={{ color: '#00bcd4', fontSize: '11px', fontFamily: 'monospace' }}>{s.value}</span>
                   </div>
                 ))}
               </div>
@@ -1396,41 +1461,59 @@ export default function Markets() {
           )}
         </div>
 
-        {/* Interval Pills */}
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {INTERVALS.map(iv => (
+        {/* Global Category Shortcuts */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {Object.entries(SYMBOL_CATEGORIES).map(([cat, syms]) => (
             <button
-              key={iv.value}
-              onClick={() => { setInterval(iv.value); setChartKey(k => k + 1); }}
-              style={{ padding: '7px 14px', background: interval === iv.value ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${interval === iv.value ? '#00ff88' : 'rgba(255,255,255,0.08)'}`, color: interval === iv.value ? '#00ff88' : '#e1e3e6', borderRadius: '20px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}
+              key={cat}
+              type="button"
+              onClick={() => {
+                setActiveCategory(cat);
+                if (syms && syms.length > 0) {
+                  selectSymbol(syms[0].value);
+                }
+              }}
+              style={{
+                padding: '8px 14px',
+                background: activeCategory === cat ? 'rgba(0, 255, 136, 0.12)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${activeCategory === cat ? '#00ff88' : 'rgba(255,255,255,0.08)'}`,
+                color: activeCategory === cat ? '#00ff88' : '#9b9eac',
+                borderRadius: '8px',
+                fontSize: '12px',
+                cursor: 'pointer',
+                fontWeight: 700,
+                transition: 'all 0.15s'
+              }}
             >
-              {iv.label}
+              {cat}
             </button>
           ))}
-        </div>
 
-        {/* Quick-jump category row */}
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginLeft: 'auto' }}>
-          {Object.entries(SYMBOL_CATEGORIES)
-            .filter(([cat]) => allowedCategories.includes(cat))
-            .map(([cat, syms]) => (
-              <button
-                key={cat}
-                onClick={() => { setActiveCategory(cat); setShowSearch(true); }}
-                style={{ padding: '7px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: '#9b9eac', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s' }}
-                onMouseOver={e => { e.currentTarget.style.color = '#00bcd4'; e.currentTarget.style.borderColor = '#00bcd4'; }}
-                onMouseOut={e => { e.currentTarget.style.color = '#9b9eac'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; }}
-              >
-                {cat}
-              </button>
-            ))}
+          {/* Fullscreen Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsFullscreen(prev => !prev);
+              setChartKey(k => k + 1);
+            }}
+            title={isFullscreen ? "Exit Fullscreen (Esc)" : "Full Screen TradingView"}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: isFullscreen ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.06)',
+              border: `1px solid ${isFullscreen ? '#00ff88' : 'rgba(255,255,255,0.12)'}`,
+              color: isFullscreen ? '#00ff88' : '#e1e3e6',
+              padding: '8px 14px', borderRadius: '8px', cursor: 'pointer',
+              fontSize: '12px', fontWeight: 700, transition: 'all 0.2s', marginLeft: '6px'
+            }}
+          >
+            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            {isFullscreen ? 'Exit' : 'Full Screen'}
+          </button>
         </div>
       </div>
 
-
-      {/* Workspace Chart Card */}
+      {/* Main Workspace TradingView Chart Card - 720px Tall & Responsive */}
       <div
-        className={isFullscreen ? "" : "mobile-reduced-height"}
         style={isFullscreen ? {
           position: 'fixed',
           top: 0,
@@ -1450,345 +1533,77 @@ export default function Markets() {
           flex: 1,
           background: '#0a0e27',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
           overflow: 'hidden',
-          minHeight: '620px',
+          minHeight: '720px',
+          height: '720px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           display: 'flex',
           flexDirection: 'column'
         }}
       >
-        
-        {/* Workspace Tab Header */}
-        <div className="mobile-scroll-x" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#10142d', borderBottom: '1px solid rgba(255, 255, 255, 0.06)', padding: '0 16px', flexWrap: 'nowrap', gap: '10px', height: '52px' }}>
-          <div style={{ display: 'flex', gap: '12px', height: '100%', alignItems: 'center' }}>
-            <button
-              onClick={() => setActiveTab('tradingview')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                background: 'transparent', border: 'none',
-                borderBottom: activeTab === 'tradingview' ? '2px solid #00bcd4' : '2px solid transparent',
-                color: activeTab === 'tradingview' ? '#ffffff' : '#9b9eac',
-                padding: '0 6px', cursor: 'pointer', fontWeight: 700, fontSize: '12px',
-                transition: 'all 0.2s', height: '100%'
-              }}
-            >
-              <BarChart2 size={14} style={{ color: activeTab === 'tradingview' ? '#00bcd4' : '#9b9eac' }} />
-              TradingView
-            </button>
-            <button
-              onClick={() => setActiveTab('custom')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                background: 'transparent', border: 'none',
-                borderBottom: activeTab === 'custom' ? '2px solid #00ff88' : '2px solid transparent',
-                color: activeTab === 'custom' ? '#ffffff' : '#9b9eac',
-                padding: '0 6px', cursor: 'pointer', fontWeight: 700, fontSize: '12px',
-                transition: 'all 0.2s', height: '100%'
-              }}
-            >
-              <Activity size={14} style={{ color: activeTab === 'custom' ? '#00ff88' : '#9b9eac' }} />
-              Live Chart
-            </button>
-          </div>
-
-          {/* Stock Name + Inline Chart Search */}
-          <div ref={chartSearchRef} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', position: 'relative' }}>
-            <div
-              onClick={() => setShowChartSearch(v => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 14px', minWidth: '160px', justifyContent: 'space-between' }}
-            >
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace' }}>{displayLabel}</span>
-              <Search size={13} style={{ color: '#9b9eac' }} />
-            </div>
-            {showChartSearch && (
-              <div style={{ position: 'absolute', top: '40px', left: '50%', transform: 'translateX(-50%)', width: '320px', background: '#0d1128', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.7)', zIndex: 200, overflow: 'hidden' }}>
-                <div style={{ padding: '10px' }}>
-                  <input
-                    autoFocus
-                    value={chartSearchQuery}
-                    onChange={e => setChartSearchQuery(e.target.value)}
-                    placeholder="Search stocks, crypto, forex, indices..."
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '9px 12px', color: '#ffffff', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                </div>
-                <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
-                  {filteredChartSymbols.length === 0
-                    ? <div style={{ padding: '20px', textAlign: 'center', color: '#9b9eac', fontSize: '13px' }}>No symbols found</div>
-                    : filteredChartSymbols.map(s => (
-                        <div
-                          key={s.value}
-                          onClick={() => { selectSymbol(s.value); setShowChartSearch(false); setChartSearchQuery(''); }}
-                          style={{ padding: '10px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.12s' }}
-                          onMouseOver={e => e.currentTarget.style.background = 'rgba(0,255,136,0.06)'}
-                          onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-                        >
-                          <span style={{ color: '#ffffff', fontWeight: 600, fontSize: '13px' }}>{s.label}</span>
-                          <span style={{ color: '#9b9eac', fontSize: '11px', fontFamily: 'monospace' }}>{s.value}</span>
-                        </div>
-                      ))
-                  }
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Status dot + Fullscreen Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: activeTab === 'custom' ? '#00ff88' : '#00bcd4', boxShadow: activeTab === 'custom' ? '0 0 7px #00ff88' : '0 0 7px #00bcd4' }} />
-              <span style={{ color: '#9b9eac', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>LIVE</span>
-            </div>
-            <button
-              onClick={() => {
-                setIsFullscreen(prev => !prev);
-                setChartKey(k => k + 1);
-              }}
-              title={isFullscreen ? "Exit Fullscreen (Esc)" : "Full Screen TradingView"}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                background: isFullscreen ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.06)',
-                border: `1px solid ${isFullscreen ? '#00ff88' : 'rgba(255,255,255,0.12)'}`,
-                color: isFullscreen ? '#00ff88' : '#e1e3e6',
-                padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
-                fontSize: '12px', fontWeight: 700, transition: 'all 0.2s'
-              }}
-            >
-              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-              {isFullscreen ? 'Exit' : 'Full Screen'}
-            </button>
-          </div>
+        {/* TradingView Container */}
+        <div style={{ width: '100%', height: '100%', flex: 1, background: '#0a0e27' }}>
+          <div id="tradingview_chart_container" ref={tvContainerRef} style={{ width: '100%', height: '100%' }} />
         </div>
-
-        {/* Indicators Overlay Sub-Header for Custom Chart */}
-        {activeTab === 'custom' && (
-          <div className="mobile-scroll-x" style={{
-            display: 'flex',
-            gap: '16px',
-            alignItems: 'center',
-            background: 'rgba(14, 18, 43, 0.7)',
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-            padding: '8px 20px',
-            flexWrap: 'nowrap',
-            zIndex: 6
-          }}>
-            <span style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Standard:</span>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              {[
-                { id: 'sma20', label: 'SMA 20', color: '#00bcd4' },
-                { id: 'ema50', label: 'EMA 50', color: '#ff9800' },
-                { id: 'rsi', label: 'RSI Signals', color: '#e040fb' },
-                { id: 'macd', label: 'MACD Signals', color: '#00e676' }
-              ].map(ind => (
-                <button
-                  key={ind.id}
-                  onClick={() => setActiveIndicators(prev => ({ ...prev, [ind.id]: !prev[ind.id] }))}
-                  style={{
-                    background: activeIndicators[ind.id] ? ind.color : 'rgba(255,255,255,0.02)',
-                    color: activeIndicators[ind.id] ? '#0a0e27' : '#9b9eac',
-                    border: activeIndicators[ind.id] ? 'none' : '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {ind.label}
-                </button>
-              ))}
-            </div>
-
-            <span style={{ fontSize: '10px', color: '#ffb300', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginLeft: '12px', display: 'flex', alignItems: 'center', gap: '2px' }}>
-              👑 Pro Overlay:
-            </span>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {[
-                { id: 'bollinger', label: 'BB', color: '#ffeb3b' },
-                { id: 'stochRsi', label: 'Stoch RSI', color: '#00e676' },
-                { id: 'ichimoku', label: 'Ichimoku', color: '#29b6f6' },
-                { id: 'pivotPoints', label: 'Pivot Points', color: '#ffeb3b' },
-                { id: 'vwap', label: 'VWAP', color: '#3f51b5' },
-                { id: 'sar', label: 'Parabolic SAR', color: '#e040fb' }
-              ].map(ind => (
-                <button
-                  key={ind.id}
-                  onClick={() => {
-                    if (!isPro) {
-                      toast.error(`👑 ${ind.label} is a NonStock Pro exclusive strategy. Upgrade to unlock!`);
-                      return;
-                    }
-                    setActiveIndicators(prev => ({ ...prev, [ind.id]: !prev[ind.id] }));
-                  }}
-                  style={{
-                    background: activeIndicators[ind.id] ? ind.color : 'rgba(255,255,255,0.02)',
-                    color: activeIndicators[ind.id] ? '#0a0e27' : '#ffb300',
-                    border: activeIndicators[ind.id] ? 'none' : '1px solid rgba(255,179,0,0.15)',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    opacity: isPro ? 1 : 0.65,
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {!isPro && <span style={{ marginRight: '4px' }}>🔒</span>}
-                  {ind.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Chart Viewport */}
-        <div className={isFullscreen ? "" : "mobile-reduced-height-chart"} style={{ flex: 1, position: 'relative', minHeight: isFullscreen ? 'calc(100vh - 54px)' : '540px', background: '#0a0e27', display: 'flex', flexDirection: 'column' }}>
-          
-          {/* TradingView Container */}
-          <div style={{ display: activeTab === 'tradingview' ? 'block' : 'none', width: '100%', height: isFullscreen ? 'calc(100vh - 54px)' : '540px' }}>
-            <div id="tradingview_chart_container" ref={tvContainerRef} style={{ width: '100%', height: isFullscreen ? 'calc(100vh - 54px)' : '540px' }} />
-          </div>
-
-          {/* Custom NonStock Chart Container */}
-          <div className="mobile-reduced-height-chart" style={{ display: activeTab === 'custom' ? 'block' : 'none', width: '100%', height: '540px', position: 'relative' }}>
-            {customLoading && (
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10, 14, 39, 0.8)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 10 }}>
-                <div className="spinner" style={{ border: '3px solid rgba(255,255,255,0.05)', borderTop: '3px solid #00ff88', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
-                <span style={{ color: '#ffffff', fontSize: '14px', fontWeight: 600 }}>Fetching live historical data...</span>
-              </div>
-            )}
-            {customError && (
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(10, 14, 39, 0.95)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 10, padding: '24px', textAlign: 'center' }}>
-                <span style={{ color: '#ff4444', fontSize: '15px', fontWeight: 700, marginBottom: '10px' }}>{customError}</span>
-                <button onClick={() => setChartKey(k => k + 1)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ffffff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>Retry connection</button>
-              </div>
-            )}
-            
-            {/* Live Info Bar inside chart */}
-            {liveInfo && (
-              <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 5, background: 'rgba(16, 20, 45, 0.85)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', display: 'flex', gap: '20px', alignItems: 'center', pointerEvents: 'none' }}>
-                <div>
-                  <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>LAST PRICE</div>
-                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace' }}>
-                    {isIndianStock ? '₹' : '$'}{parseFloat(liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>CHANGE</div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: parseFloat(liveInfo.change) >= 0 ? '#00ff88' : '#ff4444', fontFamily: 'monospace' }}>
-                    {parseFloat(liveInfo.change) >= 0 ? '+' : ''}{parseFloat(liveInfo.change).toFixed(2)} ({parseFloat(liveInfo.changePercent) >= 0 ? '+' : ''}{parseFloat(liveInfo.changePercent).toFixed(2)}%)
-                  </div>
-                </div>
-                <div style={{ borderLeft: '1px solid rgba(255,255,255,0.08)', paddingLeft: '20px' }}>
-                  <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>DAY HIGH</div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff', fontFamily: 'monospace' }}>
-                    {isIndianStock ? '₹' : '$'}{parseFloat(liveInfo.dayHigh || liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '10px', color: '#9b9eac', fontWeight: 700 }}>DAY LOW</div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff', fontFamily: 'monospace' }}>
-                    {isIndianStock ? '₹' : '$'}{parseFloat(liveInfo.dayLow || liveInfo.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div id="nonstock_chart_container" className="mobile-reduced-height-chart" ref={customChartContainerRef} style={{ width: '100%', height: '540px' }} />
-          </div>
-        </div>
-
       </div>
 
-      <p style={{ color: '#9b9eac', fontSize: '12px', marginTop: '10px', textAlign: 'center' }}>
-        Charts powered by <a href="https://www.tradingview.com" target="_blank" rel="noopener noreferrer" style={{ color: '#00bcd4', textDecoration: 'none' }}>TradingView</a> and Yahoo Finance. Data is for informational purposes only.
+      <p style={{ color: '#9b9eac', fontSize: '12px', marginTop: '12px', textAlign: 'center' }}>
+        Live streaming powered by <a href="https://www.tradingview.com" target="_blank" rel="noopener noreferrer" style={{ color: '#00bcd4', textDecoration: 'none' }}>TradingView</a>. Professional international market feed.
       </p>
 
-      {/* Advanced Market Intelligence & Live Expert Streams */}
-      <div style={{ marginTop: '32px', background: 'rgba(16, 20, 45, 0.4)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', padding: '24px' }}>
-        <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Activity size={20} style={{ color: '#00bcd4' }} />
-          Advanced Market Data & Live Advisors
+      {/* Advanced Market Intelligence (Live Metrics) */}
+      <div style={{ marginTop: '24px', background: 'rgba(16, 20, 45, 0.4)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', padding: '24px' }}>
+        <h3 style={{ margin: '0 0 20px 0', fontSize: '17px', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Activity size={18} style={{ color: '#00bcd4' }} />
+          Advanced Market Intelligence & Quant Flow
         </h3>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-          
-          {/* Processed Quant Data Container */}
-          <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.03)' }}>
-            <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#00ff88', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <TrendingUp size={16} /> Processed Quant Metrics (Live)
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Institutional Dark Pool Flow</span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#ffb300' }}>Moderate Buy Bias (62%)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Algorithmic Order Book Skew</span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#00ff88' }}>+14,500 Contracts (Bid Side)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Short-Term Volatility (HV)</span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#ff4444' }}>Expanding (14.2% &rarr; 18.5%)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Retail Sentiment Index</span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#00bcd4' }}>Extreme Fear (22/100)</span>
-              </div>
-            </div>
-            <button style={{ width: '100%', marginTop: '16px', background: 'rgba(0, 255, 136, 0.1)', border: '1px solid #00ff88', color: '#00ff88', padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-              Access Full Screener Data
-            </button>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+          <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ fontSize: '11px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>Dark Pool Flow</div>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#ffb300', marginTop: '6px' }}>Moderate Buy Bias (62%)</div>
+            <div style={{ fontSize: '11px', color: '#9b9eac', marginTop: '4px' }}>Institutional off-exchange volume</div>
           </div>
-
-          {/* Live Expert Streams */}
-          <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.03)' }}>
-            <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#ff4444', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Play size={16} /> Live Trading Advisors & Mentors
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }} onMouseOver={e => e.currentTarget.style.borderColor = '#ff4444'} onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
-                <div style={{ position: 'relative' }}>
-                  <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80" alt="Advisor" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
-                  <span style={{ position: 'absolute', bottom: -2, right: -2, background: '#ff4444', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '2px 4px', borderRadius: '4px' }}>LIVE</span>
-                </div>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>BTC & ETH Global Derivatives Expiry</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>by TradeMaster Pro • 12K watching</div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }} onMouseOver={e => e.currentTarget.style.borderColor = '#ff4444'} onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
-                <div style={{ position: 'relative' }}>
-                  <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80" alt="Advisor" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
-                  <span style={{ position: 'absolute', bottom: -2, right: -2, background: '#ff4444', color: '#fff', fontSize: '8px', fontWeight: 800, padding: '2px 4px', borderRadius: '4px' }}>LIVE</span>
-                </div>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>Global Market Pre-Open Analysis</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>by Sarah Capital • 4.5K watching</div>
-                </div>
-              </div>
-
-            </div>
+          <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ fontSize: '11px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>Order Book Skew</div>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#00ff88', marginTop: '6px' }}>+14,500 Contracts (Bid Side)</div>
+            <div style={{ fontSize: '11px', color: '#9b9eac', marginTop: '4px' }}>Active buy limit depth dominance</div>
           </div>
-
+          <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ fontSize: '11px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>Implied Volatility (IV)</div>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#ff4444', marginTop: '6px' }}>Expanding (14.2% &rarr; 18.5%)</div>
+            <div style={{ fontSize: '11px', color: '#9b9eac', marginTop: '4px' }}>Short-term options volatility breakout</div>
+          </div>
+          <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ fontSize: '11px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>Global Sentiment Index</div>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#00bcd4', marginTop: '6px' }}>Neutral / Steady (54/100)</div>
+            <div style={{ fontSize: '11px', color: '#9b9eac', marginTop: '4px' }}>Cross-market macro sentiment gauge</div>
+          </div>
         </div>
       </div>
 
-      {/* Global Insights & Recommendations - Interactive (below chart) */}
+      {/* Live Market Intelligence News (Updating According to Market) */}
       <div style={{ marginTop: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📡 Live Market Intelligence — Click to expand, then visit source</span>
-          <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: 600 }}>Updated {formatNewsTime(Date.now() - 60000)}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            📡 Live Market Intelligence News
+          </span>
+          <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: 700 }}>
+            {liveNewsLoading ? 'Refreshing live feed...' : `Live Stream Active`}
+          </span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-          {NEWS_ITEMS.map((rec, i) => {
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+          {(liveNews.length > 0 ? liveNews : NEWS_ITEMS).map((rec, i) => {
             const isExpanded = expandedNews === i;
-            const sentColors = { Bullish: { bg: 'rgba(0,255,136,0.1)', text: '#00b060', border: 'rgba(0,255,136,0.2)' }, Bearish: { bg: 'rgba(255,68,68,0.1)', text: '#ff4444', border: 'rgba(255,68,68,0.2)' }, Volatile: { bg: 'rgba(255,152,0,0.1)', text: '#ff9800', border: 'rgba(255,152,0,0.2)' }, Neutral: { bg: 'rgba(100,120,255,0.1)', text: '#8899ff', border: 'rgba(100,120,255,0.2)' } };
+            const sentColors = { Bullish: { bg: 'rgba(0,255,136,0.1)', text: '#00b060', border: 'rgba(0,255,136,0.25)' }, Bearish: { bg: 'rgba(255,68,68,0.1)', text: '#ff4444', border: 'rgba(255,68,68,0.25)' }, Volatile: { bg: 'rgba(255,152,0,0.1)', text: '#ff9800', border: 'rgba(255,152,0,0.25)' }, Neutral: { bg: 'rgba(100,120,255,0.1)', text: '#8899ff', border: 'rgba(100,120,255,0.25)' } };
             const sc = sentColors[rec.sentiment] || sentColors.Neutral;
+            const newsSource = rec.source?.name || rec.source || 'Market Intelligence';
+            const newsTitle = rec.title;
+            const newsDesc = rec.description || rec.desc;
+            const newsUrl = rec.url || rec.sourceUrl || 'https://finance.yahoo.com';
+
             return (
               <div
                 key={i}
@@ -1809,17 +1624,27 @@ export default function Markets() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-                    {rec.source} • {formatNewsTime(newsTimestamps[rec.tsIdx])}
+                    {newsSource} • {rec.time || formatNewsTime(newsTimestamps[i % newsTimestamps.length])}
                   </span>
-                  <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: sc.bg, color: sc.text }}>{rec.sentiment}</span>
+                  <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: sc.bg, color: sc.text }}>
+                    {rec.sentiment || 'Neutral'}
+                  </span>
                 </div>
-                <h4 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)', lineHeight: '1.3' }}>{rec.title}</h4>
-                <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{rec.desc}</p>
+                <h4 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
+                  {newsTitle}
+                </h4>
+                <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                  {newsDesc}
+                </p>
                 {isExpanded && (
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '10px', marginTop: '2px' }}>
-                    <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.6', opacity: 0.9 }}>{rec.fullDesc}</p>
+                    {rec.takeaway && (
+                      <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#00ff88', lineHeight: '1.5' }}>
+                        <strong>Trade Takeaway:</strong> {rec.takeaway}
+                      </p>
+                    )}
                     <a
-                      href={rec.sourceUrl}
+                      href={newsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={e => e.stopPropagation()}
@@ -1831,12 +1656,12 @@ export default function Markets() {
                         fontSize: '11px', fontWeight: 700, textDecoration: 'none'
                       }}
                     >
-                      Read at {rec.source} →
+                      Read full report on {newsSource} →
                     </a>
                   </div>
                 )}
                 <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px', opacity: 0.6 }}>
-                  {isExpanded ? '▲ Click to collapse' : '▼ Click for full analysis & source'}
+                  {isExpanded ? '▲ Click to collapse' : '▼ Click for trade takeaway & source'}
                 </div>
               </div>
             );

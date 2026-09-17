@@ -3,6 +3,7 @@ import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { io } from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   Users, Award, Copy, Share2, Play, Star, Sparkles, TrendingUp, 
   TrendingDown, RefreshCw, Trophy, ShieldCheck, Flame, MessageSquare,
@@ -141,6 +142,8 @@ const CURATED_CONTESTS = [
 
 export default function Community() {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const [tab, setTab] = useState('feed'); // feed | systems | educator | chats
   
   // Shared Strategies & Leaderboard
@@ -879,9 +882,9 @@ export default function Community() {
               padding: '10px 20px',
               border: 'none',
               borderRadius: '8px',
-              background: tab === t.id ? 'rgba(0, 255, 136, 0.1)' : 'transparent',
-              color: tab === t.id ? '#00ff88' : '#e0e0e0',
-              fontWeight: tab === t.id ? '800' : '500',
+              background: tab === t.id ? (isLight ? 'rgba(0, 176, 96, 0.12)' : 'rgba(0, 255, 136, 0.1)') : 'transparent',
+              color: tab === t.id ? (isLight ? '#008744' : '#00ff88') : (isLight ? '#1e293b' : '#e0e0e0'),
+              fontWeight: tab === t.id ? '800' : '600',
               fontSize: '13px',
               cursor: 'pointer',
               transition: 'all 0.2s'
@@ -1164,8 +1167,8 @@ export default function Community() {
           }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {[
-                { id: 'all', name: 'All Posts', icon: <Globe size={14} /> },
-                { id: 'trending', name: 'Trending', icon: <TrendingUp size={14} /> },
+                { id: 'all', name: 'For You', icon: <Sparkles size={14} /> },
+                { id: 'trending', name: 'Trending Signals', icon: <TrendingUp size={14} /> },
                 { id: 'following', name: 'Following Channels', icon: <Users size={14} /> },
                 { id: 'channels', name: 'Explore Channels', icon: <ExternalLink size={14} /> }
               ].map(sub => (
@@ -1178,10 +1181,10 @@ export default function Community() {
                     gap: '6px',
                     padding: '8px 16px',
                     borderRadius: '8px',
-                    background: feedSubTab === sub.id ? 'rgba(0, 255, 136, 0.12)' : 'transparent',
-                    border: feedSubTab === sub.id ? '1px solid rgba(0, 255, 136, 0.25)' : '1px solid transparent',
-                    color: feedSubTab === sub.id ? '#00ff88' : 'var(--text-secondary)',
-                    fontWeight: feedSubTab === sub.id ? '850' : '500',
+                    background: feedSubTab === sub.id ? (isLight ? 'rgba(0, 176, 96, 0.14)' : 'rgba(0, 255, 136, 0.12)') : 'transparent',
+                    border: feedSubTab === sub.id ? (isLight ? '1px solid rgba(0, 176, 96, 0.35)' : '1px solid rgba(0, 255, 136, 0.25)') : '1px solid transparent',
+                    color: feedSubTab === sub.id ? (isLight ? '#008744' : '#00ff88') : (isLight ? '#475569' : 'var(--text-secondary)'),
+                    fontWeight: feedSubTab === sub.id ? '850' : '600',
                     fontSize: '12.5px',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
@@ -1366,8 +1369,8 @@ export default function Community() {
                         value={newPostChannelId}
                         onChange={(e) => setNewPostChannelId(e.target.value)}
                         style={{
-                          background: 'rgba(10, 14, 39, 0.6)',
-                          border: '1px solid rgba(255,255,255,0.08)',
+                          background: isLight ? '#f8fafc' : 'rgba(10, 14, 39, 0.6)',
+                          border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255,255,255,0.08)',
                           borderRadius: '8px',
                           padding: '10px 12px',
                           color: 'var(--text-primary)',
@@ -1404,8 +1407,8 @@ export default function Community() {
                       type="text"
                       value={newPostTitle}
                       onChange={(e) => setNewPostTitle(e.target.value)}
-                      placeholder="e.g. Nifty Breakout Setup"
-                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
+                      placeholder="e.g. BTC Bullish Pennant Breakout"
+                      style={{ background: isLight ? '#f8fafc' : 'rgba(10,14,39,0.5)', border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
                       required
                     />
                   </div>
@@ -1417,7 +1420,7 @@ export default function Community() {
                       onChange={(e) => setNewPostContent(e.target.value)}
                       placeholder="Explain your technical indicators, target price, and trading logic..."
                       rows={5}
-                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px', resize: 'none', outline: 'none' }}
+                      style={{ background: isLight ? '#f8fafc' : 'rgba(10,14,39,0.5)', border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px', resize: 'none', outline: 'none' }}
                       required
                     />
                   </div>
@@ -1429,7 +1432,7 @@ export default function Community() {
                       value={newPostImageUrl}
                       onChange={(e) => setNewPostImageUrl(e.target.value)}
                       placeholder="https://example.com/chart.png"
-                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
+                      style={{ background: isLight ? '#f8fafc' : 'rgba(10,14,39,0.5)', border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255,255,255,0.08)', padding: '10px 12px', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none' }}
                     />
                   </div>
 

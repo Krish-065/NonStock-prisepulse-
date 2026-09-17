@@ -16,13 +16,15 @@ export default function News() {
   const categories = ['All', 'Equity', 'Economy', 'F&O', 'Crypto'];
 
   const hashtags = [
-    { label: '#RBI', query: 'RBI' },
-    { label: '#Reliance', query: 'Reliance' },
-    { label: '#Inflation', query: 'inflation' },
     { label: '#Fed', query: 'Fed' },
-    { label: '#Nifty', query: 'Nifty' },
+    { label: '#SP500', query: 'S&P' },
+    { label: '#Bitcoin', query: 'Bitcoin' },
+    { label: '#Nvidia', query: 'Nvidia' },
+    { label: '#Nasdaq', query: 'Nasdaq' },
     { label: '#Crypto', query: 'Crypto' },
-    { label: '#Earnings', query: 'Profit' }
+    { label: '#Inflation', query: 'inflation' },
+    { label: '#Forex', query: 'Euro' },
+    { label: '#Gold', query: 'Gold' }
   ];
 
   useEffect(() => {
