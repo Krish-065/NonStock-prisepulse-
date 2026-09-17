@@ -260,7 +260,7 @@ function computeVWAP(bars) {
 
 // Generate high-fidelity fallback bars when market data API is rate-limited
 function generateFallbackBars(symbol, range = '1y', interval = '1d') {
-  const count = interval === '5m' ? 120 : interval === '15m' ? 150 : interval === '60m' ? 180 : 250;
+  const count = interval === '1m' ? 300 : interval === '3m' ? 240 : interval === '5m' ? 200 : interval === '15m' ? 180 : interval === '30m' ? 160 : interval === '60m' ? 180 : interval === '240m' ? 200 : 250;
   let basePrice = 100;
   const s = symbol.toUpperCase();
   if (s.includes('BTC') || s.includes('BITCOIN')) basePrice = 64250;
@@ -277,15 +277,23 @@ function generateFallbackBars(symbol, range = '1y', interval = '1d') {
 
   const bars = [];
   const now = Date.now();
-  const stepMs = interval === '5m' ? 5 * 60 * 1000 : interval === '15m' ? 15 * 60 * 1000 : interval === '60m' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
-  let curPrice = basePrice * 0.85;
+  const stepMs = interval === '1m' ? 60 * 1000 
+    : interval === '3m' ? 3 * 60 * 1000
+    : interval === '5m' ? 5 * 60 * 1000 
+    : interval === '15m' ? 15 * 60 * 1000 
+    : interval === '30m' ? 30 * 60 * 1000 
+    : interval === '60m' ? 60 * 60 * 1000 
+    : interval === '240m' ? 4 * 60 * 60 * 1000 
+    : interval === '1wk' ? 7 * 24 * 60 * 60 * 1000
+    : 24 * 60 * 60 * 1000;
+  let curPrice = basePrice * 0.88;
 
   for (let i = count; i >= 0; i--) {
     const time = now - i * stepMs;
     // random walk with slight upward drift
-    const changePct = (Math.random() - 0.48) * (basePrice > 1000 ? 0.025 : 0.018);
+    const changePct = (Math.random() - 0.48) * (basePrice > 1000 ? 0.02 : 0.015);
     curPrice = Math.max(basePrice * 0.3, curPrice * (1 + changePct));
-    const spread = curPrice * 0.008;
+    const spread = curPrice * 0.007;
     const open = curPrice + (Math.random() - 0.5) * spread;
     const high = Math.max(open, curPrice) + Math.random() * spread;
     const low = Math.min(open, curPrice) - Math.random() * spread;
@@ -341,10 +349,39 @@ router.post('/backtest', async (req, res) => {
       symbol = `${symbol}.NS`;
     }
 
+    // Adapt range for intraday intervals to avoid Yahoo Finance 400 Bad Request
+    let queryInterval = interval;
+    let queryRange = range;
+    if (interval === '1m' || interval === '3m') {
+      queryInterval = '1m';
+      queryRange = '7d';
+    } else if (interval === '5m') {
+      queryInterval = '5m';
+      queryRange = '1mo';
+    } else if (interval === '15m') {
+      queryInterval = '15m';
+      queryRange = '1mo';
+    } else if (interval === '30m') {
+      queryInterval = '30m';
+      queryRange = '1mo';
+    } else if (interval === '60m' || interval === '1h') {
+      queryInterval = '60m';
+      queryRange = ['1mo', '3mo', '6mo', '1y'].includes(range) ? range : '1y';
+    } else if (interval === '240m' || interval === '4h') {
+      queryInterval = '60m';
+      queryRange = '1y';
+    } else if (interval === '1wk') {
+      queryInterval = '1wk';
+      queryRange = ['1y', '2y', '5y'].includes(range) ? range : '2y';
+    } else {
+      queryInterval = '1d';
+      queryRange = range || '1y';
+    }
+
     let bars = [];
     try {
       // Fetch Yahoo Finance Historical Bars
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}`;
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${queryRange}&interval=${queryInterval}`;
       const response = await fetch(url, { headers: YAHOO_HEADERS });
       if (response.ok) {
         const data = await response.json();
@@ -383,12 +420,20 @@ router.post('/backtest', async (req, res) => {
 
     // Compute technical indicators
     const prices = bars.map(b => b.close);
+    const highs = bars.map(b => b.high);
+    const lows = bars.map(b => b.low);
     const rsi = computeRSI(prices, 14);
+    const ema5 = computeEMA(prices, 5);
+    const ema9 = computeEMA(prices, 9);
+    const ema10 = computeEMA(prices, 10);
     const ema20 = computeEMA(prices, 20);
     const ema50 = computeEMA(prices, 50);
+    const ema100 = computeEMA(prices, 100);
     const ema200 = computeEMA(prices, 200);
+    const sma9 = computeSMA(prices, 9);
     const sma20 = computeSMA(prices, 20);
     const sma50 = computeSMA(prices, 50);
+    const sma100 = computeSMA(prices, 100);
     const sma200 = computeSMA(prices, 200);
     const adx = computeADX(bars, 14);
     const { macdLine, signalLine, histogram: macdHist } = computeMACD(prices);
@@ -404,11 +449,21 @@ router.post('/backtest', async (req, res) => {
       // Resolve value of indicator
       if (cond.indicator === 'RSI') val = rsi[idx];
       else if (cond.indicator === 'Price') val = prices[idx];
+      else if (cond.indicator === 'High') val = highs[idx];
+      else if (cond.indicator === 'Low') val = lows[idx];
+      else if (cond.indicator === 'Prev_High') val = idx > 0 ? highs[idx - 1] : highs[idx];
+      else if (cond.indicator === 'Prev_Low') val = idx > 0 ? lows[idx - 1] : lows[idx];
+      else if (cond.indicator === 'EMA5') val = ema5[idx];
+      else if (cond.indicator === 'EMA9') val = ema9[idx];
+      else if (cond.indicator === 'EMA10') val = ema10[idx];
       else if (cond.indicator === 'EMA20') val = ema20[idx];
       else if (cond.indicator === 'EMA50') val = ema50[idx];
+      else if (cond.indicator === 'EMA100') val = ema100[idx];
       else if (cond.indicator === 'EMA200') val = ema200[idx];
+      else if (cond.indicator === 'SMA9') val = sma9[idx];
       else if (cond.indicator === 'SMA20') val = sma20[idx];
       else if (cond.indicator === 'SMA50') val = sma50[idx];
+      else if (cond.indicator === 'SMA100') val = sma100[idx];
       else if (cond.indicator === 'SMA200') val = sma200[idx];
       else if (cond.indicator === 'ADX') val = adx[idx];
       else if (cond.indicator === 'MACD') val = macdLine[idx];
@@ -424,14 +479,24 @@ router.post('/backtest', async (req, res) => {
 
       // Resolve target indicator if not static value
       if (cond.targetType === 'indicator') {
-        if (cond.targetIndicator === 'EMA20') targetVal = ema20[idx];
+        if (cond.targetIndicator === 'EMA5') targetVal = ema5[idx];
+        else if (cond.targetIndicator === 'EMA9') targetVal = ema9[idx];
+        else if (cond.targetIndicator === 'EMA10') targetVal = ema10[idx];
+        else if (cond.targetIndicator === 'EMA20') targetVal = ema20[idx];
         else if (cond.targetIndicator === 'EMA50') targetVal = ema50[idx];
+        else if (cond.targetIndicator === 'EMA100') targetVal = ema100[idx];
         else if (cond.targetIndicator === 'EMA200') targetVal = ema200[idx];
+        else if (cond.targetIndicator === 'SMA9') targetVal = sma9[idx];
         else if (cond.targetIndicator === 'SMA20') targetVal = sma20[idx];
         else if (cond.targetIndicator === 'SMA50') targetVal = sma50[idx];
+        else if (cond.targetIndicator === 'SMA100') targetVal = sma100[idx];
         else if (cond.targetIndicator === 'SMA200') targetVal = sma200[idx];
         else if (cond.targetIndicator === 'SignalLine') targetVal = signalLine[idx];
         else if (cond.targetIndicator === 'Price') targetVal = prices[idx];
+        else if (cond.targetIndicator === 'High') targetVal = highs[idx];
+        else if (cond.targetIndicator === 'Low') targetVal = lows[idx];
+        else if (cond.targetIndicator === 'Prev_High') targetVal = idx > 0 ? highs[idx - 1] : highs[idx];
+        else if (cond.targetIndicator === 'Prev_Low') targetVal = idx > 0 ? lows[idx - 1] : lows[idx];
         else if (cond.targetIndicator === 'BB_Upper') targetVal = bbUpper[idx];
         else if (cond.targetIndicator === 'BB_Lower') targetVal = bbLower[idx];
         else if (cond.targetIndicator === 'BB_Middle') targetVal = bbMiddle[idx];
@@ -451,11 +516,21 @@ router.post('/backtest', async (req, res) => {
       
       if (cond.indicator === 'RSI') prevVal = rsi[idx - 1];
       else if (cond.indicator === 'Price') prevVal = bars[idx - 1].close;
+      else if (cond.indicator === 'High') prevVal = highs[idx - 1];
+      else if (cond.indicator === 'Low') prevVal = lows[idx - 1];
+      else if (cond.indicator === 'Prev_High') prevVal = idx > 1 ? highs[idx - 2] : highs[idx - 1];
+      else if (cond.indicator === 'Prev_Low') prevVal = idx > 1 ? lows[idx - 2] : lows[idx - 1];
+      else if (cond.indicator === 'EMA5') prevVal = ema5[idx - 1];
+      else if (cond.indicator === 'EMA9') prevVal = ema9[idx - 1];
+      else if (cond.indicator === 'EMA10') prevVal = ema10[idx - 1];
       else if (cond.indicator === 'EMA20') prevVal = ema20[idx - 1];
       else if (cond.indicator === 'EMA50') prevVal = ema50[idx - 1];
+      else if (cond.indicator === 'EMA100') prevVal = ema100[idx - 1];
       else if (cond.indicator === 'EMA200') prevVal = ema200[idx - 1];
+      else if (cond.indicator === 'SMA9') prevVal = sma9[idx - 1];
       else if (cond.indicator === 'SMA20') prevVal = sma20[idx - 1];
       else if (cond.indicator === 'SMA50') prevVal = sma50[idx - 1];
+      else if (cond.indicator === 'SMA100') prevVal = sma100[idx - 1];
       else if (cond.indicator === 'SMA200') prevVal = sma200[idx - 1];
       else if (cond.indicator === 'ADX') prevVal = adx[idx - 1];
       else if (cond.indicator === 'MACD') prevVal = macdLine[idx - 1];
@@ -470,14 +545,24 @@ router.post('/backtest', async (req, res) => {
       if (prevVal === null) return false;
 
       if (cond.targetType === 'indicator') {
-        if (cond.targetIndicator === 'EMA20') prevTargetVal = ema20[idx - 1];
+        if (cond.targetIndicator === 'EMA5') prevTargetVal = ema5[idx - 1];
+        else if (cond.targetIndicator === 'EMA9') prevTargetVal = ema9[idx - 1];
+        else if (cond.targetIndicator === 'EMA10') prevTargetVal = ema10[idx - 1];
+        else if (cond.targetIndicator === 'EMA20') prevTargetVal = ema20[idx - 1];
         else if (cond.targetIndicator === 'EMA50') prevTargetVal = ema50[idx - 1];
+        else if (cond.targetIndicator === 'EMA100') prevTargetVal = ema100[idx - 1];
         else if (cond.targetIndicator === 'EMA200') prevTargetVal = ema200[idx - 1];
+        else if (cond.targetIndicator === 'SMA9') prevTargetVal = sma9[idx - 1];
         else if (cond.targetIndicator === 'SMA20') prevTargetVal = sma20[idx - 1];
         else if (cond.targetIndicator === 'SMA50') prevTargetVal = sma50[idx - 1];
+        else if (cond.targetIndicator === 'SMA100') prevTargetVal = sma100[idx - 1];
         else if (cond.targetIndicator === 'SMA200') prevTargetVal = sma200[idx - 1];
         else if (cond.targetIndicator === 'SignalLine') prevTargetVal = signalLine[idx - 1];
         else if (cond.targetIndicator === 'Price') prevTargetVal = bars[idx - 1].close;
+        else if (cond.targetIndicator === 'High') prevTargetVal = highs[idx - 1];
+        else if (cond.targetIndicator === 'Low') prevTargetVal = lows[idx - 1];
+        else if (cond.targetIndicator === 'Prev_High') prevTargetVal = idx > 1 ? highs[idx - 2] : highs[idx - 1];
+        else if (cond.targetIndicator === 'Prev_Low') prevTargetVal = idx > 1 ? lows[idx - 2] : lows[idx - 1];
         else if (cond.targetIndicator === 'BB_Upper') prevTargetVal = bbUpper[idx - 1];
         else if (cond.targetIndicator === 'BB_Lower') prevTargetVal = bbLower[idx - 1];
         else if (cond.targetIndicator === 'BB_Middle') prevTargetVal = bbMiddle[idx - 1];
