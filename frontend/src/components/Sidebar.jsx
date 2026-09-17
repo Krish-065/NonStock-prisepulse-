@@ -39,7 +39,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
     { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={16} /> },
     { path: '/paper-trading', label: 'Trade Desk', icon: <LineChart size={16} /> },
-    { path: '/strategy-lab', label: 'Strategy Lab', icon: <Sparkles size={16} />, state: currentSymbol ? { selectSymbol: currentSymbol } : null },
+    { path: '/strategy-lab', label: 'Strategy Lab', badge: 'PRO', icon: <Sparkles size={16} />, state: currentSymbol ? { selectSymbol: currentSymbol } : null },
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={16} /> },
     { path: '/indian-market', label: 'Indian Market Desk', icon: <Landmark size={16} /> },
     { path: '/alerts', label: 'Alerts Hub', icon: <Bell size={16} /> },
@@ -170,6 +170,21 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
                     {item.icon}
                   </span>
                   <span style={{ fontSize: '13px', fontWeight: isActive ? '700' : '500', transition: 'all 0.2s' }}>{item.label}</span>
+                  {item.badge && (
+                    <span style={{
+                      marginLeft: 'auto',
+                      fontSize: '9px',
+                      fontWeight: '900',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: 'linear-gradient(135deg, #ffe082 0%, #ffb300 100%)',
+                      color: '#0a0e27',
+                      letterSpacing: '0.5px',
+                      boxShadow: '0 0 8px rgba(255, 179, 0, 0.3)'
+                    }}>
+                      {item.badge}
+                    </span>
+                  )}
                 </>
               );
             }}
