@@ -40,13 +40,13 @@ function formatAIMessage(text) {
       return <h3 key={idx} style={{ fontSize: '15px', fontWeight: '800', color: '#0369a1', marginTop: '16px', marginBottom: '8px' }}>{cleanLine.replace('##', '')}</h3>;
     }
     if (cleanLine.startsWith('#')) {
-      return <h2 key={idx} style={{ fontSize: '18px', fontWeight: '900', color: '#111827', marginTop: '20px', marginBottom: '10px' }}>{cleanLine.replace('#', '')}</h2>;
+      return <h2 key={idx} style={{ fontSize: '18px', fontWeight: '900', color: '#000000', marginTop: '20px', marginBottom: '10px' }}>{cleanLine.replace('#', '')}</h2>;
     }
 
     // Check bullet points
     if (cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
       const content = cleanLine.substring(1).trim();
-      return <li key={idx} style={{ marginLeft: '16px', marginBottom: '4px', fontSize: '13px', color: '#374151' }}>{parseBoldText(content)}</li>;
+      return <li key={idx} style={{ marginLeft: '16px', marginBottom: '4px', fontSize: '13px', color: '#000000' }}>{parseBoldText(content)}</li>;
     }
 
     // Check bold disclaimers
@@ -60,10 +60,10 @@ function formatAIMessage(text) {
 
     if (cleanLine === '') return <div key={idx} style={{ height: '8px' }} />;
 
-    return <p key={idx} style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#1f2937' }}>{parseBoldText(cleanLine)}</p>;
+    return <p key={idx} style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#000000' }}>{parseBoldText(cleanLine)}</p>;
   });
   } catch (e) {
-    return <p style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#1f2937' }}>{String(text)}</p>;
+    return <p style={{ fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.5', color: '#000000' }}>{String(text)}</p>;
   }
 }
 
@@ -71,7 +71,7 @@ function parseBoldText(text) {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
   return parts.map((part, i) => {
     if (i % 2 === 1) {
-      return <strong key={i} style={{ color: '#111827', fontWeight: '800' }}>{part}</strong>;
+      return <strong key={i} style={{ color: '#000000', fontWeight: '800' }}>{part}</strong>;
     }
     return part;
   });
@@ -503,14 +503,59 @@ export default function AIMentor() {
         }
       });
 
+      let aiResponseText = res.data.response;
+      let backtestPayload = null;
+
+      const jsonMatch = aiResponseText.match(/```json\s*(\{[\s\S]*?"_type":\s*"BACKTEST_REQUEST"[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        try {
+          backtestPayload = JSON.parse(jsonMatch[1]);
+          aiResponseText = aiResponseText.replace(jsonMatch[0], '').trim();
+        } catch (e) {
+          console.error("Failed to parse backtest JSON", e);
+        }
+      }
+
       const newAiMsg = {
         id: 'msg_ai_' + Date.now(),
         sender: 'ai',
-        text: res.data.response,
+        text: aiResponseText || "Running your strategy simulation...",
         replyTo: text,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, newAiMsg]);
+
+      if (backtestPayload) {
+        try {
+          const btRes = await apiClient.post('/strategy/backtest', backtestPayload);
+          const btData = btRes.data;
+          
+          const resultText = `### 🚀 Backtest Results for **${backtestPayload.symbol}**
+- **Win Rate:** ${btData.winRate}%
+- **Total Profit:** ${btData.profit}% (₹${btData.profitVal})
+- **Max Drawdown:** ${btData.drawdown}%
+- **Sharpe Ratio:** ${btData.sharpeRatio}
+- **Total Trades Taken:** ${btData.trades?.length || 0}
+- **Avg Holding Time:** ${btData.avgHoldingTime} bars
+
+*Note: Simulation based on historical data. Strategy backtested on ${backtestPayload.range || '1y'} timeframe with ₹${backtestPayload.capital || 100000} starting capital.*`;
+          
+          setMessages(prev => [...prev, {
+            id: 'msg_ai_bt_' + Date.now(),
+            sender: 'ai',
+            text: resultText,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+        } catch (err) {
+          console.error("Backtest failed", err);
+          setMessages(prev => [...prev, {
+            id: 'msg_ai_bt_err_' + Date.now(),
+            sender: 'ai',
+            text: "⚠️ Failed to execute the backtest on the engine. Please check the condition parameters and try again.",
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+        }
+      }
 
       if (!activeConversationId && res.data.conversationId) {
         setActiveConversationId(res.data.conversationId);
@@ -921,10 +966,8 @@ export default function AIMentor() {
                     style={{ alignSelf: 'flex-end', maxWidth: '85%' }}
                   >
                     <div style={{
-                      background: isProAccount 
-                        ? 'linear-gradient(135deg, rgba(254, 243, 199, 0.95) 0%, rgba(253, 230, 138, 0.95) 100%)' 
-                        : 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.95) 100%)',
-                      border: isProAccount ? '1.5px solid #f59e0b' : '1.5px solid #0284c7',
+                      background: '#ffffff',
+                      border: '1px solid #d1d5db',
                       borderRadius: '14px 14px 2px 14px',
                       padding: '12px 16px',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
@@ -965,11 +1008,11 @@ export default function AIMentor() {
                     alignSelf: 'flex-start',
                     maxWidth: '88%',
                     background: '#ffffff',
-                    border: isProAccount ? '1px solid #fcd34d' : '1px solid #e5e7eb',
-                    borderTop: isProAccount ? '3px solid #f59e0b' : '3px solid #00bcd4',
+                    border: '1px solid #e5e7eb',
+                    borderTop: '3px solid #00bcd4',
                     borderRadius: '12px 12px 12px 2px',
                     padding: '16px 18px',
-                    color: '#111827',
+                    color: '#000000',
                     boxShadow: '0 4px 14px rgba(0,0,0,0.06)'
                   }}
                 >
@@ -1066,11 +1109,11 @@ export default function AIMentor() {
               placeholder={accountMode === 'pro' || user?.is_pro ? "Ask None Pro AI (e.g. 'Evaluate options Greeks' or 'Identify liquidity trap')..." : "Ask None AI (e.g. 'Explain risk zones for this setup' or 'Is this a trap?')..."}
               style={{
                 flex: 1,
-                background: '#f9fafb',
+                background: '#ffffff',
                 border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 padding: '10px 14px',
-                color: '#111827',
+                color: '#000000',
                 fontSize: '13px',
                 outline: 'none',
                 boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)'

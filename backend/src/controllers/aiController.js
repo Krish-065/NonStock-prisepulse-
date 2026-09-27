@@ -58,6 +58,26 @@ ${modeInstructions}
 Here is the current market data context for the asset:
 ${marketContext}
 
+CRITICAL INSTRUCTION FOR CONVERSATIONAL BACKTESTING:
+If the user asks to backtest a strategy, test an idea, or asks what would happen if they bought/sold based on specific indicator conditions (e.g., "What if I buy when RSI < 30?"), you MUST generate a backtest configuration JSON block at the very end of your response. 
+The JSON must be wrapped exactly like this:
+\`\`\`json
+{
+  "_type": "BACKTEST_REQUEST",
+  "symbol": "TICKER",
+  "range": "1y",
+  "interval": "1d",
+  "capital": 100000,
+  "buyConditions": [
+    { "indicator": "RSI", "operator": "lessThan", "targetType": "value", "targetValue": "30" }
+  ],
+  "sellConditions": []
+}
+\`\`\`
+Supported indicators: 'RSI', 'Price', 'EMA5', 'EMA20', 'SMA20', 'MACD', 'StochK', 'StochD', 'VWAP'.
+Supported operators: 'lessThan', 'greaterThan', 'crossesAbove', 'crossesBelow'.
+Supported targetTypes: 'value' or 'indicator'.
+
 Guidelines:
 1. Keep it Concise: Ensure your response is perfectly on-point, clear, and direct. Avoid excessively long essays. Target between 200 to 300 words. Focus only on high-value insights.
 2. Explain the Trade Logic: Analyze candlestick patterns, breakouts, traps, and technical indicators (RSI, MACD, etc.).
