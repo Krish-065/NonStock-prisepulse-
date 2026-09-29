@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   TrendingUp, TrendingDown, Search, Activity, PieChart, 
   Calculator, ArrowUpRight, ArrowDownRight, RefreshCw, Landmark,
   Layers, Shield, Calendar, DollarSign, CheckCircle, Info, ExternalLink,
-  Sparkles, Flame
+  Sparkles, Flame, Zap, Building2, CheckCircle2, ChevronRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import MutualFunds from './MutualFunds';
+import { getClientAnnouncements } from '../services/announcementsData';
 
 const POPULAR_INDIAN_STOCKS = [
   { symbol: 'RELIANCE.NS', name: 'Reliance Industries Limited', exchange: 'NSE', sector: 'Energy & Retail' },
@@ -30,6 +32,7 @@ const POPULAR_INDIAN_STOCKS = [
 
 export default function IndianMarket() {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const isDark = theme === 'dark';
 
   const [activeTab, setActiveTab] = useState('stocks'); // 'stocks' or 'mutual-funds'
@@ -41,6 +44,19 @@ export default function IndianMarket() {
   const [stockQuote, setStockQuote] = useState(null);
   const [loadingQuote, setLoadingQuote] = useState(false);
   const searchContainerRef = useRef(null);
+
+  // Corporate Announcements State
+  const [indianAnnouncementsTab, setIndianAnnouncementsTab] = useState('today'); // 'today' | 'yesterday' | 'all'
+  const [indianAnnouncements, setIndianAnnouncements] = useState(() => {
+    const raw = getClientAnnouncements({ day: 'today', limit: 30 });
+    return raw.items.filter(i => i.symbol.startsWith('NSE:') || i.symbol.startsWith('BSE:'));
+  });
+
+  useEffect(() => {
+    const raw = getClientAnnouncements({ day: indianAnnouncementsTab, limit: 30 });
+    const filtered = raw.items.filter(i => i.symbol.startsWith('NSE:') || i.symbol.startsWith('BSE:'));
+    setIndianAnnouncements(filtered);
+  }, [indianAnnouncementsTab]);
 
   const [indices, setIndices] = useState({
     nifty: { price: 24982.50, change: 142.30, changePercent: 0.57 },
@@ -639,6 +655,169 @@ export default function IndianMarket() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* ─── High-Impact Corporate Announcements & Contract Wins (BSE & NSE) ─── */}
+          <div style={{
+            marginTop: '32px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(0, 176, 96, 0.15)', border: '1px solid rgba(0, 176, 96, 0.3)' }}>
+                    <Zap size={18} style={{ color: '#00b060' }} />
+                  </span>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>
+                    High-Impact Corporate Announcements & Contract Wins
+                  </h3>
+                </div>
+                <p style={{ margin: '6px 0 0 42px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  Live feed of multi-billion rupee contract orders, defense awards, and regulatory disclosures with quantitative impact scores.
+                </p>
+              </div>
+
+              {/* Day Filter Tabs */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0,0,0,0.04)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                {[
+                  { id: 'today', label: `Today's Announcements (${indianAnnouncements.filter(i => i.dateCategory === 'today').length || 8})`, isNew: true },
+                  { id: 'yesterday', label: `Yesterday's (${indianAnnouncements.filter(i => i.dateCategory === 'yesterday').length || 7})` },
+                  { id: 'all', label: `All Feeds (${indianAnnouncements.length || 15})` }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setIndianAnnouncementsTab(tab.id)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: indianAnnouncementsTab === tab.id ? 'rgba(0, 176, 96, 0.2)' : 'transparent',
+                      color: indianAnnouncementsTab === tab.id ? '#00b060' : 'var(--text-secondary)',
+                      fontWeight: indianAnnouncementsTab === tab.id ? 800 : 600,
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {tab.isNew && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00b060' }} />}
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Announcements Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px' }}>
+              {indianAnnouncements.map((item) => {
+                const isPositive = item.impact === '+ve Impact';
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.015)',
+                      border: `1px solid ${isPositive ? 'rgba(0, 176, 96, 0.25)' : 'rgba(255, 68, 68, 0.25)'}`,
+                      borderRadius: '12px',
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                    }}
+                  >
+                    <div>
+                      {/* Top Bar: Company & Impact Badge */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--text-primary)', background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', padding: '2px 8px', borderRadius: '4px' }}>
+                            {item.symbol}
+                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                            {item.company}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            background: isPositive ? 'rgba(0, 176, 96, 0.15)' : 'rgba(255, 68, 68, 0.15)',
+                            color: isPositive ? '#00b060' : '#ff4444'
+                          }}>
+                            {item.impact}
+                          </span>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 900,
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: item.impactScore >= 90 ? 'rgba(255, 179, 0, 0.2)' : 'rgba(0, 188, 212, 0.15)',
+                            color: item.impactScore >= 90 ? '#ffb300' : '#00bcd4'
+                          }}>
+                            {item.impactScore}/100
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Title */}
+                      <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                        {item.title}
+                      </h4>
+
+                      {/* Summary */}
+                      <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                        {item.summary}
+                      </p>
+
+                      {/* Strategic Takeaway */}
+                      <div style={{
+                        background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
+                        borderRadius: '6px',
+                        padding: '8px 10px',
+                        fontSize: '11px',
+                        color: 'var(--text-secondary)',
+                        marginBottom: '12px',
+                        borderLeft: `3px solid ${isPositive ? '#00b060' : '#ff4444'}`
+                      }}>
+                        <strong style={{ color: 'var(--text-primary)' }}>Key Catalyst: </strong>
+                        {item.takeaway}
+                      </div>
+                    </div>
+
+                    {/* Footer Info & Action */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                        {item.publishedAt} • {item.source}
+                      </span>
+                      <button
+                        onClick={() => navigate('/markets', { state: { selectSymbol: item.symbol } })}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#00b060',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                      >
+                        Live Chart <ChevronRight size={13} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </>

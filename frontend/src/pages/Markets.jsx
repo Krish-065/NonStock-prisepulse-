@@ -12,6 +12,7 @@ import { io } from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import toast from 'react-hot-toast';
+import { getClientAnnouncements } from '../services/announcementsData';
 
 // Symbol categories with popular options
 const SYMBOL_CATEGORIES = {
@@ -681,11 +682,12 @@ export default function Markets() {
   const [liveInfo, setLiveInfo] = useState(null);
 
   // ─── Impactful Market Announcements & Corporate Events State ───
-  const [announcements, setAnnouncements] = useState([]);
-  const [announcementsLoading, setAnnouncementsLoading] = useState(true);
+  const initialAnnounceData = getClientAnnouncements({ day: 'all', page: 1, limit: 16 });
+  const [announcements, setAnnouncements] = useState(initialAnnounceData.items);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
   const [announcementsPage, setAnnouncementsPage] = useState(1);
-  const [announcementsHasMore, setAnnouncementsHasMore] = useState(true);
-  const [announcementsCounts, setAnnouncementsCounts] = useState({ total: 0, today: 0, yesterday: 0, positive: 0, negative: 0 });
+  const [announcementsHasMore, setAnnouncementsHasMore] = useState(initialAnnounceData.hasMore);
+  const [announcementsCounts, setAnnouncementsCounts] = useState(initialAnnounceData.counts);
   const [announcementsDayFilter, setAnnouncementsDayFilter] = useState('all'); // 'all' | 'today' | 'yesterday'
   const [announcementsTypeFilter, setAnnouncementsTypeFilter] = useState('all'); // 'all' | 'contract' | 'regulatory' | 'macro' | 'results'
   const [announcementsImpactFilter, setAnnouncementsImpactFilter] = useState('all'); // 'all' | 'positive' | 'negative' | 'high_impact'
@@ -709,7 +711,7 @@ export default function Markets() {
         }
       });
 
-      if (res.data && res.data.items) {
+      if (res.data && res.data.items && res.data.items.length > 0) {
         if (append) {
           setAnnouncements(prev => [...prev, ...res.data.items]);
         } else {
@@ -720,13 +722,32 @@ export default function Markets() {
         if (res.data.counts) {
           setAnnouncementsCounts(res.data.counts);
         }
+        return;
       }
     } catch (err) {
-      console.warn('Failed to load announcements feed:', err);
+      console.warn('Backend announcements API unavailable, using offline real-time feed:', err.message);
     } finally {
       setAnnouncementsLoading(false);
       setLoadingMoreAnnouncements(false);
     }
+
+    // Fallback to client provider
+    const fallback = getClientAnnouncements({
+      day: announcementsDayFilter,
+      type: announcementsTypeFilter,
+      impact: announcementsImpactFilter,
+      search: announcementsSearch,
+      page,
+      limit: 16
+    });
+    if (append) {
+      setAnnouncements(prev => [...prev, ...fallback.items]);
+    } else {
+      setAnnouncements(fallback.items);
+    }
+    setAnnouncementsHasMore(fallback.hasMore);
+    setAnnouncementsPage(fallback.page);
+    setAnnouncementsCounts(fallback.counts);
   }, [announcementsDayFilter, announcementsTypeFilter, announcementsImpactFilter, announcementsSearch]);
 
   useEffect(() => {
