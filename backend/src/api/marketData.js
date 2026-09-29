@@ -1041,6 +1041,16 @@ router.get('/stock/:symbol', async (req, res) => {
       basePrice = 2512.00;
     } else if (cleanSym === 'CL') {
       basePrice = 78.45;
+    } else if (cleanSym === '^DJI' || cleanSym === 'DJI' || cleanSym === 'DOW' || cleanSym === 'DOWJONES') {
+      basePrice = 42250.00;
+    } else if (cleanSym === '^GSPC' || cleanSym === 'GSPC' || cleanSym === 'SPX' || cleanSym === 'SP500') {
+      basePrice = 5740.00;
+    } else if (cleanSym === '^IXIC' || cleanSym === 'IXIC' || cleanSym === 'NDX' || cleanSym === 'NASDAQ') {
+      basePrice = 18120.00;
+    } else if (cleanSym === 'SPY') {
+      basePrice = 572.50;
+    } else if (cleanSym === 'QQQ') {
+      basePrice = 486.20;
     } else {
       let charSum = 0;
       for (let i = 0; i < cleanSym.length; i++) {

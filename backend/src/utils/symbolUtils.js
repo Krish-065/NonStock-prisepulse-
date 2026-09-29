@@ -11,8 +11,9 @@ const isIndianSymbol = (symbol) => {
   const isCrypto = s.endsWith('-USD') || s.endsWith('-USDT') || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA', 'BNB', 'SHIB', 'AVAX', 'TRX'].includes(s) || s.includes('-USD') || s.includes('USDT');
   const isForex = s.endsWith('=X') || (s.includes('USD') && s.includes('INR')) || s.includes('EURUSD') || s.includes('GBPUSD');
   const isCommodity = s.endsWith('=F') || ['GC', 'CL'].includes(s);
-  const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR'];
-  if (isCrypto || isForex || isCommodity || usTickers.includes(s)) return false;
+  const globalIndices = ['DJI', '^DJI', 'DOW', 'DOWJONES', 'SPX', '^GSPC', 'GSPC', 'IXIC', '^IXIC', 'NDX', '^NDX', 'NASDAQ', 'FTSE', '^FTSE', 'N225', '^N225', 'DAX', '^DAX', 'HSI', '^HSI', 'SPY', 'QQQ', 'DIA', 'IWM'];
+  const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR', 'PLTR'];
+  if (isCrypto || isForex || isCommodity || globalIndices.includes(s) || usTickers.includes(s)) return false;
   return true; // Default to true for Indian equities
 };
 
@@ -30,6 +31,18 @@ const normalizeSymbol = (symbol) => {
   if (cleanS.endsWith('.NS') || cleanS.endsWith('.BO')) {
     cleanS = cleanS.slice(0, -3);
   }
+
+  // Global Indices
+  if (cleanS === 'DJI' || cleanS === '^DJI' || cleanS === 'DOW' || cleanS === 'DOWJONES' || cleanS === 'DOW JONES') return '^DJI';
+  if (cleanS === 'SPX' || cleanS === '^GSPC' || cleanS === 'GSPC' || cleanS === 'SP500' || cleanS === 'S&P 500') return '^GSPC';
+  if (cleanS === 'IXIC' || cleanS === '^IXIC' || cleanS === 'NDX' || cleanS === '^NDX' || cleanS === 'NASDAQ') return '^IXIC';
+  if (cleanS === 'FTSE' || cleanS === '^FTSE') return '^FTSE';
+  if (cleanS === 'N225' || cleanS === '^N225') return '^N225';
+  if (cleanS === 'DAX' || cleanS === '^DAX') return '^GDAXI';
+  if (cleanS === 'HSI' || cleanS === '^HSI') return '^HSI';
+
+  // Major ETFs
+  if (['SPY', 'QQQ', 'DIA', 'IWM'].includes(cleanS)) return cleanS;
 
   // Mappings for Index
   const indexMap = {
@@ -65,7 +78,7 @@ const normalizeSymbol = (symbol) => {
   }
 
   // Mappings for US Equities
-  const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR'];
+  const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR', 'PLTR'];
   if (usTickers.includes(cleanS)) {
     return cleanS;
   }

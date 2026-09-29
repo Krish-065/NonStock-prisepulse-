@@ -43,6 +43,12 @@ import {
 } from 'lucide-react';
 
 const POPULAR_WATCHLIST = [
+  // Global Indices & ETFs
+  { symbol: '^DJI', name: 'Dow Jones Industrial Average', category: 'Index / ETF' },
+  { symbol: '^GSPC', name: 'S&P 500 Index', category: 'Index / ETF' },
+  { symbol: '^IXIC', name: 'Nasdaq Composite', category: 'Index / ETF' },
+  { symbol: 'SPY', name: 'S&P 500 ETF Trust', category: 'Index / ETF' },
+  { symbol: 'QQQ', name: 'Invesco QQQ Trust', category: 'Index / ETF' },
   // Crypto
   { symbol: 'BTC-USD', name: 'Bitcoin / USD', category: 'Crypto' },
   { symbol: 'ETH-USD', name: 'Ethereum / USD', category: 'Crypto' },
@@ -53,9 +59,6 @@ const POPULAR_WATCHLIST = [
   { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'US Stock' },
   { symbol: 'TSLA', name: 'Tesla, Inc.', category: 'US Stock' },
   { symbol: 'MSFT', name: 'Microsoft Corporation', category: 'US Stock' },
-  // Global Indices & ETFs
-  { symbol: 'SPY', name: 'S&P 500 ETF Trust', category: 'Index / ETF' },
-  { symbol: 'QQQ', name: 'Invesco QQQ Trust', category: 'Index / ETF' },
   // Forex
   { symbol: 'EURUSD=X', name: 'EUR / USD', category: 'Forex' },
   { symbol: 'GBPUSD=X', name: 'GBP / USD', category: 'Forex' },
@@ -66,16 +69,21 @@ const POPULAR_WATCHLIST = [
 
 const isIndianSymbol = (sym) => {
   if (!sym) return false;
-  const s = sym.toUpperCase();
+  const s = sym.toUpperCase().trim();
   const isCrypto = s.endsWith('-USD') || s.endsWith('-USDT') || ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA'].includes(s);
   const isForex = s.endsWith('=X') || (s.includes('USD') && s.includes('INR')) || s.includes('EURUSD') || s.includes('GBPUSD');
   const isCommodity = s.endsWith('=F');
-  if (isCrypto || isForex || isCommodity) return false;
+  const isGlobalIndex = ['^DJI', 'DJI', 'DOW', 'DOW JONES', 'DOWJONES', '^GSPC', 'GSPC', 'SPX', 'S&P 500', 'S&P500', 'SP500', '^IXIC', 'IXIC', 'NDX', 'NASDAQ', 'SPY', 'QQQ', 'DIA', 'IWM'].includes(s);
+  if (isCrypto || isForex || isCommodity || isGlobalIndex) return false;
   return s.endsWith('.NS') || s.endsWith('.BO') || ['RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'NIFTY', 'SENSEX', 'BANKNIFTY', 'NSEI', 'BSESN'].includes(s);
 };
 
 const cleanSymbolName = (sym) => {
   if (!sym) return '';
+  const s = sym.toUpperCase().trim();
+  if (s === '^DJI' || s === 'DJI' || s === 'DOW JONES' || s === 'DOW') return 'DOW JONES';
+  if (s === '^GSPC' || s === 'GSPC' || s === 'SPX' || s === 'S&P 500') return 'S&P 500';
+  if (s === '^IXIC' || s === 'IXIC' || s === 'NASDAQ' || s === 'NDX') return 'NASDAQ';
   return sym.replace('.NS', '').replace('-USD', '').replace('=X', '').replace('=F', '');
 };
 
@@ -94,7 +102,31 @@ const getLotMultiplier = (sym) => {
 
 const resolveTVSymbol = (rawSymbol) => {
   if (!rawSymbol) return 'BINANCE:BTCUSDT';
-  const s = rawSymbol.toUpperCase();
+  const s = rawSymbol.toUpperCase().trim();
+
+  // If already prefixed with exchange
+  if (s.includes(':')) return s;
+
+  // Global Indices & Overrides (Free 24/5 live quotes without TradingView subscription restriction)
+  if (s === 'DJ:DJI' || s === 'DJI' || s === '^DJI' || s === 'DOW' || s === 'DOW JONES' || s === 'DOWJONES' || s === 'DOW & JONES') {
+    return 'FOREXCOM:DJI';
+  }
+  if (s === 'SP:SPX' || s === 'SPX' || s === '^GSPC' || s === 'GSPC' || s === 'INDEX:SPX' || s === 'S&P 500' || s === 'S&P500' || s === 'SP500') {
+    return 'FOREXCOM:SPXUSD';
+  }
+  if (s === 'NASDAQ:NDX' || s === 'NDX' || s === '^NDX' || s === '^IXIC' || s === 'IXIC' || s === 'NASDAQ' || s === 'NASDAQ 100' || s === 'NASDAQ100') {
+    return 'FOREXCOM:NAS100USD';
+  }
+  if (s === '^FTSE' || s === 'FTSE' || s === 'FTSE 100') return 'INDEX:FTSE';
+  if (s === '^N225' || s === 'N225' || s === 'NIKKEI' || s === 'NIKKEI 225') return 'TVC:NI225';
+  if (s === '^HSI' || s === 'HSI' || s === 'HANG SENG') return 'HSI:HSI';
+  if (s === '^DAX' || s === 'DAX') return 'XETR:DAX';
+
+  // Major ETFs
+  if (s === 'SPY') return 'AMEX:SPY';
+  if (s === 'QQQ') return 'NASDAQ:QQQ';
+  if (s === 'DIA') return 'AMEX:DIA';
+  if (s === 'IWM') return 'AMEX:IWM';
 
   // Indian Indices
   if (s === '^NSEI' || s === 'NSEI' || s === 'NIFTY' || s === 'NIFTY50') return 'NSE:NIFTY';
@@ -102,51 +134,43 @@ const resolveTVSymbol = (rawSymbol) => {
   if (s === '^NSEBANK' || s === 'NSEBANK' || s === 'BANKNIFTY') return 'NSE:BANKNIFTY';
   if (s === '^CNXIT' || s === 'CNXIT' || s === 'NIFTYIT') return 'NSE:CNXIT';
 
+  // Commodities (TVC free live feeds)
+  if (s === 'GC=F' || s === 'GC' || s === 'GOLD' || s === 'XAU/USD' || s === 'XAUUSD') return 'TVC:GOLD';
+  if (s === 'SI=F' || s === 'SI' || s === 'SILVER' || s === 'XAG/USD' || s === 'XAGUSD') return 'TVC:SILVER';
+  if (s === 'CL=F' || s === 'CL' || s === 'CRUDE OIL' || s === 'OIL' || s === 'USOIL') return 'TVC:USOIL';
+  if (s === 'BZ=F' || s === 'UKOIL') return 'TVC:UKOIL';
+  if (s === 'NG=F' || s === 'NG' || s === 'NATURALGAS') return 'TVC:NATURALGAS';
+  if (s === 'HG=F' || s === 'HG' || s === 'COPPER') return 'TVC:COPPER';
+
   // Crypto
-  const cryptoBase = s.replace('-USD', '').replace('-USDT', '');
-  const cryptoMap = {
-    'BTC': 'BINANCE:BTCUSDT', 'ETH': 'BINANCE:ETHUSDT',
-    'BNB': 'BINANCE:BNBUSDT', 'SOL': 'BINANCE:SOLUSDT',
-    'XRP': 'BINANCE:XRPUSDT', 'DOGE': 'BINANCE:DOGEUSDT',
-    'ADA': 'BINANCE:ADAUSDT', 'SHIB': 'BINANCE:SHIBUSDT',
-    'AVAX': 'BINANCE:AVAXUSDT', 'TRX': 'BINANCE:TRXUSDT',
-  };
-  if (cryptoMap[cryptoBase]) return cryptoMap[cryptoBase];
-  if (s.includes('USD') && (s.includes('-') || s.includes('USDT'))) {
+  const isCrypto = s.includes('-USD') || s.includes('-USDT') || s.endsWith('USD') || s.endsWith('USDT') || ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE', 'ADA', 'TRX', 'SHIB', 'AVAX', 'DOT', 'LINK', 'MATIC'].includes(s);
+  if (isCrypto) {
+    let cryptoBase = s.replace('-USD', '').replace('-USDT', '').replace('USD', '').replace('USDT', '');
+    if (cryptoBase === 'BITCOIN') cryptoBase = 'BTC';
+    if (cryptoBase === 'ETHEREUM') cryptoBase = 'ETH';
     return `BINANCE:${cryptoBase}USDT`;
   }
 
   // Forex
-  if (s.endsWith('=X') || s.endsWith('USD') || s.endsWith('INR') || s.includes('USD') || s.includes('EUR') || s.includes('GBP')) {
-    const pair = s.replace('=X', '').replace('-', '').replace('/', '');
-    if (pair.length === 6) {
-      return `FX:${pair}`;
-    }
+  if (s.endsWith('=X')) {
+    return `FX:${s.replace('=X', '')}`;
+  }
+  const cleanForex = s.replace('/', '').replace('-', '');
+  if (['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF'].includes(cleanForex)) {
+    return `FX:${cleanForex}`;
   }
 
-  // Commodities
-  if (s === 'GC=F' || s === 'GC') return 'COMEX:GC1!';
-  if (s === 'CL=F' || s === 'CL') return 'NYMEX:CL1!';
-  if (s === 'SI=F' || s === 'SI') return 'COMEX:SI1!';
-  if (s === 'NG=F' || s === 'NG') return 'NYMEX:NG1!';
-  if (s === 'HG=F' || s === 'HG') return 'COMEX:HG1!';
+  // Indian equities
+  if (s.endsWith('.NS')) return `NSE:${s.replace('.NS', '')}`;
+  if (s.endsWith('.BO')) return `BSE:${s.replace('.BO', '')}`;
 
   // US Equities
-  const usTickers = ['AAPL', 'MSFT', 'TSLA', 'GOOG', 'GOOGL', 'AMZN', 'META', 'NFLX', 'NVDA', 'AMD', 'INTC', 'COIN', 'MSTR'];
-  const cleanSym = s.replace('.NS', '').replace('.BO', '');
-  if (usTickers.includes(cleanSym)) {
-    return `NASDAQ:${cleanSym}`;
-  }
+  const nyseStocks = ['BABA', 'DIS', 'BA', 'JPM', 'NKE', 'WMT', 'V', 'MA', 'PFE', 'KO', 'UNH', 'HD', 'PG', 'XOM', 'CVX'];
+  const cleanSym = s.replace('^', '').replace('.NS', '').replace('.BO', '');
+  if (nyseStocks.includes(cleanSym)) return `NYSE:${cleanSym}`;
 
-  if (rawSymbol.endsWith('.BO')) {
-    if (/^\d+$/.test(cleanSym)) {
-      return `BSE:${cleanSym}`;
-    }
-    return `NSE:${cleanSym}`;
-  }
-
-  // Default: Indian NSE equity
-  return `NSE:${cleanSym}`;
+  // Default: NASDAQ for international tickers
+  return `NASDAQ:${cleanSym}`;
 };
 
 export default function PaperTrading() {
@@ -154,9 +178,16 @@ export default function PaperTrading() {
   const { theme } = useTheme();
   const isPro = user?.is_pro || false;
   const location = useLocation();
-  // Navigation & Page State
-  const [selectedSymbol, setSelectedSymbol] = useState(location.state?.selectSymbol || 'BTC-USD');
-  const [chartInterval, setChartInterval] = useState('1d');
+  // Navigation & Page State (Persisted across sessions)
+  const [selectedSymbol, setSelectedSymbol] = useState(() => {
+    if (location.state && location.state.selectSymbol) {
+      return location.state.selectSymbol;
+    }
+    return localStorage.getItem('nonstock_paper_symbol') || '^DJI';
+  });
+  const [chartInterval, setChartInterval] = useState(() => {
+    return localStorage.getItem('nonstock_paper_interval') || '1d';
+  });
   const [activeConsoleTab, setActiveConsoleTab] = useState('positions');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -165,8 +196,21 @@ export default function PaperTrading() {
   useEffect(() => {
     if (location.state && location.state.selectSymbol) {
       setSelectedSymbol(location.state.selectSymbol);
+      localStorage.setItem('nonstock_paper_symbol', location.state.selectSymbol);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    if (selectedSymbol) {
+      localStorage.setItem('nonstock_paper_symbol', selectedSymbol);
+    }
+  }, [selectedSymbol]);
+
+  useEffect(() => {
+    if (chartInterval) {
+      localStorage.setItem('nonstock_paper_interval', chartInterval);
+    }
+  }, [chartInterval]);
 
   const filteredPopularWatchlist = POPULAR_WATCHLIST.filter(item => {
     const isIndian = isIndianSymbol(item.symbol);
@@ -222,12 +266,12 @@ export default function PaperTrading() {
   // Fullscreen Trading Desk & Exits Panel State
   const [isChartFullscreen, setIsChartFullscreen] = useState(false);
   const [showTradePanel, setShowTradePanel] = useState(true);
-  const [tpActive, setTpActive] = useState(true);
-  const [slActive, setSlActive] = useState(true);
+  const [tpActive, setTpActive] = useState(false);
+  const [slActive, setSlActive] = useState(false);
   const [panelTpPrice, setPanelTpPrice] = useState('');
   const [panelSlPrice, setPanelSlPrice] = useState('');
-  const [panelPositionSide, setPanelPositionSide] = useState('SHORT'); // SHORT or LONG
-  const [panelQuantity, setPanelQuantity] = useState(0.001);
+  const [panelPositionSide, setPanelPositionSide] = useState('LONG'); // SHORT or LONG
+  const [panelQuantity, setPanelQuantity] = useState(1);
   
   // Live Price & FX State
   const [livePrice, setLivePrice] = useState(0);
@@ -235,20 +279,31 @@ export default function PaperTrading() {
   const [priceChangePercent, setPriceChangePercent] = useState(0);
   const [usdInrRate, setUsdInrRate] = useState(83.5);
   
-  // Chart Drawings & Indicators State
-  const [activeIndicators, setActiveIndicators] = useState({
-    sma20: false,
-    ema50: false,
-    rsi: false,
-    macd: false,
-    // Pro Exclusive Indicators & Strategies
-    bollinger: false,
-    stochRsi: false,
-    ichimoku: false,
-    pivotPoints: false,
-    vwap: false,
-    sar: false
+  // Chart Drawings & Indicators State (Persisted across sessions)
+  const [activeIndicators, setActiveIndicators] = useState(() => {
+    try {
+      const saved = localStorage.getItem('nonstock_paper_indicators');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      sma20: false,
+      ema50: false,
+      rsi: false,
+      macd: false,
+      bollinger: false,
+      stochRsi: false,
+      ichimoku: false,
+      pivotPoints: false,
+      vwap: false,
+      sar: false
+    };
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('nonstock_paper_indicators', JSON.stringify(activeIndicators));
+    } catch (e) {}
+  }, [activeIndicators]);
   
   // Chart Refs
   const chartContainerRef = useRef(null);
@@ -852,6 +907,16 @@ export default function PaperTrading() {
           enable_publishing: false,
           hide_side_toolbar: false,
           allow_symbol_change: true,
+          withdateranges: true,
+          save_image: true,
+          details: true,
+          hotlist: true,
+          calendar: true,
+          auto_save_delay: 5,
+          client_id: 'nonstock.vercel.app',
+          user_id: user?.id || 'nonstock_trader',
+          charts_storage_url: 'https://saveload.tradingview.com',
+          charts_storage_api_version: '1.1',
           width: '100%',
           height: isChartFullscreen ? '100%' : 620,
           studies: studies
@@ -860,6 +925,29 @@ export default function PaperTrading() {
         if (widget && typeof widget.onChartReady === 'function') {
           widget.onChartReady(() => {
             isTvPaperReadyRef.current = true;
+            try {
+              const chart = widget.chart();
+              if (chart && typeof chart.onSymbolChanged === 'function') {
+                chart.onSymbolChanged().subscribe(null, (symbolInfo) => {
+                  if (symbolInfo && symbolInfo.name) {
+                    localStorage.setItem('nonstock_paper_symbol', symbolInfo.name);
+                  }
+                });
+              }
+              if (chart && typeof chart.onIntervalChanged === 'function') {
+                chart.onIntervalChanged().subscribe(null, (interval) => {
+                  let mapped = '1d';
+                  if (interval === '1') mapped = '1m';
+                  else if (interval === '5') mapped = '5m';
+                  else if (interval === '15') mapped = '15m';
+                  else if (interval === '60') mapped = '60m';
+                  else if (interval === 'D') mapped = '1d';
+                  localStorage.setItem('nonstock_paper_interval', mapped);
+                });
+              }
+            } catch (e) {
+              // Ignore subscription errors if unsupported in basic widget
+            }
           });
         }
 
@@ -2521,29 +2609,20 @@ export default function PaperTrading() {
                 <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
               </div>
 
-              {/* TradingView-Style On-Chart Interactive Order & SL/TP Overlay */}
+              {/* Live Active Trade On-Chart Execution Overlay (Only displays when user has an active trade) */}
               {(() => {
                 const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
-                if (!activeHolding && !tpActive && !slActive) return null;
+                if (!activeHolding) return null;
 
-                const entryP = activeHolding ? parseFloat(activeHolding.buyPrice) : (livePrice || 75723);
+                const entryP = parseFloat(activeHolding.buyPrice || 0);
                 const curP = livePrice || entryP;
-                const posQty = activeHolding ? parseFloat(activeHolding.quantity) : panelQuantity;
-                const isShort = panelPositionSide === 'SHORT';
+                const posQty = parseFloat(activeHolding.quantity || 0);
+                const isShort = activeHolding.side === 'SHORT' || posQty < 0;
+                const absQty = Math.abs(posQty);
 
-                // Real or simulated SL & TP
-                const curSl = activeHolding ? (slInputs[selectedSymbol] || activeHolding.stopLoss) : (slActive ? (panelSlPrice || Math.round(isShort ? entryP * 1.04 : entryP * 0.96)) : null);
-                const curTp = activeHolding ? (tpInputs[selectedSymbol] || activeHolding.takeProfit) : (tpActive ? (panelTpPrice || Math.round(isShort ? entryP * 0.96 : entryP * 1.04)) : null);
-
-                const entryY = 50; // Reference midline for active position
-                const slY = curSl ? getPriceYPercent(parseFloat(curSl), entryP) : null;
-                const tpY = curTp ? getPriceYPercent(parseFloat(curTp), entryP) : null;
-
-                const curPnlUsd = isShort ? (entryP - curP) * posQty : (curP - entryP) * posQty;
-                const curPnlPct = entryP > 0 ? ((curP - entryP) / entryP) * 100 * (isShort ? -1 : 1) : 0;
-
-                const slLossUsd = curSl ? (isShort ? (parseFloat(curSl) - entryP) * posQty : (entryP - parseFloat(curSl)) * posQty) : 0;
-                const tpGainUsd = curTp ? (isShort ? (entryP - parseFloat(curTp)) * posQty : (parseFloat(curTp) - entryP) * posQty) : 0;
+                const pnlUsd = isShort ? (entryP - curP) * absQty : (curP - entryP) * absQty;
+                const pnlPct = entryP > 0 ? ((curP - entryP) / entryP) * 100 * (isShort ? -1 : 1) : 0;
+                const isProfit = pnlUsd >= 0;
 
                 return (
                   <div style={{
@@ -2556,297 +2635,105 @@ export default function PaperTrading() {
                     zIndex: 20,
                     overflow: 'hidden'
                   }}>
-                    {/* 1. ON-CHART ENTRY POSITION LINE */}
-                    {activeHolding && (
+                    {/* Active Trade Line & Floating Badge Across Chart */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: 0,
+                      right: 0,
+                      transform: 'translateY(-50%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      pointerEvents: 'none'
+                    }}>
+                      {/* Horizontal Active Position Guideline */}
                       <div style={{
-                        position: 'absolute',
-                        top: `${entryY}%`,
-                        left: 0,
-                        right: 0,
-                        transform: 'translateY(-50%)',
+                        flex: 1,
+                        borderTop: isProfit ? '2px dashed #00ff88' : '2px dashed #ff4444',
+                        opacity: 0.9,
+                        filter: isProfit ? 'drop-shadow(0 0 6px rgba(0,255,136,0.6))' : 'drop-shadow(0 0 6px rgba(255,68,68,0.6))'
+                      }} />
+
+                      {/* Position Status Badge on Chart */}
+                      <div style={{
+                        background: 'rgba(19, 23, 34, 0.96)',
+                        border: `1.5px solid ${isProfit ? '#00ff88' : '#ff4444'}`,
+                        borderRadius: '6px',
+                        padding: '6px 14px',
                         display: 'flex',
                         alignItems: 'center',
-                        pointerEvents: 'none'
+                        gap: '12px',
+                        boxShadow: isProfit ? '0 6px 24px rgba(0,255,136,0.3)' : '0 6px 24px rgba(255,68,68,0.3)',
+                        pointerEvents: 'auto',
+                        marginRight: '60px',
+                        backdropFilter: 'blur(10px)'
                       }}>
-                        {/* Horizontal Line across chart */}
-                        <div style={{
-                          flex: 1,
-                          borderTop: isShort ? '1.5px dashed #ff4444' : '1.5px dashed #00bcd4',
-                          opacity: 0.85
-                        }} />
-
-                        {/* TradingView Entry Badge */}
-                        <div style={{
-                          background: '#131722',
-                          border: `1px solid ${isShort ? '#ff4444' : '#00bcd4'}`,
+                        {/* Side & Qty */}
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          color: '#ffffff',
+                          background: isShort ? '#ff4444' : '#00b060',
+                          padding: '3px 8px',
                           borderRadius: '4px',
-                          padding: '3px 10px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-                          pointerEvents: 'auto',
-                          marginRight: '65px'
+                          letterSpacing: '0.5px'
                         }}>
-                          <span style={{
-                            fontSize: '10px',
-                            fontWeight: 900,
-                            color: '#ffffff',
-                            background: isShort ? '#ff4444' : '#00b060',
-                            padding: '1px 5px',
-                            borderRadius: '3px'
-                          }}>
-                            {isShort ? 'SHORT' : 'BUY'} {posQty}
+                          {isShort ? 'SHORT' : 'BUY'} {absQty.toLocaleString()}
+                        </span>
+
+                        {/* Entry Price */}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '9px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 600 }}>Entry</span>
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace' }}>
+                            {formatPrice(entryP, selectedSymbol)}
                           </span>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace' }}>
-                            ${entryP.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
+                        </div>
+
+                        {/* Live P&L */}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '9px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 600 }}>Live P&L</span>
                           <span style={{
-                            fontSize: '11px',
+                            fontSize: '12px',
                             fontWeight: 800,
-                            color: curPnlUsd >= 0 ? '#00ff88' : '#ff4444',
+                            color: isProfit ? '#00ff88' : '#ff4444',
                             fontFamily: 'monospace'
                           }}>
-                            {curPnlUsd >= 0 ? '+' : ''}${curPnlUsd.toFixed(2)} ({curPnlPct >= 0 ? '+' : ''}{curPnlPct.toFixed(2)}%)
+                            {isProfit ? '+' : ''}${pnlUsd.toFixed(2)} ({isProfit ? '+' : ''}{pnlPct.toFixed(2)}%)
                           </span>
-
-                          {/* Quick Add TP / SL buttons if not present */}
-                          {!curTp && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newTp = isShort ? Math.round(entryP * 0.96) : Math.round(entryP * 1.04);
-                                handleSaveSlTp(selectedSymbol, slInputs[selectedSymbol], newTp);
-                              }}
-                              style={{
-                                background: 'rgba(0,255,136,0.15)',
-                                border: '1px solid rgba(0,255,136,0.4)',
-                                color: '#00ff88',
-                                padding: '1px 6px',
-                                borderRadius: '3px',
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                cursor: 'pointer'
-                              }}
-                              title="Add Take Profit Line"
-                            >
-                              + TP
-                            </button>
-                          )}
-                          {!curSl && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newSl = isShort ? Math.round(entryP * 1.04) : Math.round(entryP * 0.96);
-                                handleSaveSlTp(selectedSymbol, newSl, tpInputs[selectedSymbol]);
-                              }}
-                              style={{
-                                background: 'rgba(255,68,68,0.15)',
-                                border: '1px solid rgba(255,68,68,0.4)',
-                                color: '#ff4444',
-                                padding: '1px 6px',
-                                borderRadius: '3px',
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                cursor: 'pointer'
-                              }}
-                              title="Add Stop Loss Line"
-                            >
-                              + SL
-                            </button>
-                          )}
-
-                          {/* Close Position button */}
-                          <button
-                            type="button"
-                            onClick={() => handleClosePosition(activeHolding)}
-                            style={{
-                              background: 'rgba(255,255,255,0.08)',
-                              border: 'none',
-                              color: '#9b9eac',
-                              padding: '1px 5px',
-                              borderRadius: '3px',
-                              fontSize: '10px',
-                              fontWeight: 700,
-                              cursor: 'pointer'
-                            }}
-                            title="Market Close Position"
-                            onMouseOver={e => e.currentTarget.style.color = '#ff4444'}
-                            onMouseOut={e => e.currentTarget.style.color = '#9b9eac'}
-                          >
-                            ✕
-                          </button>
                         </div>
-                      </div>
-                    )}
 
-                    {/* 2. TAKE PROFIT (TP) DRAGGABLE LINE ACROSS CHART */}
-                    {curTp && tpY !== null && (
-                      <div style={{
-                        position: 'absolute',
-                        top: `${tpY}%`,
-                        left: 0,
-                        right: 0,
-                        transform: 'translateY(-50%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        pointerEvents: 'none'
-                      }}>
-                        {/* Interactive Drag Line */}
-                        <div 
-                          onMouseDown={(e) => handleDragStart(e, 'tp', activeHolding)}
-                          title="Click and drag to modify Take Profit directly on chart"
+                        {/* Direct Close Position Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleClosePosition(activeHolding)}
                           style={{
-                            flex: 1,
-                            borderTop: '2px dashed #00b060',
-                            height: '14px',
-                            cursor: 'ns-resize',
-                            pointerEvents: 'auto',
-                            display: 'flex',
-                            alignItems: 'center'
-                          }}
-                        />
-
-                        {/* TradingView TP Badge */}
-                        <div 
-                          onMouseDown={(e) => handleDragStart(e, 'tp', activeHolding)}
-                          title="Drag to modify TP"
-                          style={{
-                            background: '#00b060',
-                            color: '#ffffff',
+                            background: 'rgba(255, 68, 68, 0.15)',
+                            border: '1px solid rgba(255, 68, 68, 0.4)',
+                            color: '#ff4444',
+                            padding: '4px 10px',
                             borderRadius: '4px',
-                            padding: '3px 10px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px',
-                            boxShadow: '0 4px 12px rgba(0, 176, 96, 0.4)',
-                            pointerEvents: 'auto',
-                            cursor: 'ns-resize',
-                            userSelect: 'none',
-                            marginRight: '65px'
+                            gap: '4px',
+                            transition: 'all 0.2s ease'
+                          }}
+                          title="Close Position at Market Price"
+                          onMouseOver={e => {
+                            e.currentTarget.style.background = '#ff4444';
+                            e.currentTarget.style.color = '#ffffff';
+                          }}
+                          onMouseOut={e => {
+                            e.currentTarget.style.background = 'rgba(255, 68, 68, 0.15)';
+                            e.currentTarget.style.color = '#ff4444';
                           }}
                         >
-                          <span style={{ fontSize: '10px', fontWeight: 900, background: 'rgba(0,0,0,0.25)', padding: '1px 4px', borderRadius: '2px' }}>
-                            ↕ TP
-                          </span>
-                          <span style={{ fontSize: '11px', fontWeight: 800, fontFamily: 'monospace' }}>
-                            ${parseFloat(curTp).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                          <span style={{ fontSize: '11px', fontWeight: 700, opacity: 0.9 }}>
-                            (+${Math.abs(tpGainUsd).toFixed(2)} USD)
-                          </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (activeHolding) {
-                                handleSaveSlTp(selectedSymbol, slInputs[selectedSymbol], null);
-                              } else {
-                                setFormTakeProfit('');
-                                setPanelTpPrice('');
-                              }
-                              toast('Take Profit removed');
-                            }}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#ffffff',
-                              fontSize: '11px',
-                              fontWeight: 900,
-                              cursor: 'pointer',
-                              padding: '0 2px'
-                            }}
-                            title="Cancel Take Profit"
-                          >
-                            ✕
-                          </button>
-                        </div>
+                          ✕ Close
+                        </button>
                       </div>
-                    )}
-
-                    {/* 3. STOP LOSS (SL) DRAGGABLE LINE ACROSS CHART */}
-                    {curSl && slY !== null && (
-                      <div style={{
-                        position: 'absolute',
-                        top: `${slY}%`,
-                        left: 0,
-                        right: 0,
-                        transform: 'translateY(-50%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        pointerEvents: 'none'
-                      }}>
-                        {/* Interactive Drag Line */}
-                        <div 
-                          onMouseDown={(e) => handleDragStart(e, 'sl', activeHolding)}
-                          title="Click and drag to modify Stop Loss directly on chart"
-                          style={{
-                            flex: 1,
-                            borderTop: '2px dashed #ff4444',
-                            height: '14px',
-                            cursor: 'ns-resize',
-                            pointerEvents: 'auto',
-                            display: 'flex',
-                            alignItems: 'center'
-                          }}
-                        />
-
-                        {/* TradingView SL Badge */}
-                        <div 
-                          onMouseDown={(e) => handleDragStart(e, 'sl', activeHolding)}
-                          title="Drag to modify SL"
-                          style={{
-                            background: '#ff4444',
-                            color: '#ffffff',
-                            borderRadius: '4px',
-                            padding: '3px 10px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            boxShadow: '0 4px 12px rgba(255, 68, 68, 0.4)',
-                            pointerEvents: 'auto',
-                            cursor: 'ns-resize',
-                            userSelect: 'none',
-                            marginRight: '65px'
-                          }}
-                        >
-                          <span style={{ fontSize: '10px', fontWeight: 900, background: 'rgba(0,0,0,0.25)', padding: '1px 4px', borderRadius: '2px' }}>
-                            ↕ SL
-                          </span>
-                          <span style={{ fontSize: '11px', fontWeight: 800, fontFamily: 'monospace' }}>
-                            ${parseFloat(curSl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                          <span style={{ fontSize: '11px', fontWeight: 700, opacity: 0.9 }}>
-                            (-${Math.abs(slLossUsd).toFixed(2)} USD)
-                          </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (activeHolding) {
-                                handleSaveSlTp(selectedSymbol, null, tpInputs[selectedSymbol]);
-                              } else {
-                                setFormStopLoss('');
-                                setPanelSlPrice('');
-                              }
-                              toast('Stop Loss removed');
-                            }}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#ffffff',
-                              fontSize: '11px',
-                              fontWeight: 900,
-                              cursor: 'pointer',
-                              padding: '0 2px'
-                            }}
-                            title="Cancel Stop Loss"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 );
               })()}
