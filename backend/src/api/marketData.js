@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { fetchAngelHistory, fetchAngelLiveQuotes, isAngelConfigured } = require('../services/angelApi');
+const isAngelConfigured = () => false;
+const fetchAngelLiveQuotes = async () => null;
+const fetchAngelHistory = async () => null;
 const { isIndianMarketOpen } = require('../utils/marketHours');
 const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
 const NodeCache = require('node-cache');
