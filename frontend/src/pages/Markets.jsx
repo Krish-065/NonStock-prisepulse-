@@ -846,9 +846,11 @@ export default function Markets() {
           hide_volume: false
         });
 
-        widget.onChartReady(() => {
-          isTvReadyRef.current = true;
-        });
+        if (widget && typeof widget.onChartReady === 'function') {
+          widget.onChartReady(() => {
+            isTvReadyRef.current = true;
+          });
+        }
 
         tvWidgetRef.current = widget;
       }

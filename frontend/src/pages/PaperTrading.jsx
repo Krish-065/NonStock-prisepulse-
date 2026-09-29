@@ -857,9 +857,11 @@ export default function PaperTrading() {
           studies: studies
         });
 
-        widget.onChartReady(() => {
-          isTvPaperReadyRef.current = true;
-        });
+        if (widget && typeof widget.onChartReady === 'function') {
+          widget.onChartReady(() => {
+            isTvPaperReadyRef.current = true;
+          });
+        }
 
         tvPaperWidgetRef.current = widget;
       }
