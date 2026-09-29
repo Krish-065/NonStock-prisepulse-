@@ -38,9 +38,17 @@ import {
   Sliders,
   ToggleLeft,
   ToggleRight,
-  Check,
-  CornerDownRight
+  Share2,
+  Camera,
+  PenTool as Pen,
+  Rewind,
+  PlayCircle,
+  PauseCircle,
+  FastForward,
+  SkipForward,
+  Calendar
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 const POPULAR_WATCHLIST = [
   // Global Indices & ETFs
@@ -178,6 +186,24 @@ export default function PaperTrading() {
   const { theme } = useTheme();
   const isPro = user?.is_pro || false;
   const location = useLocation();
+  
+  // Phase 2: Share Idea State
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  
+  // Phase 1: Drawing Tool State for custom charts
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [drawnLines, setDrawnLines] = useState([]);
+  
+  // Market Replay Engine State
+  const [isReplayMode, setIsReplayMode] = useState(false);
+  const [showReplaySetup, setShowReplaySetup] = useState(false);
+  const [replayStartDate, setReplayStartDate] = useState('');
+  const [replayStatus, setReplayStatus] = useState('paused'); // 'playing', 'paused'
+  const [replaySpeed, setReplaySpeed] = useState(1000); // ms per candle (1000 = 1x, 200 = 5x)
+  const [replayIndex, setReplayIndex] = useState(0);
+  
   // Navigation & Page State (Persisted across sessions)
   const [selectedSymbol, setSelectedSymbol] = useState(() => {
     if (location.state && location.state.selectSymbol) {
@@ -826,6 +852,9 @@ export default function PaperTrading() {
 
   // Poll live price and active portfolio for the selected symbol
   useEffect(() => {
+    // Disable live polling if we are in Replay Mode
+    if (isReplayMode) return;
+
     fetchLivePrice();
 
     const intervalId = window.setInterval(() => {
@@ -833,7 +862,7 @@ export default function PaperTrading() {
       fetchPaperPortfolio();
     }, 5000);
     return () => window.clearInterval(intervalId);
-  }, [selectedSymbol]);
+  }, [selectedSymbol, isReplayMode]);
 
   useEffect(() => {
     const isInd = isIndianSymbol(selectedSymbol);
@@ -1737,18 +1766,70 @@ export default function PaperTrading() {
     };
   }, [selectedSymbol, chartInterval, chartType]);
 
-  // Render custom chart on data change
+  // Render custom chart on data change (or Replay start)
   useEffect(() => {
     if (chartType !== 'custom' || customHistory.length === 0 || !customChartContainerRef.current) return;
-    const cleanup = initCustomChart(customHistory);
+    
+    let renderData = customHistory;
+    
+    if (isReplayMode) {
+      if (replayIndex === 0) return; // Wait for initial index to be set
+      renderData = customHistory.slice(0, replayIndex);
+    }
+    
+    const cleanup = initCustomChart(renderData);
     return () => {
       if (cleanup) cleanup();
     };
-  }, [customHistory, chartType, activeIndicators]);
+  }, [customHistory, chartType, activeIndicators, isReplayMode]); // Exclude replayIndex here to prevent full redraws during playback
 
-  // Update last candle in custom chart on live price updates
+  // Replay Engine Execution Loop
   useEffect(() => {
-    if (chartType === 'custom' && customChartInstanceRef.current && livePrice && customHistory.length > 0) {
+    if (!isReplayMode || replayStatus !== 'playing' || chartType !== 'custom') return;
+
+    const interval = setInterval(() => {
+      setReplayIndex(prevIndex => {
+        const nextIndex = prevIndex + 1;
+        
+        // Replay Finished (Caught up to present)
+        if (nextIndex >= customHistory.length) {
+          setIsReplayMode(false);
+          setReplayStatus('paused');
+          toast.success('Replay complete! Resuming live market data.');
+          return prevIndex;
+        }
+
+        // Push new candle to chart incrementally (without full redraw)
+        const nextCandle = customHistory[nextIndex];
+        if (candlestickSeriesRef.current && nextCandle) {
+          const timeSec = Math.floor(nextCandle.time / 1000);
+          candlestickSeriesRef.current.update({
+            time: timeSec,
+            open: nextCandle.open,
+            high: nextCandle.high,
+            low: nextCandle.low,
+            close: nextCandle.close
+          });
+          
+          // Update simulated live price for the order panel
+          livePriceRef.current = nextCandle.close;
+          setLivePrice(nextCandle.close);
+          
+          // Execute pending orders & SL/TP based on the new historical candle price
+          checkPendingOrders(nextCandle.close);
+          checkSlTpLevels(nextCandle.close);
+        }
+
+        return nextIndex;
+      });
+    }, replaySpeed);
+
+    return () => clearInterval(interval);
+  }, [isReplayMode, replayStatus, replaySpeed, customHistory, chartType]);
+
+  // Update last candle in custom chart on live price updates (Only if NOT in replay mode)
+  useEffect(() => {
+    if (!isReplayMode && chartType === 'custom' && customChartInstanceRef.current && livePrice && customHistory.length > 0) {
       const lastBar = customHistory[customHistory.length - 1];
       if (lastBar && candlestickSeriesRef.current) {
         const timeSec = Math.floor(lastBar.time / 1000);
@@ -2512,6 +2593,82 @@ export default function PaperTrading() {
                   {isChartFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
                   <span>{isChartFullscreen ? 'Exit Full Screen' : 'Full Screen Terminal'}</span>
                 </button>
+
+                {/* Market Replay Button */}
+                {chartType === 'custom' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isReplayMode) {
+                        if(window.confirm('End Replay Mode and return to live market?')) {
+                          setIsReplayMode(false);
+                          setReplayStatus('paused');
+                        }
+                      } else {
+                        setShowReplaySetup(true);
+                      }
+                    }}
+                    style={{
+                      background: isReplayMode ? '#ff4444' : 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 87, 34, 0.15) 100%)',
+                      border: isReplayMode ? '1px solid #ff4444' : '1px solid rgba(255, 152, 0, 0.3)',
+                      color: isReplayMode ? '#ffffff' : '#ff9800',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s',
+                      boxShadow: isReplayMode ? '0 0 10px rgba(255, 68, 68, 0.4)' : 'none'
+                    }}
+                  >
+                    <Rewind size={13} />
+                    <span>{isReplayMode ? 'Exit Replay' : 'Replay Mode'}</span>
+                  </button>
+                )}
+
+                {/* Phase 2: Share Idea Button */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsSharing(true);
+                    try {
+                      const element = document.getElementById('arena-workspace');
+                      if (element) {
+                        const canvas = await html2canvas(element, { backgroundColor: theme === 'dark' ? '#0a0e27' : '#f8f9fa' });
+                        setShareImageUrl(canvas.toDataURL('image/png'));
+                        setShowShareModal(true);
+                      }
+                    } catch (e) {
+                      // fallback or error
+                    } finally {
+                      setIsSharing(false);
+                    }
+                  }}
+                  disabled={isSharing}
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(213, 0, 249, 0.15) 0%, rgba(156, 39, 176, 0.15) 100%)',
+                    border: '1px solid rgba(213, 0, 249, 0.3)',
+                    color: '#d500f9',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s',
+                    opacity: isSharing ? 0.7 : 1
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 10px rgba(213, 0, 249, 0.3)'}
+                  onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                >
+                  <Camera size={13} />
+                  <span>{isSharing ? 'Capturing...' : 'Share Idea'}</span>
+                </button>
               </div>
 
               {/* Interval Toggles */}
@@ -2540,7 +2697,7 @@ export default function PaperTrading() {
           </div>
 
           {/* Drawings and Chart Wrapper (Supports 100vw x 100vh Full Screen Mode) */}
-          <div style={isChartFullscreen ? {
+          <div id="arena-workspace" style={isChartFullscreen ? {
             position: 'fixed',
             top: 0,
             left: 0,
@@ -2557,11 +2714,56 @@ export default function PaperTrading() {
             width: '100%', 
             gap: '12px' 
           }}>
-            {/* Chart Container */}
             <div 
               ref={chartWrapperRef}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', height: isChartFullscreen ? '100vh' : 'auto' }}
+              onClick={(e) => {
+                if (chartType === 'custom' && isDrawingMode && customChartInstanceRef.current && candlestickSeriesRef.current) {
+                  const rect = chartWrapperRef.current.getBoundingClientRect();
+                  const y = e.clientY - rect.top;
+                  const price = candlestickSeriesRef.current.coordinateToPrice(y);
+                  if (price) {
+                    setDrawnLines(prev => [...prev, { price, id: Date.now() }]);
+                    candlestickSeriesRef.current.createPriceLine({
+                      price: price,
+                      color: '#d500f9',
+                      lineWidth: 2,
+                      lineStyle: 0,
+                      axisLabelVisible: true,
+                      title: 'Drawing',
+                    });
+                    toast.success('Drawn line on chart');
+                  }
+                }
+              }}
             >
+              {chartType === 'custom' && (
+                <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 20 }}>
+                  <button
+                    onClick={() => {
+                      setIsDrawingMode(!isDrawingMode);
+                      if (!isDrawingMode) toast.success('Drawing Mode Enabled. Click on the chart to draw horizontal lines.');
+                    }}
+                    style={{
+                      background: isDrawingMode ? '#00ff88' : 'rgba(10, 14, 39, 0.8)',
+                      color: isDrawingMode ? '#000' : '#fff',
+                      border: '1px solid rgba(0, 255, 136, 0.3)',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      backdropFilter: 'blur(5px)'
+                    }}
+                  >
+                    <Pen size={12} /> {isDrawingMode ? 'Drawing On' : 'Draw (Phase 1)'}
+                  </button>
+                </div>
+              )}
+
               {/* Fullscreen Exit Header Bar */}
               {isChartFullscreen && (
                 <div style={{
@@ -2601,6 +2803,76 @@ export default function PaperTrading() {
                     <Minimize2 size={12} />
                     Exit Full Screen
                   </button>
+                </div>
+              )}
+
+              {/* Replay Mode Floating Controller */}
+              {isReplayMode && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '20px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: 'rgba(10, 14, 39, 0.95)',
+                  border: '1px solid rgba(255, 152, 0, 0.4)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(255, 152, 0, 0.2)',
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '20px',
+                  zIndex: 40,
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingRight: '16px', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+                    <span style={{ fontSize: '10px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>Market Replay</span>
+                    <span style={{ fontSize: '12px', color: '#ff9800', fontWeight: 800 }}>
+                      {customHistory[replayIndex] ? new Date(customHistory[replayIndex].time).toLocaleString() : 'Loading...'}
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button 
+                      onClick={() => setReplayStatus(replayStatus === 'playing' ? 'paused' : 'playing')}
+                      style={{ background: 'transparent', border: 'none', color: '#00ff88', cursor: 'pointer' }}
+                    >
+                      {replayStatus === 'playing' ? <PauseCircle size={32} /> : <PlayCircle size={32} />}
+                    </button>
+                    
+                    <button 
+                      onClick={() => setReplayIndex(prev => Math.min(prev + 1, customHistory.length - 1))}
+                      style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}
+                      title="Forward 1 Candle"
+                    >
+                      <SkipForward size={24} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '16px', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+                    <span style={{ fontSize: '11px', color: '#9b9eac', fontWeight: 600 }}>Speed:</span>
+                    {[
+                      { label: '1x', ms: 1000 },
+                      { label: '5x', ms: 200 },
+                      { label: '10x', ms: 50 }
+                    ].map(s => (
+                      <button
+                        key={s.label}
+                        onClick={() => setReplaySpeed(s.ms)}
+                        style={{
+                          background: replaySpeed === s.ms ? 'rgba(255, 152, 0, 0.2)' : 'transparent',
+                          color: replaySpeed === s.ms ? '#ff9800' : '#9b9eac',
+                          border: `1px solid ${replaySpeed === s.ms ? '#ff9800' : 'rgba(255,255,255,0.1)'}`,
+                          borderRadius: '4px',
+                          padding: '4px 8px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -3953,6 +4225,230 @@ export default function PaperTrading() {
           )}
         </div>
       </div>
+
+      {/* Phase 2: Share Chart Modal */}
+      {showShareModal && shareImageUrl && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 9999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary, #0a0e27)',
+            border: '1px solid rgba(0, 255, 136, 0.3)',
+            borderRadius: '16px',
+            width: '90%',
+            maxWidth: '900px',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)'
+          }}>
+            <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}>
+                <Share2 style={{ color: '#00ff88' }} /> Share Your Idea
+              </h2>
+              <button onClick={() => setShowShareModal(false)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}>
+                <XCircle size={24} />
+              </button>
+            </div>
+            
+            <div style={{ padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+              <div style={{ 
+                border: '4px solid #1a1a2e', 
+                borderRadius: '12px', 
+                overflow: 'hidden', 
+                boxShadow: '0 0 20px rgba(0, 255, 136, 0.2)',
+                position: 'relative'
+              }}>
+                <img src={shareImageUrl} alt="Chart Snapshot" style={{ maxWidth: '100%', height: 'auto', display: 'block' }} />
+                
+                {/* Watermark */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '20px',
+                  right: '20px',
+                  background: 'rgba(0, 0, 0, 0.7)',
+                  backdropFilter: 'blur(5px)',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(0, 255, 136, 0.5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <Activity size={16} color="#00ff88" />
+                  <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '14px', letterSpacing: '1px' }}>PRISE<span style={{ color: '#00ff88' }}>PULSE</span></span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px', width: '100%', justifyContent: 'center' }}>
+                <a 
+                  href={shareImageUrl} 
+                  download={`PrisePulse-${selectedSymbol}-${new Date().getTime()}.png`}
+                  style={{
+                    background: '#00ff88',
+                    color: '#0a0e27',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <Camera size={18} /> Download High-Res Image
+                </a>
+                
+                <button
+                  onClick={() => {
+                    const text = `Check out my live trade setup for $${selectedSymbol} on @PrisePulse! 🚀\n\nTrade risk-free at PrisePulse.com`;
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                  }}
+                  style={{
+                    background: '#1DA1F2',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <Share2 size={18} /> Share to X
+                </button>
+              </div>
+              <p style={{ color: '#9b9eac', fontSize: '12px', margin: 0, textAlign: 'center' }}>
+                This image includes your current chart, drawings, and live P&L. Show off your skills!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Market Replay Setup Modal */}
+      {showReplaySetup && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 9999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary, #0a0e27)',
+            border: '1px solid rgba(255, 152, 0, 0.3)',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '450px',
+            padding: '24px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 152, 0, 0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, fontSize: '20px', color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Rewind color="#ff9800" /> Market Replay Mode
+              </h2>
+              <button onClick={() => setShowReplaySetup(false)} style={{ background: 'none', border: 'none', color: '#9b9eac', cursor: 'pointer' }}>
+                <XCircle size={20} />
+              </button>
+            </div>
+            
+            <p style={{ color: '#9b9eac', fontSize: '13px', lineHeight: 1.5, marginBottom: '24px' }}>
+              Select a date in the past to start the replay. The chart will hide all future data and print candles one-by-one so you can practice trading historically!
+            </p>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', color: '#fff', fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>
+                Start Date (Available history: {customHistory.length > 0 ? new Date(customHistory[0].time).toLocaleDateString() : 'Loading...'})
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Calendar size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9b9eac' }} />
+                <input 
+                  type="date" 
+                  value={replayStartDate}
+                  onChange={(e) => setReplayStartDate(e.target.value)}
+                  min={customHistory.length > 0 ? new Date(customHistory[0].time).toISOString().split('T')[0] : ''}
+                  max={customHistory.length > 0 ? new Date(customHistory[customHistory.length - 1].time).toISOString().split('T')[0] : ''}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px',
+                    padding: '12px 12px 12px 40px',
+                    color: '#fff',
+                    fontSize: '14px',
+                    outline: 'none'
+                  }}
+                  onFocus={e => e.target.style.borderColor = '#ff9800'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                if (!replayStartDate) return toast.error('Please select a start date');
+                const selectedTime = new Date(replayStartDate).getTime();
+                // Find the closest index in customHistory
+                let closestIndex = 0;
+                for (let i = 0; i < customHistory.length; i++) {
+                  if (customHistory[i].time >= selectedTime) {
+                    closestIndex = i;
+                    break;
+                  }
+                }
+                
+                if (closestIndex === 0 && customHistory.length > 0 && selectedTime < customHistory[0].time) {
+                    toast.error('Date is too far in the past. Limited by available historical data.');
+                    return;
+                }
+
+                setReplayIndex(closestIndex);
+                setIsReplayMode(true);
+                setReplayStatus('paused');
+                setShowReplaySetup(false);
+                toast.success('Time Machine ready! Hit Play in the controller to start.', { duration: 4000 });
+              }}
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #ff9800 0%, #ff5722 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '14px',
+                fontSize: '15px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(255, 152, 0, 0.3)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              Start Replay Engine
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
