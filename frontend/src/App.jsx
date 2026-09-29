@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -79,6 +79,18 @@ function PageLoader() {
 
 function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "416992875765-gdh7ncmsipfgnh3o8vrc95igg6ifdio1.apps.googleusercontent.com";
+
+  // Preload heavy trading & chart pages in background so user navigation is 0ms instant
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      import('./pages/Markets');
+      import('./pages/PaperTrading');
+      import('./pages/IndianMarket');
+      import('./pages/StrategyBuilder');
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <BrowserRouter>

@@ -660,6 +660,10 @@ export default function Markets() {
   }, [location.state]);
 
   const tvContainerRef = useRef(null);
+  const tvWidgetRef = useRef(null);
+  const isTvReadyRef = useRef(false);
+  const prevTvSymbolRef = useRef(null);
+  const prevTvIntervalRef = useRef(null);
   const customChartContainerRef = useRef(null);
   const chartInstanceRef = useRef(null);
   const candlestickSeriesRef = useRef(null);
@@ -681,7 +685,6 @@ export default function Markets() {
 
   const selectSymbol = useCallback((val) => {
     setSymbol(val);
-    setChartKey(k => k + 1);
     setShowSearch(false);
     setSearchQuery('');
   }, []);
@@ -784,22 +787,47 @@ export default function Markets() {
     return `NASDAQ:${s}`;
   };
 
-  // 1. Render TradingView Widget (Official Script version)
+  // 1. Render TradingView Widget (Official Script version with instant dynamic switching & fixed dimensions)
   useEffect(() => {
     if (activeTab !== 'tradingview') return;
 
     const scriptId = 'tradingview-widget-script';
     let script = document.getElementById(scriptId);
     const isLightMode = theme === 'light';
+    const tvSymbol = resolveTVSymbol(symbol);
+    const tvInterval = interval === 'D' ? 'D' : interval === 'W' ? 'W' : interval === 'M' ? 'M' : '240';
+
+    // ─── INSTANT SWITCH: If widget is already mounted & ready, switch symbol/resolution with zero reload lag! ───
+    if (tvWidgetRef.current && isTvReadyRef.current && typeof tvWidgetRef.current.chart === 'function') {
+      try {
+        let changed = false;
+        if (prevTvSymbolRef.current !== tvSymbol) {
+          prevTvSymbolRef.current = tvSymbol;
+          tvWidgetRef.current.chart().setSymbol(tvSymbol);
+          changed = true;
+        }
+        if (prevTvIntervalRef.current !== tvInterval) {
+          prevTvIntervalRef.current = tvInterval;
+          tvWidgetRef.current.chart().setResolution(tvInterval);
+          changed = true;
+        }
+        if (changed) return;
+      } catch (err) {
+        console.warn('Dynamic TradingView switch fallback:', err);
+      }
+    }
 
     const initTVWidget = () => {
       if (tvContainerRef.current && window.TradingView) {
-        const tvSymbol = resolveTVSymbol(symbol);
         tvContainerRef.current.innerHTML = '';
-        new window.TradingView.widget({
+        isTvReadyRef.current = false;
+        prevTvSymbolRef.current = tvSymbol;
+        prevTvIntervalRef.current = tvInterval;
+
+        const widget = new window.TradingView.widget({
           container_id: tvContainerRef.current.id,
           symbol: tvSymbol,
-          interval: interval === 'D' ? 'D' : interval === 'W' ? 'W' : interval === 'M' ? 'M' : '240',
+          interval: tvInterval,
           timezone: 'exchange',
           theme: isLightMode ? 'light' : 'dark',
           style: '1',
@@ -812,9 +840,17 @@ export default function Markets() {
           enable_publishing: false,
           hide_side_toolbar: false,
           allow_symbol_change: true,
-          autosize: true,
-          studies: ['Volume@tv-basicstudies']
+          width: '100%',
+          height: isFullscreen ? '100%' : 700,
+          autosize: false,
+          hide_volume: false
         });
+
+        widget.onChartReady(() => {
+          isTvReadyRef.current = true;
+        });
+
+        tvWidgetRef.current = widget;
       }
     };
 
@@ -1514,7 +1550,7 @@ export default function Markets() {
         </div>
       </div>
 
-      {/* Main Workspace TradingView Chart Card - 720px Tall & Responsive */}
+      {/* Main Workspace TradingView Chart Card - 700px Tall & Responsive */}
       <div
         style={isFullscreen ? {
           position: 'fixed',
@@ -1532,22 +1568,27 @@ export default function Markets() {
           flexDirection: 'column',
           overflow: 'hidden'
         } : {
-          flex: 1,
+          width: '100%',
+          height: '700px',
+          minHeight: '700px',
           background: theme === 'light' ? '#ffffff' : '#0a0e27',
           borderRadius: '16px',
           border: theme === 'light' ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.08)',
           overflow: 'hidden',
-          minHeight: '720px',
-          height: '720px',
           boxShadow: theme === 'light' ? '0 8px 24px rgba(0,0,0,0.06)' : '0 8px 32px rgba(0,0,0,0.5)',
-          display: 'flex',
-          flexDirection: 'column'
+          position: 'relative'
         }}
       >
-        {/* TradingView Container */}
-        <div style={{ width: '100%', height: '100%', flex: 1, background: theme === 'light' ? '#ffffff' : '#0a0e27' }}>
-          <div id="tradingview_chart_container" ref={tvContainerRef} style={{ width: '100%', height: '100%' }} />
-        </div>
+        {/* TradingView Container with exact dimensions */}
+        <div
+          id="tradingview_chart_container"
+          ref={tvContainerRef}
+          style={{
+            width: '100%',
+            height: isFullscreen ? '100vh' : '700px',
+            minHeight: isFullscreen ? '100vh' : '700px'
+          }}
+        />
       </div>
 
       <p style={{ color: '#9b9eac', fontSize: '12px', marginTop: '12px', textAlign: 'center' }}>

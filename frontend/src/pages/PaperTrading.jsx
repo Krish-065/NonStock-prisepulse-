@@ -253,6 +253,10 @@ export default function PaperTrading() {
   // Chart Refs
   const chartContainerRef = useRef(null);
   const chartWrapperRef = useRef(null);
+  const tvPaperWidgetRef = useRef(null);
+  const isTvPaperReadyRef = useRef(false);
+  const prevPaperSymbolRef = useRef(null);
+  const prevPaperIntervalRef = useRef(null);
   
   // Custom Chart States & Refs
   const [chartType, setChartType] = useState('tradingview'); // 'tradingview' or 'custom'
@@ -755,14 +759,19 @@ export default function PaperTrading() {
     }
   };
 
+  // Initial account data fetch on mount only (eliminates redundant multi-endpoint latency)
   useEffect(() => {
-    fetchLivePrice();
     fetchPaperPortfolio();
     fetchOrderHistory();
     fetchLeaderboard();
     fetchPendingOrders();
     fetchBalanceHistory();
     fetchBots();
+  }, []);
+
+  // Poll live price and active portfolio for the selected symbol
+  useEffect(() => {
+    fetchLivePrice();
 
     const intervalId = window.setInterval(() => {
       fetchLivePrice();
@@ -776,16 +785,45 @@ export default function PaperTrading() {
     setChartType(isInd ? 'custom' : 'tradingview');
   }, [selectedSymbol]);
 
-  // TradingView Widget Loader & Update Effect
+  // TradingView Widget Loader & Fast Dynamic Update Effect
   useEffect(() => {
     if (chartType !== 'tradingview') return;
     let script = document.getElementById('tradingview-widget-script');
+    const tvSymbol = resolveTVSymbol(selectedSymbol);
+    
+    let tvInterval = 'D';
+    if (chartInterval === '1m') tvInterval = '1';
+    else if (chartInterval === '5m') tvInterval = '5';
+    else if (chartInterval === '15m') tvInterval = '15';
+    else if (chartInterval === '60m') tvInterval = '60';
+
+    // ─── INSTANT SWITCH: If widget is alive & ready, switch symbol without reloading iframe! ───
+    if (tvPaperWidgetRef.current && isTvPaperReadyRef.current && typeof tvPaperWidgetRef.current.chart === 'function') {
+      try {
+        let changed = false;
+        if (prevPaperSymbolRef.current !== tvSymbol) {
+          prevPaperSymbolRef.current = tvSymbol;
+          tvPaperWidgetRef.current.chart().setSymbol(tvSymbol);
+          changed = true;
+        }
+        if (prevPaperIntervalRef.current !== tvInterval) {
+          prevPaperIntervalRef.current = tvInterval;
+          tvPaperWidgetRef.current.chart().setResolution(tvInterval);
+          changed = true;
+        }
+        if (changed) return;
+      } catch (err) {
+        console.warn('Paper trading dynamic symbol switch fallback:', err);
+      }
+    }
     
     const initWidget = () => {
       if (!chartContainerRef.current) return;
       
-      const tvSymbol = resolveTVSymbol(selectedSymbol);
       chartContainerRef.current.innerHTML = '';
+      isTvPaperReadyRef.current = false;
+      prevPaperSymbolRef.current = tvSymbol;
+      prevPaperIntervalRef.current = tvInterval;
       
       const studies = [];
       if (activeIndicators.sma20) studies.push("MASimple@tv-basicstudies");
@@ -801,14 +839,8 @@ export default function PaperTrading() {
       if (activeIndicators.vwap) studies.push("VWAP@tv-basicstudies");
       if (activeIndicators.sar) studies.push("PSAR@tv-basicstudies");
 
-      let tvInterval = 'D';
-      if (chartInterval === '1m') tvInterval = '1';
-      else if (chartInterval === '5m') tvInterval = '5';
-      else if (chartInterval === '15m') tvInterval = '15';
-      else if (chartInterval === '60m') tvInterval = '60';
-
       if (window.TradingView) {
-        new window.TradingView.widget({
+        const widget = new window.TradingView.widget({
           container_id: chartContainerRef.current.id,
           symbol: tvSymbol,
           interval: tvInterval,
@@ -821,9 +853,15 @@ export default function PaperTrading() {
           hide_side_toolbar: false,
           allow_symbol_change: true,
           width: '100%',
-          height: isChartFullscreen ? '100%' : 580,
+          height: isChartFullscreen ? '100%' : 620,
           studies: studies
         });
+
+        widget.onChartReady(() => {
+          isTvPaperReadyRef.current = true;
+        });
+
+        tvPaperWidgetRef.current = widget;
       }
     };
 
@@ -2477,7 +2515,7 @@ export default function PaperTrading() {
               )}
 
               {/* TradingView Widget Container */}
-              <div style={{ width: '100%', height: isChartFullscreen ? 'calc(100vh - 44px)' : '580px' }}>
+              <div style={{ width: '100%', height: isChartFullscreen ? 'calc(100vh - 44px)' : '620px' }}>
                 <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
               </div>
 

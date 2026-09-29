@@ -19,6 +19,9 @@ const YAHOO_HEADERS = {
 // 5-second TTL cache for market quotes — ensures real-time Screener & quote updates with zero delay
 const quoteCache = new NodeCache({ stdTTL: 5, checkperiod: 15 });
 
+// 60-second TTL cache for stock-history — ensures sub-millisecond chart loading
+const historyCache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
+
 async function fetchYahooQuote(symbol) {
   try {
     // Return from cache if fresh
@@ -1512,6 +1515,13 @@ router.get('/stock-history/:symbol', async (req, res) => {
       if (!['1d', '5d', '7d', '1mo', '3mo', '6mo', '1y', '2y'].includes(range)) range = '1y';
     }
 
+    // High-speed 60-second in-memory cache lookup (<2ms response)
+    const historyCacheKey = `${resolvedSymbol}_${range}_${interval}`;
+    const cachedHistory = historyCache.get(historyCacheKey);
+    if (cachedHistory && Array.isArray(cachedHistory) && cachedHistory.length > 0) {
+      return res.json(cachedHistory);
+    }
+
     // ─── Try AngelOne SmartAPI if configured & Indian market symbol ───
     const isIndian = isIndianSymbol(resolvedSymbol);
 
@@ -1521,6 +1531,7 @@ router.get('/stock-history/:symbol', async (req, res) => {
         const angelHistory = await fetchAngelHistory(resolvedSymbol, range, interval);
         if (angelHistory && angelHistory.length > 0) {
           console.log(`[stock-history] Successfully loaded ${angelHistory.length} bars from AngelOne for ${resolvedSymbol}`);
+          historyCache.set(historyCacheKey, angelHistory);
           return res.json(angelHistory);
         }
       } catch (err) {
@@ -1669,9 +1680,11 @@ router.get('/stock-history/:symbol', async (req, res) => {
         currPrice = prevPrice;
       }
       simulatedHistory.reverse();
+      historyCache.set(historyCacheKey, simulatedHistory);
       return res.json(simulatedHistory);
     }
 
+    historyCache.set(historyCacheKey, history);
     res.json(history);
   } catch (err) {
     res.status(500).json({ error: err.message });

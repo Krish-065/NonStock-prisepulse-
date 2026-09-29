@@ -50,6 +50,13 @@ export default function Layout({ children }) {
     };
   }, []);
 
+  const handlePrefetch = (path) => {
+    if (path === '/markets') import('../pages/Markets');
+    else if (path === '/paper-trading') import('../pages/PaperTrading');
+    else if (path === '/strategy-lab') import('../pages/StrategyBuilder');
+    else if (path === '/indian-market') import('../pages/IndianMarket');
+  };
+
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -98,6 +105,8 @@ export default function Layout({ children }) {
                 <NavLink
                   key={link.path}
                   to={link.path}
+                  onMouseEnter={() => handlePrefetch(link.path)}
+                  onPointerDown={() => handlePrefetch(link.path)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
