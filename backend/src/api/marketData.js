@@ -5,6 +5,7 @@ const fetchAngelLiveQuotes = async () => null;
 const fetchAngelHistory = async () => null;
 const { isIndianMarketOpen } = require('../utils/marketHours');
 const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
+const { getAggregatedAnnouncements } = require('../services/announcementsService');
 const NodeCache = require('node-cache');
 
 // Yahoo Finance headers to avoid IP blocks
@@ -1396,6 +1397,18 @@ router.get('/news', async (req, res) => {
     res.json(articles);
   } catch (err) {
     res.json(FALLBACK_NEWS);
+  }
+});
+
+// High-impact corporate announcements, contract wins, and economic events feed
+router.get('/announcements', async (req, res) => {
+  try {
+    const { day = 'all', type = 'all', impact = 'all', search = '', page = 1, limit = 20 } = req.query;
+    const result = await getAggregatedAnnouncements({ day, type, impact, search, page, limit });
+    res.json(result);
+  } catch (err) {
+    console.error('Error fetching market announcements:', err);
+    res.status(500).json({ error: 'Failed to fetch announcements' });
   }
 });
 

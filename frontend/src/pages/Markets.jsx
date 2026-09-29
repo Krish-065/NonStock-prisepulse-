@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, Activity, BarChart2, TrendingUp, Play, Maximize2, Minimize2 } from 'lucide-react';
+import { 
+  Search, Activity, BarChart2, TrendingUp, Play, Maximize2, Minimize2,
+  Calendar, Zap, Building2, ExternalLink, ArrowUpRight, ArrowDownRight,
+  Filter, ChevronRight, FileText, CheckCircle2, AlertTriangle, RefreshCw,
+  Clock, ShieldAlert, Sparkles, Layers
+} from 'lucide-react';
 import { createChart, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
 import { apiClient } from '../services/api';
 import { io } from 'socket.io-client';
@@ -674,6 +679,65 @@ export default function Markets() {
   const [customLoading, setCustomLoading] = useState(false);
   const [customError, setCustomError] = useState('');
   const [liveInfo, setLiveInfo] = useState(null);
+
+  // ─── Impactful Market Announcements & Corporate Events State ───
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(true);
+  const [announcementsPage, setAnnouncementsPage] = useState(1);
+  const [announcementsHasMore, setAnnouncementsHasMore] = useState(true);
+  const [announcementsCounts, setAnnouncementsCounts] = useState({ total: 0, today: 0, yesterday: 0, positive: 0, negative: 0 });
+  const [announcementsDayFilter, setAnnouncementsDayFilter] = useState('all'); // 'all' | 'today' | 'yesterday'
+  const [announcementsTypeFilter, setAnnouncementsTypeFilter] = useState('all'); // 'all' | 'contract' | 'regulatory' | 'macro' | 'results'
+  const [announcementsImpactFilter, setAnnouncementsImpactFilter] = useState('all'); // 'all' | 'positive' | 'negative' | 'high_impact'
+  const [announcementsSearch, setAnnouncementsSearch] = useState('');
+  const [loadingMoreAnnouncements, setLoadingMoreAnnouncements] = useState(false);
+  const [expandedAnnouncement, setExpandedAnnouncement] = useState(null);
+
+  const fetchAnnouncements = useCallback(async (page = 1, append = false) => {
+    try {
+      if (page === 1) setAnnouncementsLoading(true);
+      else setLoadingMoreAnnouncements(true);
+
+      const res = await apiClient.get('/market/announcements', {
+        params: {
+          day: announcementsDayFilter,
+          type: announcementsTypeFilter,
+          impact: announcementsImpactFilter,
+          search: announcementsSearch,
+          page,
+          limit: 16
+        }
+      });
+
+      if (res.data && res.data.items) {
+        if (append) {
+          setAnnouncements(prev => [...prev, ...res.data.items]);
+        } else {
+          setAnnouncements(res.data.items);
+        }
+        setAnnouncementsHasMore(res.data.hasMore);
+        setAnnouncementsPage(res.data.page);
+        if (res.data.counts) {
+          setAnnouncementsCounts(res.data.counts);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load announcements feed:', err);
+    } finally {
+      setAnnouncementsLoading(false);
+      setLoadingMoreAnnouncements(false);
+    }
+  }, [announcementsDayFilter, announcementsTypeFilter, announcementsImpactFilter, announcementsSearch]);
+
+  useEffect(() => {
+    fetchAnnouncements(1, false);
+  }, [fetchAnnouncements]);
+
+  const handleLoadMoreAnnouncements = () => {
+    if (!loadingMoreAnnouncements && announcementsHasMore) {
+      fetchAnnouncements(announcementsPage + 1, true);
+    }
+  };
 
   const filteredSymbols = searchQuery.length > 0
     ? ALL_SYMBOLS.filter(s => {
@@ -1628,90 +1692,421 @@ export default function Markets() {
         </div>
       </div>
 
-      {/* Live Market Intelligence News (Updating According to Market) */}
-      <div style={{ marginTop: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            📡 Live Market Intelligence News
-          </span>
-          <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: 700 }}>
-            {liveNewsLoading ? 'Refreshing live feed...' : `Live Stream Active`}
-          </span>
+      {/* ─── HIGH-IMPACT MARKET ANNOUNCEMENTS & CORPORATE CONTRACTS TERMINAL ─── */}
+      <div style={{ marginTop: '32px', background: 'rgba(16, 20, 45, 0.55)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', padding: '24px', boxShadow: '0 12px 40px rgba(0,0,0,0.45)' }}>
+        
+        {/* Header & Live Stream Counter */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(0, 255, 136, 0.15)', border: '1px solid rgba(0, 255, 136, 0.3)' }}>
+                <Zap size={18} style={{ color: '#00ff88' }} />
+              </span>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.3px' }}>
+                High-Impact Announcements & Corporate Contracts
+              </h2>
+            </div>
+            <p style={{ margin: '6px 0 0 42px', fontSize: '13px', color: '#9b9eac' }}>
+              Live stream of multi-billion contract wins, corporate orders, regulatory filings, and central bank events with quantitative impact scoring.
+            </p>
+          </div>
+
+          {/* Quick Metrics Counter Badges */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0, 255, 136, 0.1)', border: '1px solid rgba(0, 255, 136, 0.25)', color: '#00ff88', padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00ff88', boxShadow: '0 0 8px #00ff88' }} />
+              {announcementsCounts.today} Today
+            </span>
+            <span style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#cbd5e1', padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}>
+              {announcementsCounts.yesterday} Yesterday
+            </span>
+            <span style={{ background: 'rgba(0, 255, 136, 0.08)', border: '1px solid rgba(0, 255, 136, 0.2)', color: '#00ff88', padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>
+              ▲ {announcementsCounts.positive} +ve Impact
+            </span>
+            <span style={{ background: 'rgba(255, 68, 68, 0.08)', border: '1px solid rgba(255, 68, 68, 0.2)', color: '#ff4444', padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>
+              ▼ {announcementsCounts.negative} -ve Impact
+            </span>
+            <button
+              onClick={() => fetchAnnouncements(1, false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
+              title="Refresh Announcements Feed"
+            >
+              <RefreshCw size={13} className={announcementsLoading ? 'animate-spin' : ''} />
+              Sync
+            </button>
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-          {(liveNews.length > 0 ? liveNews : NEWS_ITEMS).map((rec, i) => {
-            const isExpanded = expandedNews === i;
-            const sentColors = { Bullish: { bg: 'rgba(0,255,136,0.1)', text: '#00b060', border: 'rgba(0,255,136,0.25)' }, Bearish: { bg: 'rgba(255,68,68,0.1)', text: '#ff4444', border: 'rgba(255,68,68,0.25)' }, Volatile: { bg: 'rgba(255,152,0,0.1)', text: '#ff9800', border: 'rgba(255,152,0,0.25)' }, Neutral: { bg: 'rgba(100,120,255,0.1)', text: '#8899ff', border: 'rgba(100,120,255,0.25)' } };
-            const sc = sentColors[rec.sentiment] || sentColors.Neutral;
-            const newsSource = rec.source?.name || rec.source || 'Market Intelligence';
-            const newsTitle = rec.title;
-            const newsDesc = rec.description || rec.desc;
-            const newsUrl = rec.url || rec.sourceUrl || 'https://finance.yahoo.com';
+        {/* ─── Filter Controls Bar ─── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '22px', background: 'rgba(0, 0, 0, 0.25)', padding: '16px', borderRadius: '14px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+          
+          {/* Row 1: Day Tabs & Search Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            
+            {/* Day Filter Tabs */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.04)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              {[
+                { id: 'all', label: `All Feeds (${announcementsCounts.total || 0})` },
+                { id: 'today', label: `Today's Announcements (${announcementsCounts.today || 0})`, isNew: true },
+                { id: 'yesterday', label: `Yesterday's Announcements (${announcementsCounts.yesterday || 0})` }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setAnnouncementsDayFilter(tab.id)}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: announcementsDayFilter === tab.id ? 'rgba(0, 255, 136, 0.18)' : 'transparent',
+                    color: announcementsDayFilter === tab.id ? '#00ff88' : '#9b9eac',
+                    fontWeight: announcementsDayFilter === tab.id ? 800 : 600,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {tab.isNew && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00ff88' }} />}
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-            return (
-              <div
-                key={i}
-                onClick={() => setExpandedNews(isExpanded ? null : i)}
-                style={{
-                  background: isExpanded ? 'rgba(0,255,136,0.04)' : 'var(--bg-card-glass)',
-                  border: `1px solid ${isExpanded ? sc.border : 'var(--border-color)'}`,
-                  borderRadius: '12px',
-                  padding: '14px 16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.borderColor = sc.border; }}
-                onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-                    {newsSource} • {rec.time || formatNewsTime(newsTimestamps[i % newsTimestamps.length])}
-                  </span>
-                  <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: sc.bg, color: sc.text }}>
-                    {rec.sentiment || 'Neutral'}
-                  </span>
-                </div>
-                <h4 style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
-                  {newsTitle}
-                </h4>
-                <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                  {newsDesc}
-                </p>
-                {isExpanded && (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '10px', marginTop: '2px' }}>
-                    {rec.takeaway && (
-                      <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#00ff88', lineHeight: '1.5' }}>
-                        <strong>Trade Takeaway:</strong> {rec.takeaway}
-                      </p>
-                    )}
-                    <a
-                      href={newsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '6px',
-                        padding: '6px 14px', borderRadius: '6px',
-                        background: sc.bg, color: sc.text,
-                        border: `1px solid ${sc.border}`,
-                        fontSize: '11px', fontWeight: 700, textDecoration: 'none'
-                      }}
-                    >
-                      Read full report on {newsSource} →
-                    </a>
+            {/* Keyword Search Input */}
+            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '10px', padding: '0 12px', minWidth: '280px', flex: '1 1 300px', maxWidth: '420px' }}>
+              <Search size={14} style={{ color: '#9b9eac', marginRight: '8px' }} />
+              <input
+                type="text"
+                value={announcementsSearch}
+                onChange={e => setAnnouncementsSearch(e.target.value)}
+                placeholder="Search company, contract, or ticker (e.g. L&T, Order, FDA)..."
+                style={{ width: '100%', background: 'transparent', border: 'none', padding: '8px 0', color: '#ffffff', fontSize: '12px', outline: 'none' }}
+              />
+              {announcementsSearch && (
+                <button
+                  type="button"
+                  onClick={() => setAnnouncementsSearch('')}
+                  style={{ background: 'transparent', border: 'none', color: '#9b9eac', cursor: 'pointer', fontSize: '13px' }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Row 2: Impact Filters & Category Filters */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+            
+            {/* Impact Filter Chips */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#9b9eac', textTransform: 'uppercase', marginRight: '4px' }}>
+                Impact:
+              </span>
+              {[
+                { id: 'all', label: 'All Impacts' },
+                { id: 'positive', label: '🟢 +ve Impact (Bullish)', activeColor: '#00ff88' },
+                { id: 'negative', label: '🔴 -ve Impact (Bearish)', activeColor: '#ff4444' },
+                { id: 'high_impact', label: '⚡ High Impact (>80 Score)', activeColor: '#ffb300' }
+              ].map(chip => (
+                <button
+                  key={chip.id}
+                  onClick={() => setAnnouncementsImpactFilter(chip.id)}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: '6px',
+                    border: `1px solid ${announcementsImpactFilter === chip.id ? (chip.activeColor || '#00bcd4') : 'rgba(255,255,255,0.08)'}`,
+                    background: announcementsImpactFilter === chip.id ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
+                    color: announcementsImpactFilter === chip.id ? (chip.activeColor || '#ffffff') : '#9b9eac',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Category Filter Chips */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#9b9eac', textTransform: 'uppercase', marginRight: '4px' }}>
+                Category:
+              </span>
+              {[
+                { id: 'all', label: 'All' },
+                { id: 'contract', label: '💼 Contracts & Orders' },
+                { id: 'regulatory', label: '🏛️ Regulatory & Filings' },
+                { id: 'macro', label: '🌍 Macro & ForexFactory' },
+                { id: 'results', label: '📊 Corporate Actions' }
+              ].map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setAnnouncementsTypeFilter(cat.id)}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: '6px',
+                    border: `1px solid ${announcementsTypeFilter === cat.id ? '#00bcd4' : 'rgba(255,255,255,0.08)'}`,
+                    background: announcementsTypeFilter === cat.id ? 'rgba(0,188,212,0.12)' : 'rgba(255,255,255,0.02)',
+                    color: announcementsTypeFilter === cat.id ? '#00bcd4' : '#9b9eac',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Scrollable Announcements Feed Grid ─── */}
+        {announcementsLoading ? (
+          <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+            <div style={{ width: '40px', height: '40px', border: '3px solid rgba(0,255,136,0.2)', borderTopColor: '#00ff88', borderRadius: '50%', margin: '0 auto 16px', animation: 'spin 0.8s linear infinite' }} />
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff' }}>Loading verified market announcements & scoring feed...</div>
+            <div style={{ fontSize: '12px', color: '#9b9eac', marginTop: '4px' }}>Aggregating corporate order wins, exchange disclosures & macro calendar</div>
+          </div>
+        ) : announcements.length === 0 ? (
+          <div style={{ padding: '50px 20px', textAlign: 'center', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+            <FileText size={32} style={{ color: '#9b9eac', margin: '0 auto 12px' }} />
+            <div style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>No announcements match your selected filters</div>
+            <div style={{ fontSize: '12px', color: '#9b9eac', marginTop: '6px' }}>Try switching day tabs or clearing your search keywords.</div>
+            <button
+              onClick={() => { setAnnouncementsDayFilter('all'); setAnnouncementsTypeFilter('all'); setAnnouncementsImpactFilter('all'); setAnnouncementsSearch(''); }}
+              style={{ marginTop: '14px', background: 'rgba(0,255,136,0.15)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '6px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              Reset All Filters
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
+            {announcements.map((ann, idx) => {
+              const isPositive = ann.impact === '+ve Impact';
+              const isNegative = ann.impact === '-ve Impact';
+              const isExpanded = expandedAnnouncement === ann.id;
+
+              const impactColors = isPositive
+                ? { bg: 'rgba(0, 255, 136, 0.12)', border: 'rgba(0, 255, 136, 0.35)', text: '#00ff88', glow: '0 0 12px rgba(0, 255, 136, 0.25)' }
+                : isNegative
+                ? { bg: 'rgba(255, 68, 68, 0.12)', border: 'rgba(255, 68, 68, 0.35)', text: '#ff4444', glow: '0 0 12px rgba(255, 68, 68, 0.25)' }
+                : { bg: 'rgba(0, 188, 212, 0.12)', border: 'rgba(0, 188, 212, 0.35)', text: '#00bcd4', glow: '0 0 12px rgba(0, 188, 212, 0.25)' };
+
+              return (
+                <div
+                  key={ann.id || idx}
+                  style={{
+                    background: isExpanded ? 'rgba(16, 24, 52, 0.85)' : 'rgba(12, 16, 38, 0.65)',
+                    border: `1px solid ${isExpanded ? impactColors.border : 'rgba(255, 255, 255, 0.08)'}`,
+                    borderRadius: '14px',
+                    padding: '16px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: isExpanded ? impactColors.glow : 'none'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = impactColors.border; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { if (!isExpanded) { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'; } e.currentTarget.style.transform = 'none'; }}
+                >
+                  {/* Top Bar: Company Name, Ticker Link & Published Time */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 900, color: '#ffffff' }}>
+                        {ann.company}
+                      </span>
+                      {ann.symbol && ann.symbol !== 'GLOBAL' && (
+                        <button
+                          onClick={() => {
+                            selectSymbol(ann.symbol);
+                            window.scrollTo({ top: 120, behavior: 'smooth' });
+                            toast.success(`Charting ${ann.company} (${ann.symbol}) on TradingView`);
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: 'rgba(0, 188, 212, 0.12)',
+                            border: '1px solid rgba(0, 188, 212, 0.3)',
+                            color: '#00bcd4',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            fontFamily: 'monospace',
+                            cursor: 'pointer'
+                          }}
+                          title={`Click to chart ${ann.symbol} on TradingView`}
+                        >
+                          <BarChart2 size={11} />
+                          {ann.symbol}
+                        </button>
+                      )}
+                    </div>
+
+                    <span style={{ fontSize: '11px', color: '#9b9eac', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+                      <Clock size={11} />
+                      {ann.publishedAt}
+                    </span>
                   </div>
-                )}
-                <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px', opacity: 0.6 }}>
-                  {isExpanded ? '▲ Click to collapse' : '▼ Click for trade takeaway & source'}
+
+                  {/* Impact Direction & Quantitative Score Meter */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '8px 12px', borderRadius: '8px', border: `1px solid ${impactColors.border}` }}>
+                    
+                    {/* Impact Direction Badge */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '3px 10px',
+                        borderRadius: '6px',
+                        background: impactColors.bg,
+                        color: impactColors.text,
+                        fontWeight: 900,
+                        fontSize: '12px'
+                      }}>
+                        {isPositive ? <ArrowUpRight size={14} /> : isNegative ? <ArrowDownRight size={14} /> : null}
+                        {ann.impact}
+                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: impactColors.text, textTransform: 'uppercase' }}>
+                        {ann.impactLevel}
+                      </span>
+                    </div>
+
+                    {/* Quantitative Impact Score Meter (1-100) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '10px', color: '#9b9eac', textTransform: 'uppercase', fontWeight: 700 }}>
+                          Impact Score
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: impactColors.text, fontFamily: 'monospace' }}>
+                          {ann.impactScore}/100
+                        </div>
+                      </div>
+                      <div style={{ width: '45px', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${ann.impactScore}%`, height: '100%', background: impactColors.text, borderRadius: '3px' }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expected Move / Projected Effect */}
+                  {ann.expectedMove && (
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: impactColors.text, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>🎯 Expected Effect:</span>
+                      <span style={{ background: impactColors.bg, padding: '2px 8px', borderRadius: '4px', border: `1px solid ${impactColors.border}` }}>
+                        {ann.expectedMove}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Headline Title */}
+                  <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#ffffff', lineHeight: '1.45' }}>
+                    {ann.title}
+                  </h3>
+
+                  {/* Summary Description */}
+                  <p style={{ margin: 0, fontSize: '12px', color: '#cbd5e1', lineHeight: '1.5' }}>
+                    {ann.summary}
+                  </p>
+
+                  {/* Expandable Trade Takeaway & Details */}
+                  {isExpanded && (
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {ann.takeaway && (
+                        <div style={{ background: 'rgba(0,255,136,0.06)', border: '1px solid rgba(0,255,136,0.2)', padding: '10px', borderRadius: '8px', fontSize: '12px', color: '#00ff88', lineHeight: '1.45' }}>
+                          <strong style={{ display: 'block', marginBottom: '2px', color: '#ffffff' }}>💡 Quant & Trade Takeaway:</strong>
+                          {ann.takeaway}
+                        </div>
+                      )}
+                      {ann.sourceUrl && (
+                        <a
+                          href={ann.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: '#00bcd4',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            textDecoration: 'none',
+                            marginTop: '4px'
+                          }}
+                        >
+                          Official Disclosure Source ({ann.source}) <ExternalLink size={12} />
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Footer Row: Type Tag & Expand Toggle */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '4px' }}>
+                    <span style={{ fontSize: '11px', color: '#9b9eac', background: 'rgba(255,255,255,0.04)', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)', fontWeight: 600 }}>
+                      {ann.type}
+                    </span>
+
+                    <button
+                      onClick={() => setExpandedAnnouncement(isExpanded ? null : ann.id)}
+                      style={{ background: 'transparent', border: 'none', color: '#00bcd4', fontSize: '11px', fontWeight: 800, cursor: 'pointer', padding: '4px' }}
+                    >
+                      {isExpanded ? '▲ Hide Analysis' : '▼ View Takeaway & Source'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ─── Scroll to Load More Announcements ─── */}
+        {!announcementsLoading && announcements.length > 0 && announcementsHasMore && (
+          <div style={{ textAlign: 'center', marginTop: '28px', paddingTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+            <div style={{ fontSize: '12px', color: '#9b9eac', marginBottom: '12px' }}>
+              Showing {announcements.length} of {announcementsCounts.total || announcements.length} impactful announcements
+            </div>
+            <button
+              onClick={handleLoadMoreAnnouncements}
+              disabled={loadingMoreAnnouncements}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 188, 212, 0.2))',
+                border: '1px solid rgba(0, 255, 136, 0.4)',
+                color: '#00ff88',
+                padding: '10px 24px',
+                borderRadius: '10px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: loadingMoreAnnouncements ? 'not-allowed' : 'pointer',
+                boxShadow: '0 4px 16px rgba(0, 255, 136, 0.15)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { if (!loadingMoreAnnouncements) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
+            >
+              {loadingMoreAnnouncements ? (
+                <>
+                  <RefreshCw size={14} className="animate-spin" />
+                  Loading More Announcements...
+                </>
+              ) : (
+                <>
+                  Scroll for More Announcements (+16)
+                  <ChevronRight size={14} />
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );
