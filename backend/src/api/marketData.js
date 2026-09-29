@@ -747,6 +747,41 @@ const STATIC_SYMBOLS = [
   { symbol: 'SUNPHARMA.NS', name: 'Sun Pharmaceutical Industries Limited', exchange: 'NSE', type: 'EQUITY' },
   { symbol: 'TITAN.NS', name: 'Titan Company Limited', exchange: 'NSE', type: 'EQUITY' },
   { symbol: 'HCLTECH.NS', name: 'HCL Technologies Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'ZOMATO.NS', name: 'Zomato Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'PAYTM.NS', name: 'One97 Communications (Paytm)', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'SUZLON.NS', name: 'Suzlon Energy Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'TATASTEEL.NS', name: 'Tata Steel Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'JSWSTEEL.NS', name: 'JSW Steel Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'VEDL.NS', name: 'Vedanta Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'COALINDIA.NS', name: 'Coal India Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'NTPC.NS', name: 'NTPC Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'POWERGRID.NS', name: 'Power Grid Corporation of India', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'TATAPOWER.NS', name: 'Tata Power Company Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'DLF.NS', name: 'DLF Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'HAL.NS', name: 'Hindustan Aeronautics Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'BEL.NS', name: 'Bharat Electronics Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'IRCTC.NS', name: 'IRCTC Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'IRFC.NS', name: 'Indian Railway Finance Corporation', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'IREDA.NS', name: 'Indian Renewable Energy Dev Agency', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'JIOFIN.NS', name: 'Jio Financial Services Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'INDIGO.NS', name: 'InterGlobe Aviation (IndiGo)', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'ASIANPAINT.NS', name: 'Asian Paints Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'NESTLEIND.NS', name: 'Nestle India Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'BAJAJ-AUTO.NS', name: 'Bajaj Auto Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'LTIM.NS', name: 'LTIMindtree Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'DMART.NS', name: 'Avenue Supermarts (DMart)', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'TRENT.NS', name: 'Trent Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'ULTRACEMCO.NS', name: 'UltraTech Cement Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'GRASIM.NS', name: 'Grasim Industries Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'DRREDDY.NS', name: 'Dr. Reddy Laboratories', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'CIPLA.NS', name: 'Cipla Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'DIVISLAB.NS', name: 'Divis Laboratories Limited', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'APOLLOHOSP.NS', name: 'Apollo Hospitals Enterprise', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'ADANIPORTS.NS', name: 'Adani Ports & SEZ', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'BPCL.NS', name: 'Bharat Petroleum Corp Ltd', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'ONGC.NS', name: 'Oil & Natural Gas Corp', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'HDFCLIFE.NS', name: 'HDFC Life Insurance Co Ltd', exchange: 'NSE', type: 'EQUITY' },
+  { symbol: 'SBILIFE.NS', name: 'SBI Life Insurance Co Ltd', exchange: 'NSE', type: 'EQUITY' },
   
   // US Stocks
   { symbol: 'AAPL', name: 'Apple Inc.', exchange: 'US Market', type: 'EQUITY' },
@@ -794,6 +829,13 @@ const STATIC_SYMBOLS = [
   { symbol: 'HG=F', name: 'Copper Futures', exchange: 'Commodity', type: 'EQUITY' }
 ];
 
+router.get('/search/indian', (req, res) => {
+  const indianDefaults = STATIC_SYMBOLS.filter(item => 
+    item.exchange === 'NSE' || item.exchange === 'BSE' || item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO')
+  ).slice(0, 10);
+  res.json(indianDefaults);
+});
+
 router.get('/search/indian/:query', async (req, res) => {
   const queryStr = req.params.query.toUpperCase();
   const staticMatches = STATIC_SYMBOLS.filter(item => 
@@ -803,33 +845,41 @@ router.get('/search/indian/:query', async (req, res) => {
 
   try {
     const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(req.params.query)}&quotesCount=30`;
-    const response = await fetch(url, { headers: YAHOO_HEADERS });
-    const data = await response.json();
-    const quotes = data.quotes || [];
-    const stocks = quotes
-      .filter(q => ['EQUITY', 'INDEX', 'ETF', 'MUTUALFUND'].includes(q.quoteType))
-      .filter(q => q.symbol.endsWith('.NS') || q.symbol.endsWith('.BO') || ['NSI', 'BOM', 'NSE', 'BSE'].includes(q.exchange))
-      .map(q => ({
-        symbol: q.symbol,
-        name: q.longname || q.shortname || q.symbol,
-        exchange: q.exchange || 'NSE',
-        type: q.quoteType
-      }));
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
 
-    const seen = new Set();
-    const merged = [];
-    for (const s of staticMatches) {
-      seen.add(s.symbol.toUpperCase());
-      merged.push(s);
-    }
-    for (const s of stocks) {
-      const symUpper = s.symbol.toUpperCase();
-      if (!seen.has(symUpper)) {
-        seen.add(symUpper);
+    const response = await fetch(url, { headers: YAHOO_HEADERS, signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (response.ok) {
+      const data = await response.json();
+      const quotes = data.quotes || [];
+      const stocks = quotes
+        .filter(q => ['EQUITY', 'INDEX', 'ETF', 'MUTUALFUND'].includes(q.quoteType))
+        .filter(q => q.symbol.endsWith('.NS') || q.symbol.endsWith('.BO') || ['NSI', 'BOM', 'NSE', 'BSE'].includes(q.exchange))
+        .map(q => ({
+          symbol: q.symbol,
+          name: q.longname || q.shortname || q.symbol,
+          exchange: q.exchange || 'NSE',
+          type: q.quoteType
+        }));
+
+      const seen = new Set();
+      const merged = [];
+      for (const s of staticMatches) {
+        seen.add(s.symbol.toUpperCase());
         merged.push(s);
       }
+      for (const s of stocks) {
+        const symUpper = s.symbol.toUpperCase();
+        if (!seen.has(symUpper)) {
+          seen.add(symUpper);
+          merged.push(s);
+        }
+      }
+      return res.json(merged.slice(0, 20));
     }
-    res.json(merged.slice(0, 20));
+    res.json(staticMatches.slice(0, 20));
   } catch (err) {
     res.json(staticMatches.slice(0, 20));
   }

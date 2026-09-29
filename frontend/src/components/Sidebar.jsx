@@ -41,6 +41,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }) {
     { path: '/paper-trading', label: 'Trade Desk', icon: <LineChart size={16} /> },
     { path: '/strategy-lab', label: 'Strategy Lab', badge: 'PRO', icon: <Sparkles size={16} />, state: currentSymbol ? { selectSymbol: currentSymbol } : null },
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={16} /> },
+    { path: '/indian-market', label: 'Indian Market Desk', icon: <Landmark size={16} /> },
     { path: '/screener', label: 'Global Screener', icon: <Search size={16} /> },
     { path: '/alerts', label: 'Alerts Hub', icon: <Bell size={16} /> },
     { path: '/community', label: 'Community Hub', icon: <Users size={16} /> },

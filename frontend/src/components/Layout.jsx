@@ -35,6 +35,7 @@ export default function Layout({ children }) {
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={15} /> },
     { path: '/community', label: 'Community Hub', icon: <Users size={15} /> },
     { path: '/fno', label: 'Global F&O', icon: <Activity size={15} /> },
+    { path: '/indian-market', label: 'Indian Market', icon: <Landmark size={15} /> },
     { path: '/screener', label: 'Global Screener', icon: <Search size={15} /> },
     { path: '/news', label: 'Global News', icon: <Newspaper size={15} /> },
     { path: '/portfolio', label: 'Portfolio', icon: <Briefcase size={15} /> },

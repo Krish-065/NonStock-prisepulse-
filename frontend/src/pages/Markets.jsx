@@ -790,6 +790,7 @@ export default function Markets() {
 
     const scriptId = 'tradingview-widget-script';
     let script = document.getElementById(scriptId);
+    const isLightMode = theme === 'light';
 
     const initTVWidget = () => {
       if (tvContainerRef.current && window.TradingView) {
@@ -800,21 +801,26 @@ export default function Markets() {
           symbol: tvSymbol,
           interval: interval === 'D' ? 'D' : interval === 'W' ? 'W' : interval === 'M' ? 'M' : '240',
           timezone: 'exchange',
-          theme: theme === 'dark' ? 'dark' : 'light',
+          theme: isLightMode ? 'light' : 'dark',
           style: '1',
           locale: 'en',
-          toolbar_bg: theme === 'dark' ? '#101427' : '#ffffff',
+          toolbar_bg: isLightMode ? '#ffffff' : '#101427',
+          loading_screen: {
+            backgroundColor: isLightMode ? '#ffffff' : '#0a0e27',
+            foregroundColor: '#00ff88'
+          },
           enable_publishing: false,
           hide_side_toolbar: false,
           allow_symbol_change: true,
-          width: '100%',
-          height: isFullscreen ? (window.innerHeight - 56) : 720,
+          autosize: true,
           studies: ['Volume@tv-basicstudies']
         });
       }
     };
 
-    if (!script) {
+    if (window.TradingView) {
+      initTVWidget();
+    } else if (!script) {
       script = document.createElement('script');
       script.id = scriptId;
       script.src = 'https://s3.tradingview.com/tv.js';
@@ -822,13 +828,9 @@ export default function Markets() {
       script.onload = initTVWidget;
       document.head.appendChild(script);
     } else {
-      if (window.TradingView) {
-        initTVWidget();
-      } else {
-        script.onload = initTVWidget;
-      }
+      script.onload = initTVWidget;
     }
-  }, [symbol, interval, activeTab, chartKey, isFullscreen]);
+  }, [symbol, interval, activeTab, chartKey, isFullscreen, theme]);
 
   // 2. Custom Chart Mapping and Helper Functions
   const mapIntervalForApi = useCallback((v) => {
@@ -1523,7 +1525,7 @@ export default function Markets() {
           width: '100vw',
           height: '100vh',
           zIndex: 999999,
-          background: '#0a0e27',
+          background: theme === 'light' ? '#ffffff' : '#0a0e27',
           borderRadius: 0,
           border: 'none',
           display: 'flex',
@@ -1531,19 +1533,19 @@ export default function Markets() {
           overflow: 'hidden'
         } : {
           flex: 1,
-          background: '#0a0e27',
+          background: theme === 'light' ? '#ffffff' : '#0a0e27',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          border: theme === 'light' ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.08)',
           overflow: 'hidden',
           minHeight: '720px',
           height: '720px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          boxShadow: theme === 'light' ? '0 8px 24px rgba(0,0,0,0.06)' : '0 8px 32px rgba(0,0,0,0.5)',
           display: 'flex',
           flexDirection: 'column'
         }}
       >
         {/* TradingView Container */}
-        <div style={{ width: '100%', height: '100%', flex: 1, background: '#0a0e27' }}>
+        <div style={{ width: '100%', height: '100%', flex: 1, background: theme === 'light' ? '#ffffff' : '#0a0e27' }}>
           <div id="tradingview_chart_container" ref={tvContainerRef} style={{ width: '100%', height: '100%' }} />
         </div>
       </div>

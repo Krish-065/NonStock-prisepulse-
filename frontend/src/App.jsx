@@ -39,6 +39,8 @@ const Community      = lazy(() => import('./pages/Community'));
 const Alerts         = lazy(() => import('./pages/Alerts'));
 const UpgradePro     = lazy(() => import('./pages/UpgradePro'));
 const ContactUs      = lazy(() => import('./pages/ContactUs'));
+const IndianMarket   = lazy(() => import('./pages/IndianMarket'));
+const MutualFunds    = lazy(() => import('./pages/MutualFunds'));
 
 // ─── Full-screen page loader skeleton ─────────────────────────────────────────
 function PageLoader() {
@@ -110,8 +112,8 @@ function App() {
                   <Route path="/news"              element={<PrivateRoute><Layout><News /></Layout></PrivateRoute>} />
                   <Route path="/crypto"            element={<PrivateRoute><Layout><Crypto /></Layout></PrivateRoute>} />
                   <Route path="/commodities"       element={<PrivateRoute><Layout><Commodities /></Layout></PrivateRoute>} />
-                  <Route path="/indian-market"     element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/mutual-funds"      element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/indian-market"     element={<PrivateRoute><Layout><IndianMarket /></Layout></PrivateRoute>} />
+                  <Route path="/mutual-funds"      element={<PrivateRoute><Layout><MutualFunds /></Layout></PrivateRoute>} />
                   <Route path="/profile"           element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
                   <Route path="/strategy-lab"      element={<PrivateRoute><Layout><StrategyBuilder /></Layout></PrivateRoute>} />
                   <Route path="/ai-mentor"         element={<PrivateRoute><Layout><AIMentor /></Layout></PrivateRoute>} />
