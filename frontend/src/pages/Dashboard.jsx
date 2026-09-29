@@ -325,59 +325,174 @@ export default function Dashboard() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '26px', paddingBottom: '32px' }}>
       
-      {/* 1. Header Banner & Universal International Search */}
+      {/* 1. High-Profile Centered Exploration Hero & Universal Global Search */}
       <div style={{ 
         display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        flexWrap: 'wrap', 
-        gap: '16px',
-        padding: '24px 28px',
-        borderRadius: '20px',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        padding: '38px 24px',
+        borderRadius: '24px',
         background: isLight 
-          ? 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,249,255,0.7) 100%)' 
-          : 'linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(30,41,59,0.7) 100%)',
+          ? 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,249,255,0.85) 100%)' 
+          : 'linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(30,41,59,0.8) 100%)',
         border: '1px solid var(--border-color)',
-        backdropFilter: 'blur(12px)',
-        boxShadow: isLight ? '0 10px 30px rgba(0,0,0,0.04)' : '0 10px 30px rgba(0,0,0,0.3)'
+        backdropFilter: 'blur(16px)',
+        boxShadow: isLight ? '0 12px 36px rgba(0,0,0,0.04)' : '0 16px 40px rgba(0,0,0,0.35)',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <div style={{ flex: '1', minWidth: '300px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-            <span style={{ 
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '11px', 
-              letterSpacing: '0.06em',
-              background: 'rgba(16, 185, 129, 0.12)', 
-              color: '#10b981', 
-              padding: '4px 10px', 
-              borderRadius: '20px', 
-              fontWeight: 800,
-              border: '1px solid rgba(16, 185, 129, 0.3)'
-            }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-              LIVE GLOBAL DESK
-            </span>
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              {currentTime.toUTCString().slice(0, 22)} UTC
-            </span>
-          </div>
+        {/* Ambient background glow */}
+        <div style={{
+          position: 'absolute',
+          top: '-60px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '560px',
+          height: '200px',
+          background: 'radial-gradient(ellipse at center, rgba(16, 185, 129, 0.15), transparent 70%)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }} />
 
-          <h1 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-            Welcome back, {user?.name ? user.name.split(' ')[0] : 'Trader'}
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0', fontWeight: 500 }}>
-            Real-time streaming US Equities, Crypto, Global Indices, Forex & Quantitative Wall Street Insights
-          </p>
+        {/* Global Explorer Live Badge */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', zIndex: 1 }}>
+          <span style={{ 
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '11px', 
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            background: 'rgba(16, 185, 129, 0.12)', 
+            color: '#10b981', 
+            padding: '5px 12px', 
+            borderRadius: '20px', 
+            fontWeight: 800,
+            border: '1px solid rgba(16, 185, 129, 0.3)'
+          }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981' }} />
+            GLOBAL EXPLORER • LIVE DESK
+          </span>
+          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            {currentTime.toUTCString().slice(0, 22)} UTC
+          </span>
         </div>
 
-        <div style={{ width: '100%', maxWidth: '440px' }}>
+        {/* Institutional Headline */}
+        <h1 style={{ 
+          fontSize: '32px', 
+          fontWeight: 900, 
+          color: 'var(--text-primary)', 
+          margin: '0 0 8px 0', 
+          letterSpacing: '-0.03em',
+          lineHeight: '1.2',
+          zIndex: 1
+        }}>
+          Explore Global Financial Markets
+        </h1>
+
+        <p style={{ 
+          fontSize: '14px', 
+          color: 'var(--text-secondary)', 
+          margin: '0 0 24px 0', 
+          maxWidth: '640px', 
+          lineHeight: '1.5',
+          fontWeight: 500,
+          zIndex: 1
+        }}>
+          Institutional-grade exploration across US Equities, Crypto Majors, Global Benchmarks, Forex & Commodities
+        </p>
+
+        {/* Centered Search Command Input */}
+        <div style={{ width: '100%', maxWidth: '720px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <SearchWithSuggestions 
             onSelect={(stock) => navigate(`/stock/${stock.symbol}`)} 
-            placeholder="Search US Equities, Crypto, Indices (e.g. NVDA, BTC, AAPL, EUR/USD)..." 
-            className="global-search" 
+            placeholder="Search any global asset, ticker or index (e.g. NVDA, BTC, AAPL, SPY, TSLA, Gold)..." 
+            showSearchIcon={true}
+            inputStyle={{
+              width: '100%',
+              padding: '16px 95px 16px 48px',
+              borderRadius: '16px',
+              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.85)',
+              border: isLight ? '1.5px solid #cbd5e1' : '1.5px solid rgba(255, 255, 255, 0.15)',
+              color: 'var(--text-primary)',
+              fontSize: '15px',
+              fontWeight: 600,
+              outline: 'none',
+              boxSizing: 'border-box',
+              boxShadow: isLight ? '0 4px 20px rgba(0, 0, 0, 0.05)' : '0 8px 32px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.2s ease'
+            }}
+            rightElement={
+              <span style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--text-secondary)',
+                background: isLight ? '#f1f5f9' : 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid var(--border-color)',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontFamily: 'monospace'
+              }}>
+                EXPLORE
+              </span>
+            }
           />
+        </div>
+
+        {/* Quick-Explore Trending Tickers Row */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          flexWrap: 'wrap', 
+          gap: '8px', 
+          marginTop: '16px',
+          zIndex: 1 
+        }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Flame size={14} style={{ color: '#f59e0b' }} /> Quick Explore:
+          </span>
+          {[
+            { label: 'NVDA', sym: 'NVDA' },
+            { label: 'BTC', sym: 'BTC-USD' },
+            { label: 'AAPL', sym: 'AAPL' },
+            { label: 'TSLA', sym: 'TSLA' },
+            { label: 'SOL', sym: 'SOL-USD' },
+            { label: 'S&P 500', sym: '^GSPC' },
+            { label: 'GOLD', sym: 'GC=F' },
+            { label: 'EUR/USD', sym: 'EURUSD=X' }
+          ].map(tag => (
+            <button
+              key={tag.sym}
+              type="button"
+              onClick={() => navigate(`/stock/${tag.sym}`)}
+              style={{
+                background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#10b981';
+                e.currentTarget.style.color = '#10b981';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-color)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              {tag.label}
+            </button>
+          ))}
         </div>
       </div>
 
