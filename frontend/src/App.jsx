@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './contexts/AuthContext';
@@ -24,18 +24,14 @@ const Portfolio      = lazy(() => import('./pages/Portfolio'));
 const PaperTrading   = lazy(() => import('./pages/PaperTrading'));
 const Watchlist      = lazy(() => import('./pages/Watchlist'));
 const Screener       = lazy(() => import('./pages/Screener'));
-const IPOs           = lazy(() => import('./pages/IPOs'));
 const FnO            = lazy(() => import('./pages/FnO'));
 const SectorRotation = lazy(() => import('./pages/SectorRotation'));
 const StockRedirect  = lazy(() => import('./pages/StockRedirect'));
 const StockDetail    = lazy(() => import('./pages/StockDetail'));
 const Markets        = lazy(() => import('./pages/Markets'));
-const Tools          = lazy(() => import('./pages/Tools'));
 const News           = lazy(() => import('./pages/News'));
 const Crypto         = lazy(() => import('./pages/Crypto'));
 const Commodities    = lazy(() => import('./pages/Commodities'));
-const MutualFunds    = lazy(() => import('./pages/MutualFunds'));
-const IndianMarket   = lazy(() => import('./pages/IndianMarket'));
 const Profile        = lazy(() => import('./pages/Profile'));
 const StrategyBuilder= lazy(() => import('./pages/StrategyBuilder'));
 const AIMentor       = lazy(() => import('./pages/AIMentor'));
@@ -104,18 +100,18 @@ function App() {
                   <Route path="/paper-trading"     element={<PrivateRoute><Layout><PaperTrading /></Layout></PrivateRoute>} />
                   <Route path="/watchlist"         element={<PrivateRoute><Layout><Watchlist /></Layout></PrivateRoute>} />
                   <Route path="/screener"          element={<PrivateRoute><Layout><Screener /></Layout></PrivateRoute>} />
-                  <Route path="/ipos"              element={<PrivateRoute><Layout><IPOs /></Layout></PrivateRoute>} />
+                  <Route path="/ipos"              element={<Navigate to="/dashboard" replace />} />
                   <Route path="/fno"               element={<PrivateRoute><Layout><FnO /></Layout></PrivateRoute>} />
                   <Route path="/sector-rotation"   element={<PrivateRoute><Layout><SectorRotation /></Layout></PrivateRoute>} />
                   <Route path="/stock/:symbol"     element={<PrivateRoute><StockRedirect /></PrivateRoute>} />
                   <Route path="/pro-analytics/:symbol" element={<PrivateRoute><Layout><StockDetail /></Layout></PrivateRoute>} />
                   <Route path="/markets"           element={<PrivateRoute><Layout><Markets /></Layout></PrivateRoute>} />
-                  <Route path="/tools"             element={<PrivateRoute><Layout><Tools /></Layout></PrivateRoute>} />
+                  <Route path="/tools"             element={<Navigate to="/dashboard" replace />} />
                   <Route path="/news"              element={<PrivateRoute><Layout><News /></Layout></PrivateRoute>} />
                   <Route path="/crypto"            element={<PrivateRoute><Layout><Crypto /></Layout></PrivateRoute>} />
                   <Route path="/commodities"       element={<PrivateRoute><Layout><Commodities /></Layout></PrivateRoute>} />
-                  <Route path="/indian-market"     element={<PrivateRoute><Layout><IndianMarket /></Layout></PrivateRoute>} />
-                  <Route path="/mutual-funds"      element={<PrivateRoute><Layout><MutualFunds /></Layout></PrivateRoute>} />
+                  <Route path="/indian-market"     element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/mutual-funds"      element={<Navigate to="/dashboard" replace />} />
                   <Route path="/profile"           element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
                   <Route path="/strategy-lab"      element={<PrivateRoute><Layout><StrategyBuilder /></Layout></PrivateRoute>} />
                   <Route path="/ai-mentor"         element={<PrivateRoute><Layout><AIMentor /></Layout></PrivateRoute>} />
