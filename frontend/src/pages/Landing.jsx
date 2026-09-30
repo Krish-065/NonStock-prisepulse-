@@ -6,7 +6,7 @@ import {
   Calendar, ShieldCheck, Cpu, Zap, Sparkles, Clock, ArrowRight, 
   Search, CheckCircle2, XCircle, BarChart3, ChevronDown, 
   ChevronUp, Bot, Activity, Flame, Target, LineChart,
-  Lock, AlertTriangle, Compass, Sliders, ExternalLink, Layers
+  Lock, AlertTriangle, Compass, Layers, ExternalLink
 } from 'lucide-react';
 import { apiClient } from '../services/api';
 
@@ -361,10 +361,10 @@ export default function Landing() {
             <span className="text-neon-gradient">Learning How To Trade.</span>
           </h1>
 
-          {/* Subtitle with High-Contrast Visible White */}
+          {/* Subtitle with High-Contrast Visible Charcoal */}
           <p className="hero-lead">
             Practice live without risking a rupee. Replay historical market sessions on weekends, execute orders 
-            with <strong className="text-white">₹10,00,000 virtual capital</strong>, and get coached 24/7 by an institutional AI mentor — 100% Free.
+            with <strong className="text-dark">₹10,00,000 virtual capital</strong>, and get coached 24/7 by an institutional AI mentor — 100% Free.
           </p>
 
           {/* Hero CTAs */}
@@ -434,7 +434,7 @@ export default function Landing() {
                   className={`btn-replay-toggle ${isReplaying ? 'active' : ''}`}
                   title={isReplaying ? "Pause Replay" : "Play Replay"}
                 >
-                  {isReplaying ? <Pause size={15} /> : <Play size={15} fill="#000" />}
+                  {isReplaying ? <Pause size={15} /> : <Play size={15} fill="#030708" />}
                   <span>{isReplaying ? 'Pause' : 'Play Replay'}</span>
                 </button>
 
@@ -476,7 +476,7 @@ export default function Landing() {
                 </div>
                 <div className="hud-metric">
                   <span className="hud-label">SIMULATED POSITION</span>
-                  <span className="hud-val text-white">LONG 100 QTY @ ₹24,840</span>
+                  <span className="hud-val text-white-hud">LONG 100 QTY @ ₹24,840</span>
                 </div>
                 <div className="hud-metric hud-highlight">
                   <span className="hud-label">UNREALIZED P&L</span>
@@ -590,7 +590,7 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* 4. NEW INTERACTIVE SECTION: WHAT NONSTOCK INCLUDES & OPTIONS TO EXPLORE */}
+      {/* 4. INTERACTIVE SECTION: WHAT NONSTOCK INCLUDES & OPTIONS TO EXPLORE */}
       <section id="explore-options" className="content-section explore-options-section">
         <div className="section-head">
           <div className="section-eyebrow">
@@ -686,7 +686,7 @@ export default function Landing() {
                       </div>
                       <div className="spec-box">
                         <span className="spec-lbl">WEEKEND PRACTICE</span>
-                        <span className="spec-val text-white">UNRESTRICTED</span>
+                        <span className="spec-val text-dark font-bold">UNRESTRICTED</span>
                       </div>
                     </div>
                     <div className="spec-demo-track">
@@ -741,11 +741,11 @@ export default function Landing() {
                       </div>
                       <div className="ai-m-item">
                         <span className="m-label">MAX LOSS CAP</span>
-                        <span className="m-value text-white">1.5% OF MARGIN</span>
+                        <span className="m-value text-dark font-bold">1.5% OF MARGIN</span>
                       </div>
                       <div className="ai-m-item">
                         <span className="m-label">RSI AUDIT</span>
-                        <span className="m-value text-white">58.4 (NEUTRAL BREAKOUT)</span>
+                        <span className="m-value text-dark font-bold">58.4 (NEUTRAL BREAKOUT)</span>
                       </div>
                       <div className="ai-m-item">
                         <span className="m-label">TILT SCORE</span>
@@ -765,22 +765,22 @@ export default function Landing() {
                         <span>OI CHG</span>
                       </div>
                       <div className="gt-row">
-                        <span className="text-white font-bold">25,300 CE</span>
-                        <span className="text-neon-green">0.68</span>
-                        <span className="text-danger">-14.2</span>
-                        <span className="text-neon-green">+1.4M (BUY)</span>
+                        <span className="text-dark font-bold">25,300 CE</span>
+                        <span className="text-neon-green font-bold">0.68</span>
+                        <span className="text-danger font-bold">-14.2</span>
+                        <span className="text-neon-green font-bold">+1.4M (BUY)</span>
                       </div>
                       <div className="gt-row active-atm">
                         <span className="text-neon-green font-bold">25,350 ATM</span>
-                        <span className="text-neon-green">0.51</span>
-                        <span className="text-danger">-18.6</span>
-                        <span className="text-neon-green">+3.8M (BUILDS)</span>
+                        <span className="text-neon-green font-bold">0.51</span>
+                        <span className="text-danger font-bold">-18.6</span>
+                        <span className="text-neon-green font-bold">+3.8M (BUILDS)</span>
                       </div>
                       <div className="gt-row">
-                        <span className="text-white font-bold">25,400 CE</span>
-                        <span className="text-neon-green">0.34</span>
-                        <span className="text-danger">-12.1</span>
-                        <span className="text-danger">-800K</span>
+                        <span className="text-dark font-bold">25,400 CE</span>
+                        <span className="text-neon-green font-bold">0.34</span>
+                        <span className="text-danger font-bold">-12.1</span>
+                        <span className="text-danger font-bold">-800K</span>
                       </div>
                     </div>
                   </div>
@@ -811,7 +811,7 @@ export default function Landing() {
                   <div className="scanner-spec-widget">
                     <div className="scanner-header">
                       <span>SECTOR HEATMAP FLOW</span>
-                      <span className="text-neon-green">NIFTY 50 LIVE</span>
+                      <span className="text-neon-green font-bold">NIFTY 50 LIVE</span>
                     </div>
                     <div className="heatmap-grid">
                       <div className="hm-cell strong-bull">NIFTY IT +2.84%</div>
@@ -840,7 +840,7 @@ export default function Landing() {
         </div>
 
         <div className="options-cards-grid">
-          {platformOptions.map((opt, i) => (
+          {platformOptions.map((opt) => (
             <div 
               key={opt.id} 
               className={`module-card ${activeOptionTab === opt.id ? 'highlight-border' : ''}`}
@@ -1050,7 +1050,6 @@ export default function Landing() {
 
           <div className="showcase-visual">
             <div className="visual-card">
-              <div className="visual-card-glow"></div>
               <div className="visual-top">
                 <div className="replay-badge-strip">
                   <span className="rec-dot"></span>
@@ -1082,7 +1081,7 @@ export default function Landing() {
                   </div>
                   <div className="v-stat">
                     <span className="v-lbl">Win Ratio</span>
-                    <span className="v-val text-white">83.3%</span>
+                    <span className="v-val text-dark font-bold">83.3%</span>
                   </div>
                   <div className="v-stat">
                     <span className="v-lbl">Speed</span>
@@ -1588,19 +1587,19 @@ export default function Landing() {
         </div>
       </footer>
 
-      {/* 15. COMPREHENSIVE STYLING (GREEN, WHITE, AND BLACK THEME) */}
+      {/* 15. COMPREHENSIVE STYLING (WHITE BACKGROUND WITH GREEN & BLACK THEME) */}
       <style>{`
-        /* Root container and core color system */
+        /* Root container: Pure White Background */
         .landing-root {
           min-height: 100vh;
-          background: #030708;
-          color: #ffffff;
+          background: #ffffff;
+          color: #090e17;
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           position: relative;
           overflow-x: hidden;
         }
 
-        /* Ambient glowing background */
+        /* Subtle ambient glow & clean grid for white theme */
         .bg-ambient-glow {
           position: fixed;
           top: 0;
@@ -1608,7 +1607,7 @@ export default function Landing() {
           transform: translateX(-50%);
           width: 1000px;
           height: 600px;
-          background: radial-gradient(circle, rgba(0, 255, 136, 0.09) 0%, rgba(0, 255, 136, 0.02) 40%, transparent 70%);
+          background: radial-gradient(circle, rgba(0, 168, 84, 0.08) 0%, rgba(0, 168, 84, 0.02) 40%, transparent 70%);
           filter: blur(120px);
           pointer-events: none;
           z-index: 0;
@@ -1621,8 +1620,8 @@ export default function Landing() {
           right: 0;
           bottom: 0;
           background-image: 
-            linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
           background-size: 60px 60px;
           pointer-events: none;
           z-index: 0;
@@ -1634,39 +1633,40 @@ export default function Landing() {
           right: -100px;
           width: 600px;
           height: 600px;
-          background: radial-gradient(circle, rgba(0, 255, 136, 0.06) 0%, transparent 65%);
+          background: radial-gradient(circle, rgba(0, 168, 84, 0.05) 0%, transparent 65%);
           filter: blur(140px);
           pointer-events: none;
           z-index: 0;
         }
 
-        /* Utility colors */
+        /* Utility colors for White theme */
         .text-neon-green {
-          color: #00ff88 !important;
-          text-shadow: 0 0 16px rgba(0, 255, 136, 0.35);
+          color: #00a854 !important;
         }
         .text-neon-gradient {
-          background: linear-gradient(135deg, #00ff88 0%, #ffffff 85%);
+          background: linear-gradient(135deg, #00a854 0%, #090e17 85%);
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
           color: transparent;
         }
-        .text-white { color: #ffffff !important; }
-        .text-danger { color: #ff4444 !important; }
+        .text-dark { color: #090e17 !important; }
+        .text-white-hud { color: #ffffff !important; }
+        .text-danger { color: #dc2626 !important; }
         .font-bold { font-weight: 800; }
         .flex-shrink-0 { flex-shrink: 0; }
 
-        /* Navigation (Fixed directly at top 0) */
+        /* Navigation: Pure White Glassmorphism */
         .nav-container {
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           height: 74px;
-          background: rgba(3, 7, 8, 0.92);
+          background: rgba(255, 255, 255, 0.94);
           backdrop-filter: blur(18px);
-          border-bottom: 1px solid rgba(0, 255, 136, 0.18);
+          border-bottom: 1px solid #e2e8f0;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
           z-index: 999;
           display: flex;
           align-items: center;
@@ -1691,7 +1691,7 @@ export default function Landing() {
         .nav-link-btn {
           background: transparent;
           border: none;
-          color: #cbd5e1;
+          color: #475569;
           font-size: 14px;
           font-weight: 700;
           cursor: pointer;
@@ -1701,14 +1701,14 @@ export default function Landing() {
           gap: 6px;
         }
         .nav-link-btn:hover {
-          color: #ffffff;
+          color: #00a854;
         }
         .nav-link-btn.highlight-link {
-          color: #00ff88;
-          background: rgba(0, 255, 136, 0.08);
+          color: #00a854;
+          background: #f0fdf4;
           padding: 6px 14px;
           border-radius: 20px;
-          border: 1px solid rgba(0, 255, 136, 0.25);
+          border: 1px solid #bbf7d0;
         }
         .nav-actions {
           display: flex;
@@ -1716,7 +1716,7 @@ export default function Landing() {
           gap: 16px;
         }
         .btn-nav-login {
-          color: #ffffff;
+          color: #090e17;
           text-decoration: none;
           font-size: 14px;
           font-weight: 700;
@@ -1725,26 +1725,26 @@ export default function Landing() {
           transition: 0.2s;
         }
         .btn-nav-login:hover {
-          color: #00ff88;
+          color: #00a854;
         }
         .btn-nav-cta {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: #00ff88;
-          color: #030708;
+          background: #00a854;
+          color: #ffffff;
           text-decoration: none;
           font-size: 14px;
           font-weight: 800;
           padding: 10px 22px;
           border-radius: 24px;
-          box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+          box-shadow: 0 4px 16px rgba(0, 168, 84, 0.3);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .btn-nav-cta:hover {
           transform: translateY(-2px);
-          box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-          background: #05df72;
+          box-shadow: 0 6px 24px rgba(0, 168, 84, 0.45);
+          background: #009147;
         }
 
         /* Hero Wrap */
@@ -1760,19 +1760,19 @@ export default function Landing() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: rgba(0, 255, 136, 0.08);
-          border: 1px solid rgba(0, 255, 136, 0.28);
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
           padding: 6px 16px;
           border-radius: 30px;
           margin-bottom: 24px;
-          box-shadow: 0 0 20px rgba(0, 255, 136, 0.12);
+          box-shadow: 0 4px 16px rgba(0, 168, 84, 0.1);
         }
         .badge-pulse-dot {
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background: #00ff88;
-          box-shadow: 0 0 10px #00ff88;
+          background: #00a854;
+          box-shadow: 0 0 10px #00a854;
           animation: pulseDot 2s infinite;
         }
         @keyframes pulseDot {
@@ -1783,14 +1783,14 @@ export default function Landing() {
         .badge-text {
           font-size: 12px;
           font-weight: 800;
-          color: #00ff88;
+          color: #00a854;
           letter-spacing: 0.8px;
         }
         .badge-free {
           font-size: 10px;
           font-weight: 900;
-          background: #00ff88;
-          color: #030708;
+          background: #00a854;
+          color: #ffffff;
           padding: 2px 7px;
           border-radius: 12px;
         }
@@ -1800,11 +1800,11 @@ export default function Landing() {
           line-height: 1.12;
           letter-spacing: -1.5px;
           margin-bottom: 22px;
-          color: #ffffff;
+          color: #090e17;
         }
         .hero-lead {
           font-size: 19px;
-          color: #e2e8f0;
+          color: #475569;
           max-width: 780px;
           margin: 0 auto 36px;
           line-height: 1.6;
@@ -1820,39 +1820,40 @@ export default function Landing() {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          background: #00ff88;
-          color: #030708;
+          background: #00a854;
+          color: #ffffff;
           text-decoration: none;
           font-size: 16px;
           font-weight: 800;
           padding: 16px 36px;
           border-radius: 36px;
-          box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+          box-shadow: 0 10px 30px rgba(0, 168, 84, 0.35);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .btn-hero-primary:hover {
           transform: translateY(-3px);
-          box-shadow: 0 0 45px rgba(0, 255, 136, 0.6);
-          background: #05df72;
+          box-shadow: 0 14px 40px rgba(0, 168, 84, 0.5);
+          background: #009147;
         }
         .btn-hero-secondary {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(0, 255, 136, 0.35);
-          color: #ffffff;
+          background: #ffffff;
+          border: 1px solid #cbd5e1;
+          color: #090e17;
           font-size: 16px;
           font-weight: 700;
           padding: 16px 32px;
           border-radius: 36px;
           cursor: pointer;
-          backdrop-filter: blur(10px);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
           transition: all 0.25s;
         }
         .btn-hero-secondary:hover {
-          background: rgba(0, 255, 136, 0.12);
-          border-color: #00ff88;
+          background: #f8fafc;
+          border-color: #00a854;
+          color: #00a854;
           transform: translateY(-3px);
         }
         .hero-trust-bar {
@@ -1860,8 +1861,8 @@ export default function Landing() {
           justify-content: center;
           align-items: center;
           gap: 16px;
-          color: #cbd5e1;
-          font-size: 13px;
+          color: #64748b;
+          font-size: 13.5px;
           font-weight: 600;
           flex-wrap: wrap;
         }
@@ -1871,31 +1872,31 @@ export default function Landing() {
           gap: 6px;
         }
         .trust-icon {
-          color: #00ff88;
+          color: #00a854;
         }
         .trust-dot {
           width: 4px;
           height: 4px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.2);
+          background: #cbd5e1;
         }
 
-        /* Hero Terminal Mockup */
+        /* Hero Terminal Mockup (High contrast pro card) */
         .hero-mockup-wrapper {
           margin-top: 50px;
           perspective: 1200px;
         }
         .terminal-window {
-          background: #070b0e;
-          border: 1px solid rgba(0, 255, 136, 0.28);
+          background: #090e14;
+          border: 1px solid #1e293b;
           border-radius: 20px;
-          box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 255, 136, 0.12);
+          box-shadow: 0 25px 70px rgba(0, 0, 0, 0.15), 0 0 40px rgba(0, 168, 84, 0.12);
           overflow: hidden;
           text-align: left;
           position: relative;
         }
         .terminal-header {
-          background: #0b1116;
+          background: #0d1520;
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           padding: 14px 20px;
           display: flex;
@@ -2070,7 +2071,7 @@ export default function Landing() {
         .hud-label {
           font-size: 10px;
           font-weight: 800;
-          color: #cbd5e1;
+          color: #94a3b8;
           letter-spacing: 0.5px;
         }
         .hud-val {
@@ -2149,7 +2150,7 @@ export default function Landing() {
         }
 
         .terminal-footer {
-          background: #0b1116;
+          background: #0d1520;
           border-top: 1px solid rgba(255, 255, 255, 0.08);
           padding: 12px 20px;
           display: flex;
@@ -2202,7 +2203,7 @@ export default function Landing() {
           gap: 8px;
           font-size: 12px;
           font-weight: 800;
-          color: #00ff88;
+          color: #00a854;
           letter-spacing: 1.5px;
           margin-bottom: 14px;
         }
@@ -2211,22 +2212,20 @@ export default function Landing() {
           font-weight: 900;
           line-height: 1.2;
           letter-spacing: -0.8px;
-          color: #ffffff;
+          color: #090e17;
           margin-bottom: 18px;
         }
         .section-subtitle {
           font-size: 17px;
-          color: #e2e8f0;
+          color: #475569;
           line-height: 1.6;
         }
 
-        /* ========================================================
-           4. NEW INTERACTIVE PLATFORM EXPLORER & OPTIONS STYLING
-           ======================================================== */
+        /* 4. INTERACTIVE PLATFORM EXPLORER (LIGHT THEME) */
         .explore-options-section {
-          background: radial-gradient(circle at 50% 10%, rgba(0, 255, 136, 0.06) 0%, transparent 60%);
-          border-top: 1px solid rgba(0, 255, 136, 0.15);
-          border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+          background: #f8fafc;
+          border-top: 1px solid #e2e8f0;
+          border-bottom: 1px solid #e2e8f0;
         }
         .options-tab-nav {
           display: flex;
@@ -2239,26 +2238,27 @@ export default function Landing() {
           display: flex;
           align-items: center;
           gap: 10px;
-          background: #080d11;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #cbd5e1;
+          background: #ffffff;
+          border: 1px solid #cbd5e1;
+          color: #475569;
           padding: 12px 20px;
           border-radius: 16px;
           font-size: 14px;
           font-weight: 800;
           cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .option-tab-btn:hover {
-          border-color: rgba(0, 255, 136, 0.4);
-          color: #ffffff;
+          border-color: #00a854;
+          color: #00a854;
           transform: translateY(-2px);
         }
         .option-tab-btn.active {
-          background: rgba(0, 255, 136, 0.12);
-          border-color: #00ff88;
-          color: #00ff88;
-          box-shadow: 0 0 25px rgba(0, 255, 136, 0.2);
+          background: #00a854;
+          border-color: #00a854;
+          color: #ffffff;
+          box-shadow: 0 4px 20px rgba(0, 168, 84, 0.35);
         }
         .tab-icon {
           display: flex;
@@ -2267,15 +2267,16 @@ export default function Landing() {
         .tab-pill {
           font-size: 9px;
           font-weight: 900;
-          background: rgba(0, 255, 136, 0.15);
-          color: #00ff88;
+          background: #f1f5f9;
+          color: #0f172a;
           padding: 2px 7px;
           border-radius: 8px;
-          border: 1px solid rgba(0, 255, 136, 0.3);
+          border: 1px solid #e2e8f0;
         }
         .option-tab-btn.active .tab-pill {
-          background: #00ff88;
-          color: #030708;
+          background: #ffffff;
+          color: #00a854;
+          border-color: transparent;
         }
 
         /* Large Display Card */
@@ -2283,11 +2284,11 @@ export default function Landing() {
           display: grid;
           grid-template-columns: 1.2fr 0.8fr;
           gap: 40px;
-          background: #070c10;
-          border: 1px solid rgba(0, 255, 136, 0.35);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           border-radius: 24px;
           padding: 40px;
-          box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 255, 136, 0.1);
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
           margin-bottom: 60px;
           align-items: center;
         }
@@ -2300,39 +2301,39 @@ export default function Landing() {
         .opt-tag-badge {
           font-size: 11px;
           font-weight: 900;
-          background: #00ff88;
-          color: #030708;
+          background: #00a854;
+          color: #ffffff;
           padding: 3px 10px;
           border-radius: 10px;
         }
         .opt-id-tag {
           font-size: 12px;
           font-weight: 800;
-          color: #cbd5e1;
+          color: #64748b;
           letter-spacing: 1px;
         }
         .opt-card-heading {
           font-size: 32px;
           font-weight: 900;
-          color: #ffffff;
+          color: #090e17;
           line-height: 1.2;
           margin-bottom: 8px;
         }
         .opt-card-tagline {
           font-size: 16px;
           font-weight: 700;
-          color: #00ff88;
+          color: #00a854;
           margin-bottom: 16px;
         }
         .opt-card-desc {
           font-size: 15px;
-          color: #e2e8f0;
+          color: #475569;
           line-height: 1.6;
           margin-bottom: 24px;
         }
         .opt-includes-box {
-          background: #04080a;
-          border: 1px solid rgba(0, 255, 136, 0.2);
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           border-radius: 16px;
           padding: 20px;
           margin-bottom: 24px;
@@ -2340,7 +2341,7 @@ export default function Landing() {
         .opt-inc-title {
           font-size: 12px;
           font-weight: 900;
-          color: #00ff88;
+          color: #00a854;
           display: flex;
           align-items: center;
           gap: 8px;
@@ -2357,26 +2358,26 @@ export default function Landing() {
           display: flex;
           align-items: flex-start;
           gap: 10px;
-          font-size: 13.5px;
-          color: #ffffff;
+          font-size: 14px;
+          color: #1e293b;
           line-height: 1.45;
         }
         .opt-edge-callout {
           display: flex;
           align-items: flex-start;
           gap: 12px;
-          background: rgba(0, 255, 136, 0.08);
-          border: 1px solid rgba(0, 255, 136, 0.3);
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
           border-radius: 14px;
           padding: 16px;
           margin-bottom: 28px;
         }
         .opt-edge-callout p {
           font-size: 13.5px;
-          color: #e2e8f0;
+          color: #14532d;
           line-height: 1.5;
           margin: 0;
-          font-weight: 600;
+          font-weight: 700;
         }
         .opt-action-row {
           display: flex;
@@ -2389,20 +2390,20 @@ export default function Landing() {
           align-items: center;
           gap: 6px;
           font-size: 13px;
-          color: #cbd5e1;
+          color: #475569;
           font-weight: 700;
         }
 
         /* Right Interactive Mockup */
         .opt-interactive-preview {
-          background: #04080a;
-          border: 1px solid rgba(0, 255, 136, 0.3);
+          background: #090e14;
+          border: 1px solid #1e293b;
           border-radius: 18px;
           overflow: hidden;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
         .preview-top-bar {
-          background: #0b1116;
+          background: #0d1520;
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           padding: 12px 16px;
           display: flex;
@@ -2462,7 +2463,7 @@ export default function Landing() {
           display: block;
           font-size: 10px;
           font-weight: 800;
-          color: #cbd5e1;
+          color: #94a3b8;
           margin-bottom: 4px;
         }
         .spec-val {
@@ -2514,6 +2515,7 @@ export default function Landing() {
           align-items: center;
           font-size: 12px;
           font-weight: 800;
+          color: #ffffff;
         }
         .spec-order-ladder {
           display: flex;
@@ -2568,12 +2570,13 @@ export default function Landing() {
           display: block;
           font-size: 9.5px;
           font-weight: 800;
-          color: #cbd5e1;
+          color: #94a3b8;
           margin-bottom: 4px;
         }
         .m-value {
           font-size: 12.5px;
           font-weight: 800;
+          color: #ffffff;
         }
 
         .greek-table-mini {
@@ -2589,6 +2592,7 @@ export default function Landing() {
           border-radius: 8px;
           font-size: 12px;
           align-items: center;
+          color: #ffffff;
         }
         .gt-row.header {
           background: rgba(0, 255, 136, 0.1);
@@ -2652,6 +2656,7 @@ export default function Landing() {
           justify-content: space-between;
           font-size: 11px;
           font-weight: 800;
+          color: #ffffff;
         }
         .heatmap-grid {
           display: grid;
@@ -2679,12 +2684,12 @@ export default function Landing() {
         .module-grid-title h3 {
           font-size: 26px;
           font-weight: 900;
-          color: #ffffff;
+          color: #090e17;
           margin-bottom: 8px;
         }
         .module-grid-title p {
           font-size: 15px;
-          color: #e2e8f0;
+          color: #475569;
         }
         .options-cards-grid {
           display: grid;
@@ -2692,24 +2697,25 @@ export default function Landing() {
           gap: 24px;
         }
         .module-card {
-          background: #070c0f;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           border-radius: 20px;
           padding: 28px;
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           display: flex;
           flex-direction: column;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
         }
         .module-card:hover {
-          border-color: #00ff88;
+          border-color: #00a854;
           transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 136, 0.15);
+          box-shadow: 0 16px 36px rgba(0, 168, 84, 0.12);
         }
         .module-card.highlight-border {
-          border-color: #00ff88;
-          background: #091217;
-          box-shadow: 0 0 30px rgba(0, 255, 136, 0.12);
+          border-color: #00a854;
+          background: #f0fdf4;
+          box-shadow: 0 8px 24px rgba(0, 168, 84, 0.08);
         }
         .m-card-top {
           display: flex;
@@ -2721,37 +2727,37 @@ export default function Landing() {
           width: 44px;
           height: 44px;
           border-radius: 12px;
-          background: rgba(0, 255, 136, 0.12);
-          color: #00ff88;
+          background: #f0fdf4;
+          color: #00a854;
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid rgba(0, 255, 136, 0.25);
+          border: 1px solid #bbf7d0;
         }
         .m-card-badge {
           font-size: 9.5px;
           font-weight: 900;
-          background: rgba(255, 255, 255, 0.08);
-          color: #ffffff;
+          background: #f1f5f9;
+          color: #0f172a;
           padding: 3px 8px;
           border-radius: 8px;
         }
         .m-card-title {
           font-size: 19px;
           font-weight: 800;
-          color: #ffffff;
+          color: #090e17;
           margin-bottom: 8px;
         }
         .m-card-sub {
           font-size: 13.5px;
-          color: #e2e8f0;
+          color: #475569;
           line-height: 1.5;
           flex-grow: 1;
           margin-bottom: 20px;
         }
         .m-card-divider {
           height: 1px;
-          background: rgba(255, 255, 255, 0.08);
+          background: #f1f5f9;
           margin-bottom: 16px;
         }
         .m-card-actions {
@@ -2761,15 +2767,15 @@ export default function Landing() {
         }
         .m-card-click-hint {
           font-size: 12px;
-          color: #00ff88;
+          color: #00a854;
           font-weight: 700;
         }
         .m-card-link-btn {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: #00ff88;
-          color: #030708;
+          background: #00a854;
+          color: #ffffff;
           font-size: 12px;
           font-weight: 900;
           padding: 6px 14px;
@@ -2778,32 +2784,37 @@ export default function Landing() {
           transition: all 0.2s;
         }
         .m-card-link-btn:hover {
-          background: #05df72;
+          background: #009147;
           transform: translateY(-1px);
         }
 
         /* Problems Section Grid */
+        .problems-section {
+          background: #ffffff;
+        }
         .problems-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 28px;
         }
         .problem-solution-card {
-          background: #070c0f;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           border-radius: 20px;
           padding: 32px;
           position: relative;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .problem-solution-card:hover {
-          border-color: rgba(0, 255, 136, 0.4);
+          border-color: #00a854;
           transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 255, 136, 0.1);
+          box-shadow: 0 16px 36px rgba(0, 168, 84, 0.1);
         }
         .featured-glow-card {
-          border-color: rgba(0, 255, 136, 0.35);
-          box-shadow: 0 0 30px rgba(0, 255, 136, 0.08);
+          border-color: #86efac;
+          background: #fafffb;
+          box-shadow: 0 10px 30px rgba(0, 168, 84, 0.06);
         }
         .card-top-tag {
           display: inline-flex;
@@ -2815,37 +2826,38 @@ export default function Landing() {
           margin-bottom: 16px;
         }
         .card-top-tag.error-tag {
-          color: #ff5555;
-          background: rgba(255, 85, 85, 0.12);
+          color: #dc2626;
+          background: #fef2f2;
           padding: 4px 10px;
           border-radius: 12px;
+          border: 1px solid #fecaca;
         }
         .card-heading {
           font-size: 23px;
           font-weight: 800;
-          color: #ffffff;
+          color: #090e17;
           margin-bottom: 12px;
         }
         .card-problem-text {
           font-size: 15px;
-          color: #e2e8f0;
+          color: #475569;
           line-height: 1.6;
           margin-bottom: 24px;
         }
         .solution-divider {
           height: 1px;
-          background: rgba(255, 255, 255, 0.08);
+          background: #f1f5f9;
           margin-bottom: 24px;
         }
         .solution-box {
-          background: rgba(0, 255, 136, 0.04);
-          border: 1px solid rgba(0, 255, 136, 0.18);
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
           border-radius: 14px;
           padding: 20px;
         }
         .solution-box.highlight-solution {
-          background: rgba(0, 255, 136, 0.09);
-          border-color: rgba(0, 255, 136, 0.38);
+          background: #ecfdf5;
+          border-color: #86efac;
         }
         .solution-tag {
           display: flex;
@@ -2853,22 +2865,27 @@ export default function Landing() {
           gap: 6px;
           font-size: 11px;
           font-weight: 800;
-          color: #00ff88;
+          color: #00a854;
           margin-bottom: 8px;
         }
         .solution-title {
           font-size: 17px;
           font-weight: 800;
-          color: #ffffff;
+          color: #090e17;
           margin-bottom: 6px;
         }
         .solution-desc {
           font-size: 14px;
-          color: #f1f5f9;
+          color: #166534;
           line-height: 1.5;
         }
 
         /* Feature Showcase (Time Machine Replay) */
+        .feature-showcase-section {
+          background: #f8fafc;
+          border-top: 1px solid #e2e8f0;
+          border-bottom: 1px solid #e2e8f0;
+        }
         .showcase-container {
           display: grid;
           grid-template-columns: 1.1fr 0.9fr;
@@ -2881,10 +2898,11 @@ export default function Landing() {
           line-height: 1.18;
           letter-spacing: -1px;
           margin-bottom: 20px;
+          color: #090e17;
         }
         .showcase-lead {
           font-size: 17px;
-          color: #e2e8f0;
+          color: #475569;
           line-height: 1.6;
           margin-bottom: 32px;
         }
@@ -2902,23 +2920,23 @@ export default function Landing() {
           width: 40px;
           height: 40px;
           border-radius: 12px;
-          background: rgba(0, 255, 136, 0.12);
-          color: #00ff88;
+          background: #f0fdf4;
+          color: #00a854;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          border: 1px solid rgba(0, 255, 136, 0.25);
+          border: 1px solid #bbf7d0;
         }
         .f-bullet strong {
           display: block;
           font-size: 16px;
-          color: #ffffff;
+          color: #090e17;
           margin-bottom: 4px;
         }
         .f-bullet p {
           font-size: 14px;
-          color: #e2e8f0;
+          color: #475569;
           line-height: 1.5;
           margin: 0;
         }
@@ -2934,24 +2952,24 @@ export default function Landing() {
           gap: 8px;
           font-size: 13.5px;
           font-weight: 700;
-          color: #00ff88;
+          color: #00a854;
         }
         .pulse-green {
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background: #00ff88;
-          box-shadow: 0 0 10px #00ff88;
+          background: #00a854;
+          box-shadow: 0 0 10px #00a854;
         }
 
         /* Showcase Visual Right Card */
         .visual-card {
-          background: #070c10;
-          border: 1px solid rgba(0, 255, 136, 0.3);
+          background: #090e14;
+          border: 1px solid #1e293b;
           border-radius: 24px;
           padding: 28px;
           position: relative;
-          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
         }
         .visual-top {
           display: flex;
@@ -3039,7 +3057,7 @@ export default function Landing() {
         .v-lbl {
           display: block;
           font-size: 11px;
-          color: #cbd5e1;
+          color: #94a3b8;
           font-weight: 800;
           margin-bottom: 4px;
         }
@@ -3061,32 +3079,33 @@ export default function Landing() {
           gap: 24px;
         }
         .t-card {
-          background: #070c0f;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           border-radius: 20px;
           padding: 32px 28px;
           position: relative;
           overflow: hidden;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
           transition: all 0.3s;
         }
         .t-card:hover {
-          border-color: #00ff88;
+          border-color: #00a854;
           transform: translateY(-6px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 255, 136, 0.12);
+          box-shadow: 0 16px 36px rgba(0, 168, 84, 0.12);
         }
         .t-card-icon {
-          color: #00ff88;
+          color: #00a854;
           margin-bottom: 20px;
         }
         .t-card h3 {
           font-size: 20px;
           font-weight: 800;
-          color: #ffffff;
+          color: #090e17;
           margin-bottom: 12px;
         }
         .t-card p {
           font-size: 14.5px;
-          color: #e2e8f0;
+          color: #475569;
           line-height: 1.6;
         }
 
@@ -3098,14 +3117,14 @@ export default function Landing() {
           align-items: center;
         }
         .ai-chat-mock {
-          background: #070c10;
-          border: 1px solid rgba(0, 255, 136, 0.35);
+          background: #090e14;
+          border: 1px solid #1e293b;
           border-radius: 24px;
           overflow: hidden;
-          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 255, 136, 0.12);
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
         }
         .chat-top {
-          background: #0b1116;
+          background: #0d1520;
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           padding: 16px 20px;
           display: flex;
@@ -3137,7 +3156,7 @@ export default function Landing() {
           display: flex;
           flex-direction: column;
           gap: 20px;
-          background: #04080a;
+          background: #05090c;
         }
         .msg-sender {
           font-size: 11px;
@@ -3196,7 +3215,7 @@ export default function Landing() {
           border: 1px solid rgba(255, 189, 46, 0.35);
         }
         .chat-input-bar {
-          background: #0b1116;
+          background: #0d1520;
           border-top: 1px solid rgba(255, 255, 255, 0.08);
           padding: 14px 20px;
           display: flex;
@@ -3227,18 +3246,18 @@ export default function Landing() {
           display: flex;
           gap: 12px;
           font-size: 15.5px;
-          color: #e2e8f0;
+          color: #334155;
           line-height: 1.5;
         }
-        .check-item strong { color: #ffffff; }
+        .check-item strong { color: #090e17; }
 
-        /* Comparison Table */
+        /* Comparison Table: Clean White */
         .comparison-table-wrapper {
           overflow-x: auto;
-          background: #070c0f;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           border-radius: 24px;
-          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
         }
         .comparison-table {
           width: 100%;
@@ -3247,31 +3266,31 @@ export default function Landing() {
         }
         .comparison-table th, .comparison-table td {
           padding: 22px 24px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          border-bottom: 1px solid #e2e8f0;
         }
         .comparison-table th {
           font-size: 15px;
           font-weight: 800;
-          color: #ffffff;
-          background: #0a1014;
+          color: #090e17;
+          background: #f8fafc;
         }
         .comparison-table th small {
           font-size: 11px;
-          color: #cbd5e1;
+          color: #64748b;
           font-weight: 600;
         }
         .comparison-table .highlight-col {
-          background: rgba(0, 255, 136, 0.08);
-          border-left: 1px solid rgba(0, 255, 136, 0.3);
-          border-right: 1px solid rgba(0, 255, 136, 0.3);
+          background: #f0fdf4;
+          border-left: 1px solid #86efac;
+          border-right: 1px solid #86efac;
           position: relative;
         }
         .th-badge {
           display: inline-block;
           font-size: 9px;
           font-weight: 900;
-          background: #00ff88;
-          color: #030708;
+          background: #00a854;
+          color: #ffffff;
           padding: 2px 8px;
           border-radius: 8px;
           margin-bottom: 6px;
@@ -3279,15 +3298,15 @@ export default function Landing() {
         .feature-name strong {
           display: block;
           font-size: 15px;
-          color: #ffffff;
+          color: #090e17;
           margin-bottom: 4px;
         }
         .feature-name span {
           font-size: 12.5px;
-          color: #cbd5e1;
+          color: #64748b;
         }
         .status-no {
-          color: #ff5555;
+          color: #dc2626;
           font-size: 13.5px;
           font-weight: 800;
           display: flex;
@@ -3295,7 +3314,7 @@ export default function Landing() {
           gap: 6px;
         }
         .status-warn {
-          color: #ffbd2e;
+          color: #d97706;
           font-size: 13.5px;
           font-weight: 800;
           display: flex;
@@ -3303,7 +3322,7 @@ export default function Landing() {
           gap: 6px;
         }
         .status-yes {
-          color: #00ff88;
+          color: #00a854;
           font-size: 14px;
           font-weight: 800;
           display: flex;
@@ -3311,13 +3330,13 @@ export default function Landing() {
           gap: 6px;
         }
         .highlight-cell {
-          background: rgba(0, 255, 136, 0.05);
-          border-left: 1px solid rgba(0, 255, 136, 0.25);
-          border-right: 1px solid rgba(0, 255, 136, 0.25);
+          background: #f0fdf4;
+          border-left: 1px solid #86efac;
+          border-right: 1px solid #86efac;
         }
         .price-zero {
           font-size: 16px;
-          text-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+          font-weight: 900;
         }
 
         /* Live Market Pulse & Search */
@@ -3330,37 +3349,37 @@ export default function Landing() {
           display: flex;
           align-items: center;
           gap: 14px;
-          background: #090e13;
-          border: 1px solid rgba(0, 255, 136, 0.4);
+          background: #ffffff;
+          border: 1px solid #cbd5e1;
           border-radius: 36px;
           padding: 8px 24px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 136, 0.15);
+          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
           transition: 0.3s;
         }
         .search-bar-box:focus-within {
-          border-color: #00ff88;
-          box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+          border-color: #00a854;
+          box-shadow: 0 8px 32px rgba(0, 168, 84, 0.15);
         }
         .search-bar-icon {
-          color: #00ff88;
+          color: #00a854;
         }
         .search-bar-input {
           flex: 1;
           background: transparent;
           border: none;
           outline: none;
-          color: #ffffff;
+          color: #090e17;
           font-size: 15px;
           padding: 10px 0;
         }
         .search-bar-input::placeholder {
-          color: #cbd5e1;
+          color: #94a3b8;
         }
         .search-loading-spinner {
           width: 18px;
           height: 18px;
-          border: 2px solid rgba(0, 255, 136, 0.2);
-          border-top-color: #00ff88;
+          border: 2px solid rgba(0, 168, 84, 0.2);
+          border-top-color: #00a854;
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
         }
@@ -3371,11 +3390,11 @@ export default function Landing() {
           left: 0;
           right: 0;
           margin-top: 10px;
-          background: #070c10;
-          border: 1px solid rgba(0, 255, 136, 0.3);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           border-radius: 18px;
           overflow: hidden;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
           z-index: 50;
         }
         .search-item-row {
@@ -3383,21 +3402,21 @@ export default function Landing() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          border-bottom: 1px solid #f1f5f9;
           cursor: pointer;
           transition: background 0.2s;
         }
         .search-item-row:hover {
-          background: rgba(0, 255, 136, 0.12);
+          background: #f0fdf4;
         }
         .s-main { display: flex; flex-direction: column; gap: 3px; }
-        .s-symbol { color: #ffffff; font-weight: 800; font-size: 14px; }
-        .s-name { color: #cbd5e1; font-size: 12px; }
+        .s-symbol { color: #090e17; font-weight: 800; font-size: 14px; }
+        .s-name { color: #64748b; font-size: 12px; }
         .s-exchange {
           font-size: 11px;
           font-weight: 800;
-          color: #00ff88;
-          background: rgba(0, 255, 136, 0.12);
+          color: #00a854;
+          background: #f0fdf4;
           padding: 3px 10px;
           border-radius: 10px;
         }
@@ -3409,17 +3428,17 @@ export default function Landing() {
           gap: 28px;
         }
         .movers-card {
-          background: #070c10;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           border-radius: 22px;
           padding: 28px;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
         }
         .gainers-card {
-          border-top: 3px solid #00ff88;
+          border-top: 3px solid #00a854;
         }
         .losers-card {
-          border-top: 3px solid #ff4444;
+          border-top: 3px solid #ef4444;
         }
         .movers-header {
           display: flex;
@@ -3435,7 +3454,7 @@ export default function Landing() {
         .m-title-wrap h3 {
           font-size: 19px;
           font-weight: 800;
-          color: #ffffff;
+          color: #090e17;
         }
         .m-badge {
           font-size: 10px;
@@ -3444,12 +3463,12 @@ export default function Landing() {
           border-radius: 10px;
         }
         .m-badge.green {
-          background: rgba(0, 255, 136, 0.15);
-          color: #00ff88;
+          background: #f0fdf4;
+          color: #00a854;
         }
         .m-badge.red {
-          background: rgba(255, 68, 68, 0.15);
-          color: #ff4444;
+          background: #fef2f2;
+          color: #dc2626;
         }
         .movers-list {
           display: flex;
@@ -3461,13 +3480,13 @@ export default function Landing() {
           justify-content: space-between;
           align-items: center;
           padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.04);
+          background: #f8fafc;
           border-radius: 12px;
           cursor: pointer;
           transition: all 0.2s;
         }
         .mover-row:hover {
-          background: rgba(255, 255, 255, 0.08);
+          background: #f1f5f9;
           transform: translateX(4px);
         }
         .mover-info {
@@ -3478,12 +3497,12 @@ export default function Landing() {
         .mover-rank {
           font-size: 12px;
           font-weight: 800;
-          color: #cbd5e1;
+          color: #94a3b8;
         }
         .mover-sym {
           font-size: 14.5px;
           font-weight: 800;
-          color: #ffffff;
+          color: #090e17;
         }
         .mover-price-wrap {
           text-align: right;
@@ -3494,41 +3513,40 @@ export default function Landing() {
         .mover-val {
           font-size: 14.5px;
           font-weight: 800;
-          color: #ffffff;
+          color: #090e17;
         }
         .mover-chg {
           font-size: 12.5px;
           font-weight: 800;
         }
-        .mover-chg.up { color: #00ff88; }
-        .mover-chg.down { color: #ff4444; }
+        .mover-chg.up { color: #00a854; }
+        .mover-chg.down { color: #dc2626; }
 
         /* Stats Banner */
         .stats-banner-section {
           padding: 40px 24px;
         }
         .stats-banner-grid {
-          background: #070c0f;
-          border: 1px solid rgba(0, 255, 136, 0.25);
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
           border-radius: 24px;
           padding: 48px;
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 24px;
           text-align: center;
-          box-shadow: 0 0 50px rgba(0, 255, 136, 0.08);
+          box-shadow: 0 10px 30px rgba(0, 168, 84, 0.06);
         }
         .stat-big-number {
           font-size: 46px;
           font-weight: 900;
-          color: #00ff88;
-          text-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
+          color: #00a854;
           margin-bottom: 8px;
         }
         .stat-text {
           font-size: 13.5px;
           font-weight: 700;
-          color: #e2e8f0;
+          color: #166534;
           letter-spacing: 0.5px;
         }
 
@@ -3541,19 +3559,20 @@ export default function Landing() {
           gap: 16px;
         }
         .faq-item {
-          background: #070c0f;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           border-radius: 16px;
           padding: 22px 26px;
           cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
           transition: all 0.25s;
         }
         .faq-item:hover {
-          border-color: rgba(0, 255, 136, 0.4);
+          border-color: #00a854;
         }
         .faq-item.open {
-          border-color: #00ff88;
-          background: #080f13;
+          border-color: #00a854;
+          background: #fafffb;
         }
         .faq-question {
           display: flex;
@@ -3561,14 +3580,14 @@ export default function Landing() {
           align-items: center;
           font-size: 16.5px;
           font-weight: 800;
-          color: #ffffff;
+          color: #090e17;
         }
         .faq-answer {
           margin-top: 14px;
           padding-top: 14px;
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          border-top: 1px solid #f1f5f9;
           font-size: 14.5px;
-          color: #f1f5f9;
+          color: #475569;
           line-height: 1.6;
         }
 
@@ -3581,24 +3600,24 @@ export default function Landing() {
           z-index: 10;
         }
         .cta-banner-card {
-          background: radial-gradient(circle at 50% 0%, rgba(0, 255, 136, 0.18) 0%, #060b0e 70%);
-          border: 1px solid rgba(0, 255, 136, 0.4);
+          background: radial-gradient(circle at 50% 0%, #ecfdf5 0%, #ffffff 80%);
+          border: 1px solid #86efac;
           border-radius: 32px;
           padding: 72px 40px;
           text-align: center;
-          box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(0, 255, 136, 0.18);
+          box-shadow: 0 20px 60px rgba(0, 168, 84, 0.1);
         }
         .cta-badge {
           display: inline-block;
           font-size: 11px;
           font-weight: 900;
-          color: #00ff88;
+          color: #00a854;
           letter-spacing: 1.5px;
-          background: rgba(0, 255, 136, 0.12);
+          background: #f0fdf4;
           padding: 4px 14px;
           border-radius: 14px;
           margin-bottom: 20px;
-          border: 1px solid rgba(0, 255, 136, 0.3);
+          border: 1px solid #bbf7d0;
         }
         .cta-banner-heading {
           font-size: 48px;
@@ -3606,10 +3625,11 @@ export default function Landing() {
           line-height: 1.15;
           margin-bottom: 20px;
           letter-spacing: -1px;
+          color: #090e17;
         }
         .cta-banner-sub {
           font-size: 18px;
-          color: #e2e8f0;
+          color: #475569;
           max-width: 640px;
           margin: 0 auto 36px;
           line-height: 1.6;
@@ -3618,20 +3638,20 @@ export default function Landing() {
           display: inline-flex;
           align-items: center;
           gap: 12px;
-          background: #00ff88;
-          color: #030708;
+          background: #00a854;
+          color: #ffffff;
           text-decoration: none;
           font-size: 18px;
           font-weight: 900;
           padding: 20px 48px;
           border-radius: 40px;
-          box-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
+          box-shadow: 0 10px 30px rgba(0, 168, 84, 0.35);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .btn-cta-giant:hover {
           transform: translateY(-4px);
-          box-shadow: 0 0 60px rgba(0, 255, 136, 0.7);
-          background: #05df72;
+          box-shadow: 0 16px 45px rgba(0, 168, 84, 0.5);
+          background: #009147;
         }
         .cta-footnote {
           display: flex;
@@ -3639,15 +3659,15 @@ export default function Landing() {
           gap: 24px;
           margin-top: 28px;
           font-size: 13.5px;
-          color: #cbd5e1;
+          color: #64748b;
           font-weight: 700;
           flex-wrap: wrap;
         }
 
         /* Footer */
         .footer-wrap {
-          background: #020405;
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          background: #f8fafc;
+          border-top: 1px solid #e2e8f0;
           padding: 80px 24px 40px;
           position: relative;
           z-index: 10;
@@ -3662,7 +3682,7 @@ export default function Landing() {
         }
         .footer-tagline {
           font-size: 14.5px;
-          color: #cbd5e1;
+          color: #64748b;
           line-height: 1.6;
           margin-top: 18px;
           max-width: 380px;
@@ -3672,7 +3692,7 @@ export default function Landing() {
           align-items: center;
           gap: 8px;
           font-size: 12px;
-          color: #00ff88;
+          color: #00a854;
           margin-top: 20px;
           font-weight: 700;
         }
@@ -3680,32 +3700,32 @@ export default function Landing() {
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background: #00ff88;
-          box-shadow: 0 0 10px #00ff88;
+          background: #00a854;
+          box-shadow: 0 0 10px #00a854;
         }
         .footer-links-col h4 {
           font-size: 14px;
           font-weight: 800;
-          color: #ffffff;
+          color: #090e17;
           margin-bottom: 18px;
           letter-spacing: 0.5px;
         }
         .footer-links-col a {
           display: block;
-          color: #cbd5e1;
+          color: #64748b;
           text-decoration: none;
           font-size: 13.5px;
           margin-bottom: 12px;
           transition: color 0.2s;
         }
         .footer-links-col a:hover {
-          color: #00ff88;
+          color: #00a854;
         }
         .footer-bottom {
           max-width: 1300px;
           margin: 0 auto;
           padding-top: 28px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          border-top: 1px solid #e2e8f0;
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
