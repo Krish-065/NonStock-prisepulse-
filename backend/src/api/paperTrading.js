@@ -29,10 +29,10 @@ router.get('/portfolio', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     const isPro = userRes.rows[0].is_pro || false;
-    let virtualBalance = parseFloat(userRes.rows[0].virtual_balance || 50000.00);
+    let virtualBalance = parseFloat(userRes.rows[0].virtual_balance || 1000000.00);
     
-    // Auto upgrade Pro users to $1,000,000 virtual balance
-    if (isPro && virtualBalance <= 50000.00) {
+    // Auto upgrade any user with old 50k default to 1,000,000 virtual balance
+    if (virtualBalance <= 50000.00) {
       virtualBalance = 1000000.00;
       await query('UPDATE users SET virtual_balance = $1 WHERE id = $2', [virtualBalance, req.user.id]);
     }
@@ -128,7 +128,7 @@ router.post('/trade', authenticate, async (req, res) => {
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const currentBalance = parseFloat(userRes.rows[0].virtual_balance || 50000.00);
+    const currentBalance = parseFloat(userRes.rows[0].virtual_balance || 1000000.00);
 
     const isIndian = isIndianSymbol(symbol);
     const usdInrRate = await getUsdInrRate();
@@ -386,7 +386,7 @@ router.post('/refill', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Maximum virtual refill limit reached. You can only refill your account twice.' });
     }
 
-    const refillAmount = isPro ? 1000000.00 : 50000.00;
+    const refillAmount = 1000000.00;
     const newBalance = currentBalance + refillAmount;
     const newRefillCount = refillCount + 1;
 
@@ -410,9 +410,7 @@ router.post('/refill', authenticate, async (req, res) => {
 
     res.json({
       success: true,
-      message: isPro 
-        ? 'Your Pro account has been refilled with another $1,000,000!' 
-        : 'Your account has been refilled with another $50,000! Warning: This is your final chance—make it a learned opportunity!',
+      message: 'Your account has been refilled with ₹10,00,000 virtual balance!',
       newBalance,
       refillCount: newRefillCount
     });
@@ -436,12 +434,10 @@ router.get('/history', authenticate, async (req, res) => {
   }
 });
 
-// POST /api/paper/reset - Reset simulated capital to $50,000 (or $1,000,000 for Pro)
+// POST /api/paper/reset - Reset simulated capital to ₹10,00,000 (1,000,000)
 router.post('/reset', authenticate, async (req, res) => {
   try {
-    const userRes = await query('SELECT is_pro FROM users WHERE id = $1', [req.user.id]);
-    const isPro = userRes.rows[0]?.is_pro || false;
-    const resetBalance = isPro ? 1000000.00 : 50000.00;
+    const resetBalance = 1000000.00;
 
     await query('UPDATE users SET virtual_balance = $1, consecutive_sl_hits = 0 WHERE id = $2', [resetBalance, req.user.id]);
     await query('DELETE FROM paper_portfolio_items WHERE user_id = $1', [req.user.id]);

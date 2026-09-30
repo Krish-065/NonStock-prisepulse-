@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -252,8 +252,10 @@ export default function PaperTrading() {
     return true;
   });
   
-  // Virtual Portfolio State
-  const [virtualBalance, setVirtualBalance] = useState(50000);
+  const [searchParams] = useSearchParams();
+
+  // Virtual Portfolio State (₹10,00,000 default virtual capital)
+  const [virtualBalance, setVirtualBalance] = useState(1000000);
   const [refillCount, setRefillCount] = useState(1);
   const [consecutiveSlHits, setConsecutiveSlHits] = useState(0);
   const [totalHoldingsValue, setTotalHoldingsValue] = useState(0);
@@ -341,6 +343,15 @@ export default function PaperTrading() {
   
   // Custom Chart States & Refs
   const [chartType, setChartType] = useState('tradingview'); // 'tradingview' or 'custom'
+
+  // Automatically activate Market Replay Mode if ?mode=replay is passed from landing page
+  useEffect(() => {
+    if (searchParams.get('mode') === 'replay') {
+      setChartType('custom');
+      setShowReplaySetup(true);
+      toast.success('Market Replay Engine activated! Select a starting date.', { icon: '⏳' });
+    }
+  }, [searchParams]);
   const [customHistory, setCustomHistory] = useState([]);
   const [customLoading, setCustomLoading] = useState(false);
   const [customError, setCustomError] = useState('');
@@ -2219,21 +2230,21 @@ export default function PaperTrading() {
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '11px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase' }}>Virtual Balance</span>
             <span style={{ fontSize: '18px', fontWeight: 800, color: '#00ff88' }}>
-              ${virtualBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {isIndianSymbol(selectedSymbol) ? '₹' : '$'}{virtualBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div style={{ width: '1px', height: '32px', background: 'rgba(255, 255, 255, 0.08)' }}></div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '11px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase' }}>Invested Capital</span>
             <span style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff' }}>
-              ${totalHoldingsValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {isIndianSymbol(selectedSymbol) ? '₹' : '$'}{totalHoldingsValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div style={{ width: '1px', height: '32px', background: 'rgba(255, 255, 255, 0.08)' }}></div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '11px', color: '#9b9eac', fontWeight: 700, textTransform: 'uppercase' }}>Total Equity</span>
             <span style={{ fontSize: '18px', fontWeight: 800, color: '#00bcd4' }}>
-              ${(virtualBalance + totalHoldingsValue).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {isIndianSymbol(selectedSymbol) ? '₹' : '$'}{(virtualBalance + totalHoldingsValue).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
 
