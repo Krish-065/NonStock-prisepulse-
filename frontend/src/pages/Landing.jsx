@@ -40,20 +40,20 @@ export default function Landing() {
     {
       id: 'paper',
       label: 'Virtual Paper Trading',
-      badge: '₹10,00,000 BALANCE',
+      badge: '$50K FREE • $1M PRO',
       icon: <Target size={18} />,
       title: 'Institutional Paper Trading Desk',
-      tagline: 'Real-Time Order Execution With ₹10,00,000 Virtual Capital',
-      description: 'Practice real market execution without risking personal savings. Place live Market and Limit orders on NSE/BSE equities with realistic exchange fills, automatic stop-loss calculation, and comprehensive P&L accounting.',
+      tagline: '$50,000 Virtual Margin for Standard Accounts • $1,000,000 for Pro',
+      description: 'Practice real market execution without risking personal savings. Standard accounts immediately receive $50,000 in free virtual capital to learn the ropes, while Pro accounts unlock an institutional $1,000,000 ($1M) balance for high-volume portfolio simulations with realistic exchange fills, automatic stop-loss calculation, and comprehensive P&L accounting.',
       image: '/feature-paper-trading.jpg',
-      imageCaption: 'Real-time order ticket, Reliance stock chart, open positions ledger, and ₹10 Lakhs virtual margin.',
+      imageCaption: 'Real-time order ticket, Reliance stock chart, open positions ledger, and virtual margin.',
       includes: [
-        '₹10,00,000 virtual trading margin with one-click balance reset',
+        '$50,000 virtual trading margin for standard accounts with refill capability',
+        'Pro tier upgrade to $1,000,000 ($1 Million) for institutional-scale simulations',
         'Realistic Market and Limit order tickets with live execution status',
-        'Built-in Stop-Loss and Target price triggers to enforce trading plans',
         'Real-time P&L tracking, open positions monitor, and trade execution ledger'
       ],
-      traderEdge: 'Hedge funds test every strategy in simulated execution before risking capital. NonStock allows you to build execution discipline completely risk-free.',
+      traderEdge: 'Start safely with $50,000 free virtual capital, hone your edge, and scale to $1,000,000 with Pro when you are ready to simulate institutional portfolio allocations.',
       route: '/paper-trading',
       btnLabel: 'Open Virtual Trading Desk'
     },
@@ -144,7 +144,7 @@ export default function Landing() {
   const faqs = [
     {
       q: 'Is NonStock really 100% free to use?',
-      a: 'Yes, NonStock is completely free. You get ₹10,00,000 in virtual capital, full access to historical market replay, the AI trading coach, the strategy backtester, and options Greeks without any subscription fees or credit card requirements.'
+      a: 'Yes, NonStock is completely free to start. Standard accounts immediately get $50,000 in free virtual capital upon signup, full access to historical market replay, the AI trading coach, the strategy backtester, and options Greeks without any subscription fees or credit card requirements. Traders who want institutional portfolio scale can upgrade to Pro for a $1,000,000 virtual balance.'
     },
     {
       q: 'Do I need a broker or Demat account to use NonStock?',
@@ -163,8 +163,8 @@ export default function Landing() {
       a: 'NonStock supports Indian equities (NSE & BSE Nifty 50, Bank Nifty, Midcaps), index futures and options with complete option chains, and major global commodities and crypto pairs.'
     },
     {
-      q: 'Can I reset my virtual balance if I lose money while learning?',
-      a: 'Yes. You can reset your virtual balance back to ₹10,00,000 with a single click at any time. NonStock is designed as a safe, risk-free training ground where mistakes cost zero real money.'
+      q: 'Can I reset or refill my virtual balance if I lose money while learning?',
+      a: 'Yes. Standard accounts receive refills of $50,000, and Pro accounts get $1,000,000 virtual balance refills and one-click resets at any time. NonStock is designed as a safe, risk-free training ground where mistakes cost zero real money.'
     }
   ];
 
@@ -218,9 +218,10 @@ export default function Landing() {
           </h1>
 
           <p className="hero-description">
-            Practice real market execution with <strong className="text-highlight">₹10,00,000 virtual capital</strong>. 
+            Practice real market execution with <strong className="text-highlight">$50,000 free virtual capital</strong> for standard accounts 
+            (upgradeable to <strong className="text-highlight">$1,000,000 for Pro</strong>). 
             Replay historical trading sessions on weekends, build tested quantitative strategies, 
-            and get coached 24/7 by an institutional AI mentor — completely free forever.
+            and get coached 24/7 by an institutional AI mentor — completely free to start.
           </p>
 
           <div className="hero-actions">
@@ -238,7 +239,7 @@ export default function Landing() {
           <div className="hero-trust-row">
             <div className="trust-pill">
               <ShieldCheck size={16} className="text-green" />
-              <span>₹10,00,000 Virtual Capital</span>
+              <span>$50,000 Free Virtual Capital ($1M Pro)</span>
             </div>
             <div className="trust-dot">•</div>
             <div className="trust-pill">
@@ -421,7 +422,7 @@ export default function Landing() {
                 <XCircle size={15} />
                 <span>BRUTAL TRAP #1</span>
               </div>
-              <h3 className="trap-title">Losing ₹50,000+ While Just Learning</h3>
+              <h3 className="trap-title">Losing Your Savings While Just Learning</h3>
               <p className="trap-description">
                 Beginners jump directly into broker apps with real capital, make rookie sizing errors on market orders, 
                 and lose their hard-earned money before they ever understand how markets move.
@@ -431,10 +432,10 @@ export default function Landing() {
                   <CheckCircle2 size={16} className="text-green" />
                   <span>THE NONSTOCK FIX</span>
                 </div>
-                <h4 className="solution-title">₹10,00,000 Zero-Risk Virtual Capital</h4>
+                <h4 className="solution-title">$50,000 Free Virtual Capital (Up to $1,000,000 Pro)</h4>
                 <p className="solution-description">
                   Trade with full virtual funds using real exchange depth, realistic execution, and live P&L accounting. 
-                  Build a proven edge before depositing a single rupee of real wealth.
+                  Standard accounts get $50,000 completely free, and Pro users get $1,000,000 to test large-scale portfolio strategies.
                 </p>
               </div>
             </div>
@@ -576,7 +577,7 @@ export default function Landing() {
               <tbody>
                 <tr>
                   <td><strong>Virtual Learning Margin</strong></td>
-                  <td className="highlight-column text-green font-bold">₹10,00,000 (100% Free)</td>
+                  <td className="highlight-column text-green font-bold">$50,000 Free (Standard) / $1,000,000 (Pro)</td>
                   <td className="text-muted">₹0 (Real money only)</td>
                   <td className="text-muted">Paper trade only on US data</td>
                 </tr>
@@ -658,11 +659,11 @@ export default function Landing() {
           <div className="cta-card">
             <span className="cta-badge">GET STARTED IN UNDER 60 SECONDS</span>
             <h2 className="cta-heading">
-              Build Your Trading Edge With ₹10,00,000 Virtual Capital.
+              Build Your Trading Edge With $50,000 Free Virtual Capital.
             </h2>
             <p className="cta-subheading">
               Join disciplined traders practicing real execution, historical replay, and AI coaching. 
-              No credit card required. No risk to your hard-earned money.
+              Start free with $50,000 or scale to $1,000,000 with Pro. No credit card required.
             </p>
             <div className="cta-buttons">
               <Link to="/register" className="btn-cta-giant">
@@ -672,7 +673,8 @@ export default function Landing() {
             </div>
             <div className="cta-guarantees">
               <span>✓ 100% Free Forever</span>
-              <span>✓ Instant Virtual Margin</span>
+              <span>✓ $50,000 Starting Margin</span>
+              <span>✓ $1,000,000 Pro Tier</span>
               <span>✓ Zero Real Money At Risk</span>
             </div>
           </div>
@@ -686,7 +688,7 @@ export default function Landing() {
             <Logo size={36} showName={true} showTagline={true} />
             <p className="footer-bio">
               NonStock is the modern stock market simulation and paper trading platform. 
-              Master the markets with ₹10 Lakhs virtual capital, 24/7 historical replay, and AI-powered risk coaching.
+              Master the markets with $50,000 free virtual capital (up to $1,000,000 Pro), 24/7 historical replay, and AI-powered risk coaching.
             </p>
             <div className="footer-status-pill">
               <span className="status-indicator"></span>

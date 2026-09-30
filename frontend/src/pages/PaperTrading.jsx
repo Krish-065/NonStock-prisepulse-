@@ -254,8 +254,8 @@ export default function PaperTrading() {
   
   const [searchParams] = useSearchParams();
 
-  // Virtual Portfolio State (₹10,00,000 default virtual capital)
-  const [virtualBalance, setVirtualBalance] = useState(1000000);
+  // Virtual Portfolio State ($50,000 standard, $1,000,000 for Pro)
+  const [virtualBalance, setVirtualBalance] = useState(() => (user?.is_pro ? 1000000 : 50000));
   const [refillCount, setRefillCount] = useState(1);
   const [consecutiveSlHits, setConsecutiveSlHits] = useState(0);
   const [totalHoldingsValue, setTotalHoldingsValue] = useState(0);
