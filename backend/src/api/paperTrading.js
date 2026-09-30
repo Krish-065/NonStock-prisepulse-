@@ -682,6 +682,8 @@ router.put('/position/limits', authenticate, async (req, res) => {
     console.error('❌ Update position limits error:', error);
     res.status(500).json({ error: 'Failed to update position stop loss / take profit' });
   }
+});
+
 // POST /api/paper/shop-purchase - Purchase virtual capital bailout with real money (Only if bankrupt)
 router.post('/shop-purchase', authenticate, async (req, res) => {
   try {
