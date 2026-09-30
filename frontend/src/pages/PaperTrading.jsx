@@ -2553,18 +2553,19 @@ export default function PaperTrading() {
                   type="button"
                   onClick={() => setShowTradePanel(!showTradePanel)}
                   style={{
-                    background: showTradePanel ? 'rgba(0, 242, 254, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid rgba(0, 242, 254, 0.3)',
-                    color: showTradePanel ? '#00f2fe' : '#9b9eac',
+                    background: showTradePanel ? '#00ff88' : 'rgba(255, 255, 255, 0.9)',
+                    border: '1px solid #00ff88',
+                    color: '#000000',
                     borderRadius: '8px',
                     padding: '6px 12px',
                     fontSize: '11px',
-                    fontWeight: 700,
+                    fontWeight: 800,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    boxShadow: showTradePanel ? '0 0 10px rgba(0, 255, 136, 0.4)' : 'none'
                   }}
                 >
                   <Sliders size={13} />
@@ -2575,9 +2576,9 @@ export default function PaperTrading() {
                   type="button"
                   onClick={() => setIsChartFullscreen(!isChartFullscreen)}
                   style={{
-                    background: isChartFullscreen ? '#ff4444' : 'linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 242, 254, 0.15) 100%)',
-                    border: '1px solid rgba(0, 255, 136, 0.3)',
-                    color: isChartFullscreen ? '#ffffff' : '#00ff88',
+                    background: isChartFullscreen ? '#ffffff' : 'rgba(255, 255, 255, 0.9)',
+                    border: '1px solid #00ff88',
+                    color: '#000000',
                     borderRadius: '8px',
                     padding: '6px 14px',
                     fontSize: '11px',
@@ -2586,7 +2587,7 @@ export default function PaperTrading() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    boxShadow: isChartFullscreen ? '0 0 15px rgba(255, 68, 68, 0.4)' : '0 0 10px rgba(0, 255, 136, 0.2)',
+                    boxShadow: isChartFullscreen ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none',
                     transition: 'all 0.2s'
                   }}
                 >
@@ -2609,19 +2610,19 @@ export default function PaperTrading() {
                       }
                     }}
                     style={{
-                      background: isReplayMode ? '#ff4444' : 'linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 87, 34, 0.15) 100%)',
-                      border: isReplayMode ? '1px solid #ff4444' : '1px solid rgba(255, 152, 0, 0.3)',
-                      color: isReplayMode ? '#ffffff' : '#ff9800',
+                      background: isReplayMode ? '#ffffff' : '#00ff88',
+                      border: '1px solid #00ff88',
+                      color: '#000000',
                       borderRadius: '8px',
                       padding: '6px 12px',
                       fontSize: '11px',
-                      fontWeight: 700,
+                      fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
                       transition: 'all 0.2s',
-                      boxShadow: isReplayMode ? '0 0 10px rgba(255, 68, 68, 0.4)' : 'none'
+                      boxShadow: isReplayMode ? '0 0 10px rgba(255, 255, 255, 0.5)' : '0 0 10px rgba(0, 255, 136, 0.4)'
                     }}
                   >
                     <Rewind size={13} />
@@ -2633,6 +2634,10 @@ export default function PaperTrading() {
                 <button
                   type="button"
                   onClick={async () => {
+                    if (chartType === 'tradingview') {
+                      toast.info('For International Charts, please use the native Camera 📷 icon at the top right of the chart to take a snapshot!', { duration: 5000 });
+                      return;
+                    }
                     setIsSharing(true);
                     try {
                       const element = document.getElementById('arena-workspace');
@@ -2642,20 +2647,20 @@ export default function PaperTrading() {
                         setShowShareModal(true);
                       }
                     } catch (e) {
-                      // fallback or error
+                      toast.error('Failed to capture screen.');
                     } finally {
                       setIsSharing(false);
                     }
                   }}
                   disabled={isSharing}
                   style={{
-                    background: 'linear-gradient(135deg, rgba(213, 0, 249, 0.15) 0%, rgba(156, 39, 176, 0.15) 100%)',
-                    border: '1px solid rgba(213, 0, 249, 0.3)',
-                    color: '#d500f9',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    border: '1px solid #00ff88',
+                    color: '#000000',
                     borderRadius: '8px',
                     padding: '6px 12px',
                     fontSize: '11px',
-                    fontWeight: 700,
+                    fontWeight: 800,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -2663,8 +2668,14 @@ export default function PaperTrading() {
                     transition: 'all 0.2s',
                     opacity: isSharing ? 0.7 : 1
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 10px rgba(213, 0, 249, 0.3)'}
-                  onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#00ff88';
+                    e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 255, 136, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 >
                   <Camera size={13} />
                   <span>{isSharing ? 'Capturing...' : 'Share Idea'}</span>
@@ -4284,7 +4295,7 @@ export default function PaperTrading() {
                   gap: '8px'
                 }}>
                   <Activity size={16} color="#00ff88" />
-                  <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '14px', letterSpacing: '1px' }}>PRISE<span style={{ color: '#00ff88' }}>PULSE</span></span>
+                  <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '14px', letterSpacing: '1px' }}>NON<span style={{ color: '#00ff88' }}>STOCK</span></span>
                 </div>
               </div>
 
@@ -4312,7 +4323,7 @@ export default function PaperTrading() {
                 
                 <button
                   onClick={() => {
-                    const text = `Check out my live trade setup for $${selectedSymbol} on @PrisePulse! 🚀\n\nTrade risk-free at PrisePulse.com`;
+                    const text = `Check out my live trade setup for $${selectedSymbol} on @NonStock! 🚀\n\nTrade risk-free at nonstock.vercel.app`;
                     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                   style={{
