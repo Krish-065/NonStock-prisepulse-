@@ -6,7 +6,7 @@ import {
   Sparkles, PieChart, ArrowRight, Zap, Layers, BarChart2, 
   Flame, LineChart, Globe, DollarSign, Clock, ChevronRight,
   ArrowUpRight, ArrowDownRight, Coins, Cpu, RefreshCw,
-  Gauge, ExternalLink, ShieldCheck
+  Gauge, ExternalLink, ShieldCheck, Bot, Crown
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -493,6 +493,334 @@ export default function Dashboard() {
               {tag.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Unique Modern Platform Features Showcase Bar */}
+      <div style={{
+        background: isLight 
+          ? 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)' 
+          : 'linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '20px',
+        padding: '20px 22px',
+        boxShadow: isLight ? '0 4px 20px rgba(0, 0, 0, 0.03)' : '0 8px 30px rgba(0, 0, 0, 0.25)',
+        backdropFilter: 'blur(12px)',
+        position: 'relative'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginBottom: '16px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '8px',
+              background: 'rgba(0, 176, 96, 0.12)',
+              color: '#00b060',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Sparkles size={16} />
+            </div>
+            <div>
+              <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                Next-Gen Trading Suite & Advanced Workspaces
+              </span>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '10px' }}>
+                Explore institutional tools designed for serious market operators
+              </span>
+            </div>
+          </div>
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            background: 'rgba(0, 176, 96, 0.08)',
+            color: '#00b060',
+            border: '1px solid rgba(0, 176, 96, 0.25)',
+            padding: '4px 10px',
+            borderRadius: '12px'
+          }}>
+            ✦ Instant Access
+          </span>
+        </div>
+
+        {/* 4 Feature Feature Cards */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '14px'
+        }}>
+          {/* 1. Market Replay Engine */}
+          <div
+            onClick={() => navigate('/paper-trading?mode=replay')}
+            style={{
+              padding: '16px',
+              borderRadius: '14px',
+              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.5)',
+              border: isLight ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.07)',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              gap: '12px',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#00b060';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = isLight ? '0 8px 24px rgba(0, 176, 96, 0.12)' : '0 8px 24px rgba(0, 0, 0, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.07)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none';
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <div style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  color: '#f59e0b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Clock size={18} />
+                </div>
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  background: '#0f172a',
+                  color: '#00ff88',
+                  padding: '3px 7px',
+                  borderRadius: '6px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}>
+                  <Crown size={10} /> PRO TIER
+                </span>
+              </div>
+              <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
+                24/7 Market Replay Engine
+              </h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
+                Rewind historical price action candle-by-candle (1x to 5x speed) on evenings and weekends with zero live risk.
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#00b060' }}>
+              <span>Launch Replay</span>
+              <ArrowRight size={13} />
+            </div>
+          </div>
+
+          {/* 2. Capital Bailout Shop */}
+          <div
+            onClick={() => navigate('/shop')}
+            style={{
+              padding: '16px',
+              borderRadius: '14px',
+              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.5)',
+              border: isLight ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.07)',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              gap: '12px',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#00b060';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = isLight ? '0 8px 24px rgba(0, 176, 96, 0.12)' : '0 8px 24px rgba(0, 0, 0, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.07)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none';
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <div style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  background: 'rgba(0, 176, 96, 0.12)',
+                  color: '#00b060',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Coins size={18} />
+                </div>
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  background: 'rgba(0, 176, 96, 0.12)',
+                  color: '#00b060',
+                  padding: '3px 7px',
+                  borderRadius: '6px'
+                }}>
+                  1:3 RATIO
+                </span>
+              </div>
+              <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
+                Capital Bailout Shop
+              </h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
+                Bankrupt at $0.00? Inject fresh trading capital from $1k to $1M with real-to-virtual bailout scaling.
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#00b060' }}>
+              <span>Visit Shop</span>
+              <ArrowRight size={13} />
+            </div>
+          </div>
+
+          {/* 3. AI Mentor & Risk Officer */}
+          <div
+            onClick={() => navigate('/ai-mentor')}
+            style={{
+              padding: '16px',
+              borderRadius: '14px',
+              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.5)',
+              border: isLight ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.07)',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              gap: '12px',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#00b060';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = isLight ? '0 8px 24px rgba(0, 176, 96, 0.12)' : '0 8px 24px rgba(0, 0, 0, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.07)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none';
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <div style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  background: 'rgba(59, 130, 246, 0.12)',
+                  color: '#3b82f6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Bot size={18} />
+                </div>
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  background: 'rgba(59, 130, 246, 0.12)',
+                  color: '#3b82f6',
+                  padding: '3px 7px',
+                  borderRadius: '6px'
+                }}>
+                  AI RISK COACH
+                </span>
+              </div>
+              <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
+                AI Trading Coach & Auditor
+              </h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
+                Pre-trade risk validator analyzing entry sizing, risk-to-reward metrics, and stopping emotional revenge trades.
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#3b82f6' }}>
+              <span>Chat with Coach</span>
+              <ArrowRight size={13} />
+            </div>
+          </div>
+
+          {/* 4. Strategy Lab & Quantitative Backtester */}
+          <div
+            onClick={() => navigate('/strategy-lab')}
+            style={{
+              padding: '16px',
+              borderRadius: '14px',
+              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.5)',
+              border: isLight ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.07)',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              gap: '12px',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#00b060';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = isLight ? '0 8px 24px rgba(0, 176, 96, 0.12)' : '0 8px 24px rgba(0, 0, 0, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.07)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none';
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <div style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  background: 'rgba(168, 85, 247, 0.12)',
+                  color: '#a855f7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Cpu size={18} />
+                </div>
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  background: 'rgba(168, 85, 247, 0.12)',
+                  color: '#a855f7',
+                  padding: '3px 7px',
+                  borderRadius: '6px'
+                }}>
+                  QUANT ENGINE
+                </span>
+              </div>
+              <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
+                No-Code Strategy Lab
+              </h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
+                Build visual algorithmic indicator rules and backtest on 1-year historical data with instant Sharpe & win rates.
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#a855f7' }}>
+              <span>Build Strategy</span>
+              <ArrowRight size={13} />
+            </div>
+          </div>
         </div>
       </div>
 

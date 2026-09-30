@@ -73,19 +73,19 @@ export default function Layout({ children }) {
         top: 0,
         left: 0,
         right: 0,
-        height: '64px',
+        height: '60px',
         background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.95)',
         backdropFilter: 'blur(12px)',
         borderBottom: isLight ? '1px solid #e5e7eb' : '1px solid rgba(255, 255, 255, 0.08)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 24px',
+        padding: '0 16px',
         zIndex: 1000,
         boxShadow: isLight ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none'
       }}>
         {/* Left: Brand Logo & Tagline */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
           <div 
             onClick={() => navigate('/')} 
             style={{ 
@@ -94,13 +94,21 @@ export default function Layout({ children }) {
               alignItems: 'center'
             }}
           >
-            <Logo size={36} showName={true} showTagline={!isMobile} nameSize="19px" />
+            <Logo size={32} showName={true} showTagline={false} nameSize="18px" />
           </div>
         </div>
 
         {/* Middle: Desktop Navigation Links */}
         {!isMobile && (
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <nav style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '2px',
+            flex: '1 1 auto',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            padding: '0 8px'
+          }}>
             {navLinks.map(link => {
               const isActive = location.pathname === link.path;
               return (
@@ -112,15 +120,17 @@ export default function Layout({ children }) {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    fontSize: '13px',
+                    gap: '5px',
+                    padding: '6px 9px',
+                    borderRadius: '7px',
+                    fontSize: '12px',
                     fontWeight: isActive ? 700 : 600,
                     color: isActive ? '#00b060' : 'var(--text-secondary)',
                     background: isActive ? (isLight ? 'rgba(0, 176, 96, 0.08)' : 'rgba(0, 176, 96, 0.15)') : 'transparent',
                     textDecoration: 'none',
-                    transition: 'all 0.15s ease'
+                    transition: 'all 0.15s ease',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
                   }}
                 >
                   {link.icon}
@@ -244,16 +254,20 @@ export default function Layout({ children }) {
         </div>
       )}
 
-      {/* Dual Line Ticker Tape Wrapper */}
-      <div style={{ marginTop: '64px' }}>
-        <TickerTape onStockClick={(symbol) => setSelectedTicker(symbol)} />
-      </div>
+      {/* Dual Line Ticker Tape Wrapper (Removed from /dashboard per user request, visible on all other pages) */}
+      {location.pathname !== '/dashboard' ? (
+        <div style={{ marginTop: '60px' }}>
+          <TickerTape onStockClick={(symbol) => setSelectedTicker(symbol)} />
+        </div>
+      ) : (
+        <div style={{ height: '60px' }} />
+      )}
 
       {/* Main Content Area */}
       <main style={{ 
         flex: 1, 
         marginTop: '0px', 
-        padding: '24px 32px 40px 32px',
+        padding: location.pathname === '/dashboard' ? '16px 24px 40px 24px' : '20px 24px 40px 24px',
         maxWidth: '1500px',
         width: '100%',
         margin: '0 auto'
