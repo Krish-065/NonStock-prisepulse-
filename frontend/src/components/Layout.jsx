@@ -31,6 +31,7 @@ export default function Layout({ children }) {
   const navLinks = [
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={15} /> },
     { path: '/paper-trading', label: 'Trade Desk', icon: <LineChart size={15} /> },
+    { path: '/shop', label: 'Shop', icon: <Coins size={15} /> },
     { path: '/strategy-lab', label: 'Strategy Lab', icon: <Sparkles size={15} /> },
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={15} /> },
     { path: '/community', label: 'Community Hub', icon: <Users size={15} /> },
@@ -55,6 +56,7 @@ export default function Layout({ children }) {
     else if (path === '/paper-trading') import('../pages/PaperTrading');
     else if (path === '/strategy-lab') import('../pages/StrategyBuilder');
     else if (path === '/indian-market') import('../pages/IndianMarket');
+    else if (path === '/shop') import('../pages/Shop');
   };
 
   return (

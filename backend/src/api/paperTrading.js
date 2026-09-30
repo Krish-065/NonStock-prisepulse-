@@ -682,7 +682,74 @@ router.put('/position/limits', authenticate, async (req, res) => {
     console.error('❌ Update position limits error:', error);
     res.status(500).json({ error: 'Failed to update position stop loss / take profit' });
   }
+// POST /api/paper/shop-purchase - Purchase virtual capital bailout with real money (Only if bankrupt)
+router.post('/shop-purchase', authenticate, async (req, res) => {
+  try {
+    const { virtualAmount, realCost, packageName } = req.body;
+    const amount = parseFloat(virtualAmount);
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ error: 'Invalid virtual capital amount' });
+    }
+
+    // Verify current user balance - Only allowed if fully finished / bankrupted (<= 0)
+    const userRes = await query('SELECT virtual_balance FROM users WHERE id = $1', [req.user.id]);
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const currentBalance = parseFloat(userRes.rows[0].virtual_balance || 0);
+    if (currentBalance > 0) {
+      return res.status(400).json({ 
+        error: `Emergency Bailout Store is locked. You can only purchase capital when your funds are completely finished ($0.00). Current balance: $${currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}` 
+      });
+    }
+
+    const updateRes = await query(
+      'UPDATE users SET virtual_balance = virtual_balance + $1 WHERE id = $2 RETURNING virtual_balance',
+      [amount, req.user.id]
+    );
+
+    const newBalance = parseFloat(updateRes.rows[0].virtual_balance);
+
+    // Record in balance history
+    await query(
+      'INSERT INTO paper_balance_history (id, user_id, type, amount, new_balance, description) VALUES ($1, $2, $3, $4, $5, $6)',
+      [
+        crypto.randomUUID(),
+        req.user.id,
+        'BAILOUT_SHOP',
+        amount,
+        newBalance,
+        `Emergency Bailout: +$${amount.toLocaleString()} Virtual Capital (${packageName || 'Bailout Package'}) for $${realCost || '0.00'}`
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: `Emergency Bailout Approved! +$${amount.toLocaleString()} has been credited to your virtual trading account.`,
+      newBalance
+    });
+  } catch (error) {
+    console.error('❌ Shop purchase error:', error);
+    res.status(500).json({ error: 'Failed to process bailout purchase' });
+  }
+});
+
+// POST /api/paper/simulate-bankruptcy - Set balance to 0 for testing the bailout shop
+router.post('/simulate-bankruptcy', authenticate, async (req, res) => {
+  try {
+    await query('UPDATE users SET virtual_balance = 0.00 WHERE id = $1', [req.user.id]);
+    res.json({
+      success: true,
+      message: 'Account balance simulated as $0.00 (Bankrupt). Emergency Bailout Store is now unlocked!',
+      newBalance: 0
+    });
+  } catch (error) {
+    console.error('❌ Simulate bankruptcy error:', error);
+    res.status(500).json({ error: 'Failed to simulate bankruptcy' });
+  }
 });
 
 module.exports = router;
+
 

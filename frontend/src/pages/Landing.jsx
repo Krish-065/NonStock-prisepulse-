@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, ChevronDown, 
   ChevronUp, Bot, Activity, Target,
   Lock, AlertTriangle, Compass, Layers,
-  BarChart3, RefreshCw
+  BarChart3, RefreshCw, Coins, Crown
 } from 'lucide-react';
 
 export default function Landing() {
@@ -60,22 +60,43 @@ export default function Landing() {
     {
       id: 'replay',
       label: '24/7 Market Replay',
-      badge: '100% FREE FOREVER',
+      badge: 'PRO EXCLUSIVE',
       icon: <Clock size={18} />,
-      title: 'The Time Machine: Bar-by-Bar Historical Replay',
-      tagline: 'Trade Any Historical Day On Evenings & Weekends',
-      description: 'Stock exchanges close at 3:30 PM and stay closed all weekend, but evenings and weekends are when retail traders actually have free time to learn. NonStock lets you rewind the tape to any historical session and replay candlesticks bar-by-bar at 1x to 5x speed.',
+      title: 'The Time Machine: Bar-by-Bar Historical Replay Engine',
+      tagline: 'Trade Any Historical Day On Evenings & Weekends (Exclusive to Pro)',
+      description: 'Stock exchanges close at 3:30 PM and stay closed all weekend, but evenings and weekends are when retail traders actually have free time to learn. NonStock Pro accounts unlock the state-of-the-art historical replay engine: rewind the tape to any historical session and replay candlesticks bar-by-bar at 1x to 5x speed.',
       image: '/feature-replay.jpg',
       imageCaption: 'Historical candlestick chart with bar-by-bar replay, speed pills (1x, 2x, 5x), and timeline scrubber.',
       includes: [
+        'Exclusive to Pro tier accounts with unlimited historical session access',
         'Bar-by-bar historical candlestick simulation with future candle blackout',
         'Variable replay speeds (1x, 2x, 5x) with instant pause and rewind controls',
-        'Practice 50+ trade setups in a single weekend without waiting for live market hours',
-        'Completely free without the $360/year subscription paywalls charged by TradingView'
+        'Practice 50+ trade setups in a single weekend without waiting for live market hours'
       ],
-      traderEdge: 'Accelerate your learning curve by 10x: experience months of price action setups in just a few focused practice sessions.',
-      route: '/paper-trading?mode=replay',
-      btnLabel: 'Launch Market Replay'
+      traderEdge: 'Accelerate your learning curve by 10x: experience months of price action setups in just a few focused practice sessions with Pro membership.',
+      route: '/upgrade-pro',
+      btnLabel: 'Unlock Replay with Pro'
+    },
+    {
+      id: 'shop',
+      label: 'Capital Bailout Shop',
+      badge: '1:3 RATIO BAILOUT',
+      icon: <Coins size={18} />,
+      title: 'Emergency Bailout Shop: Real Money to Virtual Capital',
+      tagline: 'Bankrupt? Refuel with 1:3 Ratio Virtual Capital from $1,000 to $1,000,000',
+      description: 'Broke your paper trading account? In the real world, reckless risk leads to bankruptcy. If your virtual portfolio balance hits $0.00, our Bailout Shop unlocks. Purchase fresh virtual capital with real money starting at a generous 1:3 ratio ($1,000 capital for $333.33) with progressive volume discounts scaling up to $1,000,000.',
+      image: '/feature-paper-trading.jpg',
+      imageCaption: 'Capital Bailout Shop interface with tiered capital bundles ($1k to $1M), 1:3 conversion ratios, and bankruptcy locking.',
+      includes: [
+        'Strict bankruptcy requirement: store only unlocks when virtual balance is $0.00',
+        'Base 1:3 real-to-virtual conversion ratio ($1,000 virtual balance for $333.33)',
+        'Tiered capital sizes: $1,000, $5,000, $10,000, $50,000, $100,000, $500,000, and $1,000,000',
+        'Progressive discounts: larger bailout bundles receive up to 50% bonus capital',
+        'Instant virtual balance credit and audit trail logging to get you back into the arena'
+      ],
+      traderEdge: 'Build genuine risk discipline: blowing up an account has real consequences, with a structured institutional-style bailout to resume your journey.',
+      route: '/shop',
+      btnLabel: 'Visit Bailout Shop'
     },
     {
       id: 'mentor',
@@ -143,8 +164,8 @@ export default function Landing() {
 
   const faqs = [
     {
-      q: 'Is NonStock really 100% free to use?',
-      a: 'Yes, NonStock is completely free to start. Standard accounts immediately get $50,000 in free virtual capital upon signup, full access to historical market replay, the AI trading coach, the strategy backtester, and options Greeks without any subscription fees or credit card requirements. Traders who want institutional portfolio scale can upgrade to Pro for a $1,000,000 virtual balance.'
+      q: 'Is NonStock really free to use?',
+      a: 'Yes, NonStock is completely free to start. Standard accounts immediately get $50,000 in free virtual capital upon signup, full access to the AI trading coach, the strategy backtester, and live options Greeks without any subscription fees or credit card requirements. Advanced modern capabilities like the 24/7 Market Replay Engine and a $1,000,000 virtual balance are exclusive to Pro accounts.'
     },
     {
       q: 'Do I need a broker or Demat account to use NonStock?',
@@ -152,7 +173,7 @@ export default function Landing() {
     },
     {
       q: 'Can I practice trading during weekends and evenings?',
-      a: 'Absolutely. NonStock features a dedicated Market Replay Engine that lets you replay past market sessions bar-by-bar at variable speeds (1x, 2x, 5x) any time of the day or night, even when live exchanges are closed.'
+      a: 'Yes! Pro accounts unlock the 24/7 Market Replay Engine, which allows you to rewind the tape and replay past market sessions bar-by-bar at variable speeds (1x to 5x) any time of the day or night, even when live exchanges are closed.'
     },
     {
       q: 'How does the AI Trading Mentor work?',
@@ -163,8 +184,8 @@ export default function Landing() {
       a: 'NonStock supports Indian equities (NSE & BSE Nifty 50, Bank Nifty, Midcaps), index futures and options with complete option chains, and major global commodities and crypto pairs.'
     },
     {
-      q: 'Can I reset or refill my virtual balance if I lose money while learning?',
-      a: 'Yes. Standard accounts receive refills of $50,000, and Pro accounts get $1,000,000 virtual balance refills and one-click resets at any time. NonStock is designed as a safe, risk-free training ground where mistakes cost zero real money.'
+      q: 'What happens if my virtual balance is completely depleted?',
+      a: 'Standard accounts receive $50,000 virtual refills, while Pro accounts get $1,000,000 refills. If you hit complete bankruptcy ($0.00 balance), you can visit the Bailout Shop to buy fresh paper trading funds with real money at a 1:3 ratio, with tiered options ranging from $1,000 up to $1,000,000 with volume bonuses.'
     }
   ];
 
@@ -220,7 +241,7 @@ export default function Landing() {
           <p className="hero-description">
             Practice real market execution with <strong className="text-highlight">$50,000 free virtual capital</strong> for standard accounts 
             (upgradeable to <strong className="text-highlight">$1,000,000 for Pro</strong>). 
-            Replay historical trading sessions on weekends, build tested quantitative strategies, 
+            Replay historical trading sessions with Pro, build tested quantitative strategies, 
             and get coached 24/7 by an institutional AI mentor — completely free to start.
           </p>
 
@@ -249,7 +270,7 @@ export default function Landing() {
             <div className="trust-dot">•</div>
             <div className="trust-pill">
               <Clock size={16} className="text-green" />
-              <span>24/7 Market Replay</span>
+              <span>24/7 Market Replay (Pro)</span>
             </div>
             <div className="trust-dot">•</div>
             <div className="trust-pill">
@@ -358,7 +379,13 @@ export default function Landing() {
                 </Link>
                 <div className="feature-free-note">
                   <ShieldCheck size={16} className="text-green" />
-                  <span>100% Free • No Subscription</span>
+                  <span>
+                    {currentOption.badge === 'PRO EXCLUSIVE' 
+                      ? 'Exclusive to Pro Tier' 
+                      : (currentOption.badge === '1:3 RATIO BAILOUT'
+                          ? '1:3 Capital Ratio • On Bankruptcy'
+                          : '100% Free • No Subscription')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -456,9 +483,9 @@ export default function Landing() {
                   <Sparkles size={16} className="text-green" />
                   <span>THE NONSTOCK FIX</span>
                 </div>
-                <h4 className="solution-title">The Time Machine: 24/7 Market Replay</h4>
+                <h4 className="solution-title">The Time Machine: 24/7 Market Replay (Pro)</h4>
                 <p className="solution-description">
-                  Rewind the charts to any historical date (Budget days, election sessions, sharp breakouts). 
+                  Rewind the charts to any historical date (Budget days, election sessions, sharp breakouts) with Pro membership. 
                   Replay candles bar-by-bar at up to 5x speed and test 50 setups in one weekend.
                 </p>
               </div>
@@ -470,20 +497,18 @@ export default function Landing() {
                 <XCircle size={15} />
                 <span>BRUTAL TRAP #3</span>
               </div>
-              <h3 className="trap-title">$360/Year Paywalls On Basic Charting Tools</h3>
+              <h3 className="trap-title">Account Blowouts With Zero Second Chances</h3>
               <p className="trap-description">
-                Platforms like TradingView charge $30 every month just to unlock Bar Replay and multiple indicator setups. 
-                Learners are forced to pay subscription fees before they ever make a profit.
+                In real trading, blowing up an account ends your career. Typical paper apps offer infinite fake clicks that disconnect traders from reality and cultivate reckless habits.
               </p>
               <div className="solution-box">
                 <div className="solution-tag">
-                  <CheckCircle2 size={16} className="text-green" />
+                  <Coins size={16} className="text-green" />
                   <span>THE NONSTOCK FIX</span>
                 </div>
-                <h4 className="solution-title">100% Free With Zero Paywalls</h4>
+                <h4 className="solution-title">1:3 Ratio Capital Bailout Shop</h4>
                 <p className="solution-description">
-                  Bar replay, advanced charting, options Greeks, and strategy backtesting are completely unrestricted 
-                  and free forever. No credit cards, no hidden paywalls.
+                  When a virtual portfolio drops to $0.00, our Bailout Shop unlocks with a 1:3 real-to-virtual ratio ($1,000 up to $1,000,000). Traders maintain psychological stakes and a structured path to recapitalize.
                 </p>
               </div>
             </div>
@@ -583,7 +608,7 @@ export default function Landing() {
                 </tr>
                 <tr>
                   <td><strong>24/7 Historical Bar Replay</strong></td>
-                  <td className="highlight-column text-green font-bold">Unrestricted 1x-5x Speed</td>
+                  <td className="highlight-column text-green font-bold">Pro Tier (1x-5x Speed)</td>
                   <td className="text-muted">Not available</td>
                   <td className="text-muted">$30 - $60 / month paywall</td>
                 </tr>
@@ -600,6 +625,12 @@ export default function Landing() {
                   <td className="text-muted">Additional data subscriptions</td>
                 </tr>
                 <tr>
+                  <td><strong>Bankruptcy Bailout Shop</strong></td>
+                  <td className="highlight-column text-green font-bold">1:3 Ratio ($1k up to $1M)</td>
+                  <td className="text-muted">Deposit more real savings</td>
+                  <td className="text-muted">Not available</td>
+                </tr>
+                <tr>
                   <td><strong>No-Code Strategy Backtester</strong></td>
                   <td className="highlight-column text-green font-bold">Visual drag-and-drop</td>
                   <td className="text-muted">Not available</td>
@@ -607,7 +638,7 @@ export default function Landing() {
                 </tr>
                 <tr>
                   <td><strong>Annual Cost</strong></td>
-                  <td className="highlight-column text-green font-bold">₹0 / Free Forever</td>
+                  <td className="highlight-column text-green font-bold">₹0 Free to Start ($50k)</td>
                   <td className="text-muted">₹5,000+ in brokerages & losses</td>
                   <td className="text-muted">$360+/year</td>
                 </tr>
@@ -705,6 +736,8 @@ export default function Landing() {
               Problems We Solve
             </button>
             <Link to="/paper-trading">Virtual Trading Desk</Link>
+            <Link to="/shop">Capital Bailout Shop</Link>
+            <Link to="/upgrade-pro">NonStock Pro</Link>
             <Link to="/fno">Option Greeks Chain</Link>
             <Link to="/strategy-lab">Strategy Builder</Link>
           </div>

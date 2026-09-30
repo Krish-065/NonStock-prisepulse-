@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -46,7 +46,8 @@ import {
   PauseCircle,
   FastForward,
   SkipForward,
-  Calendar
+  Calendar,
+  Coins
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
@@ -186,6 +187,7 @@ export default function PaperTrading() {
   const { theme } = useTheme();
   const isPro = user?.is_pro || false;
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Phase 2: Share Idea State
   const [isSharing, setIsSharing] = useState(false);
@@ -344,14 +346,22 @@ export default function PaperTrading() {
   // Custom Chart States & Refs
   const [chartType, setChartType] = useState('tradingview'); // 'tradingview' or 'custom'
 
-  // Automatically activate Market Replay Mode if ?mode=replay is passed from landing page
+  // Automatically activate Market Replay Mode if ?mode=replay is passed from landing page (Pro exclusive)
   useEffect(() => {
     if (searchParams.get('mode') === 'replay') {
+      if (!isPro) {
+        toast.error('Market Replay Engine is exclusive to Pro accounts. Please upgrade to Pro to access Replay Mode.', { 
+          icon: '👑',
+          duration: 5000 
+        });
+        navigate('/upgrade-pro');
+        return;
+      }
       setChartType('custom');
       setShowReplaySetup(true);
       toast.success('Market Replay Engine activated! Select a starting date.', { icon: '⏳' });
     }
-  }, [searchParams]);
+  }, [searchParams, isPro, navigate]);
   const [customHistory, setCustomHistory] = useState([]);
   const [customLoading, setCustomLoading] = useState(false);
   const [customError, setCustomError] = useState('');
@@ -2201,6 +2211,72 @@ export default function PaperTrading() {
         </div>
       )}
 
+      {/* Account Bankruptcy Alert Banner */}
+      {virtualBalance <= 0 && (
+        <div style={{
+          background: 'rgba(239, 68, 68, 0.08)',
+          border: '1px solid rgba(239, 68, 68, 0.35)',
+          borderRadius: '16px',
+          padding: '16px 20px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px',
+          boxShadow: '0 4px 20px rgba(239, 68, 68, 0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '280px' }}>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '10px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ef4444',
+              flexShrink: 0
+            }}>
+              <AlertTriangle size={22} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '15px', fontWeight: 800, color: '#ef4444' }}>
+                  Account Bankrupt — $0.00 Paper Balance Remaining
+                </span>
+                <span style={{ fontSize: '11px', fontWeight: 700, background: '#ef4444', color: '#ffffff', padding: '2px 8px', borderRadius: '4px' }}>
+                  DEPLETED
+                </span>
+              </div>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                Your paper trading capital is completely exhausted. Visit the Bailout Shop to buy fresh virtual funds with real money at a 1:3 ratio ($1,000 up to $1,000,000).
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/shop')}
+            style={{
+              background: '#00a854',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 18px',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 14px rgba(0, 168, 84, 0.35)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Coins size={16} /> Open Bailout Shop
+          </button>
+        </div>
+      )}
+
       {/* Title & Stats Ribbon */}
       <div style={{
         display: 'flex',
@@ -2249,6 +2325,29 @@ export default function PaperTrading() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
+            {/* Bailout Shop Button */}
+            <button
+              onClick={() => navigate('/shop')}
+              style={{
+                background: virtualBalance <= 0 ? '#00a854' : 'rgba(0, 168, 84, 0.08)',
+                border: '1px solid #00a854',
+                borderRadius: '8px',
+                color: virtualBalance <= 0 ? '#ffffff' : '#00a854',
+                cursor: 'pointer',
+                padding: '8px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: 800,
+                transition: 'all 0.2s',
+                boxShadow: virtualBalance <= 0 ? '0 0 12px rgba(0, 168, 84, 0.4)' : 'none'
+              }}
+              title={virtualBalance <= 0 ? "Bankrupt! Click to purchase bailout funds" : "Paper Trading Bailout Shop"}
+            >
+              <Coins size={14} /> {virtualBalance <= 0 ? 'Bailout Shop (Bankrupt!)' : 'Shop'}
+            </button>
+
             {/* Refill Button */}
             <button
               onClick={handleRefillAccount}
@@ -2606,11 +2705,19 @@ export default function PaperTrading() {
                   <span>{isChartFullscreen ? 'Exit Full Screen' : 'Full Screen Terminal'}</span>
                 </button>
 
-                {/* Market Replay Button */}
+                {/* Market Replay Button (Pro Exclusive) */}
                 {chartType === 'custom' && (
                   <button
                     type="button"
                     onClick={() => {
+                      if (!isPro) {
+                        toast.error('Market Replay Engine is exclusive to Pro accounts. Please upgrade to Pro to unlock historical simulation.', {
+                          icon: '👑',
+                          duration: 5000
+                        });
+                        navigate('/upgrade-pro');
+                        return;
+                      }
                       if (isReplayMode) {
                         if(window.confirm('End Replay Mode and return to live market?')) {
                           setIsReplayMode(false);
@@ -2621,8 +2728,8 @@ export default function PaperTrading() {
                       }
                     }}
                     style={{
-                      background: isReplayMode ? '#ffffff' : '#00ff88',
-                      border: '1px solid #00ff88',
+                      background: isReplayMode ? '#ffffff' : (isPro ? '#00ff88' : '#f1f5f9'),
+                      border: `1px solid ${isPro ? '#00ff88' : '#cbd5e1'}`,
                       color: '#000000',
                       borderRadius: '8px',
                       padding: '6px 12px',
@@ -2633,11 +2740,28 @@ export default function PaperTrading() {
                       alignItems: 'center',
                       gap: '6px',
                       transition: 'all 0.2s',
-                      boxShadow: isReplayMode ? '0 0 10px rgba(255, 255, 255, 0.5)' : '0 0 10px rgba(0, 255, 136, 0.4)'
+                      boxShadow: isReplayMode ? '0 0 10px rgba(255, 255, 255, 0.5)' : (isPro ? '0 0 10px rgba(0, 255, 136, 0.4)' : 'none')
                     }}
+                    title={isPro ? "Market Replay Engine" : "Market Replay is exclusive to Pro members"}
                   >
                     <Rewind size={13} />
                     <span>{isReplayMode ? 'Exit Replay' : 'Replay Mode'}</span>
+                    {!isPro && (
+                      <span style={{
+                        background: '#000000',
+                        color: '#00ff88',
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        fontSize: '9px',
+                        fontWeight: 900,
+                        marginLeft: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '2px'
+                      }}>
+                        <Crown size={9} /> PRO
+                      </span>
+                    )}
                   </button>
                 )}
 

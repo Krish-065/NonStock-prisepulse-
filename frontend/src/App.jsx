@@ -41,6 +41,7 @@ const UpgradePro     = lazy(() => import('./pages/UpgradePro'));
 const ContactUs      = lazy(() => import('./pages/ContactUs'));
 const IndianMarket   = lazy(() => import('./pages/IndianMarket'));
 const MutualFunds    = lazy(() => import('./pages/MutualFunds'));
+const Shop           = lazy(() => import('./pages/Shop'));
 
 // ─── Full-screen page loader skeleton ─────────────────────────────────────────
 function PageLoader() {
@@ -132,6 +133,7 @@ function App() {
                   <Route path="/alerts"            element={<PrivateRoute><Layout><Alerts /></Layout></PrivateRoute>} />
                   <Route path="/community"         element={<PrivateRoute><Layout><Community /></Layout></PrivateRoute>} />
                   <Route path="/upgrade-pro"       element={<PrivateRoute><Layout><UpgradePro /></Layout></PrivateRoute>} />
+                  <Route path="/shop"              element={<PrivateRoute><Layout><Shop /></Layout></PrivateRoute>} />
                   <Route path="/contact-us"        element={<PrivateRoute><Layout><ContactUs /></Layout></PrivateRoute>} />
                 </Routes>
               </Suspense>
