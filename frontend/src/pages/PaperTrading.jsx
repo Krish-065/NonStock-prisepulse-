@@ -368,6 +368,7 @@ export default function PaperTrading() {
   const customChartContainerRef = useRef(null);
   const customChartInstanceRef = useRef(null);
   const candlestickSeriesRef = useRef(null);
+  const tradePriceLinesRef = useRef([]);
 
   // Live Tick Simulation Ref
   const livePriceRef = useRef(0);
@@ -1867,6 +1868,71 @@ export default function PaperTrading() {
     }
   }, [livePrice, chartType, customHistory]);
 
+  // Synchronize native PriceLines on Custom Chart for active position, SL & TP
+  useEffect(() => {
+    if (chartType !== 'custom' || !candlestickSeriesRef.current) return;
+
+    // Clean up previously created trade price lines
+    if (tradePriceLinesRef.current && tradePriceLinesRef.current.length > 0) {
+      tradePriceLinesRef.current.forEach(line => {
+        try {
+          candlestickSeriesRef.current.removePriceLine(line);
+        } catch (e) {}
+      });
+      tradePriceLinesRef.current = [];
+    }
+
+    const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+    if (!activeHolding) return;
+
+    const entryP = parseFloat(activeHolding.buyPrice || 0);
+    const slP = parseFloat(slInputs[selectedSymbol] || activeHolding.stopLoss || 0);
+    const tpP = parseFloat(tpInputs[selectedSymbol] || activeHolding.takeProfit || 0);
+    const curP = livePrice || entryP;
+    const isShort = activeHolding.side === 'SHORT' || parseFloat(activeHolding.quantity || 0) < 0;
+    const isProfit = isShort ? entryP >= curP : curP >= entryP;
+
+    try {
+      if (entryP > 0) {
+        const entryLine = candlestickSeriesRef.current.createPriceLine({
+          price: entryP,
+          color: isProfit ? '#00ff88' : '#ff4444',
+          lineWidth: 2,
+          lineStyle: 1, // Dashed
+          axisLabelVisible: true,
+          title: `ENTRY [${isShort ? 'SHORT' : 'LONG'}] @ ${entryP.toLocaleString()}`
+        });
+        tradePriceLinesRef.current.push(entryLine);
+      }
+
+      if (slP > 0) {
+        const slLine = candlestickSeriesRef.current.createPriceLine({
+          price: slP,
+          color: '#ff4444',
+          lineWidth: 1.5,
+          lineStyle: 2, // Dotted
+          axisLabelVisible: true,
+          title: `SL @ ${slP.toLocaleString()}`
+        });
+        tradePriceLinesRef.current.push(slLine);
+      }
+
+      if (tpP > 0) {
+        const tpLine = candlestickSeriesRef.current.createPriceLine({
+          price: tpP,
+          color: '#00ff88',
+          lineWidth: 1.5,
+          lineStyle: 2, // Dotted
+          axisLabelVisible: true,
+          title: `TP @ ${tpP.toLocaleString()}`
+        });
+        tradePriceLinesRef.current.push(tpLine);
+      }
+    } catch (err) {
+      console.warn('Failed to attach native price line:', err);
+    }
+  }, [chartType, holdings, selectedSymbol, livePrice, slInputs, tpInputs]);
+
   // Check Limit/Stop Loss pending orders
   const checkPendingOrders = (currentPrice) => {
     const activePending = [...pendingOrdersRef.current];
@@ -2682,6 +2748,37 @@ export default function PaperTrading() {
                   <span>{showTradePanel ? 'Hide Order Panel' : 'Show Order Panel'}</span>
                 </button>
 
+                {/* Chart Engine Switcher: Native Pro Chart with scaled trade lines vs TradingView */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextType = chartType === 'tradingview' ? 'custom' : 'tradingview';
+                    setChartType(nextType);
+                    toast.success(nextType === 'custom' 
+                      ? 'Switched to Native Chart (Exact Price-Scaled Lines)' 
+                      : 'Switched to Global TradingView Terminal');
+                  }}
+                  style={{
+                    background: chartType === 'custom' ? '#00b060' : 'rgba(255, 255, 255, 0.9)',
+                    border: '1px solid #00b060',
+                    color: chartType === 'custom' ? '#ffffff' : '#000000',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: chartType === 'custom' ? '0 0 12px rgba(0, 176, 96, 0.35)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Toggle between Native chart (with auto-scaling price levels) and TradingView"
+                >
+                  <Activity size={13} />
+                  <span>{chartType === 'custom' ? 'Native Scaled Chart' : 'TradingView View'}</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setIsChartFullscreen(!isChartFullscreen)}
@@ -3022,13 +3119,43 @@ export default function PaperTrading() {
                 </div>
               )}
 
-              {/* TradingView Widget Container */}
-              <div style={{ width: '100%', height: isChartFullscreen ? 'calc(100vh - 44px)' : '620px' }}>
-                <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
-              </div>
+              {/* Chart Canvas: Custom Native Chart (Lightweight-Charts) or TradingView Widget */}
+              {chartType === 'custom' ? (
+                <div style={{ width: '100%', height: isChartFullscreen ? 'calc(100vh - 44px)' : '620px', position: 'relative' }}>
+                  {customLoading && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'rgba(10, 14, 39, 0.7)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 10,
+                      backdropFilter: 'blur(4px)',
+                      color: '#00ff88',
+                      fontWeight: 800,
+                      fontSize: '13px'
+                    }}>
+                      Loading Native Chart Data & Calculating Price Geometry...
+                    </div>
+                  )}
+                  <div 
+                    ref={customChartContainerRef} 
+                    style={{ width: '100%', height: isChartFullscreen ? 'calc(100vh - 44px)' : '620px' }} 
+                  />
+                </div>
+              ) : (
+                /* TradingView Widget Container */
+                <div style={{ width: '100%', height: isChartFullscreen ? 'calc(100vh - 44px)' : '620px' }}>
+                  <div id="tradingview_paper_chart" ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
+                </div>
+              )}
 
-              {/* Live Active Trade On-Chart Execution Overlay (Only displays when user has an active trade) */}
-              {(() => {
+              {/* Live Active Trade On-Chart Execution Overlay (Only displays when user has an active trade in TradingView mode, since custom chart has native price lines) */}
+              {chartType === 'tradingview' && (() => {
                 const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
                 if (!activeHolding) return null;
 
@@ -3041,6 +3168,9 @@ export default function PaperTrading() {
                 const pnlUsd = isShort ? (entryP - curP) * absQty : (curP - entryP) * absQty;
                 const pnlPct = entryP > 0 ? ((curP - entryP) / entryP) * 100 * (isShort ? -1 : 1) : 0;
                 const isProfit = pnlUsd >= 0;
+
+                // Calibrated vertical placement: dynamically maps entry price relative to current live price
+                const yPercent = getPriceYPercent(entryP, curP);
 
                 return (
                   <div style={{
@@ -3056,13 +3186,14 @@ export default function PaperTrading() {
                     {/* Active Trade Line & Floating Badge Across Chart */}
                     <div style={{
                       position: 'absolute',
-                      top: '50%',
+                      top: `${yPercent}%`,
                       left: 0,
                       right: 0,
                       transform: 'translateY(-50%)',
                       display: 'flex',
                       alignItems: 'center',
-                      pointerEvents: 'none'
+                      pointerEvents: 'none',
+                      transition: 'top 0.3s ease-out'
                     }}>
                       {/* Horizontal Active Position Guideline */}
                       <div style={{
@@ -3501,38 +3632,95 @@ export default function PaperTrading() {
           flexDirection: 'column',
           gap: '20px'
         }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'rgba(255, 255, 255, 0.03)', padding: '4px', borderRadius: '8px' }}>
-            <button
-              onClick={() => setIsBuy(true)}
-              style={{
-                background: isBuy ? '#00ff88' : 'transparent',
-                border: 'none',
-                color: isBuy ? '#0a0e27' : '#9b9eac',
-                padding: '10px',
-                borderRadius: '6px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              BUY
-            </button>
-            <button
-              onClick={() => setIsBuy(false)}
-              style={{
-                background: !isBuy ? '#ff4444' : 'transparent',
-                border: 'none',
-                color: !isBuy ? '#ffffff' : '#9b9eac',
-                padding: '10px',
-                borderRadius: '6px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              SELL
-            </button>
-          </div>
+          {/* Buy / Sell Toggle Tabs */}
+          {(() => {
+            const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+            const ownedQty = activeHolding ? parseFloat(activeHolding.quantity || 0) : 0;
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'rgba(255, 255, 255, 0.03)', padding: '4px', borderRadius: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsBuy(true)}
+                    style={{
+                      background: isBuy ? '#00ff88' : 'transparent',
+                      border: 'none',
+                      color: isBuy ? '#0a0e27' : '#9b9eac',
+                      padding: '10px',
+                      borderRadius: '6px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>BUY / LONG</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsBuy(false)}
+                    style={{
+                      background: !isBuy ? '#ff4444' : 'transparent',
+                      border: 'none',
+                      color: !isBuy ? '#ffffff' : '#9b9eac',
+                      padding: '10px',
+                      borderRadius: '6px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>SELL / CLOSE</span>
+                  </button>
+                </div>
+
+                {/* Helpful ownership indicator for SELL */}
+                {!isBuy && (
+                  <div style={{
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    background: ownedQty > 0 ? 'rgba(0, 255, 136, 0.08)' : 'rgba(255, 68, 68, 0.1)',
+                    border: `1px solid ${ownedQty > 0 ? 'rgba(0, 255, 136, 0.25)' : 'rgba(255, 68, 68, 0.3)'}`,
+                    fontSize: '11px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    color: ownedQty > 0 ? '#00ff88' : '#ff7878'
+                  }}>
+                    <span>{ownedQty > 0 ? `You virtually own: ${ownedQty} units` : 'No open position in this asset'}</span>
+                    {ownedQty > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(ownedQty)}
+                        style={{
+                          background: '#00ff88',
+                          color: '#000',
+                          border: 'none',
+                          borderRadius: '4px',
+                          padding: '2px 6px',
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Set Max ({ownedQty})
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '10px', color: '#ffaaaa' }}>Switch to BUY to open trade</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <form id="paper-order-form" onSubmit={handlePlaceOrder} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             
@@ -3776,26 +3964,42 @@ export default function PaperTrading() {
             </div>
 
             {/* CTA Button */}
-            <button
-              type="submit"
-              style={{
-                background: isBuy ? '#00ff88' : '#ff4444',
-                border: 'none',
-                color: isBuy ? '#0a0e27' : '#ffffff',
-                padding: '14px',
-                borderRadius: '8px',
-                fontWeight: 800,
-                fontSize: '14px',
-                cursor: 'pointer',
-                boxShadow: `0 4px 14px ${isBuy ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)'}`,
-                transition: 'all 0.2s',
-                marginTop: '8px'
-              }}
-              onMouseOver={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-              onMouseOut={e => e.currentTarget.style.transform = 'none'}
-            >
-              Place {isBuy ? 'BUY' : 'SELL'} {orderType.toUpperCase()} Order
-            </button>
+            {(() => {
+              const activeHolding = holdings.find(h => h.symbol === selectedSymbol);
+              const ownedQty = activeHolding ? parseFloat(activeHolding.quantity || 0) : 0;
+              const isSellWithoutStock = !isBuy && ownedQty <= 0;
+
+              return (
+                <button
+                  type="submit"
+                  disabled={isSellWithoutStock}
+                  style={{
+                    background: isSellWithoutStock ? '#475569' : (isBuy ? '#00ff88' : '#ff4444'),
+                    border: 'none',
+                    color: isSellWithoutStock ? '#94a3b8' : (isBuy ? '#0a0e27' : '#ffffff'),
+                    padding: '14px',
+                    borderRadius: '8px',
+                    fontWeight: 800,
+                    fontSize: '14px',
+                    cursor: isSellWithoutStock ? 'not-allowed' : 'pointer',
+                    boxShadow: isSellWithoutStock ? 'none' : `0 4px 14px ${isBuy ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)'}`,
+                    transition: 'all 0.2s',
+                    marginTop: '8px',
+                    opacity: isSellWithoutStock ? 0.7 : 1
+                  }}
+                  onMouseOver={e => {
+                    if (!isSellWithoutStock) e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseOut={e => {
+                    if (!isSellWithoutStock) e.currentTarget.style.transform = 'none';
+                  }}
+                >
+                  {isSellWithoutStock 
+                    ? 'Cannot Sell: No Virtual Position Held' 
+                    : `Place ${isBuy ? 'BUY' : 'SELL'} ${orderType.toUpperCase()} Order`}
+                </button>
+              );
+            })()}
           </form>
         </div>
       </div>

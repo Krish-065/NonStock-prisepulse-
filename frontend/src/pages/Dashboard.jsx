@@ -177,14 +177,41 @@ export default function Dashboard() {
     { name: 'Energy (XLE)', etf: 'XLE', change: -1.15, isPositive: false },
   ]);
 
+  // Paper Trading Portfolio State for Dashboard Hero Spotlight
+  const [paperPortfolio, setPaperPortfolio] = useState({
+    virtualBalance: user?.is_pro ? 1000000 : 50000,
+    totalHoldingsValue: 0,
+    holdings: [],
+    loading: true
+  });
+
+  const fetchPaperData = async () => {
+    try {
+      const res = await apiClient.get('/paper/portfolio');
+      if (res.data) {
+        setPaperPortfolio({
+          virtualBalance: parseFloat(res.data.virtualBalance || (user?.is_pro ? 1000000 : 50000)),
+          totalHoldingsValue: parseFloat(res.data.totalHoldingsValue || 0),
+          holdings: res.data.holdings || [],
+          loading: false
+        });
+      }
+    } catch (e) {
+      console.warn('Dashboard paper portfolio fetch error:', e);
+      setPaperPortfolio(prev => ({ ...prev, loading: false }));
+    }
+  };
+
   // Initial Fetch & Intervals
   useEffect(() => {
     fetchGlobalMarketData();
     fetchNews();
+    fetchPaperData();
 
     // Regular API polling every 6 seconds
     const pollInterval = setInterval(() => {
       fetchGlobalMarketData();
+      fetchPaperData();
     }, 6000);
 
     // High frequency micro-tick simulation to make live charts feel alive
@@ -324,6 +351,191 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '26px', paddingBottom: '32px' }}>
+      
+      {/* 0. HERO SPOTLIGHT: Paper Trading Command Hub */}
+      <div style={{
+        background: isLight 
+          ? 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 50%, #ffffff 100%)' 
+          : 'linear-gradient(135deg, #09131f 0%, #0d231a 50%, #0a1120 100%)',
+        border: '1.5px solid #00b060',
+        borderRadius: '22px',
+        padding: '24px 28px',
+        boxShadow: isLight ? '0 10px 30px rgba(0, 176, 96, 0.08)' : '0 12px 40px rgba(0, 255, 136, 0.12)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Subtle decorative glow */}
+        <div style={{
+          position: 'absolute',
+          top: '-40px',
+          right: '-40px',
+          width: '260px',
+          height: '260px',
+          background: 'radial-gradient(circle, rgba(0, 255, 136, 0.15) 0%, transparent 70%)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '20px',
+          position: 'relative',
+          zIndex: 1
+        }}>
+          {/* Left: Product Focus Title & Real-time Balance */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{
+                background: '#00b060',
+                color: '#ffffff',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 900,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <Zap size={13} /> HERO FEATURE • ZERO RISK
+              </span>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                Live Virtual Capital Simulation
+              </span>
+            </div>
+
+            <h2 style={{
+              fontSize: '24px',
+              fontWeight: 900,
+              color: 'var(--text-primary)',
+              margin: '2px 0 0 0',
+              letterSpacing: '-0.02em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <span>NonStock Paper Trading Desk</span>
+              {user?.is_pro && (
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 900,
+                  color: '#ffb300',
+                  background: 'rgba(255, 179, 0, 0.12)',
+                  border: '1px solid rgba(255, 179, 0, 0.3)',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <Crown size={12} /> PRO $1M ALLOCATION
+                </span>
+              )}
+            </h2>
+
+            <p style={{
+              fontSize: '13px',
+              color: 'var(--text-secondary)',
+              margin: 0,
+              maxWidth: '680px',
+              lineHeight: 1.5
+            }}>
+              Master global & Indian equity markets, futures, and crypto risk-free with institutional order executions, draggable TP/SL levels, and live P&L tracking.
+            </p>
+          </div>
+
+          {/* Right: Real-time Stats & Launch Button */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            flexWrap: 'wrap'
+          }}>
+            {/* Balance Pill */}
+            <div style={{
+              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.8)',
+              border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '14px',
+              padding: '12px 18px',
+              display: 'flex',
+              flexDirection: 'column',
+              minWidth: '160px'
+            }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
+                Virtual Cash Balance
+              </span>
+              <span style={{
+                fontSize: '20px',
+                fontWeight: 900,
+                color: '#00b060',
+                fontFamily: 'monospace',
+                marginTop: '2px'
+              }}>
+                ${paperPortfolio.virtualBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+
+            {/* Open Positions Pill */}
+            <div style={{
+              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.8)',
+              border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '14px',
+              padding: '12px 18px',
+              display: 'flex',
+              flexDirection: 'column',
+              minWidth: '140px'
+            }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
+                Open Positions
+              </span>
+              <span style={{
+                fontSize: '20px',
+                fontWeight: 900,
+                color: 'var(--text-primary)',
+                fontFamily: 'monospace',
+                marginTop: '2px'
+              }}>
+                {paperPortfolio.holdings.length} Active {paperPortfolio.holdings.length === 1 ? 'Trade' : 'Trades'}
+              </span>
+            </div>
+
+            {/* Launch CTA */}
+            <button
+              onClick={() => navigate('/paper-trading')}
+              style={{
+                background: '#00b060',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '14px',
+                padding: '14px 24px',
+                fontSize: '14px',
+                fontWeight: 900,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 6px 20px rgba(0, 176, 96, 0.35)',
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 10px 28px rgba(0, 176, 96, 0.5)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 176, 96, 0.35)';
+              }}
+            >
+              <span>Launch Paper Trading</span>
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
       
       {/* 1. High-Profile Centered Exploration Hero & Universal Global Search */}
       <div style={{ 
