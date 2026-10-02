@@ -12,13 +12,20 @@ export const TradingProvider = ({ children }) => {
   const [history, setHistory] = useState([]);
   const [hasSeenModal, setHasSeenModal] = useState(false);
   const [isBusted, setIsBusted] = useState(false);
+  const [watchlist, setWatchlist] = useState(['BTCUSDT', 'XAUUSD', 'EURUSD', 'AAPL', 'NVDA']);
+  const [unlockedTools, setUnlockedTools] = useState({
+    screener: false,
+    strategyLab: false,
+    aiMentor: false,
+    replay: false
+  });
 
   // Badge Logic
   const getBadge = (equity) => {
-    if (equity >= 15000) return { name: 'Operator', color: '#A855F7', glow: '0 0 10px #A855F7' }; // Neon purple
-    if (equity >= 8000) return { name: 'Master', color: '#EF4444', glow: 'none' };
-    if (equity >= 4000) return { name: 'Gold', color: '#F59E0B', glow: 'none' };
-    if (equity >= 2000) return { name: 'Silver', color: '#94A3B8', glow: 'none' };
+    if (equity >= 15000) return { name: 'Operator', color: '#A855F7', glow: '0 0 16px rgba(168, 85, 247, 0.6)' }; // Neon purple
+    if (equity >= 8000) return { name: 'Master', color: '#EF4444', glow: '0 0 12px rgba(239, 68, 68, 0.4)' };
+    if (equity >= 4000) return { name: 'Gold', color: '#F59E0B', glow: '0 0 12px rgba(245, 158, 11, 0.4)' };
+    if (equity >= 2000) return { name: 'Silver', color: '#94A3B8', glow: '0 0 8px rgba(148, 163, 184, 0.4)' };
     return { name: 'Contender', color: '#64748B', glow: 'none' };
   };
 
@@ -36,6 +43,8 @@ export const TradingProvider = ({ children }) => {
         if (parsed.history) setHistory(parsed.history);
         if (parsed.hasSeenModal !== undefined) setHasSeenModal(parsed.hasSeenModal);
         if (parsed.isBusted !== undefined) setIsBusted(parsed.isBusted);
+        if (parsed.watchlist) setWatchlist(parsed.watchlist);
+        if (parsed.unlockedTools) setUnlockedTools(parsed.unlockedTools);
       }
     } catch (e) {
       console.error("Failed to parse trading state", e);
@@ -45,9 +54,9 @@ export const TradingProvider = ({ children }) => {
   // Save to local storage on change
   useEffect(() => {
     localStorage.setItem('nonstock_trading_state', JSON.stringify({
-      balance, coins, positions, history, hasSeenModal, isBusted
+      balance, coins, positions, history, hasSeenModal, isBusted, watchlist, unlockedTools
     }));
-  }, [balance, coins, positions, history, hasSeenModal, isBusted]);
+  }, [balance, coins, positions, history, hasSeenModal, isBusted, watchlist, unlockedTools]);
 
   const acknowledgeModal = () => setHasSeenModal(true);
 
@@ -130,10 +139,43 @@ export const TradingProvider = ({ children }) => {
     }
   };
 
+  const addToWatchlist = (sym) => {
+    if (!sym) return;
+    const clean = sym.toUpperCase().trim();
+    if (watchlist.includes(clean)) {
+      toast.error(`${clean} is already in your watchlist.`);
+      return;
+    }
+    setWatchlist(prev => [clean, ...prev]);
+    toast.success(`Added ${clean} to Watchlist`, { icon: '⭐' });
+  };
+
+  const removeFromWatchlist = (sym) => {
+    setWatchlist(prev => prev.filter(s => s !== sym));
+    toast.success(`Removed ${sym} from Watchlist`);
+  };
+
+  const unlockTool = (toolKey, cost, toolName) => {
+    if (unlockedTools[toolKey]) {
+      toast.success(`${toolName || toolKey} is already unlocked!`);
+      return true;
+    }
+    if (coins < cost) {
+      toast.error(`Not enough Gold Coins. Required: ${cost}, Current: ${coins}`);
+      return false;
+    }
+    setCoins(prev => prev - cost);
+    setUnlockedTools(prev => ({ ...prev, [toolKey]: true }));
+    toast.success(`Successfully unlocked ${toolName || toolKey}! Deducted ${cost} Gold Coins.`, { icon: '🎉' });
+    return true;
+  };
+
   return (
     <TradingContext.Provider value={{
       balance, coins, positions, history, hasSeenModal, isBusted, badge,
-      placeOrder, closePosition, updateSLTP, resetAccount, acknowledgeModal
+      watchlist, unlockedTools,
+      placeOrder, closePosition, updateSLTP, resetAccount, acknowledgeModal,
+      addToWatchlist, removeFromWatchlist, unlockTool
     }}>
       {children}
     </TradingContext.Provider>

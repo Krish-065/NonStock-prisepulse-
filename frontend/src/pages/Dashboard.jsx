@@ -1,679 +1,1070 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { createChart, CandlestickSeries, LineSeries } from 'lightweight-charts';
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { useTrading } from '../contexts/TradingContext';
 import { 
-  Settings, Maximize2, DollarSign, PieChart, Activity, TrendingUp, 
-  AlertTriangle, Sliders, Layers, Sparkles, Trophy, Coins, RotateCcw,
-  CheckCircle2, ArrowRight
+  Trophy, Medal, Star, Zap, ArrowRight, ShieldCheck, 
+  Lock, Unlock, Target, Coins, Activity, TrendingUp, TrendingDown,
+  Search, Plus, X, Crown, Sparkles, Sliders, ExternalLink,
+  Flame, CheckCircle2, AlertCircle, BarChart2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import LiveMarketScreener from '../components/LiveMarketScreener';
 
-const ASSETS = {
-  Crypto: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
-  Forex: ['EURUSD', 'GBPUSD', 'USDJPY'],
-  Commodities: ['XAUUSD', 'WTIUSD', 'XAGUSD'],
-  Equities: ['AAPL', 'NVDA', 'TSLA', 'SPY']
-};
+// Available assets for the Watchlist search dropdown
+const WATCHLIST_DATABASE = [
+  { symbol: 'BTCUSDT', name: 'Bitcoin / USDT', category: 'Crypto', price: '$86,280.00', change: '+2.45%' },
+  { symbol: 'ETHUSDT', name: 'Ethereum / USDT', category: 'Crypto', price: '$3,420.50', change: '+1.80%' },
+  { symbol: 'SOLUSDT', name: 'Solana / USDT', category: 'Crypto', price: '$158.20', change: '+4.12%' },
+  { symbol: 'XAUUSD', name: 'Gold Spot / USD', category: 'Commodities', price: '$2,518.40', change: '+0.74%' },
+  { symbol: 'WTIUSD', name: 'Crude Oil WTI', category: 'Commodities', price: '$78.50', change: '-0.65%' },
+  { symbol: 'XAGUSD', name: 'Silver Spot / USD', category: 'Commodities', price: '$29.40', change: '+1.15%' },
+  { symbol: 'EURUSD', name: 'EUR / USD Forex', category: 'Forex', price: '1.0848', change: '+0.22%' },
+  { symbol: 'GBPUSD', name: 'GBP / USD Forex', category: 'Forex', price: '1.3032', change: '-0.12%' },
+  { symbol: 'USDJPY', name: 'USD / JPY Forex', category: 'Forex', price: '148.82', change: '+0.36%' },
+  { symbol: 'AAPL', name: 'Apple Inc.', category: 'Equities', price: '$226.40', change: '+0.85%' },
+  { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'Equities', price: '$124.50', change: '+3.10%' },
+  { symbol: 'TSLA', name: 'Tesla Inc.', category: 'Equities', price: '$248.60', change: '-1.40%' },
+  { symbol: 'SPY', name: 'S&P 500 ETF Trust', category: 'Equities', price: '$572.30', change: '+0.45%' }
+];
 
-// Indicator math helpers for Lightweight Charts
-const calculateSMA = (data, period) => {
-  const sma = [];
-  for (let i = 0; i < data.length; i++) {
-    if (i < period - 1) continue;
-    let sum = 0;
-    for (let j = 0; j < period; j++) {
-      sum += data[i - j].close;
-    }
-    sma.push({ time: data[i].time, value: sum / period });
+export default function Dashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { 
+    balance, coins, positions, history, badge, closePosition,
+    watchlist, addToWatchlist, removeFromWatchlist,
+    unlockedTools, unlockTool 
+  } = useTrading();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showProModal, setShowProModal] = useState(false);
+
+  // Filter search results for Watchlist
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return WATCHLIST_DATABASE.filter(item => 
+      item.symbol.toLowerCase().includes(q) || item.name.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  // Tag details & progression
+  const tagColor = badge.color || '#64748B';
+  const tagGlow = badge.glow || 'none';
+  const userName = user?.name || user?.email?.split('@')[0] || 'Trader';
+
+  // Progression math
+  let nextRankName = 'Silver';
+  let nextRankTarget = 2000;
+  if (balance >= 15000) {
+    nextRankName = 'Max Rank (Operator)';
+    nextRankTarget = 15000;
+  } else if (balance >= 8000) {
+    nextRankName = 'Operator';
+    nextRankTarget = 15000;
+  } else if (balance >= 4000) {
+    nextRankName = 'Master';
+    nextRankTarget = 8000;
+  } else if (balance >= 2000) {
+    nextRankName = 'Gold';
+    nextRankTarget = 4000;
+  } else {
+    nextRankName = 'Silver';
+    nextRankTarget = 2000;
   }
-  return sma;
-};
 
-const calculateEMA = (data, period) => {
-  const ema = [];
-  if (data.length === 0) return ema;
-  const k = 2 / (period + 1);
-  let sum = 0;
-  for (let i = 0; i < Math.min(period, data.length); i++) {
-    sum += data[i].close;
-  }
-  let prevEma = sum / Math.min(period, data.length);
-  for (let i = 0; i < data.length; i++) {
-    if (i < period - 1) continue;
-    if (i === period - 1) {
-      ema.push({ time: data[i].time, value: prevEma });
-    } else {
-      const val = data[i].close * k + prevEma * (1 - k);
-      ema.push({ time: data[i].time, value: val });
-      prevEma = val;
-    }
-  }
-  return ema;
-};
+  const rankProgress = Math.min(100, Math.max(0, (balance / nextRankTarget) * 100));
 
-const calculateBollingerBands = (data, period = 20, multiplier = 2) => {
-  const upper = [];
-  const lower = [];
-  const middle = [];
-  for (let i = 0; i < data.length; i++) {
-    if (i < period - 1) continue;
-    let sum = 0;
-    for (let j = 0; j < period; j++) {
-      sum += data[i - j].close;
-    }
-    const mean = sum / period;
-    let varianceSum = 0;
-    for (let j = 0; j < period; j++) {
-      varianceSum += Math.pow(data[i - j].close - mean, 2);
-    }
-    const sd = Math.sqrt(varianceSum / period);
-    middle.push({ time: data[i].time, value: mean });
-    upper.push({ time: data[i].time, value: mean + multiplier * sd });
-    lower.push({ time: data[i].time, value: mean - multiplier * sd });
-  }
-  return { upper, lower, middle };
-};
-
-export default function Terminal() {
-  const chartContainerRef = useRef(null);
-  const chartRef = useRef(null);
-  const candlestickSeriesRef = useRef(null);
-  const smaSeriesRef = useRef(null);
-  const emaSeriesRef = useRef(null);
-  const bbUpperRef = useRef(null);
-  const bbLowerRef = useRef(null);
-  const wsRef = useRef(null);
-  const rawCandlesRef = useRef([]);
-
-  const { balance, positions, placeOrder, closePosition } = useTrading();
-
-  const [category, setCategory] = useState('Crypto');
-  const [symbol, setSymbol] = useState('BTCUSDT');
-  const [currentPrice, setCurrentPrice] = useState(65000);
-  const [historicalData, setHistoricalData] = useState([]);
-
-  // Indicator toggles
-  const [activeIndicators, setActiveIndicators] = useState({
-    sma20: false,
-    ema50: false,
-    bollinger: false
-  });
-
-  // Order Ticket State
-  const [side, setSide] = useState('LONG');
-  const [orderType, setOrderType] = useState('Market');
-  const [size, setSize] = useState(0.1);
-  const [leverage, setLeverage] = useState(10);
-  const [sl, setSl] = useState('');
-  const [tp, setTp] = useState('');
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-
-  // Derived Calc
-  const positionValue = size * currentPrice;
-  const marginReq = positionValue / leverage;
-  const isHighLeverage = leverage > 20;
-
-  let dollarRiskAtSL = 0;
-  if (sl) {
-    dollarRiskAtSL = Math.abs(currentPrice - parseFloat(sl)) * size;
-  }
-  let dollarRewardAtTP = 0;
-  if (tp) {
-    dollarRewardAtTP = Math.abs(parseFloat(tp) - currentPrice) * size;
-  }
-  const rrr = dollarRiskAtSL > 0 && dollarRewardAtTP > 0 ? (dollarRewardAtTP / dollarRiskAtSL).toFixed(2) : 'N/A';
-  
-  const liqDistance = marginReq / size;
-  const liqPrice = side === 'LONG' ? currentPrice - liqDistance : currentPrice + liqDistance;
-
-  // Initialize Chart
-  useEffect(() => {
-    if (!chartContainerRef.current) return;
-    
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: 'solid', color: '#ffffff' },
-        textColor: '#0F172A',
-        fontFamily: 'Inter, sans-serif'
-      },
-      grid: {
-        vertLines: { color: '#E2E8F0' },
-        horzLines: { color: '#E2E8F0' },
-      },
-      crosshair: {
-        mode: 1,
-      },
-      timeScale: {
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      rightPriceScale: {
-        borderColor: '#E2E8F0',
-      }
-    });
-
-    const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#10B981',
-      downColor: '#EF4444',
-      borderVisible: false,
-      wickUpColor: '#10B981',
-      wickDownColor: '#EF4444'
-    });
-
-    chartRef.current = chart;
-    candlestickSeriesRef.current = candlestickSeries;
-
-    const handleResize = () => {
-      if (chartContainerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
-      }
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
-  }, []);
-
-  // Update Indicator Series when data or activeIndicators changes
-  const updateIndicatorsOnChart = (candles) => {
-    if (!chartRef.current || !candles || candles.length === 0) return;
-
-    // SMA 20
-    if (activeIndicators.sma20) {
-      if (!smaSeriesRef.current) {
-        smaSeriesRef.current = chartRef.current.addSeries(LineSeries, {
-          color: '#0284c7',
-          lineWidth: 2,
-          title: 'SMA 20'
-        });
-      }
-      smaSeriesRef.current.setData(calculateSMA(candles, 20));
-    } else if (smaSeriesRef.current) {
-      chartRef.current.removeSeries(smaSeriesRef.current);
-      smaSeriesRef.current = null;
-    }
-
-    // EMA 50
-    if (activeIndicators.ema50) {
-      if (!emaSeriesRef.current) {
-        emaSeriesRef.current = chartRef.current.addSeries(LineSeries, {
-          color: '#f97316',
-          lineWidth: 2,
-          title: 'EMA 50'
-        });
-      }
-      emaSeriesRef.current.setData(calculateEMA(candles, 50));
-    } else if (emaSeriesRef.current) {
-      chartRef.current.removeSeries(emaSeriesRef.current);
-      emaSeriesRef.current = null;
-    }
-
-    // Bollinger Bands
-    if (activeIndicators.bollinger) {
-      if (!bbUpperRef.current) {
-        bbUpperRef.current = chartRef.current.addSeries(LineSeries, {
-          color: 'rgba(234, 179, 8, 0.7)',
-          lineWidth: 1,
-          lineStyle: 1,
-          title: 'BB Upper'
-        });
-        bbLowerRef.current = chartRef.current.addSeries(LineSeries, {
-          color: 'rgba(234, 179, 8, 0.7)',
-          lineWidth: 1,
-          lineStyle: 1,
-          title: 'BB Lower'
-        });
-      }
-      const { upper, lower } = calculateBollingerBands(candles, 20, 2);
-      bbUpperRef.current.setData(upper);
-      bbLowerRef.current.setData(lower);
-    } else {
-      if (bbUpperRef.current) {
-        chartRef.current.removeSeries(bbUpperRef.current);
-        bbUpperRef.current = null;
-      }
-      if (bbLowerRef.current) {
-        chartRef.current.removeSeries(bbLowerRef.current);
-        bbLowerRef.current = null;
-      }
-    }
-  };
-
-  useEffect(() => {
-    updateIndicatorsOnChart(rawCandlesRef.current);
-  }, [activeIndicators]);
-
-  // Fetch Data & Connect WebSocket
-  useEffect(() => {
-    if (!candlestickSeriesRef.current) return;
-
-    const isBinanceSymbol = category === 'Crypto';
-    
-    if (isBinanceSymbol) {
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=100`)
-        .then(res => res.json())
-        .then(data => {
-          const formattedData = data.map(d => ({
-            time: d[0] / 1000,
-            open: parseFloat(d[1]),
-            high: parseFloat(d[2]),
-            low: parseFloat(d[3]),
-            close: parseFloat(d[4])
-          }));
-          rawCandlesRef.current = formattedData;
-          candlestickSeriesRef.current.setData(formattedData);
-          setCurrentPrice(formattedData[formattedData.length - 1].close);
-          updateIndicatorsOnChart(formattedData);
-        })
-        .catch(err => console.error(err));
-
-      if (wsRef.current) wsRef.current.close();
-      const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_1m`);
-      ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        if (msg.e === 'kline') {
-          const k = msg.k;
-          const tick = {
-            time: k.t / 1000,
-            open: parseFloat(k.o),
-            high: parseFloat(k.h),
-            low: parseFloat(k.l),
-            close: parseFloat(k.c)
-          };
-          candlestickSeriesRef.current.update(tick);
-          setCurrentPrice(tick.close);
-        }
-      };
-      wsRef.current = ws;
-    } else {
-      let mockPrice = category === 'Forex' ? 1.0845 : category === 'Commodities' ? 2518.00 : 185;
-      const data = [];
-      let time = Math.floor(Date.now() / 1000) - 100 * 60;
-      for (let i = 0; i < 100; i++) {
-        data.push({
-          time: time + i * 60,
-          open: mockPrice,
-          high: mockPrice + Math.random() * (mockPrice * 0.002),
-          low: mockPrice - Math.random() * (mockPrice * 0.002),
-          close: mockPrice + (Math.random() - 0.49) * (mockPrice * 0.002)
-        });
-        mockPrice = data[i].close;
-      }
-      rawCandlesRef.current = data;
-      candlestickSeriesRef.current.setData(data);
-      setCurrentPrice(mockPrice);
-      updateIndicatorsOnChart(data);
-
-      if (wsRef.current) wsRef.current.close();
-      const interval = setInterval(() => {
-        mockPrice = mockPrice + (Math.random() - 0.49) * (mockPrice * 0.0008);
-        candlestickSeriesRef.current.update({
-          time: Math.floor(Date.now() / 1000),
-          open: mockPrice,
-          high: mockPrice + (mockPrice * 0.0004),
-          low: mockPrice - (mockPrice * 0.0004),
-          close: mockPrice
-        });
-        setCurrentPrice(mockPrice);
-      }, 2000);
-      wsRef.current = { close: () => clearInterval(interval) };
-    }
-
-    return () => {
-      if (wsRef.current) wsRef.current.close();
-    };
-  }, [symbol, category]);
-
-  const handlePlaceOrder = () => {
-    if (marginReq > balance) {
-      toast.error('Insufficient Free Margin');
-      return;
-    }
-    placeOrder({
-      asset: symbol,
-      side,
-      size,
-      leverage,
-      entryPrice: currentPrice,
-      margin: marginReq,
-      sl: sl ? parseFloat(sl) : null,
-      tp: tp ? parseFloat(tp) : null
-    });
-    setShowConfirmModal(false);
-    toast.success(`${side} order filled for ${size} ${symbol}`);
-  };
-
-  // Callback when a user clicks "Trade" on the Live Market Screener
-  const handleScreenerTradeSelect = (asset) => {
-    // Map screener symbols to Terminal symbols
-    if (asset.symbol === 'BTC-USD') {
-      setCategory('Crypto');
-      setSymbol('BTCUSDT');
-    } else if (asset.symbol === 'GC=F') {
-      setCategory('Commodities');
-      setSymbol('XAUUSD');
-    } else if (asset.symbol === 'EURUSD=X') {
-      setCategory('Forex');
-      setSymbol('EURUSD');
-    } else if (asset.symbol === 'GBPUSD=X') {
-      setCategory('Forex');
-      setSymbol('GBPUSD');
-    } else if (asset.symbol === 'USDJPY=X') {
-      setCategory('Forex');
-      setSymbol('USDJPY');
-    } else {
-      setCategory('Forex');
-      setSymbol(asset.badge.replace('/', ''));
-    }
-
-    // Smoothly scroll to the trading terminal
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    toast.success(`Loaded ${asset.name} into Trading Terminal`, { icon: '📈' });
-  };
+  // Hall of Fame Mock Data
+  const leaderboard = [
+    { rank: 1, name: 'Alex_Quant', tag: 'Operator', color: '#A855F7', der: 96.4, balance: 18450 },
+    { rank: 2, name: 'Sarah_Pro', tag: 'Operator', color: '#A855F7', der: 92.1, balance: 16200 },
+    { rank: 3, name: 'Macro_King', tag: 'Master', color: '#EF4444', der: 88.5, balance: 9400 },
+    { rank: 4, name: 'Vortex_FX', tag: 'Gold', color: '#F59E0B', der: 82.0, balance: 5100 },
+    { rank: 5, name: 'Alpha_Trader', tag: 'Gold', color: '#F59E0B', der: 79.4, balance: 4300 },
+  ];
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '28px', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ maxWidth: '1360px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', fontFamily: 'Inter, sans-serif' }}>
       
-      {/* ─── 1. TOP ACCOUNT BAR & STATS ─── */}
-      <div style={{ background: '#FFFFFF', padding: '16px 24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', letterSpacing: '0.5px' }}>PROVING CAPITAL</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', letterSpacing: '0.5px' }}>MAX LEVERAGE</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#10B981' }}>50x Unlocked</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', letterSpacing: '0.5px' }}>FREE MARGIN</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', letterSpacing: '0.5px' }}>OPEN POSITIONS</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0F172A' }}>{positions.length}</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button 
-            onClick={() => {
-              if (window.confirm('Reset virtual portfolio back to $1,000 baseline?')) {
-                window.location.reload();
-              }
-            }}
-            style={{ padding: '8px 16px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '8px', fontWeight: '700', fontSize: '0.875rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <RotateCcw size={14} /> Reset Capital
-          </button>
-        </div>
-      </div>
-
-      {/* ─── 2. MAIN TRADING ARENA (CHART + ORDER TICKET) ─── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: '20px' }}>
-        
-        {/* Left: Terminal Chart */}
-        <div style={{ background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* ─── 1. TOP PROFILE HERO (TAG & ACCOUNT HOLDER NAME IN TAG COLOR) ─── */}
+      <div style={{
+        background: '#FFFFFF',
+        borderRadius: '20px',
+        border: `2px solid ${tagColor}`,
+        padding: '32px',
+        boxShadow: tagGlow !== 'none' ? tagGlow : '0 8px 30px rgba(0, 0, 0, 0.05)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '24px',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Left Side: Avatar, Name & Current Tag */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
           
-          {/* Chart Header Bar */}
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <select 
-                value={category} 
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  setSymbol(ASSETS[e.target.value][0]);
-                }}
-                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', fontWeight: '700', background: '#F8FAFC' }}
-              >
-                {Object.keys(ASSETS).map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+          {/* Big Profile Emblem with Tag Border */}
+          <div style={{
+            width: '84px',
+            height: '84px',
+            borderRadius: '20px',
+            background: '#F8FAFC',
+            border: `3px solid ${tagColor}`,
+            boxShadow: tagGlow !== 'none' ? tagGlow : '0 4px 15px rgba(0,0,0,0.06)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '32px',
+            fontWeight: 900,
+            color: tagColor
+          }}>
+            {userName.charAt(0).toUpperCase()}
+          </div>
 
-              <select 
-                value={symbol} 
-                onChange={(e) => setSymbol(e.target.value)}
-                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', fontWeight: '800', background: '#FFFFFF' }}
-              >
-                {ASSETS[category].map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              {/* Account Holder Name in Tag Color */}
+              <h1 style={{ 
+                fontSize: '32px', 
+                fontWeight: 900, 
+                color: tagColor, 
+                margin: 0,
+                textShadow: tagGlow !== 'none' ? tagGlow : 'none',
+                letterSpacing: '-0.5px'
+              }}>
+                {userName}
+              </h1>
 
-              <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
-                ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </div>
-            </div>
-
-            {/* Technical Indicators Toggle Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Sliders size={13} color="#10B981" /> Indicators:
+              {/* Big Tag Badge */}
+              <span style={{
+                background: '#0F172A',
+                color: tagColor,
+                border: `1.5px solid ${tagColor}`,
+                boxShadow: tagGlow !== 'none' ? tagGlow : 'none',
+                padding: '6px 16px',
+                borderRadius: '999px',
+                fontSize: '13px',
+                fontWeight: 900,
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase'
+              }}>
+                {badge.name}
               </span>
-              {[
-                { id: 'sma20', label: 'SMA 20', color: '#0284c7' },
-                { id: 'ema50', label: 'EMA 50', color: '#f97316' },
-                { id: 'bollinger', label: 'Bollinger Bands', color: '#eab308' }
-              ].map(ind => {
-                const isAct = activeIndicators[ind.id];
-                return (
-                  <button
-                    key={ind.id}
-                    onClick={() => setActiveIndicators(prev => ({ ...prev, [ind.id]: !prev[ind.id] }))}
-                    style={{
-                      background: isAct ? ind.color : '#F1F5F9',
-                      color: isAct ? '#FFFFFF' : '#475569',
-                      border: `1px solid ${isAct ? ind.color : '#CBD5E1'}`,
-                      borderRadius: '6px',
-                      padding: '4px 10px',
-                      fontSize: '0.75rem',
-                      fontWeight: '800',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s'
-                    }}
-                  >
-                    {ind.label}
-                  </button>
-                );
-              })}
+
+              {/* Pro Badge */}
+              <button
+                onClick={() => setShowProModal(true)}
+                style={{
+                  background: '#FEF3C7',
+                  border: '1px solid #FDE047',
+                  color: '#B45309',
+                  padding: '5px 12px',
+                  borderRadius: '999px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}
+              >
+                <Crown size={14} color="#B45309" /> Pro Account
+              </button>
+            </div>
+
+            <div style={{ fontSize: '14px', color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span>Disciplined Proving Account</span>
+              <span>•</span>
+              <span>ID: NS-{user?.id?.substring(0, 8) || 'CONTENDER'}</span>
+              <span>•</span>
+              <span style={{ color: '#10B981', fontWeight: 700 }}>100% Verified Non-Tipster</span>
+            </div>
+
+            {/* Next Rank Progress Bar */}
+            <div style={{ marginTop: '14px', maxWidth: '380px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
+                <span>Current: ${balance.toFixed(2)}</span>
+                <span>Next Tier: {nextRankName} (${nextRankTarget.toLocaleString()})</span>
+              </div>
+              <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '10px', overflow: 'hidden' }}>
+                <div style={{ width: `${rankProgress}%`, height: '100%', background: tagColor, borderRadius: '10px', transition: 'width 0.3s' }} />
+              </div>
             </div>
           </div>
-
-          {/* Lightweight Chart Container */}
-          <div ref={chartContainerRef} style={{ width: '100%', height: '480px' }} />
         </div>
 
-        {/* Right: Order Ticket */}
-        <div style={{ background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: '800', margin: 0, color: '#0F172A' }}>Execution Ticket</h3>
-
-          {/* Long / Short Switch */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button 
-              onClick={() => setSide('LONG')}
-              style={{ flex: 1, padding: '10px', background: side === 'LONG' ? '#10B981' : '#F1F5F9', color: side === 'LONG' ? '#FFF' : '#64748B', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}
-            >
-              Buy / Long
-            </button>
-            <button 
-              onClick={() => setSide('SHORT')}
-              style={{ flex: 1, padding: '10px', background: side === 'SHORT' ? '#EF4444' : '#F1F5F9', color: side === 'SHORT' ? '#FFF' : '#64748B', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}
-            >
-              Sell / Short
-            </button>
-          </div>
-
-          {/* Size */}
-          <div>
-            <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', marginBottom: '4px', display: 'block' }}>Position Size (Units)</label>
-            <input 
-              type="number" 
-              value={size} 
-              onChange={(e) => setSize(Math.max(0.001, parseFloat(e.target.value) || 0))} 
-              className="terminal-input"
-              step="0.1"
-            />
-          </div>
-
-          {/* Leverage */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>Leverage ({leverage}x)</label>
-              {isHighLeverage && <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: '800' }}>⚠️ High Risk</span>}
-            </div>
-            <input 
-              type="range" 
-              min="1" 
-              max="50" 
-              value={leverage} 
-              onChange={(e) => setLeverage(parseInt(e.target.value))} 
-              style={{ width: '100%', accentColor: isHighLeverage ? '#EF4444' : '#10B981' }}
-            />
-          </div>
-
-          {/* SL / TP */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>Take Profit</label>
-              <input type="number" value={tp} onChange={(e) => setTp(e.target.value)} className="terminal-input" placeholder="Price" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>Stop Loss</label>
-              <input type="number" value={sl} onChange={(e) => setSl(e.target.value)} className="terminal-input" placeholder="Price" />
-            </div>
-          </div>
-
-          {/* Live Calcs */}
-          <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#475569' }}>Required Margin:</span>
-              <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)' }}>${marginReq.toFixed(2)}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#475569' }}>Est. Liq Price:</span>
-              <span style={{ fontWeight: '700', color: '#F59E0B', fontFamily: 'var(--font-mono)' }}>${liqPrice.toFixed(2)}</span>
-            </div>
-            {sl && (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#475569' }}>Risk at SL:</span>
-                <span style={{ fontWeight: '700', color: '#EF4444', fontFamily: 'var(--font-mono)' }}>-${dollarRiskAtSL.toFixed(2)}</span>
-              </div>
-            )}
-            {tp && (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#475569' }}>Reward at TP:</span>
-                <span style={{ fontWeight: '700', color: '#10B981', fontFamily: 'var(--font-mono)' }}>+${dollarRewardAtTP.toFixed(2)}</span>
-              </div>
-            )}
-            {sl && tp && (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#475569' }}>Risk:Reward:</span>
-                <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)' }}>1 : {rrr}</span>
-              </div>
-            )}
-          </div>
-
-          <button 
-            onClick={() => setShowConfirmModal(true)}
-            style={{ padding: '12px', background: side === 'LONG' ? '#10B981' : '#EF4444', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: '800', cursor: 'pointer', marginTop: 'auto' }}
-          >
-            Place {side} Order
-          </button>
-        </div>
-      </div>
-
-      {/* ─── 3. ACTIVE POSITIONS TABLE ─── */}
-      <div style={{ background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '16px', overflowX: 'auto' }}>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: '800', marginBottom: '16px' }}>Active Positions</h3>
-        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ color: '#475569', fontSize: '0.875rem', borderBottom: '1px solid #E2E8F0' }}>
-              <th style={{ paddingBottom: '8px' }}>Asset</th>
-              <th style={{ paddingBottom: '8px' }}>Side</th>
-              <th style={{ paddingBottom: '8px' }}>Size / Lev</th>
-              <th style={{ paddingBottom: '8px' }}>Entry</th>
-              <th style={{ paddingBottom: '8px' }}>Mark</th>
-              <th style={{ paddingBottom: '8px' }}>Liq. Price</th>
-              <th style={{ paddingBottom: '8px' }}>PnL</th>
-              <th style={{ paddingBottom: '8px', textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {positions.length === 0 ? (
-              <tr>
-                <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#94A3B8' }}>No active positions</td>
-              </tr>
-            ) : positions.map(pos => {
-              const posMark = pos.asset === symbol ? currentPrice : pos.entryPrice;
-              const isLong = pos.side === 'LONG';
-              const pnl = isLong ? (posMark - pos.entryPrice) * pos.size : (pos.entryPrice - posMark) * pos.size;
-              const pnlColor = pnl >= 0 ? '#10B981' : '#EF4444';
-              
-              const posLiqDistance = pos.margin / pos.size;
-              const posLiq = isLong ? pos.entryPrice - posLiqDistance : pos.entryPrice + posLiqDistance;
-
-              return (
-                <tr key={pos.id} style={{ borderBottom: '1px solid #F1F5F9', fontFamily: 'var(--font-mono)' }}>
-                  <td style={{ padding: '12px 0', fontWeight: '700' }}>{pos.asset}</td>
-                  <td style={{ padding: '12px 0', color: isLong ? '#10B981' : '#EF4444', fontWeight: '700' }}>{pos.side}</td>
-                  <td style={{ padding: '12px 0' }}>{pos.size} ({pos.leverage}x)</td>
-                  <td style={{ padding: '12px 0' }}>${pos.entryPrice.toFixed(2)}</td>
-                  <td style={{ padding: '12px 0' }}>${posMark.toFixed(2)}</td>
-                  <td style={{ padding: '12px 0', color: '#F59E0B' }}>${posLiq.toFixed(2)}</td>
-                  <td style={{ padding: '12px 0', color: pnlColor, fontWeight: '700' }}>
-                    {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
-                  </td>
-                  <td style={{ padding: '12px 0', textAlign: 'right' }}>
-                    <button 
-                      onClick={() => closePosition(pos.id, posMark)}
-                      style={{ padding: '4px 8px', background: '#EF4444', color: '#FFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
-                    >
-                      Market Close
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ─── 4. LIVE MARKET SCREENER & RADAR (BTC, GOLD, FOREX WITH LINE CHARTS) ─── */}
-      <LiveMarketScreener onSelectAsset={handleScreenerTradeSelect} />
-
-      {/* ─── 5. CONFIRMATION MODAL ─── */}
-      {showConfirmModal && (
+        {/* Right Side: Big Perfect Gold Coins Box */}
         <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(2px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+          background: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)',
+          border: '2px solid #FACC15',
+          borderRadius: '16px',
+          padding: '20px 28px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '20px',
+          boxShadow: '0 8px 24px rgba(234, 179, 8, 0.15)'
         }}>
           <div style={{
-            background: '#FFFFFF', padding: '32px', borderRadius: '12px', maxWidth: '400px', width: '100%',
-            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)', color: '#0F172A'
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            background: '#FDE047',
+            border: '2px solid #CA8A04',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '30px'
           }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '16px' }}>Confirm Execution</h3>
-            <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '8px', marginBottom: '24px', fontSize: '0.875rem' }}>
-              <div><strong>Order:</strong> {side} {size} {symbol} @ {orderType}</div>
-              <div><strong>Margin Allocated:</strong> ${marginReq.toFixed(2)}</div>
-              <div><strong>Leverage:</strong> {leverage}x</div>
-              <div style={{ marginTop: '8px', color: '#EF4444' }}>Max Loss (Liq): -${marginReq.toFixed(2)}</div>
-              {tp && <div style={{ color: '#10B981' }}>Max Profit (TP): +${dollarRewardAtTP.toFixed(2)}</div>}
+            🪙
+          </div>
+
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: 800, color: '#854D0E', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+              GOLD COINS VAULT
             </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button 
-                onClick={() => setShowConfirmModal(false)}
-                style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid #E2E8F0', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handlePlaceOrder}
-                style={{ flex: 1, padding: '12px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
-              >
-                Confirm
-              </button>
+            <div style={{ fontSize: '36px', fontWeight: 900, color: '#713F12', lineHeight: 1.1 }}>
+              {coins} <span style={{ fontSize: '18px', fontWeight: 800 }}>Coins</span>
             </div>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#A16207', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+              <Flame size={13} color="#EA580C" /> 4-Day Discipline Streak (+25 daily)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── 2. ENTER TRADING ARENA HERO CTA BANNER ─── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+        borderRadius: '16px',
+        padding: '24px 32px',
+        color: '#FFFFFF',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '20px',
+        boxShadow: '0 10px 25px rgba(16, 185, 129, 0.25)'
+      }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <Zap size={18} color="#FEF08A" />
+            <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', color: '#FEF08A' }}>
+              LIVE PROVING ARENA READY
+            </span>
+          </div>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '0 0 6px 0' }}>
+            Ready to Take Trades? Enter the Trading Terminal.
+          </h2>
+          <p style={{ margin: 0, fontSize: '14px', opacity: 0.95, maxWidth: '650px', fontWeight: 500 }}>
+            Execute spot and leveraged orders with live tick data, technical indicators, and real margin rules. No paper tricks.
+          </p>
+        </div>
+
+        <button 
+          onClick={() => navigate('/trading')}
+          style={{
+            background: '#FFFFFF',
+            color: '#059669',
+            border: 'none',
+            padding: '14px 28px',
+            borderRadius: '12px',
+            fontSize: '16px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
+            transition: 'all 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+          onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          <span>Launch Trading Terminal</span>
+          <ArrowRight size={18} />
+        </button>
+      </div>
+
+      {/* ─── 3. ACCOUNT & PROFILE ANALYSIS METRICS GRID ─── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+        <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>EQUITY / CAPITAL</div>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>${balance.toFixed(2)}</div>
+          <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>Starting Baseline: $1,000.00</span>
+        </div>
+
+        <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>DER SCORE (EDGE)</div>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: '#10B981' }}>88.5 <span style={{ fontSize: '13px', color: '#64748B' }}>/ 100</span></div>
+          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>Ranked Top 12% Globally</span>
+        </div>
+
+        <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>ACTIVE LEVERAGE</div>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>50x Unlocked</div>
+          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>Liquidation Protection Active</span>
+        </div>
+
+        <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>WORKING TRADES</div>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: positions.length > 0 ? '#10B981' : '#64748B' }}>
+            {positions.length} Open
+          </div>
+          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>Real-time execution state</span>
+        </div>
+      </div>
+
+      {/* ─── 4. SHOWCASE OF RECENT & BIG BADGES ─── */}
+      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Medal size={22} color="#F59E0B" /> Showcase of Earned Badges & Tags
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
+              Badges verify true discipline and account progression. Display these in your trading portfolio.
+            </p>
+          </div>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#10B981', background: '#F0FDF4', padding: '4px 12px', borderRadius: '20px' }}>
+            4 / 8 UNLOCKED
+          </span>
+        </div>
+
+        {/* Big Badges Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+          {/* Badge 1: Current Tier Rank */}
+          <div style={{
+            background: '#F8FAFC',
+            borderRadius: '14px',
+            border: `2px solid ${tagColor}`,
+            padding: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            boxShadow: tagGlow !== 'none' ? tagGlow : 'none'
+          }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '14px',
+              background: '#0F172A',
+              border: `2px solid ${tagColor}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '28px',
+              color: tagColor
+            }}>
+              🛡️
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: tagColor, textTransform: 'uppercase' }}>TIER RANK BADGE</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{badge.name} Trader</div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>Starting level verified</div>
+            </div>
+          </div>
+
+          {/* Badge 2: Discipline Sentinel */}
+          <div style={{
+            background: '#F8FAFC',
+            borderRadius: '14px',
+            border: '1px solid #BBF7D0',
+            padding: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px'
+          }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '14px',
+              background: '#F0FDF4',
+              border: '2px solid #86EFAC',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '28px'
+            }}>
+              ⚔️
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#166534', textTransform: 'uppercase' }}>DISCIPLINE BADGE</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>Zero Blowup Streak</div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>No liquidations hit</div>
+            </div>
+          </div>
+
+          {/* Badge 3: Gold Coin Collector */}
+          <div style={{
+            background: '#F8FAFC',
+            borderRadius: '14px',
+            border: '1px solid #FDE047',
+            padding: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px'
+          }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '14px',
+              background: '#FEF9C3',
+              border: '2px solid #FACC15',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '28px'
+            }}>
+              🪙
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#A16207', textTransform: 'uppercase' }}>COIN COLLECTOR</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>Centurion Vault</div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>100+ Gold Coins active</div>
+            </div>
+          </div>
+
+          {/* Badge 4: Risk Guardian */}
+          <div style={{
+            background: '#F8FAFC',
+            borderRadius: '14px',
+            border: '1px solid #CBD5E1',
+            padding: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px'
+          }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '14px',
+              background: '#F1F5F9',
+              border: '2px solid #94A3B8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '28px'
+            }}>
+              🎯
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>EXECUTION BADGE</div>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>Calculated Risk</div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>Strict Stop-Loss usage</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── 5. CURRENT TRADES WORKING IN ACCOUNT ─── */}
+      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Activity size={20} color="#10B981" /> Current Trades Working in Your Account
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
+              Live positions actively running with allocated margin and liquidation protection.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/trading')}
+            style={{ background: '#F0FDF4', color: '#10B981', border: '1px solid #BBF7D0', padding: '8px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <span>Open Terminal</span> <ArrowRight size={14} />
+          </button>
+        </div>
+
+        {positions.length === 0 ? (
+          <div style={{ padding: '40px 20px', textAlign: 'center', background: '#F8FAFC', borderRadius: '12px', border: '1px dashed #CBD5E1' }}>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📊</div>
+            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>No Active Trades Running</h4>
+            <p style={{ fontSize: '13px', color: '#64748B', maxWidth: '400px', margin: '0 auto 16px' }}>
+              Your capital is currently 100% free. Head over to the Trading Terminal to open a spot or leveraged position.
+            </p>
+            <button 
+              onClick={() => navigate('/trading')}
+              style={{ background: '#10B981', color: '#FFFFFF', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              Start Trading Now
+            </button>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#64748B', fontSize: '12px', fontWeight: 800 }}>
+                  <th style={{ padding: '12px 16px' }}>ASSET</th>
+                  <th style={{ padding: '12px 16px' }}>SIDE</th>
+                  <th style={{ padding: '12px 16px' }}>SIZE / LEV</th>
+                  <th style={{ padding: '12px 16px' }}>ENTRY PRICE</th>
+                  <th style={{ padding: '12px 16px' }}>MARGIN ALLOCATED</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right' }}>ACTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                {positions.map(pos => {
+                  const isLong = pos.side === 'LONG';
+                  return (
+                    <tr key={pos.id} style={{ borderBottom: '1px solid #F1F5F9', fontSize: '14px' }}>
+                      <td style={{ padding: '14px 16px', fontWeight: 800, color: '#0F172A' }}>{pos.asset}</td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <span style={{ color: isLong ? '#10B981' : '#EF4444', fontWeight: 900, background: isLong ? '#F0FDF4' : '#FEF2F2', padding: '4px 10px', borderRadius: '6px', fontSize: '12px' }}>
+                          {pos.side}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{pos.size} ({pos.leverage}x)</td>
+                      <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>${pos.entryPrice.toFixed(2)}</td>
+                      <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>${pos.margin.toFixed(2)}</td>
+                      <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                        <button 
+                          onClick={() => closePosition(pos.id, pos.entryPrice)}
+                          style={{ padding: '6px 12px', background: '#EF4444', color: '#FFF', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}
+                        >
+                          Close Trade
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ─── 6. WATCHLIST WITH SEARCHBAR (STOCKS, FOREX, CRYPTO) ─── */}
+      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Star size={20} color="#F59E0B" /> Personal Watchlist & Market Monitor
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
+              Add stocks, forex pairs, crypto, and commodities to track live quotes.
+            </p>
+          </div>
+
+          {/* Search Input Dropdown */}
+          <div style={{ position: 'relative', width: '320px' }}>
+            <Search size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+            <input 
+              type="text"
+              placeholder="Search ticker (e.g. AAPL, EURUSD, BTC, Gold)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 14px 10px 38px',
+                borderRadius: '10px',
+                border: '1px solid #CBD5E1',
+                fontSize: '13px',
+                fontWeight: 600,
+                outline: 'none',
+                background: '#F8FAFC'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#10B981'}
+              onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}
+            />
+
+            {/* Dropdown Results */}
+            {searchResults.length > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: '10px',
+                marginTop: '6px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                zIndex: 100,
+                maxHeight: '240px',
+                overflowY: 'auto'
+              }}>
+                {searchResults.map(item => (
+                  <div
+                    key={item.symbol}
+                    onClick={() => {
+                      addToWatchlist(item.symbol);
+                      setSearchQuery('');
+                    }}
+                    style={{
+                      padding: '10px 16px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid #F1F5F9',
+                      transition: 'background 0.15s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = '#F0FDF4'}
+                    onMouseOut={(e) => e.currentTarget.style.background = '#FFFFFF'}
+                  >
+                    <div>
+                      <strong style={{ fontSize: '13px', color: '#0F172A' }}>{item.symbol}</strong>
+                      <span style={{ fontSize: '11px', color: '#64748B', marginLeft: '6px' }}>{item.name}</span>
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981' }}>+ Add</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Watchlist Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '14px' }}>
+          {watchlist.map(sym => {
+            const match = WATCHLIST_DATABASE.find(w => w.symbol === sym) || { 
+              symbol: sym, 
+              name: sym, 
+              category: 'Asset', 
+              price: '$100.00', 
+              change: '+0.50%' 
+            };
+            const isPos = !match.change.includes('-');
+
+            return (
+              <div 
+                key={sym}
+                style={{
+                  background: '#F8FAFC',
+                  borderRadius: '12px',
+                  border: '1px solid #E2E8F0',
+                  padding: '14px 16px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <strong style={{ fontSize: '14px', color: '#0F172A' }}>{match.symbol}</strong>
+                    <span style={{ fontSize: '10px', color: '#64748B', background: '#E2E8F0', padding: '1px 5px', borderRadius: '4px' }}>{match.category}</span>
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                    {match.price}
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: isPos ? '#10B981' : '#EF4444' }}>
+                    {match.change}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
+                  <button
+                    onClick={() => removeFromWatchlist(sym)}
+                    style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '2px' }}
+                    title="Remove from watchlist"
+                  >
+                    <X size={14} />
+                  </button>
+
+                  <button
+                    onClick={() => navigate('/trading')}
+                    style={{
+                      background: '#10B981',
+                      color: '#FFF',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Trade
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ─── 7. PLATFORM TOOLS VAULT (UNLOCKABLE WITH GOLD COINS) ─── */}
+      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Coins size={22} color="#EAB308" /> Platform Tools Vault (Unlock With Gold Coins)
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
+              Spend your earned Gold Coins to unlock institutional-grade trading edge tools.
+            </p>
+          </div>
+          <div style={{ fontSize: '14px', fontWeight: 800, color: '#713F12', background: '#FEF9C3', border: '1px solid #FDE047', padding: '6px 14px', borderRadius: '20px' }}>
+            Balance: {coins} Gold Coins Available
+          </div>
+        </div>
+
+        {/* Tools Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+          
+          {/* Tool 1: Real-Time Screener */}
+          <div style={{
+            background: '#F8FAFC',
+            borderRadius: '14px',
+            border: `1.5px solid ${unlockedTools.screener ? '#10B981' : '#E2E8F0'}`,
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '24px' }}>📡</span>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  background: unlockedTools.screener ? '#F0FDF4' : '#F1F5F9',
+                  color: unlockedTools.screener ? '#10B981' : '#64748B'
+                }}>
+                  {unlockedTools.screener ? 'UNLOCKED' : '150 COINS'}
+                </span>
+              </div>
+              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Real-Time Market Screener</h4>
+              <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                Filter thousands of global tickers in milliseconds. Scan for unusual volume, RSI extremes, and breakout momentum.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                if (unlockedTools.screener) {
+                  navigate('/trading');
+                } else {
+                  unlockTool('screener', 150, 'Market Screener');
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '8px',
+                border: 'none',
+                background: unlockedTools.screener ? '#10B981' : '#F59E0B',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+            >
+              {unlockedTools.screener ? (
+                <><span>Launch Screener</span> <ArrowRight size={14} /></>
+              ) : (
+                <><span>Unlock for 150 Coins</span> <Lock size={14} /></>
+              )}
+            </button>
+          </div>
+
+          {/* Tool 2: Strategy Lab */}
+          <div style={{
+            background: '#F8FAFC',
+            borderRadius: '14px',
+            border: `1.5px solid ${unlockedTools.strategyLab ? '#10B981' : '#E2E8F0'}`,
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '24px' }}>🧪</span>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  background: unlockedTools.strategyLab ? '#F0FDF4' : '#F1F5F9',
+                  color: unlockedTools.strategyLab ? '#10B981' : '#64748B'
+                }}>
+                  {unlockedTools.strategyLab ? 'UNLOCKED' : '300 COINS'}
+                </span>
+              </div>
+              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Strategy Lab & Backtester</h4>
+              <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                Test your algorithmic trading theories against historical multi-year tick feeds. Prove positive mathematical expectancy.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                if (unlockedTools.strategyLab) {
+                  toast.success('Strategy Lab unlocked! Access in terminal.', { icon: '🧪' });
+                  navigate('/trading');
+                } else {
+                  unlockTool('strategyLab', 300, 'Strategy Lab');
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '8px',
+                border: 'none',
+                background: unlockedTools.strategyLab ? '#10B981' : '#F59E0B',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+            >
+              {unlockedTools.strategyLab ? (
+                <><span>Launch Strategy Lab</span> <ArrowRight size={14} /></>
+              ) : (
+                <><span>Unlock for 300 Coins</span> <Lock size={14} /></>
+              )}
+            </button>
+          </div>
+
+          {/* Tool 3: AI Trading Mentor */}
+          <div style={{
+            background: '#F8FAFC',
+            borderRadius: '14px',
+            border: `1.5px solid ${unlockedTools.aiMentor ? '#10B981' : '#E2E8F0'}`,
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '24px' }}>🤖</span>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  background: unlockedTools.aiMentor ? '#F0FDF4' : '#F1F5F9',
+                  color: unlockedTools.aiMentor ? '#10B981' : '#64748B'
+                }}>
+                  {unlockedTools.aiMentor ? 'UNLOCKED' : '200 COINS'}
+                </span>
+              </div>
+              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>AI Trading Mentor</h4>
+              <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                Real-time chart pattern analysis, support/resistance detection, and live post-trade psychological feedback.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                if (unlockedTools.aiMentor) {
+                  toast.success('AI Mentor active on your trading terminal!', { icon: '🤖' });
+                  navigate('/trading');
+                } else {
+                  unlockTool('aiMentor', 200, 'AI Mentor');
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '8px',
+                border: 'none',
+                background: unlockedTools.aiMentor ? '#10B981' : '#F59E0B',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+            >
+              {unlockedTools.aiMentor ? (
+                <><span>Consult AI Mentor</span> <ArrowRight size={14} /></>
+              ) : (
+                <><span>Unlock for 200 Coins</span> <Lock size={14} /></>
+              )}
+            </button>
+          </div>
+
+          {/* Tool 4: Trade Replay Simulator */}
+          <div style={{
+            background: '#F8FAFC',
+            borderRadius: '14px',
+            border: `1.5px solid ${unlockedTools.replay ? '#10B981' : '#E2E8F0'}`,
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '24px' }}>⏳</span>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  background: unlockedTools.replay ? '#F0FDF4' : '#F1F5F9',
+                  color: unlockedTools.replay ? '#10B981' : '#64748B'
+                }}>
+                  {unlockedTools.replay ? 'UNLOCKED' : '500 COINS'}
+                </span>
+              </div>
+              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Trade Replay Simulator</h4>
+              <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                Bar-by-bar historical price action time machine. Rewind to past volatility sessions and practice real setups.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                if (unlockedTools.replay) {
+                  navigate('/trading');
+                } else {
+                  unlockTool('replay', 500, 'Trade Replay');
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '8px',
+                border: 'none',
+                background: unlockedTools.replay ? '#10B981' : '#F59E0B',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+            >
+              {unlockedTools.replay ? (
+                <><span>Launch Replay</span> <ArrowRight size={14} /></>
+              ) : (
+                <><span>Unlock for 500 Coins</span> <Lock size={14} /></>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── 8. GLOBAL HALL OF FAME LEADERBOARD ─── */}
+      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Trophy size={22} color="#10B981" /> Verified Global Hall of Fame
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
+              100% Anti-Fake: All records verified mathematically with zero manual overrides.
+            </p>
+          </div>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#10B981', background: '#F0FDF4', padding: '4px 12px', borderRadius: '20px' }}>
+            UPDATED 24/7
+          </span>
+        </div>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#64748B', fontSize: '12px', fontWeight: 800 }}>
+                <th style={{ padding: '12px 16px' }}>RANK</th>
+                <th style={{ padding: '12px 16px' }}>TRADER</th>
+                <th style={{ padding: '12px 16px' }}>TAG / STATUS</th>
+                <th style={{ padding: '12px 16px', textAlign: 'right' }}>DER SCORE</th>
+                <th style={{ padding: '12px 16px', textAlign: 'right' }}>PORTFOLIO</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaderboard.map(item => (
+                <tr key={item.rank} style={{ borderBottom: '1px solid #F1F5F9', fontSize: '14px' }}>
+                  <td style={{ padding: '16px', fontWeight: 900, color: item.rank <= 3 ? '#10B981' : '#64748B' }}>
+                    #{item.rank} {item.rank === 1 && '🥇'} {item.rank === 2 && '🥈'} {item.rank === 3 && '🥉'}
+                  </td>
+                  <td style={{ padding: '16px', fontWeight: 800, color: '#0F172A' }}>
+                    {item.name}
+                  </td>
+                  <td style={{ padding: '16px' }}>
+                    <span style={{
+                      fontWeight: 900,
+                      color: item.color,
+                      background: '#0F172A',
+                      padding: '3px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      letterSpacing: '1px'
+                    }}>
+                      {item.tag}
+                    </span>
+                  </td>
+                  <td style={{ padding: '16px', textAlign: 'right', fontWeight: 800, color: '#10B981' }}>
+                    {item.der.toFixed(1)}
+                  </td>
+                  <td style={{ padding: '16px', textAlign: 'right', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                    ${item.balance.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ─── PRO UPGRADE MODAL ─── */}
+      {showProModal && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: '#FFFFFF', borderRadius: '18px', maxWidth: '480px', width: '100%',
+            padding: '32px', boxShadow: '0 25px 50px rgba(0,0,0,0.2)', position: 'relative'
+          }}>
+            <button 
+              onClick={() => setShowProModal(false)}
+              style={{ position: 'absolute', right: '16px', top: '16px', background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}
+            >
+              ✕
+            </button>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>👑</div>
+            <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0' }}>Upgrade to NonStock Pro</h3>
+            <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+              Unlock all platform tools permanently without coin deductions, receive monthly 1,000 Gold Coins drops, and access exclusive custom badges.
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={16} color="#10B981" /> Instant Unrestricted Screener & Replay</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={16} color="#10B981" /> Monthly 1,000 Gold Coins Allowance</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={16} color="#10B981" /> Verified Pro Crown on Global Leaderboard</li>
+            </ul>
+            <button
+              onClick={() => {
+                toast.success('Pro features activated!', { icon: '👑' });
+                setShowProModal(false);
+              }}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: '#10B981',
+                color: '#FFF',
+                border: 'none',
+                borderRadius: '10px',
+                fontWeight: 800,
+                fontSize: '15px',
+                cursor: 'pointer'
+              }}
+            >
+              Activate Pro Membership ($99/mo)
+            </button>
           </div>
         </div>
       )}

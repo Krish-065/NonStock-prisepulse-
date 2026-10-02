@@ -20,6 +20,7 @@ const ResetPassword  = lazy(() => import('./pages/ResetPassword'));
 
 // Protected pages
 const Dashboard      = lazy(() => import('./pages/Dashboard'));
+const TradingPage    = lazy(() => import('./pages/TradingPage'));
 
 // ─── Full-screen page loader skeleton ─────────────────────────────────────────
 function PageLoader() {
@@ -76,6 +77,9 @@ function App() {
 
                     {/* Protected Routes (require login) */}
                     <Route path="/dashboard"         element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
+                    <Route path="/trading"           element={<PrivateRoute><Layout><TradingPage /></Layout></PrivateRoute>} />
+                    <Route path="/trade"             element={<Navigate to="/trading" replace />} />
+                    <Route path="/paper-trading"     element={<Navigate to="/trading" replace />} />
                     
                     {/* Redirect anything else to Dashboard if logged in, or Landing if not */}
                     <Route path="*"                  element={<Navigate to="/dashboard" replace />} />

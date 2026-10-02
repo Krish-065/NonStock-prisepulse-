@@ -14,7 +14,7 @@ import WarningModal from './WarningModal';
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { badge } = useTrading();
+  const { badge, coins } = useTrading();
   const navigate = useNavigate();
   const location = useLocation();
   const isDark = theme === 'dark';
@@ -55,33 +55,99 @@ export default function Layout({ children }) {
         padding: '0 24px',
         zIndex: 1000,
       }}>
-        {/* Left: Brand Logo & Tagline */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+        {/* Left: Brand Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexShrink: 0 }}>
           <div 
-            onClick={() => navigate('/')} 
+            onClick={() => navigate('/dashboard')} 
             style={{ 
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center'
             }}
           >
-            <Logo size={36} showName={true} showTagline={false} nameSize="20px" />
+            <Logo size={34} showName={true} showTagline={false} nameSize="19px" />
           </div>
+
+          {/* Navigation Links */}
+          {user && (
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={() => navigate('/dashboard')}
+                style={{
+                  background: location.pathname === '/dashboard' ? '#F0FDF4' : 'transparent',
+                  color: location.pathname === '/dashboard' ? '#10B981' : '#475569',
+                  border: location.pathname === '/dashboard' ? '1px solid #BBF7D0' : '1px solid transparent',
+                  borderRadius: '8px',
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                Dashboard
+              </button>
+
+              <button
+                onClick={() => navigate('/trading')}
+                style={{
+                  background: location.pathname === '/trading' ? '#10B981' : '#F8FAFC',
+                  color: location.pathname === '/trading' ? '#FFFFFF' : '#0F172A',
+                  border: location.pathname === '/trading' ? '1px solid #10B981' : '1px solid #E2E8F0',
+                  borderRadius: '8px',
+                  padding: '6px 16px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: location.pathname === '/trading' ? '0 2px 8px rgba(16, 185, 129, 0.25)' : 'none',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <span>⚡ Trading Arena</span>
+              </button>
+            </nav>
+          )}
         </div>
 
-        {/* Right: Actions (Theme Toggle & Profile) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* Right: Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {/* Gold Coins Count in Navbar */}
+              <div 
+                onClick={() => navigate('/dashboard')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 12px',
+                  borderRadius: '999px',
+                  background: '#FEF9C3',
+                  border: '1.5px solid #FACC15',
+                  color: '#713F12',
+                  fontWeight: 900,
+                  fontSize: '12px',
+                  cursor: 'pointer'
+                }}
+                title="Your Gold Coins Vault (Click to view analysis & unlock tools)"
+              >
+                <span>🪙</span>
+                <span>{coins || 0} Coins</span>
+              </div>
+
+              {/* Tag Badge */}
               <div 
                 style={{
                   padding: '4px 12px',
                   borderRadius: '999px',
-                  background: 'rgba(15, 23, 42, 0.05)',
-                  border: `1px solid ${badge.color}`,
+                  background: '#0F172A',
+                  border: `1.5px solid ${badge.color}`,
                   color: badge.color,
-                  fontWeight: 800,
-                  fontSize: '12px',
+                  fontWeight: 900,
+                  fontSize: '11px',
                   textTransform: 'uppercase',
                   letterSpacing: '1px',
                   boxShadow: badge.glow !== 'none' ? badge.glow : 'none',
@@ -90,20 +156,25 @@ export default function Layout({ children }) {
               >
                 {badge.name}
               </div>
+
+              {/* Profile Pill with User Name in Tag Color */}
               <div 
+                onClick={() => navigate('/dashboard')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '8px 16px',
+                  padding: '6px 14px',
                   borderRadius: '8px',
                   background: '#F8FAFC',
                   border: '1px solid #E2E8F0',
                   cursor: 'pointer'
                 }}
               >
-                <User size={16} style={{ color: '#10B981' }} />
-                <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>{user.name || user.email?.split('@')[0]}</span>
+                <User size={15} style={{ color: badge.color }} />
+                <span style={{ fontSize: '13px', fontWeight: 800, color: badge.color }}>
+                  {user.name || user.email?.split('@')[0]}
+                </span>
               </div>
             </div>
           ) : (
