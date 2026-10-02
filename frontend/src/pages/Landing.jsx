@@ -1,15 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, ShieldAlert, Award, ChevronRight, CheckCircle2, Zap } from 'lucide-react';
+import { ShieldAlert, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ background: '#FFFFFF', minHeight: '100vh', color: '#0F172A', fontFamily: 'var(--font-sans)' }}>
+    <div style={{ background: '#FFFFFF', minHeight: '100vh', color: '#0F172A', fontFamily: 'var(--font-sans)', overflowX: 'hidden' }}>
       {/* Hero Section */}
-      <section style={{ padding: '100px 24px', maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '4rem', fontWeight: '800', lineHeight: '1.1', marginBottom: '24px', letterSpacing: '-0.04em' }}>
+      <section style={{ padding: '120px 24px', maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '4.5rem', fontWeight: '800', lineHeight: '1.1', marginBottom: '24px', letterSpacing: '-0.04em' }}>
           Think You're a Profitable Trader?<br />
           <span style={{ color: '#10B981' }}>Prove It.</span>
         </h1>
@@ -27,47 +27,70 @@ export default function Landing() {
           >
             Claim $1,000 Proving Capital <ChevronRight size={20} />
           </button>
-          <button 
-            onClick={() => navigate('/community')}
-            style={{ 
-              background: '#F8FAFC', color: '#0F172A', padding: '16px 32px', borderRadius: '8px', 
-              fontSize: '1.125rem', fontWeight: '600', border: '1px solid #E2E8F0', cursor: 'pointer'
-            }}
-          >
-            Explore Live Leaderboard
-          </button>
         </div>
+      </section>
 
-        {/* Hero Visual Preview */}
-        <div style={{ marginTop: '64px', position: 'relative' }}>
-          <div style={{ 
-            background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '16px', 
-            padding: '24px', boxShadow: '0 20px 40px -15px rgba(0,0,0,0.1)',
-            display: 'flex', gap: '24px', justifyContent: 'center', flexWrap: 'wrap'
-          }}>
-            {/* Dashboard Mock Card 1 */}
-            <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', width: '250px', textAlign: 'left' }}>
-              <div style={{ color: '#475569', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>Global Rank</div>
-              <div style={{ fontSize: '2rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Award color="#F59E0B" /> #42
+      {/* Feature Walkthrough (Zigzag) */}
+      <section style={{ background: '#0F172A', color: '#FFFFFF', padding: '120px 0' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '120px' }}>
+          
+          {/* Feature 1: Pro Screener */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '60px' }}>
+            <div style={{ flex: '1 1 400px' }}>
+              <div style={{ color: '#10B981', fontWeight: '700', marginBottom: '16px', letterSpacing: '1px' }}>MARKET SCANNER</div>
+              <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '24px', lineHeight: '1.2' }}>Advanced Pro Screener</h2>
+              <p style={{ fontSize: '1.25rem', color: '#94A3B8', marginBottom: '32px', lineHeight: '1.6' }}>
+                Filter through thousands of global assets in milliseconds. Set custom parameters for RSI, Volume, and moving averages to find the perfect setup before the breakout happens.
+              </p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '12px 24px', borderRadius: '8px' }}>
+                <span style={{ fontWeight: '700', color: '#10B981' }}>Unlock Cost:</span>
+                <span style={{ color: '#FFFFFF', fontWeight: '800', fontSize: '1.125rem' }}>300 Gold Coins</span>
               </div>
-              <div style={{ color: '#10B981', fontSize: '0.875rem', fontWeight: '600', marginTop: '8px' }}>Top 0.5% worldwide</div>
             </div>
-            {/* Dashboard Mock Card 2 */}
-            <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', width: '250px', textAlign: 'left' }}>
-              <div style={{ color: '#475569', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>Active Order</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: '700' }}>LONG BTC/USDT</div>
-              <div style={{ color: '#10B981', fontSize: '1.5rem', fontWeight: '800', marginTop: '8px', fontFamily: 'var(--font-mono)' }}>+$142.50</div>
-            </div>
-            {/* Dashboard Mock Card 3 */}
-            <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', width: '250px', textAlign: 'left' }}>
-              <div style={{ color: '#475569', fontSize: '0.875rem', fontWeight: '600', marginBottom: '8px' }}>Trading Streak</div>
-              <div style={{ fontSize: '2rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Zap color="#3B82F6" /> 5 Days
-              </div>
-              <div style={{ color: '#475569', fontSize: '0.875rem', fontWeight: '600', marginTop: '8px' }}>+15 Gold Coins</div>
+            <div style={{ flex: '1 1 500px', position: 'relative' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(45deg, #10B981, transparent)', filter: 'blur(60px)', opacity: 0.3, zIndex: 0 }}></div>
+              <img src="/assets/pro_screener.jpg" alt="Pro Screener Interface" style={{ width: '100%', borderRadius: '16px', border: '1px solid #1E293B', position: 'relative', zIndex: 1, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }} />
             </div>
           </div>
+
+          {/* Feature 2: Trade Replay (Reversed) */}
+          <div style={{ display: 'flex', flexWrap: 'wrap-reverse', alignItems: 'center', gap: '60px' }}>
+            <div style={{ flex: '1 1 500px', position: 'relative' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(45deg, #3B82F6, transparent)', filter: 'blur(60px)', opacity: 0.3, zIndex: 0 }}></div>
+              <img src="/assets/trade_replay.jpg" alt="Trade Replay Interface" style={{ width: '100%', borderRadius: '16px', border: '1px solid #1E293B', position: 'relative', zIndex: 1, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }} />
+            </div>
+            <div style={{ flex: '1 1 400px' }}>
+              <div style={{ color: '#3B82F6', fontWeight: '700', marginBottom: '16px', letterSpacing: '1px' }}>SIMULATOR</div>
+              <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '24px', lineHeight: '1.2' }}>Trade Replay Mode</h2>
+              <p style={{ fontSize: '1.25rem', color: '#94A3B8', marginBottom: '32px', lineHeight: '1.6' }}>
+                Missed a critical market session? Jump into our time machine. Replay historical price action candle-by-candle to backtest your strategies with zero risk.
+              </p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '12px 24px', borderRadius: '8px' }}>
+                <span style={{ fontWeight: '700', color: '#3B82F6' }}>Unlock Cost:</span>
+                <span style={{ color: '#FFFFFF', fontWeight: '800', fontSize: '1.125rem' }}>400 Gold Coins</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 3: Performance Analysis */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '60px' }}>
+            <div style={{ flex: '1 1 400px' }}>
+              <div style={{ color: '#F59E0B', fontWeight: '700', marginBottom: '16px', letterSpacing: '1px' }}>ANALYTICS</div>
+              <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '24px', lineHeight: '1.2' }}>Deep Performance Analysis</h2>
+              <p style={{ fontSize: '1.25rem', color: '#94A3B8', marginBottom: '32px', lineHeight: '1.6' }}>
+                Stop trading blindly. Our institutional-grade dashboard dissects your win rate, profit factor, max drawdown, and risk-adjusted ROI to expose your weaknesses.
+              </p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '12px 24px', borderRadius: '8px' }}>
+                <span style={{ fontWeight: '700', color: '#F59E0B' }}>Unlock Cost:</span>
+                <span style={{ color: '#FFFFFF', fontWeight: '800', fontSize: '1.125rem' }}>500 Gold Coins</span>
+              </div>
+            </div>
+            <div style={{ flex: '1 1 500px', position: 'relative' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(45deg, #F59E0B, transparent)', filter: 'blur(60px)', opacity: 0.3, zIndex: 0 }}></div>
+              <img src="/assets/performance_analysis.jpg" alt="Performance Analysis Dashboard" style={{ width: '100%', borderRadius: '16px', border: '1px solid #1E293B', position: 'relative', zIndex: 1, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }} />
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -93,7 +116,7 @@ export default function Landing() {
                 <li style={{ display: 'flex', gap: '12px', fontSize: '1.125rem', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Strict $1,000 disciplined balance</li>
                 <li style={{ display: 'flex', gap: '12px', fontSize: '1.125rem', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Lose it? Face a 24-hour lockout</li>
                 <li style={{ display: 'flex', gap: '12px', fontSize: '1.125rem', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Real margin & liquidation math</li>
-                <li style={{ display: 'flex', gap: '12px', fontSize: '1.125rem', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Un-fakeable public track record</li>
+                <li style={{ display: 'flex', gap: '12px', fontSize: '1.125rem', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Earn badges: Silver, Gold, Master & Operator</li>
               </ul>
             </div>
           </div>
@@ -158,10 +181,10 @@ export default function Landing() {
               <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '8px' }}>NonStock Pro</h3>
               <div style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '24px' }}>₹99<span style={{ fontSize: '1rem', color: '#475569', fontWeight: '500' }}>/month</span></div>
               <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <li style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Instant Reset on Liquidation (No wait)</li>
-                <li style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Advanced Pro Screeners</li>
-                <li style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Trade Replay Mode</li>
-                <li style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Deep Performance Analytics</li>
+                <li style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Monthly 1,000 Gold Coins drops</li>
+                <li style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Unlock Advanced Pro Screeners instantly</li>
+                <li style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Unlock Trade Replay Mode instantly</li>
+                <li style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><CheckCircle2 color="#10B981" /> Exclusive Custom Badges</li>
               </ul>
               <button 
                 onClick={() => navigate('/register')}

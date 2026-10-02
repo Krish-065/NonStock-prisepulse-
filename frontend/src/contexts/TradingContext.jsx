@@ -13,6 +13,17 @@ export const TradingProvider = ({ children }) => {
   const [hasSeenModal, setHasSeenModal] = useState(false);
   const [isBusted, setIsBusted] = useState(false);
 
+  // Badge Logic
+  const getBadge = (equity) => {
+    if (equity >= 15000) return { name: 'Operator', color: '#A855F7', glow: '0 0 10px #A855F7' }; // Neon purple
+    if (equity >= 8000) return { name: 'Master', color: '#EF4444', glow: 'none' };
+    if (equity >= 4000) return { name: 'Gold', color: '#F59E0B', glow: 'none' };
+    if (equity >= 2000) return { name: 'Silver', color: '#94A3B8', glow: 'none' };
+    return { name: 'Contender', color: '#64748B', glow: 'none' };
+  };
+
+  const badge = getBadge(balance);
+
   // Load from local storage on mount
   useEffect(() => {
     try {
@@ -121,7 +132,7 @@ export const TradingProvider = ({ children }) => {
 
   return (
     <TradingContext.Provider value={{
-      balance, coins, positions, history, hasSeenModal, isBusted,
+      balance, coins, positions, history, hasSeenModal, isBusted, badge,
       placeOrder, closePosition, updateSLTP, resetAccount, acknowledgeModal
     }}>
       {children}

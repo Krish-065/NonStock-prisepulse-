@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTrading } from '../contexts/TradingContext';
 import Logo from './Logo';
 import TickerTape from './TickerTape';
 import StockActionModal from './StockActionModal';
@@ -13,6 +14,7 @@ import WarningModal from './WarningModal';
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { badge } = useTrading();
   const navigate = useNavigate();
   const location = useLocation();
   const isDark = theme === 'dark';
@@ -70,20 +72,39 @@ export default function Layout({ children }) {
         {/* Right: Actions (Theme Toggle & Profile) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {user ? (
-            <div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                cursor: 'pointer'
-              }}
-            >
-              <User size={16} style={{ color: '#10B981' }} />
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>{user.name || user.email?.split('@')[0]}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div 
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: '999px',
+                  background: 'rgba(15, 23, 42, 0.05)',
+                  border: `1px solid ${badge.color}`,
+                  color: badge.color,
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  boxShadow: badge.glow !== 'none' ? badge.glow : 'none',
+                  textShadow: badge.glow !== 'none' ? badge.glow : 'none',
+                }}
+              >
+                {badge.name}
+              </div>
+              <div 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  cursor: 'pointer'
+                }}
+              >
+                <User size={16} style={{ color: '#10B981' }} />
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>{user.name || user.email?.split('@')[0]}</span>
+              </div>
             </div>
           ) : (
             <button
