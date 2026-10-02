@@ -470,25 +470,28 @@ export default function Dashboard() {
                   {dynamicTierName}
                 </span>
 
-                {/* Pro Badge */}
+                {/* Pro Badge / Upgrade Button */}
                 <button
                   onClick={() => setShowProModal(true)}
                   style={{
-                    background: '#FEF3C7',
-                    border: '1px solid #FDE047',
-                    color: '#B45309',
-                    padding: '5px 12px',
+                    background: isProUser ? '#FEF3C7' : '#EFF6FF',
+                    border: isProUser ? '1px solid #FDE047' : '1.5px solid #93C5FD',
+                    color: isProUser ? '#B45309' : '#1D4ED8',
+                    padding: '5px 14px',
                     borderRadius: '999px',
                     fontSize: '12px',
                     fontWeight: 800,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px'
+                    gap: '6px',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                    transition: 'all 0.15s'
                   }}
+                  title={isProUser ? 'Pro Membership Active' : 'Upgrade to Pro Account — ₹50 for 3 Months'}
                 >
-                  <Crown size={14} color="#B45309" /> 
-                  <span>{isProUser ? 'Pro Member' : 'Pro Account'}</span>
+                  <Crown size={14} color={isProUser ? '#B45309' : '#1D4ED8'} /> 
+                  <span>{isProUser ? 'Pro Member' : 'Pro Account — ₹50 / 3 Mo'}</span>
                 </button>
               </div>
 
@@ -1424,63 +1427,124 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ─── PRO UPGRADE MODAL ─── */}
+      {/* ─── PRO UPGRADE MODAL (₹50 FOR 3 MONTHS) ─── */}
       {showProModal && (
         <div style={{
           position: 'fixed', inset: 0,
-          background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)',
+          background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
           padding: '20px'
         }}>
           <div style={{
-            background: '#FFFFFF', borderRadius: '18px', maxWidth: '480px', width: '100%',
-            padding: '32px', boxShadow: '0 25px 50px rgba(0,0,0,0.2)', position: 'relative'
+            background: '#FFFFFF', borderRadius: '24px', maxWidth: '480px', width: '100%',
+            padding: '36px', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', position: 'relative',
+            border: '1.5px solid #E2E8F0'
           }}>
             <button 
               onClick={() => setShowProModal(false)}
-              style={{ position: 'absolute', right: '16px', top: '16px', background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer' }}
+              style={{ position: 'absolute', right: '18px', top: '18px', background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontWeight: 800 }}
             >
               ✕
             </button>
             <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
+              width: '60px',
+              height: '60px',
+              borderRadius: '18px',
               background: '#FEF3C7',
+              border: '1.5px solid #FDE047',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '14px'
+              marginBottom: '16px'
             }}>
-              <Crown size={30} color="#D97706" />
+              <Crown size={32} color="#D97706" />
             </div>
-            <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0' }}>Upgrade to NonStock Pro</h3>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#D97706', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                INSTITUTIONAL MEMBERSHIP
+              </span>
+              {isProUser && (
+                <span style={{ fontSize: '10px', background: '#DCFCE7', color: '#15803D', padding: '2px 8px', borderRadius: '999px', fontWeight: 900 }}>
+                  CURRENTLY ACTIVE
+                </span>
+              )}
+            </div>
+
+            <h3 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0' }}>
+              NonStock Pro Account
+            </h3>
             <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: '0 0 20px 0' }}>
-              Unlock all platform tools permanently without coin deductions, receive monthly 1,000 Gold Coins drops, and access exclusive custom badges.
+              Unlock all platform edge tools permanently without coin deductions, receive monthly 1,000 Gold Coins drops, and access exclusive custom badges.
             </p>
-            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={16} color="#10B981" /> Instant Unrestricted Screener & Replay</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={16} color="#10B981" /> Monthly 1,000 Gold Coins Allowance</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={16} color="#10B981" /> Verified Pro Crown on Global Leaderboard</li>
+
+            {/* Price Box in ₹ Rupees */}
+            <div style={{
+              background: '#F8FAFC',
+              border: '1.5px solid #E2E8F0',
+              borderRadius: '16px',
+              padding: '16px 20px',
+              marginBottom: '20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>PLAN DURATION</div>
+                <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>3 Months Pro Access</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '26px', fontWeight: 900, color: '#059669', fontFamily: 'var(--font-mono)' }}>
+                  ₹50
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>₹50 for 3 months</div>
+              </div>
+            </div>
+
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={16} color="#10B981" /> 
+                <span>Instant Unrestricted Screener & Market Replay</span>
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={16} color="#10B981" /> 
+                <span>Full Access to Strategy Lab & AI Mentor</span>
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={16} color="#10B981" /> 
+                <span>Monthly 1,000 Gold Coins Vault Allowance</span>
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={16} color="#10B981" /> 
+                <span>Verified Pro Member Crown on Leaderboard</span>
+              </li>
             </ul>
+
             <button
               onClick={() => {
-                toast.success('Pro features activated!');
-                setShowProModal(false);
+                if (isProUser) {
+                  toast.success('Your Pro Membership is already active!');
+                  setShowProModal(false);
+                } else {
+                  toast.success('Pro Membership activated for 3 months (₹50)!');
+                  setShowProModal(false);
+                }
               }}
               style={{
                 width: '100%',
-                padding: '14px',
-                background: '#10B981',
+                padding: '15px',
+                background: isProUser ? '#0F172A' : '#10B981',
                 color: '#FFF',
                 border: 'none',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 fontWeight: 800,
                 fontSize: '15px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: isProUser ? 'none' : '0 4px 16px rgba(16, 185, 129, 0.35)',
+                transition: 'all 0.15s'
               }}
             >
-              Activate Pro Membership ($99/mo)
+              {isProUser ? 'Pro Membership Active (Valid for 3 Months)' : 'Activate Pro Account — ₹50 for 3 Months'}
             </button>
           </div>
         </div>
