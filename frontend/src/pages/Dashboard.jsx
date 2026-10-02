@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { createChart } from 'lightweight-charts';
+import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useTrading } from '../contexts/TradingContext';
 import { Settings, Maximize2, DollarSign, PieChart, Activity, TrendingUp, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -78,7 +78,7 @@ export default function Terminal() {
       }
     });
 
-    const candlestickSeries = chart.addCandlestickSeries({
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#10B981',
       downColor: '#EF4444',
       borderVisible: false,
