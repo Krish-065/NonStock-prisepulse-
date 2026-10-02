@@ -78,6 +78,21 @@ export const TradingProvider = ({ children }) => {
       openTime: new Date().toISOString()
     };
     setPositions(prev => [...prev, newPosition]);
+
+    // Gamification coin rewards
+    let earnedCoins = 0;
+    if (history.length === 0 && positions.length === 0) {
+      earnedCoins += 25;
+      toast('First Blood Milestone! +25 Gold Coins', { icon: '🩸' });
+    }
+    if (order.sl && parseFloat(order.sl) > 0) {
+      earnedCoins += 5;
+      toast('Discipline Bonus: SL Protection active! +5 Gold Coins', { icon: '🛡️' });
+    }
+    if (earnedCoins > 0) {
+      setCoins(prev => prev + earnedCoins);
+    }
+
     toast.success(`Opened ${order.side} on ${order.asset}`);
   };
 
@@ -102,6 +117,12 @@ export const TradingProvider = ({ children }) => {
       }
       return newBal;
     });
+
+    // Gamification reward for profitable trade
+    if (pnl > 0) {
+      setCoins(prev => prev + 10);
+      toast.success(`Profitable Exit! +10 Gold Coins earned`, { icon: '🪙' });
+    }
 
     setPositions(prev => prev.filter(p => p.id !== id));
     setHistory(prev => [{

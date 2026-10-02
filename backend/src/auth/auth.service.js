@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const https = require('https');
 const { query } = require('../db/index');
+const { processLoginReward } = require('../services/gamificationService');
 
 function generateUUID() {
   return crypto.randomUUID();
@@ -346,7 +347,38 @@ async function login(req, res) {
     const isPro = email.toLowerCase() === 'krishshah8201@gmail.com' ? true : user.is_pro;
     const proPlan = email.toLowerCase() === 'krishshah8201@gmail.com' ? 'lifetime' : user.pro_plan;
     const jwtToken = jwt.sign({ id: user.id, email, sessionId }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ message: 'Login successful', token: jwtToken, user: { id: user.id, email, name: user.name, is_admin: user.is_admin, is_pro: isPro, pro_plan: proPlan, has_completed_tutorial: user.has_completed_tutorial, has_completed_pro_tutorial: user.has_completed_pro_tutorial } });
+
+    // Process dynamic daily login reward and streak
+    let loginReward = null;
+    try {
+      loginReward = await processLoginReward(user.id);
+    } catch (e) {
+      console.warn('Login reward processing warning:', e.message);
+    }
+
+    const updatedUserRes = await query('SELECT gold_coins, login_streak, account_tag, der_score, virtual_balance FROM users WHERE id = $1', [user.id]);
+    const uStats = updatedUserRes.rows[0] || {};
+
+    res.json({ 
+      message: 'Login successful', 
+      token: jwtToken, 
+      loginReward,
+      user: { 
+        id: user.id, 
+        email, 
+        name: user.name, 
+        is_admin: user.is_admin, 
+        is_pro: isPro, 
+        pro_plan: proPlan, 
+        has_completed_tutorial: user.has_completed_tutorial, 
+        has_completed_pro_tutorial: user.has_completed_pro_tutorial,
+        gold_coins: parseInt(uStats.gold_coins || 100),
+        login_streak: parseInt(uStats.login_streak || 1),
+        account_tag: uStats.account_tag || 'Contender',
+        der_score: parseFloat(uStats.der_score || 75.00),
+        virtual_balance: parseFloat(uStats.virtual_balance || 1000.00)
+      } 
+    });
   } catch (error) {
     res.status(500).json({ error: 'Login failed' });
   }

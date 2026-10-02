@@ -4,8 +4,16 @@ const { query } = require('../db/index');
 const { fetchYahooQuote } = require('./marketData');
 const { authenticate } = require('../middleware/auth');
 const crypto = require('crypto');
-
 const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
+const { 
+  awardCoins,
+  processTradeOpenReward,
+  processTradeCloseReward,
+  getUserBadges,
+  getRealLeaderboard,
+  unlockToolWithCoins,
+  getUnlockedTools
+} = require('../services/gamificationService');
 
 
 // Helper to fetch live USD/INR exchange rate
@@ -24,12 +32,16 @@ async function getUsdInrRate() {
 // GET /api/paper/portfolio - Fetch virtual balance, holdings, value (all values denominated in USD)
 router.get('/portfolio', authenticate, async (req, res) => {
   try {
-    const userRes = await query('SELECT virtual_balance, virtual_refill_count, consecutive_sl_hits, is_pro FROM users WHERE id = $1', [req.user.id]);
+    const userRes = await query('SELECT virtual_balance, virtual_refill_count, consecutive_sl_hits, is_pro, gold_coins, login_streak, account_tag, der_score FROM users WHERE id = $1', [req.user.id]);
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
     const isPro = userRes.rows[0].is_pro || false;
     let virtualBalance = parseFloat(userRes.rows[0].virtual_balance || 1000.00);
+    const goldCoins = parseInt(userRes.rows[0].gold_coins || 100);
+    const loginStreak = parseInt(userRes.rows[0].login_streak || 1);
+    const accountTag = userRes.rows[0].account_tag || 'Contender';
+    const derScore = parseFloat(userRes.rows[0].der_score || 75.00);
     
     // Auto upgrade Pro users to $1,000,000 virtual balance
     if (isPro && virtualBalance <= 1000.00) {
@@ -97,6 +109,10 @@ router.get('/portfolio', authenticate, async (req, res) => {
       virtualBalance,
       refillCount,
       consecutiveSlHits,
+      goldCoins,
+      loginStreak,
+      accountTag,
+      derScore,
       totalHoldingsValue,
       totalPortfolioValue: virtualBalance + totalHoldingsValue,
       holdings: holdingsWithLiveInfo,
@@ -239,12 +255,24 @@ router.post('/trade', authenticate, async (req, res) => {
         console.warn('[Auto-Sync] Failed to sync BUY into portfolio_items:', syncErr.message);
       }
 
+      let tradeRewards = [];
+      try {
+        tradeRewards = await processTradeOpenReward(req.user.id, { stopLoss, symbol });
+      } catch (gErr) {
+        console.warn('Gamification BUY reward warning:', gErr.message);
+      }
+
+      const updatedCoinsRes = await query('SELECT gold_coins FROM users WHERE id = $1', [req.user.id]);
+      const currentCoins = parseInt(updatedCoinsRes.rows[0]?.gold_coins || 100);
+
       return res.json({ 
         success: true, 
         message: isPendingOrderFill 
           ? `Filled: Pending BUY order for ${qty} units of ${symbol} at ${isIndian ? '₹' : '$'}${prc}`
           : `Successfully bought ${qty} units of ${symbol} for $${costUsd.toFixed(2)}`, 
-        newBalance 
+        newBalance,
+        goldCoins: currentCoins,
+        tradeRewards
       });
     } else if (action.toUpperCase() === 'SELL') {
       // Check holding
@@ -330,13 +358,27 @@ router.post('/trade', authenticate, async (req, res) => {
         [crypto.randomUUID(), req.user.id, symbol, 'SELL', qty, prc, profitAndLossUsd, existingBuyPrice]
       );
 
+      let closeRewards = null;
+      try {
+        closeRewards = await processTradeCloseReward(req.user.id, { pnl: profitAndLossUsd, isProfit: profitAndLossUsd > 0, symbol });
+      } catch (gErr) {
+        console.warn('Gamification SELL reward warning:', gErr.message);
+      }
+
+      const updatedCoinsRes = await query('SELECT gold_coins, account_tag, der_score FROM users WHERE id = $1', [req.user.id]);
+      const uStats = updatedCoinsRes.rows[0] || {};
+
       return res.json({ 
         success: true, 
         message: isPendingOrderFill
-          ? `Filled: Pending SELL order for ${qty} units of ${symbol} at ${isIndian ? '₹' : '$'}${prc}`
-          : `Successfully sold ${qty} units of ${symbol} for $${costUsd.toFixed(2)}`, 
+          ? `Filled: Pending SELL order for ${qty} units of ${symbol} at ${isIndian ? '₹' : '$'}${prc}. Realized P&L: $${profitAndLossUsd.toFixed(2)}`
+          : `Successfully sold ${qty} units of ${symbol} for $${costUsd.toFixed(2)}. Realized P&L: $${profitAndLossUsd.toFixed(2)}`, 
         newBalance, 
-        profitAndLoss: profitAndLossUsd 
+        profitAndLoss: profitAndLossUsd,
+        goldCoins: parseInt(uStats.gold_coins || 100),
+        accountTag: uStats.account_tag || 'Contender',
+        derScore: parseFloat(uStats.der_score || 75.00),
+        closeRewards
       });
     } else {
       return res.status(400).json({ error: 'Invalid action. Must be BUY or SELL' });
@@ -628,28 +670,69 @@ router.get('/balance-history', authenticate, async (req, res) => {
   }
 });
 
-// GET /api/paper/leaderboard - Get user leaderboard based on virtual USD cash balance (split into standard and pro)
-router.get('/leaderboard', authenticate, async (req, res) => {
+// GET /api/paper/hall-of-fame - 100% Real Verified Leaderboard (NO FAKE / BOTS)
+router.get('/hall-of-fame', async (req, res) => {
   try {
-    const standardRes = await query(
-      'SELECT name, virtual_balance as "virtualBalance", COALESCE(is_pro, false) as "isPro" FROM users WHERE COALESCE(is_pro, false) = false ORDER BY virtual_balance DESC LIMIT 20'
-    );
-    const proRes = await query(
-      `SELECT name, 
-              CASE WHEN COALESCE(virtual_balance, 0) <= 1000.00 THEN 1000.00 ELSE virtual_balance END as "virtualBalance", 
-              COALESCE(is_pro, false) as "isPro" 
-       FROM users 
-       WHERE COALESCE(is_pro, false) = true 
-       ORDER BY (CASE WHEN COALESCE(virtual_balance, 0) <= 1000.00 THEN 1000.00 ELSE virtual_balance END) DESC LIMIT 20`
-    );
+    const leaderboard = await getRealLeaderboard();
+    res.json({ leaderboard });
+  } catch (error) {
+    console.error('❌ Get paper hall of fame error:', error);
+    res.status(500).json({ error: 'Failed to retrieve Hall of Fame' });
+  }
+});
+
+// GET /api/paper/leaderboard - Real user leaderboard split into standard and pro
+router.get('/leaderboard', async (req, res) => {
+  try {
+    const leaderboard = await getRealLeaderboard();
     res.json({
-      leaderboard: standardRes.rows, // fallback for backwards compatibility
-      standard: standardRes.rows,
-      pro: proRes.rows
+      leaderboard,
+      standard: leaderboard.filter(u => !u.isPro),
+      pro: leaderboard.filter(u => u.isPro)
     });
   } catch (error) {
     console.error('❌ Get paper leaderboard error:', error);
     res.status(500).json({ error: 'Failed to retrieve leaderboard ranking' });
+  }
+});
+
+// GET /api/paper/badges - Get user's earned badges
+router.get('/badges', authenticate, async (req, res) => {
+  try {
+    const badges = await getUserBadges(req.user.id);
+    res.json({ badges });
+  } catch (error) {
+    console.error('❌ Get badges error:', error);
+    res.status(500).json({ error: 'Failed to retrieve badges' });
+  }
+});
+
+// POST /api/paper/unlock-tool - Unlock a tool using Gold Coins
+router.post('/unlock-tool', authenticate, async (req, res) => {
+  try {
+    const { toolKey, cost } = req.body;
+    if (!toolKey || !cost) {
+      return res.status(400).json({ error: 'Missing toolKey or cost' });
+    }
+    const result = await unlockToolWithCoins(req.user.id, toolKey, parseInt(cost));
+    if (result.error) {
+      return res.status(400).json(result);
+    }
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Unlock tool error:', error);
+    res.status(500).json({ error: 'Failed to unlock tool' });
+  }
+});
+
+// GET /api/paper/unlocked-tools - Get user's unlocked tools list
+router.get('/unlocked-tools', authenticate, async (req, res) => {
+  try {
+    const unlockedTools = await getUnlockedTools(req.user.id);
+    res.json({ unlockedTools });
+  } catch (error) {
+    console.error('❌ Get unlocked tools error:', error);
+    res.status(500).json({ error: 'Failed to retrieve unlocked tools' });
   }
 });
 

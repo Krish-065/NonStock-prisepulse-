@@ -534,6 +534,23 @@ async function createTables() {
       expires_at TIMESTAMP
     )
   `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS coin_transactions (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+      amount INT NOT NULL,
+      reason VARCHAR(255) NOT NULL,
+      description TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS login_streak INT DEFAULT 1`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_date DATE`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS consecutive_wins INT DEFAULT 0`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS total_trades_count INT DEFAULT 0`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS winning_trades_count INT DEFAULT 0`);
   
   // 11. Paper Trading symbols normalization migration
   try {
