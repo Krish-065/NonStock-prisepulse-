@@ -3,6 +3,7 @@ import { apiClient } from '../services/api';
 import { Search, TrendingUp, TrendingDown, RefreshCw, Filter, Zap, Sliders, CheckCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import LiveMarketScreener from '../components/LiveMarketScreener';
 
 const SECTORS = ['All', 'IT', 'Banking', 'NBFC', 'Insurance', 'Oil & Gas', 'Auto', 'Pharma', 'FMCG', 'Metals', 'Power', 'Infra', 'Real Estate', 'Telecom'];
 
@@ -99,8 +100,11 @@ export default function Screener() {
   }, [stocks, search, sectorFilter, moverFilter, screenerTab, sortKey, sortDir]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {/* 1. Global Market Screener & Price Radar (Crypto, Metals, Forex) */}
+      <LiveMarketScreener />
+
+      {/* 2. Equities & Quant Radar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>

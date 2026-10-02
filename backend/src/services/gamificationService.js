@@ -67,9 +67,9 @@ async function processLoginReward(userId) {
       }
     }
 
-    // Base daily reward: +15 coins
-    let coinsEarned = 15;
-    let bonusNote = 'Daily Login Proving Bonus (+15 Coins)';
+    // Base daily reward: +25 coins
+    let coinsEarned = 25;
+    let bonusNote = 'Daily Login Proving Bonus (+25 Coins)';
 
     // 7-day milestone bonus: +50 coins
     if (newStreak % 7 === 0) {
@@ -291,24 +291,39 @@ async function getRealLeaderboard() {
     );
 
     return res.rows.map((user, index) => {
-      let color = '#64748B';
-      if (user.accountTag === 'Operator') color = '#A855F7';
-      else if (user.accountTag === 'Master') color = '#EF4444';
-      else if (user.accountTag === 'Gold') color = '#F59E0B';
-      else if (user.accountTag === 'Silver') color = '#94A3B8';
+      const bal = parseFloat(user.virtualBalance) || 1000.00;
+      let tag = 'Contender';
+      let color = '#0F172A'; // Dark slate/navy for Contender (NOT silver)
+
+      if (bal >= 15000) {
+        tag = 'Operator';
+        color = '#A855F7';
+      } else if (bal >= 8000) {
+        tag = 'Master';
+        color = '#EF4444';
+      } else if (bal >= 4000) {
+        tag = 'Gold';
+        color = '#F59E0B';
+      } else if (bal >= 2000) {
+        tag = 'Silver';
+        color = '#94A3B8';
+      } else {
+        tag = 'Contender';
+        color = '#0F172A';
+      }
 
       return {
         rank: index + 1,
         id: user.id,
-        name: user.name,
-        tag: user.accountTag,
+        name: user.name || 'Verified Trader',
+        tag,
         color,
-        der: parseFloat(user.derScore),
-        balance: parseFloat(user.virtualBalance),
-        coins: parseInt(user.goldCoins),
-        isPro: user.isPro,
-        trades: parseInt(user.totalTrades),
-        wins: parseInt(user.winningTrades)
+        der: parseFloat(user.derScore || 75.0),
+        balance: bal,
+        coins: parseInt(user.goldCoins || 100),
+        isPro: Boolean(user.isPro),
+        trades: parseInt(user.totalTrades || 0),
+        wins: parseInt(user.winningTrades || 0)
       };
     });
   } catch (err) {

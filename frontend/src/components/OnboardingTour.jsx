@@ -15,7 +15,9 @@ import {
   Check,
   ChevronRight,
   ChevronLeft,
-  X
+  X,
+  Zap,
+  Crown
 } from 'lucide-react';
 
 export default function OnboardingTour() {
@@ -53,7 +55,7 @@ export default function OnboardingTour() {
   // Standard Tour Steps (Easy, simple language)
   const standardSteps = [
     {
-      title: "Welcome to NonStock! 👋",
+      title: "Welcome to NonStock!",
       path: "/dashboard",
       selector: null,
       icon: <LayoutDashboard size={40} className="text-emerald-400" />,
@@ -71,7 +73,7 @@ export default function OnboardingTour() {
           position: 'relative',
           overflow: 'hidden'
         }}>
-          <span style={{ fontSize: '32px', filter: 'drop-shadow(0 0 10px rgba(0,255,136,0.5))' }}>🚀</span>
+          <Zap size={36} color="#00ff88" />
           <div style={{ position: 'absolute', bottom: '8px', fontSize: '11px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Quick Interactive Tour</div>
         </div>
       )
@@ -144,7 +146,7 @@ export default function OnboardingTour() {
           textAlign: 'center',
           margin: '12px 0'
         }}>
-          💎 Unlock The Oracle AI & Smart Trading Bots
+          Unlock NonStock AI & Smart Trading Bots
         </div>
       )
     }
@@ -153,7 +155,7 @@ export default function OnboardingTour() {
   // Pro Tour Steps (Easy, simple language for Pro features)
   const proSteps = [
     {
-      title: "Welcome to NonStock Pro! 👑",
+      title: "Welcome to NonStock Pro!",
       path: "/dashboard",
       selector: null,
       icon: <Sparkles size={40} style={{ color: '#ffb300' }} />,
@@ -171,7 +173,7 @@ export default function OnboardingTour() {
           position: 'relative',
           overflow: 'hidden'
         }}>
-          <span style={{ fontSize: '32px', filter: 'drop-shadow(0 0 10px rgba(255, 179, 0, 0.5))' }}>👑</span>
+          <Crown size={36} color="#ffb300" />
           <div style={{ position: 'absolute', bottom: '8px', fontSize: '11px', color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)', fontWeight: 700 }}>Pro Features Walkthrough</div>
         </div>
       )

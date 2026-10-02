@@ -1,68 +1,110 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createChart, CandlestickSeries, LineSeries } from 'lightweight-charts';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTrading } from '../contexts/TradingContext';
 import { 
-  Sliders, RotateCcw, TrendingUp, TrendingDown, ArrowRight, Zap, Shield, Sparkles, Activity
+  Search, RotateCcw, TrendingUp, TrendingDown, ArrowRight, Zap, 
+  Shield, Sparkles, Activity, Check, X, SlidersHorizontal
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ExecutionTicket from '../components/ExecutionTicket';
 import LiveMarketScreener from '../components/LiveMarketScreener';
 
-const ASSETS = {
-  Crypto: [
-    { symbol: 'BTCUSDT', name: 'Bitcoin', tvSymbol: 'BINANCE:BTCUSDT', defaultPrice: 65000 },
-    { symbol: 'ETHUSDT', name: 'Ethereum', tvSymbol: 'BINANCE:ETHUSDT', defaultPrice: 2746.66 },
-    { symbol: 'SOLUSDT', name: 'Solana', tvSymbol: 'BINANCE:SOLUSDT', defaultPrice: 152.40 }
-  ],
-  Forex: [
-    { symbol: 'EURUSD', name: 'Euro / US Dollar', tvSymbol: 'FX:EURUSD', defaultPrice: 1.0845 },
-    { symbol: 'GBPUSD', name: 'British Pound / USD', tvSymbol: 'FX:GBPUSD', defaultPrice: 1.2980 },
-    { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', tvSymbol: 'FX:USDJPY', defaultPrice: 149.25 }
-  ],
-  Commodities: [
-    { symbol: 'XAUUSD', name: 'Gold Spot', tvSymbol: 'OANDA:XAUUSD', defaultPrice: 2650.40 },
-    { symbol: 'WTIUSD', name: 'Crude Oil', tvSymbol: 'TVC:USOIL', defaultPrice: 71.85 },
-    { symbol: 'XAGUSD', name: 'Silver Spot', tvSymbol: 'OANDA:XAGUSD', defaultPrice: 31.80 }
-  ],
-  Equities: [
-    { symbol: 'AAPL', name: 'Apple Inc.', tvSymbol: 'NASDAQ:AAPL', defaultPrice: 228.50 },
-    { symbol: 'NVDA', name: 'NVIDIA Corp.', tvSymbol: 'NASDAQ:NVDA', defaultPrice: 124.60 },
-    { symbol: 'TSLA', name: 'Tesla Inc.', tvSymbol: 'NASDAQ:TSLA', defaultPrice: 254.20 },
-    { symbol: 'SPY', name: 'S&P 500 ETF', tvSymbol: 'AMEX:SPY', defaultPrice: 574.80 }
-  ]
-};
+// Full Master Tradable Assets Catalog
+const ALL_ASSETS = [
+  // Crypto
+  { symbol: 'BTCUSDT', name: 'Bitcoin', category: 'Crypto', tvSymbol: 'BINANCE:BTCUSDT', defaultPrice: 86502.00 },
+  { symbol: 'ETHUSDT', name: 'Ethereum', category: 'Crypto', tvSymbol: 'BINANCE:ETHUSDT', defaultPrice: 2748.41 },
+  { symbol: 'SOLUSDT', name: 'Solana', category: 'Crypto', tvSymbol: 'BINANCE:SOLUSDT', defaultPrice: 154.20 },
+  { symbol: 'BNBUSDT', name: 'BNB', category: 'Crypto', tvSymbol: 'BINANCE:BNBUSDT', defaultPrice: 585.50 },
+  { symbol: 'XRPUSDT', name: 'Ripple', category: 'Crypto', tvSymbol: 'BINANCE:XRPUSDT', defaultPrice: 0.585 },
+  // Commodities
+  { symbol: 'XAUUSD', name: 'Gold Spot / USD', category: 'Commodities', tvSymbol: 'OANDA:XAUUSD', defaultPrice: 2518.40 },
+  { symbol: 'WTIUSD', name: 'Crude Oil WTI', category: 'Commodities', tvSymbol: 'TVC:USOIL', defaultPrice: 71.85 },
+  { symbol: 'XAGUSD', name: 'Silver Spot / USD', category: 'Commodities', tvSymbol: 'OANDA:XAGUSD', defaultPrice: 31.80 },
+  // Forex
+  { symbol: 'EURUSD', name: 'EUR / USD Forex Major', category: 'Forex', tvSymbol: 'FX:EURUSD', defaultPrice: 1.0848 },
+  { symbol: 'GBPUSD', name: 'GBP / USD Forex Major', category: 'Forex', tvSymbol: 'FX:GBPUSD', defaultPrice: 1.3032 },
+  { symbol: 'USDJPY', name: 'USD / JPY Forex Major', category: 'Forex', tvSymbol: 'FX:USDJPY', defaultPrice: 148.82 },
+  { symbol: 'AUDUSD', name: 'AUD / USD Forex Major', category: 'Forex', tvSymbol: 'FX:AUDUSD', defaultPrice: 0.6724 },
+  { symbol: 'USDCAD', name: 'USD / CAD Forex Cross', category: 'Forex', tvSymbol: 'FX:USDCAD', defaultPrice: 1.3540 },
+  // Equities
+  { symbol: 'AAPL', name: 'Apple Inc.', category: 'Equities', tvSymbol: 'NASDAQ:AAPL', defaultPrice: 228.50 },
+  { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'Equities', tvSymbol: 'NASDAQ:NVDA', defaultPrice: 124.60 },
+  { symbol: 'TSLA', name: 'Tesla Inc.', category: 'Equities', tvSymbol: 'NASDAQ:TSLA', defaultPrice: 254.20 },
+  { symbol: 'SPY', name: 'S&P 500 ETF Trust', category: 'Equities', tvSymbol: 'AMEX:SPY', defaultPrice: 574.80 }
+];
 
 export default function TradingPage() {
   const { balance, positions, placeOrder, closePosition, resetAccount } = useTrading();
-
   const navigate = useNavigate();
-  const [category, setCategory] = useState('Crypto');
-  const [symbol, setSymbol] = useState('ETHUSDT');
-  const [chartEngine, setChartEngine] = useState('tradingview'); // 'tradingview' or 'lightweight'
-  const [currentPrice, setCurrentPrice] = useState(2746.66);
-  const [aiInsightText, setAiInsightText] = useState('Bullish market structure on ETHUSDT. Watch key resistance for liquidity sweeps. Maintain strict SL.');
+  const [searchParams] = useSearchParams();
+
+  // Persistent Active Symbol Selection
+  const [symbol, setSymbol] = useState(() => {
+    const urlSym = searchParams.get('symbol');
+    if (urlSym) return urlSym.toUpperCase();
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('nonstock_active_symbol') || 'BTCUSDT';
+    }
+    return 'BTCUSDT';
+  });
+
+  const [currentPrice, setCurrentPrice] = useState(86502.00);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchContainerRef = useRef(null);
+
+  const [aiInsightText, setAiInsightText] = useState('Institutional order flow indicates key support consolidation. Maintain strict Stop Loss invalidation levels.');
   const [aiInsightLoading, setAiInsightLoading] = useState(false);
 
-  // Lightweight chart refs
-  const chartContainerRef = useRef(null);
-  const chartRef = useRef(null);
-  const candlestickSeriesRef = useRef(null);
-  const wsRef = useRef(null);
-  const rawCandlesRef = useRef([]);
+  // Active asset match
+  const activeAsset = useMemo(() => {
+    return ALL_ASSETS.find(a => a.symbol === symbol) || ALL_ASSETS[0];
+  }, [symbol]);
 
-  // Active TV widget tracking
-  const tvContainerRef = useRef(null);
+  // Persist symbol selection
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nonstock_active_symbol', symbol);
+    }
+  }, [symbol]);
 
-  const activeAsset = ASSETS[category]?.find(a => a.symbol === symbol) || ASSETS['Crypto'][0];
+  // Handle URL param changes
+  useEffect(() => {
+    const urlSym = searchParams.get('symbol');
+    if (urlSym && urlSym.toUpperCase() !== symbol) {
+      setSymbol(urlSym.toUpperCase());
+    }
+  }, [searchParams]);
 
-  // 1. Initial price sync on symbol change
+  // Filter assets for search dropdown
+  const filteredAssets = useMemo(() => {
+    if (!searchQuery.trim()) return ALL_ASSETS;
+    const q = searchQuery.toLowerCase().trim();
+    return ALL_ASSETS.filter(a => 
+      a.symbol.toLowerCase().includes(q) || 
+      a.name.toLowerCase().includes(q) || 
+      a.category.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  // Click outside search dropdown
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Update default price & query AI insight when symbol changes
   useEffect(() => {
     if (activeAsset) {
       setCurrentPrice(activeAsset.defaultPrice);
     }
 
-    // Generate real-time Groq insight for active asset
     const token = localStorage.getItem('token');
     if (token) {
       setAiInsightLoading(true);
@@ -76,7 +118,7 @@ export default function TradingPage() {
           message: `Provide a 2-sentence institutional trade insight for ${symbol} at current price $${currentPrice}. State key momentum, immediate risk invalidation, and trailing stop tip.`,
           marketData: {
             symbol,
-            currentPrice,
+            currentPrice: activeAsset?.defaultPrice || currentPrice,
             timeframe: '15m'
           }
         })
@@ -89,16 +131,14 @@ export default function TradingPage() {
           }
         })
         .catch(() => {
-          setAiInsightText(`Institutional flow on ${symbol} shows strong volume near $${currentPrice.toFixed(2)}. Invalidate long setups below support floor.`);
+          setAiInsightText(`Institutional liquidity on ${symbol} shows high participation near $${currentPrice.toFixed(2)}. Invalidate setups beyond nearest support.`);
         })
         .finally(() => setAiInsightLoading(false));
     }
-  }, [symbol, category]);
+  }, [symbol, activeAsset]);
 
-  // 2. Official TradingView Embed Widget (Self-Fetching Original Data, No Backend Feed Needed)
+  // Official TradingView Widget Integration (Self-Fetching Live Feed & Saved Tools/Drawings)
   useEffect(() => {
-    if (chartEngine !== 'tradingview') return;
-
     const containerId = 'tv_chart_container';
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -114,7 +154,7 @@ export default function TradingPage() {
           autosize: true,
           symbol: activeAsset.tvSymbol,
           interval: '15',
-          timezone: 'Etc/UTC',
+          timezone: 'exchange',
           theme: 'light',
           style: '1',
           locale: 'en',
@@ -122,7 +162,7 @@ export default function TradingPage() {
           enable_publishing: false,
           hide_side_toolbar: false,
           allow_symbol_change: true,
-          save_image: false,
+          save_image: true,
           container_id: containerId,
           studies: [
             'MASimple@tv-basicstudies',
@@ -136,132 +176,39 @@ export default function TradingPage() {
     return () => {
       // Cleanup script tag if needed
     };
-  }, [chartEngine, symbol, category, activeAsset.tvSymbol]);
+  }, [symbol, activeAsset.tvSymbol]);
 
-  // 3. Lightweight Canvas fallback chart
-  useEffect(() => {
-    if (chartEngine !== 'lightweight' || !chartContainerRef.current) return;
+  // Select asset handler
+  const handleSelectAsset = (asset) => {
+    setSymbol(asset.symbol);
+    setCurrentPrice(asset.defaultPrice);
+    setIsSearchOpen(false);
+    setSearchQuery('');
+    toast.success(`Active Chart: ${asset.symbol} (${asset.name})`);
+  };
 
-    chartContainerRef.current.innerHTML = '';
-
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: 'solid', color: '#ffffff' },
-        textColor: '#0F172A',
-        fontFamily: 'Inter, sans-serif'
-      },
-      grid: {
-        vertLines: { color: '#F1F5F9' },
-        horzLines: { color: '#F1F5F9' },
-      },
-      crosshair: { mode: 1 },
-      timeScale: { timeVisible: true, secondsVisible: false },
-      rightPriceScale: { borderColor: '#E2E8F0' }
-    });
-
-    const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#10B981',
-      downColor: '#EF4444',
-      borderVisible: false,
-      wickUpColor: '#10B981',
-      wickDownColor: '#EF4444'
-    });
-
-    chartRef.current = chart;
-    candlestickSeriesRef.current = candlestickSeries;
-
-    // Fetch data for lightweight chart
-    if (category === 'Crypto') {
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=100`)
-        .then(res => res.json())
-        .then(data => {
-          const formattedData = data.map(d => ({
-            time: d[0] / 1000,
-            open: parseFloat(d[1]),
-            high: parseFloat(d[2]),
-            low: parseFloat(d[3]),
-            close: parseFloat(d[4])
-          }));
-          rawCandlesRef.current = formattedData;
-          candlestickSeries.setData(formattedData);
-          setCurrentPrice(formattedData[formattedData.length - 1].close);
-        })
-        .catch(err => console.error(err));
-
-      if (wsRef.current) wsRef.current.close();
-      const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_1m`);
-      ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        if (msg.e === 'kline') {
-          const k = msg.k;
-          const tick = {
-            time: k.t / 1000,
-            open: parseFloat(k.o),
-            high: parseFloat(k.h),
-            low: parseFloat(k.l),
-            close: parseFloat(k.c)
-          };
-          candlestickSeries.update(tick);
-          setCurrentPrice(tick.close);
-        }
-      };
-      wsRef.current = ws;
-    } else {
-      // Simulate price ticks for canvas
-      let basePrice = activeAsset.defaultPrice;
-      const data = [];
-      let time = Math.floor(Date.now() / 1000) - 100 * 60;
-      for (let i = 0; i < 100; i++) {
-        data.push({
-          time: time + i * 60,
-          open: basePrice,
-          high: basePrice + Math.random() * (basePrice * 0.002),
-          low: basePrice - Math.random() * (basePrice * 0.002),
-          close: basePrice + (Math.random() - 0.49) * (basePrice * 0.002)
-        });
-        basePrice = data[i].close;
-      }
-      candlestickSeries.setData(data);
-      setCurrentPrice(basePrice);
-    }
-
-    const handleResize = () => {
-      if (chartContainerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
-      }
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (wsRef.current) wsRef.current.close();
-      chart.remove();
-    };
-  }, [chartEngine, symbol, category, activeAsset]);
-
-  // Handle asset select from Screener
+  // Screener 1-click select
   const handleSelectScreenerAsset = (asset) => {
-    if (asset.symbol === 'BTCUSDT' || asset.symbol === 'ETHUSDT') {
-      setCategory('Crypto');
-      setSymbol(asset.symbol);
-    } else if (asset.symbol === 'GC=F') {
-      setCategory('Commodities');
-      setSymbol('XAUUSD');
-    } else if (asset.symbol === 'EURUSD=X') {
-      setCategory('Forex');
-      setSymbol('EURUSD');
-    } else if (asset.symbol === 'GBPUSD=X') {
-      setCategory('Forex');
-      setSymbol('GBPUSD');
-    } else if (asset.symbol === 'USDJPY=X') {
-      setCategory('Forex');
-      setSymbol('USDJPY');
-    } else {
-      setCategory('Forex');
-      setSymbol(asset.badge.replace('/', ''));
-    }
+    let targetSym = 'BTCUSDT';
+    if (asset.symbol === 'BTC-USD') targetSym = 'BTCUSDT';
+    else if (asset.symbol === 'GC=F') targetSym = 'XAUUSD';
+    else if (asset.symbol === 'EURUSD=X') targetSym = 'EURUSD';
+    else if (asset.symbol === 'GBPUSD=X') targetSym = 'GBPUSD';
+    else if (asset.symbol === 'USDJPY=X') targetSym = 'USDJPY';
+    else if (asset.symbol === 'AUDUSD=X') targetSym = 'AUDUSD';
+    else if (asset.symbol === 'USDCAD=X') targetSym = 'USDCAD';
+    else targetSym = (asset.badge || asset.symbol).replace(/[\/\-=]/g, '');
+
+    const found = ALL_ASSETS.find(a => a.symbol === targetSym) || {
+      symbol: targetSym,
+      name: asset.name,
+      category: 'Market',
+      tvSymbol: `BINANCE:${targetSym}`,
+      defaultPrice: asset.price
+    };
+
+    handleSelectAsset(found);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    toast.success(`Loaded ${asset.name} onto Pro Terminal`, { icon: '📈' });
   };
 
   return (
@@ -284,7 +231,7 @@ export default function TradingPage() {
           <div>
             <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', letterSpacing: '0.8px' }}>PROVING CAPITAL</div>
             <div style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
-              ${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ${Number(balance || 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
@@ -294,7 +241,7 @@ export default function TradingPage() {
           <div>
             <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', letterSpacing: '0.8px' }}>FREE MARGIN</div>
             <div style={{ fontSize: '20px', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
-              ${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ${Number(balance || 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
@@ -306,7 +253,7 @@ export default function TradingPage() {
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <button 
             onClick={() => {
-              if (window.confirm('Reset virtual portfolio back to $1,000 baseline?')) resetAccount(false);
+              if (window.confirm('Reset virtual portfolio back to $1,000 proving baseline?')) resetAccount(false);
             }}
             style={{
               padding: '9px 18px',
@@ -341,7 +288,7 @@ export default function TradingPage() {
           boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)'
         }}>
           
-          {/* Chart Header Bar */}
+          {/* Chart Header Bar: Unified Instant Search */}
           <div style={{
             padding: '14px 20px',
             borderBottom: '1px solid #E2E8F0',
@@ -352,150 +299,186 @@ export default function TradingPage() {
             gap: '14px',
             background: '#FAFAFA'
           }}>
-            {/* Asset Selection */}
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <select 
-                value={category} 
-                onChange={(e) => {
-                  const newCat = e.target.value;
-                  setCategory(newCat);
-                  setSymbol(ASSETS[newCat][0].symbol);
-                }}
+            
+            {/* Single Unified Search Bar with Autocomplete Dropdown */}
+            <div ref={searchContainerRef} style={{ position: 'relative', width: '380px', maxWidth: '100%' }}>
+              <div 
+                onClick={() => setIsSearchOpen(true)}
                 style={{
-                  padding: '7px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #CBD5E1',
-                  fontWeight: '800',
-                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
                   background: '#FFFFFF',
-                  color: '#0F172A',
-                  cursor: 'pointer'
+                  border: isSearchOpen ? '2px solid #10B981' : '1.5px solid #CBD5E1',
+                  borderRadius: '10px',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                  transition: 'border-color 0.2s'
                 }}
               >
-                {Object.keys(ASSETS).map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+                <Search size={16} color="#64748B" style={{ marginRight: '10px', flexShrink: 0 }} />
+                
+                {isSearchOpen ? (
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Search asset (e.g. BTC, ETH, Gold, EURUSD, AAPL)..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      width: '100%',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: '#0F172A',
+                      background: 'transparent'
+                    }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        background: '#0F172A',
+                        color: '#FFFFFF',
+                        fontWeight: 900,
+                        fontSize: '11px',
+                        padding: '2px 7px',
+                        borderRadius: '4px'
+                      }}>
+                        {activeAsset.symbol}
+                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                        {activeAsset.name}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>
+                      {activeAsset.category}
+                    </span>
+                  </div>
+                )}
 
-              <select 
-                value={symbol} 
-                onChange={(e) => setSymbol(e.target.value)}
-                style={{
-                  padding: '7px 14px',
-                  borderRadius: '8px',
-                  border: '1px solid #10B981',
-                  fontWeight: '900',
-                  fontSize: '14px',
-                  background: '#ECFDF5',
-                  color: '#059669',
-                  cursor: 'pointer'
-                }}
-              >
-                {ASSETS[category].map(a => (
-                  <option key={a.symbol} value={a.symbol}>
-                    {a.symbol} - {a.name}
-                  </option>
-                ))}
-              </select>
-
-              <div style={{
-                fontSize: '1.35rem',
-                fontWeight: '900',
-                color: '#0F172A',
-                fontFamily: 'var(--font-mono)',
-                marginLeft: '8px'
-              }}>
-                ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {isSearchOpen && (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsSearchOpen(false);
+                      setSearchQuery('');
+                    }}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#94A3B8' }}
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
+
+              {/* Autocomplete Search Dropdown */}
+              {isSearchOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: 0,
+                  right: 0,
+                  background: '#FFFFFF',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '12px',
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.12)',
+                  zIndex: 200,
+                  maxHeight: '300px',
+                  overflowY: 'auto'
+                }}>
+                  {filteredAssets.length === 0 ? (
+                    <div style={{ padding: '16px', textAlign: 'center', fontSize: '13px', color: '#64748B' }}>
+                      No matching tradable instruments found.
+                    </div>
+                  ) : (
+                    filteredAssets.map(asset => (
+                      <div
+                        key={asset.symbol}
+                        onClick={() => handleSelectAsset(asset)}
+                        style={{
+                          padding: '10px 14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #F1F5F9',
+                          background: asset.symbol === symbol ? '#F0FDF4' : '#FFFFFF',
+                          transition: 'background 0.15s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#F8FAFC'}
+                        onMouseOut={(e) => e.currentTarget.style.background = asset.symbol === symbol ? '#F0FDF4' : '#FFFFFF'}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            background: '#F1F5F9',
+                            fontWeight: 900,
+                            fontSize: '11px',
+                            color: '#0F172A'
+                          }}>
+                            {asset.symbol}
+                          </span>
+                          <div>
+                            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                              {asset.name}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748B' }}>
+                              {asset.category}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981' }}>
+                            View Chart
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Chart Engine Switcher */}
+            {/* TradingView Verified Feed Badge */}
             <div style={{
               display: 'flex',
-              background: '#F1F5F9',
-              padding: '3px',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              background: '#F0FDF4',
               borderRadius: '8px',
-              gap: '2px'
+              border: '1px solid #BBF7D0',
+              fontSize: '12px',
+              fontWeight: 800,
+              color: '#15803D'
             }}>
-              <button
-                onClick={() => setChartEngine('tradingview')}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '12px',
-                  fontWeight: '800',
-                  cursor: 'pointer',
-                  background: chartEngine === 'tradingview' ? '#FFFFFF' : 'transparent',
-                  color: chartEngine === 'tradingview' ? '#0F172A' : '#64748B',
-                  boxShadow: chartEngine === 'tradingview' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  transition: 'all 0.15s'
-                }}
-              >
-                📊 Original TradingView Feed
-              </button>
-              <button
-                onClick={() => setChartEngine('lightweight')}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '12px',
-                  fontWeight: '800',
-                  cursor: 'pointer',
-                  background: chartEngine === 'lightweight' ? '#FFFFFF' : 'transparent',
-                  color: chartEngine === 'lightweight' ? '#0F172A' : '#64748B',
-                  boxShadow: chartEngine === 'lightweight' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  transition: 'all 0.15s'
-                }}
-              >
-                ⚡ Lightweight Canvas
-              </button>
+              <Activity size={14} color="#15803D" />
+              <span>Original TradingView Pro Feed</span>
             </div>
           </div>
 
-          {/* Chart Display Area */}
-          <div style={{ width: '100%', height: '540px', position: 'relative' }}>
-            {chartEngine === 'tradingview' ? (
-              <div 
-                id="tv_chart_container" 
-                ref={tvContainerRef} 
-                style={{ width: '100%', height: '100%' }} 
-              />
-            ) : (
-              <div 
-                ref={chartContainerRef} 
-                style={{ width: '100%', height: '100%' }} 
-              />
-            )}
+          {/* Chart Canvas Area */}
+          <div style={{ position: 'relative', width: '100%', height: '580px', background: '#FFFFFF' }}>
+            <div 
+              id="tv_chart_container" 
+              style={{ width: '100%', height: '100%' }}
+            />
           </div>
-        </div>
 
-        {/* Right: Clean Order Execution Ticket & Live Groq AI Insight */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <ExecutionTicket 
-            symbol={symbol}
-            currentPrice={currentPrice}
-            balance={balance}
-            onPlaceOrder={(orderData) => {
-              placeOrder(orderData);
-            }}
-            onReset={() => {
-              toast('Ticket reset to default', { icon: '🔄' });
-            }}
-          />
-
-          {/* AI Mentor Trading Insight (From reference image) */}
+          {/* AI Mentor Trade Insight Bar */}
           <div style={{
-            background: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '18px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+            padding: '16px 20px',
+            borderTop: '1px solid #E2E8F0',
+            background: '#F8FAFC',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px'
+            gap: '8px'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Sparkles size={16} color="#10B981" />
                 <span style={{ fontSize: '11px', fontWeight: '900', color: '#64748B', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                   AI MENTOR TRADING INSIGHT
@@ -539,6 +522,17 @@ export default function TradingPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Right: Institutional Order Ticket */}
+        <div style={{ position: 'sticky', top: '80px' }}>
+          <ExecutionTicket 
+            symbol={symbol}
+            currentPrice={currentPrice}
+            balance={balance}
+            onPlaceOrder={placeOrder}
+            onReset={resetAccount}
+          />
         </div>
       </div>
 

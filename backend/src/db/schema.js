@@ -120,6 +120,23 @@ async function createTables() {
   await query(`ALTER TABLE users ALTER COLUMN gold_coins SET DEFAULT 100`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS virtual_refill_count INT DEFAULT 1`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS consecutive_sl_hits INT DEFAULT 0`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS account_tag VARCHAR(50) DEFAULT 'Contender'`);
+
+  // Normalize old legacy balances down to competitive $1,000 starting proving balance
+  try {
+    await query(`
+      UPDATE users 
+      SET virtual_balance = 1000.00 
+      WHERE virtual_balance > 15000.00 OR virtual_balance IS NULL;
+    `);
+    await query(`
+      UPDATE users 
+      SET account_tag = 'Contender' 
+      WHERE account_tag IS NULL OR account_tag = 'None' OR account_tag = 'unranked';
+    `);
+  } catch (normErr) {
+    console.warn('Database user normalization notice:', normErr.message);
+  }
 
   // Create paper_portfolio_items table
   await query(`

@@ -436,7 +436,7 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
           fontWeight: '700',
         }}>
           <Zap style={{ width: '11px', height: '11px' }} />
-          <span>⚡ Simulated Price Feed — For Educational Purposes Only · Not Real Market Data</span>
+          <span>Simulated Price Feed — For Educational Purposes Only · Not Real Market Data</span>
         </div>
       </div>
     </div>

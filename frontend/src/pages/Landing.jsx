@@ -6,7 +6,7 @@ import {
   CheckCircle2, XCircle, ChevronDown, ChevronUp, Bot, 
   Activity, Target, Lock, AlertTriangle, Compass, Layers,
   BarChart3, RefreshCw, Coins, Crown, Play, Flame, Award,
-  Sliders, Check, TrendingUp, Key, Terminal, ExternalLink
+  Sliders, Check, TrendingUp, Key, Terminal, ExternalLink, Camera
 } from 'lucide-react';
 
 export default function Landing() {
@@ -539,7 +539,7 @@ export default function Landing() {
                         Master $8K
                       </div>
                       <div className={`milestone-pill ${simulatedEquity >= 15000 ? 'done neon' : ''}`}>
-                        Operator $15K ✨
+                        Operator $15K
                       </div>
                     </div>
                   </div>
@@ -655,7 +655,7 @@ export default function Landing() {
                       </div>
 
                       <div className="window-footer-bar">
-                        <span className="caption-icon">📸</span>
+                        <Camera size={13} color="#10B981" />
                         <span className="caption-text">{feat.imageCaption}</span>
                       </div>
                     </div>

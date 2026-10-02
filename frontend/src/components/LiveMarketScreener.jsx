@@ -339,10 +339,22 @@ export default function LiveMarketScreener({ onSelectAsset }) {
   }, [assets, activeTab, searchFilter]);
 
   const handleTradeAsset = (asset) => {
+    let sym = 'BTCUSDT';
+    if (asset.symbol === 'BTC-USD') sym = 'BTCUSDT';
+    else if (asset.symbol === 'GC=F') sym = 'XAUUSD';
+    else if (asset.symbol === 'EURUSD=X') sym = 'EURUSD';
+    else if (asset.symbol === 'GBPUSD=X') sym = 'GBPUSD';
+    else if (asset.symbol === 'USDJPY=X') sym = 'USDJPY';
+    else if (asset.symbol === 'AUDUSD=X') sym = 'AUDUSD';
+    else if (asset.symbol === 'USDCAD=X') sym = 'USDCAD';
+    else sym = (asset.badge || asset.symbol).replace(/[\/\-=]/g, '');
+
+    localStorage.setItem('nonstock_active_symbol', sym);
+
     if (onSelectAsset) {
       onSelectAsset(asset);
     } else {
-      navigate('/dashboard');
+      navigate('/trading');
     }
   };
 
@@ -923,7 +935,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
           </span>
         </div>
         <button 
-          onClick={() => navigate('/paper-trading')}
+          onClick={() => navigate('/trading')}
           style={{
             background: 'transparent',
             border: 'none',

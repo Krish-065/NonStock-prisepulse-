@@ -36,10 +36,40 @@ export const TradingProvider = ({ children }) => {
     if (num >= 8000) return { name: 'Master', color: '#EF4444', glow: '0 0 12px rgba(239, 68, 68, 0.4)' };
     if (num >= 4000) return { name: 'Gold', color: '#F59E0B', glow: '0 0 12px rgba(245, 158, 11, 0.4)' };
     if (num >= 2000) return { name: 'Silver', color: '#94A3B8', glow: '0 0 8px rgba(148, 163, 184, 0.4)' };
-    return { name: 'Contender', color: '#64748B', glow: 'none' };
+    return { name: 'Contender', color: '#0F172A', glow: 'none' }; // Deep bold navy/slate (NEVER silver)
   };
 
   const badge = getBadge(balance);
+  const [streakDays, setStreakDays] = useState(1);
+
+  // Daily Streak Claim - strictly once per calendar day (not on repeat logins on same day)
+  useEffect(() => {
+    try {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const savedClaim = localStorage.getItem('nonstock_last_daily_claim');
+      const savedStreak = parseInt(localStorage.getItem('nonstock_streak_count') || '1', 10);
+
+      if (!savedClaim) {
+        localStorage.setItem('nonstock_last_daily_claim', todayStr);
+        localStorage.setItem('nonstock_streak_count', '1');
+        setStreakDays(1);
+        setCoins(prev => prev + 25);
+        toast.success('Daily Discipline Bonus: +25 Gold Coins awarded to your vault!');
+      } else if (savedClaim !== todayStr) {
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        const newStreak = savedClaim === yesterday ? savedStreak + 1 : 1;
+        localStorage.setItem('nonstock_last_daily_claim', todayStr);
+        localStorage.setItem('nonstock_streak_count', newStreak.toString());
+        setStreakDays(newStreak);
+        setCoins(prev => prev + 25);
+        toast.success(`Day ${newStreak} Discipline Streak: +25 Gold Coins awarded!`);
+      } else {
+        setStreakDays(savedStreak || 1);
+      }
+    } catch (e) {
+      console.warn('Daily streak check note:', e);
+    }
+  }, []);
 
   // Load from local storage on mount
   useEffect(() => {
@@ -95,11 +125,11 @@ export const TradingProvider = ({ children }) => {
     let earnedCoins = 0;
     if (history.length === 0 && positions.length === 0) {
       earnedCoins += 25;
-      toast('First Blood Milestone! +25 Gold Coins', { icon: '🩸' });
+      toast.success('First Blood Milestone! +25 Gold Coins');
     }
     if (order.sl && parseFloat(order.sl) > 0) {
       earnedCoins += 5;
-      toast('Discipline Bonus: SL Protection active! +5 Gold Coins', { icon: '🛡️' });
+      toast.success('Discipline Bonus: SL Protection active! +5 Gold Coins');
     }
     if (earnedCoins > 0) {
       setCoins(prev => prev + earnedCoins);
@@ -133,7 +163,7 @@ export const TradingProvider = ({ children }) => {
     // Gamification reward for profitable trade
     if (pnl > 0) {
       setCoins(prev => prev + 10);
-      toast.success(`Profitable Exit! +10 Gold Coins earned`, { icon: '🪙' });
+      toast.success(`Profitable Exit! +10 Gold Coins earned`);
     }
 
     setPositions(prev => prev.filter(p => p.id !== id));
@@ -144,7 +174,11 @@ export const TradingProvider = ({ children }) => {
       pnl
     }, ...prev]);
 
-    toast(`Closed ${pos.asset} ${pos.side}. PnL: $${pnl.toFixed(2)}`, { icon: pnl >= 0 ? '🤑' : '📉' });
+    if (pnl >= 0) {
+      toast.success(`Closed ${pos.asset} ${pos.side}. PnL: +$${pnl.toFixed(2)}`);
+    } else {
+      toast.error(`Closed ${pos.asset} ${pos.side}. PnL: -$${Math.abs(pnl).toFixed(2)}`);
+    }
   };
 
   const updateSLTP = (id, sl, tp) => {
@@ -199,14 +233,14 @@ export const TradingProvider = ({ children }) => {
     }
     setCoins(prev => prev - cost);
     setUnlockedTools(prev => ({ ...prev, [toolKey]: true }));
-    toast.success(`🎉 ${toolName || toolKey} unlocked! Added directly to your top navbar.`);
+    toast.success(`${toolName || toolKey} unlocked! Added directly to your top navbar.`);
     return true;
   };
 
   return (
     <TradingContext.Provider value={{
       balance, coins, positions, history, hasSeenModal, isBusted, badge,
-      watchlist, unlockedTools: effectiveUnlockedTools,
+      watchlist, unlockedTools: effectiveUnlockedTools, streakDays,
       placeOrder, closePosition, updateSLTP, resetAccount, acknowledgeModal,
       addToWatchlist, removeFromWatchlist, unlockTool
     }}>

@@ -19,7 +19,7 @@ export default function WarningModal() {
       }}>
         <ShieldAlert size={64} color="#F59E0B" style={{ margin: '0 auto 24px' }} />
         <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '16px', color: '#1E293B' }}>
-          ⚠️ ATTENTION TRADER: Protect Your 100 Gold Coins
+          ATTENTION TRADER: Protect Your 100 Gold Coins
         </h2>
         <p style={{ fontSize: '1rem', color: '#475569', marginBottom: '32px', lineHeight: '1.6', textAlign: 'left' }}>
           These 100 Gold Coins are your <strong>Second Life</strong>, not spending money. 

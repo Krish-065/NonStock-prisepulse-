@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  Menu, Sun, Moon, User
+  Menu, Sun, Moon, User, Zap, Search, Bot, 
+  FlaskConical, Clock, Coins, LayoutDashboard, LogOut
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -32,31 +33,34 @@ export default function Layout({ children }) {
     };
   }, []);
 
+  const savedAvatar = typeof window !== 'undefined' ? localStorage.getItem('nonstock_user_avatar') : null;
+
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'var(--bg-primary)', 
-      color: 'var(--text-primary)',
+      background: 'var(--bg-primary, #F8FAFC)', 
+      color: 'var(--text-primary, #0F172A)',
       display: 'flex',
       flexDirection: 'column'
     }}>
-      {/* Sleek Top Unified Header Navigation */}
+      {/* High-Profile Competitive Navbar */}
       <header style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
-        height: '60px',
+        height: '62px',
         background: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
+        borderBottom: '1.5px solid #E2E8F0',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
         zIndex: 1000,
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)'
       }}>
         {/* Left: Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: 0 }}>
           <div 
             onClick={() => navigate('/dashboard')} 
             style={{ 
@@ -70,7 +74,7 @@ export default function Layout({ children }) {
 
           {/* Navigation Links */}
           {user && (
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <button
                 onClick={() => navigate('/dashboard')}
                 style={{
@@ -78,14 +82,18 @@ export default function Layout({ children }) {
                   color: location.pathname === '/dashboard' ? '#10B981' : '#475569',
                   border: location.pathname === '/dashboard' ? '1px solid #BBF7D0' : '1px solid transparent',
                   borderRadius: '8px',
-                  padding: '6px 14px',
+                  padding: '6px 12px',
                   fontSize: '13px',
                   fontWeight: 800,
                   cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
                   transition: 'all 0.15s'
                 }}
               >
-                Dashboard
+                <LayoutDashboard size={14} />
+                <span>Dashboard</span>
               </button>
 
               <button
@@ -95,7 +103,7 @@ export default function Layout({ children }) {
                   color: location.pathname === '/trading' ? '#FFFFFF' : '#0F172A',
                   border: location.pathname === '/trading' ? '1px solid #10B981' : '1px solid #E2E8F0',
                   borderRadius: '8px',
-                  padding: '6px 16px',
+                  padding: '6px 14px',
                   fontSize: '13px',
                   fontWeight: 800,
                   cursor: 'pointer',
@@ -106,7 +114,8 @@ export default function Layout({ children }) {
                   transition: 'all 0.15s'
                 }}
               >
-                <span>⚡ Trading Arena</span>
+                <Zap size={14} />
+                <span>Trading Arena</span>
               </button>
 
               {/* Dynamically Arrived Unlocked Features */}
@@ -124,11 +133,11 @@ export default function Layout({ children }) {
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px',
+                    gap: '6px',
                     transition: 'all 0.15s'
                   }}
                 >
-                  <span>🔍</span>
+                  <Search size={14} />
                   <span>Screener</span>
                 </button>
               )}
@@ -147,11 +156,11 @@ export default function Layout({ children }) {
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px',
+                    gap: '6px',
                     transition: 'all 0.15s'
                   }}
                 >
-                  <span>🤖</span>
+                  <Bot size={14} />
                   <span>AI Mentor</span>
                 </button>
               )}
@@ -170,11 +179,11 @@ export default function Layout({ children }) {
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px',
+                    gap: '6px',
                     transition: 'all 0.15s'
                   }}
                 >
-                  <span>🧪</span>
+                  <FlaskConical size={14} />
                   <span>Strategy Lab</span>
                 </button>
               )}
@@ -193,11 +202,11 @@ export default function Layout({ children }) {
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px',
+                    gap: '6px',
                     transition: 'all 0.15s'
                   }}
                 >
-                  <span>⏳</span>
+                  <Clock size={14} />
                   <span>Replay Engine</span>
                 </button>
               )}
@@ -227,7 +236,7 @@ export default function Layout({ children }) {
                 }}
                 title="Your Gold Coins Vault (Click to view analysis & unlock tools)"
               >
-                <span>🪙</span>
+                <Coins size={14} color="#D97706" />
                 <span>{coins || 0} Coins</span>
               </div>
 
@@ -257,15 +266,23 @@ export default function Layout({ children }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '6px 14px',
+                  padding: '5px 12px',
                   borderRadius: '8px',
                   background: '#F8FAFC',
                   border: '1px solid #E2E8F0',
                   cursor: 'pointer'
                 }}
               >
-                <User size={15} style={{ color: badge?.color || '#64748B' }} />
-                <span style={{ fontSize: '13px', fontWeight: 800, color: badge?.color || '#64748B' }}>
+                {savedAvatar ? (
+                  <img 
+                    src={savedAvatar} 
+                    alt="Profile" 
+                    style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }} 
+                  />
+                ) : (
+                  <User size={15} style={{ color: badge?.color || '#0F172A' }} />
+                )}
+                <span style={{ fontSize: '13px', fontWeight: 800, color: badge?.color || '#0F172A' }}>
                   {user.name || user.email?.split('@')[0]}
                 </span>
               </div>
@@ -291,20 +308,24 @@ export default function Layout({ children }) {
           <button
             onClick={() => {
               logout();
-              navigate('/login');
+              navigate('/');
             }}
             style={{
               background: 'transparent',
               border: '1px solid #E2E8F0',
               borderRadius: '8px',
-              padding: '8px 16px',
+              padding: '7px 14px',
               cursor: 'pointer',
               color: '#475569',
-              fontWeight: 600,
-              fontSize: '13px'
+              fontWeight: 700,
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
           >
-            Logout
+            <LogOut size={14} />
+            <span>Logout</span>
           </button>
         </div>
       </header>

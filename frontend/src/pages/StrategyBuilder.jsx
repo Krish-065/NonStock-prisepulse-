@@ -798,7 +798,7 @@ export default function StrategyBuilder() {
         takeProfit: takeProfitPct
       });
       if (res.data.success) {
-        toast.success(`🤖 Sandbox execution bot deployed for ${symbol}! Actively monitoring ${chartInterval.toUpperCase()} stream.`);
+        toast.success(`Sandbox execution bot deployed for ${symbol}! Actively monitoring ${chartInterval.toUpperCase()} stream.`);
       }
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to deploy bot');
@@ -944,7 +944,7 @@ export default function StrategyBuilder() {
             <button
               onClick={() => {
                 setProSandboxMode(true);
-                toast.success('⚡ Activated Strategy Lab Pro Sandbox Preview!');
+                toast.success('Activated Strategy Lab Pro Sandbox Preview!');
               }}
               style={{
                 background: 'rgba(255, 255, 255, 0.06)',

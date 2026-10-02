@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTrading } from '../contexts/TradingContext';
@@ -7,7 +7,8 @@ import {
   Trophy, Medal, Star, Zap, ArrowRight, ShieldCheck, 
   Lock, Unlock, Target, Coins, Activity, TrendingUp, TrendingDown,
   Search, Plus, X, Crown, Sparkles, Sliders, ExternalLink,
-  Flame, CheckCircle2, AlertCircle, BarChart2
+  Flame, CheckCircle2, AlertCircle, BarChart2, Camera, Image,
+  Bot, FlaskConical, Clock, ShieldAlert, Award
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -28,17 +29,169 @@ const WATCHLIST_DATABASE = [
   { symbol: 'SPY', name: 'S&P 500 ETF Trust', category: 'Equities', price: '$572.30', change: '+0.45%' }
 ];
 
+// Decagon Badge Component (10-sided polygon)
+function DecagonBadge({ icon: Icon, color, bgColor, label, subtitle, locked = false, requirement = '' }) {
+  const decagonClip = 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)';
+
+  return (
+    <div style={{
+      background: locked ? 'rgba(248, 250, 252, 0.85)' : '#FFFFFF',
+      borderRadius: '16px',
+      border: locked ? '1.5px dashed #CBD5E1' : `2px solid ${color}33`,
+      padding: '20px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '16px',
+      boxShadow: locked ? 'none' : '0 4px 16px rgba(0, 0, 0, 0.04)',
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'transform 0.2s, box-shadow 0.2s'
+    }}>
+      {/* 10-sided Decagon Icon Frame */}
+      <div style={{
+        position: 'relative',
+        width: '68px',
+        height: '68px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0
+      }}>
+        {/* Outer Decagon Border */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: locked ? '#94A3B8' : `linear-gradient(135deg, ${color}, ${color}88)`,
+          clipPath: decagonClip,
+          boxShadow: locked ? 'none' : `0 0 12px ${color}44`
+        }} />
+
+        {/* Inner Decagon Body */}
+        <div style={{
+          position: 'absolute',
+          inset: '3px',
+          background: locked ? '#F1F5F9' : (bgColor || '#0F172A'),
+          clipPath: decagonClip,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          {locked ? (
+            <Lock size={24} color="#64748B" />
+          ) : (
+            <Icon size={26} color={color} />
+          )}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontSize: '11px',
+          fontWeight: 800,
+          color: locked ? '#64748B' : color,
+          textTransform: 'uppercase',
+          letterSpacing: '0.8px',
+          marginBottom: '2px'
+        }}>
+          {locked ? 'LOCKED MILESTONE' : 'VERIFIED BADGE'}
+        </div>
+        <div style={{
+          fontSize: '16px',
+          fontWeight: 900,
+          color: locked ? '#475569' : '#0F172A',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }}>
+          {label}
+        </div>
+        <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+          {locked ? requirement : subtitle}
+        </div>
+      </div>
+
+      {locked && (
+        <div style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          background: '#F1F5F9',
+          padding: '2px 8px',
+          borderRadius: '999px',
+          fontSize: '10px',
+          fontWeight: 800,
+          color: '#64748B',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px'
+        }}>
+          <Lock size={10} /> Locked
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { 
-    balance = 1000, coins = 100, positions = [], history = [], badge, closePosition,
+    balance = 1000, coins = 100, streakDays = 1, positions = [], history = [], badge, closePosition,
     watchlist = [], addToWatchlist, removeFromWatchlist,
     unlockedTools = {}, unlockTool 
   } = useTrading();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showProModal, setShowProModal] = useState(false);
+
+  // Avatar & Banner state
+  const [avatarUrl, setAvatarUrl] = useState(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('nonstock_user_avatar') || '' : '';
+  });
+  const [bannerUrl, setBannerUrl] = useState(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('nonstock_user_banner') || '' : '';
+  });
+
+  const avatarInputRef = useRef(null);
+  const bannerInputRef = useRef(null);
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be under 2MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      if (dataUrl) {
+        localStorage.setItem('nonstock_user_avatar', dataUrl);
+        setAvatarUrl(dataUrl);
+        toast.success('Profile avatar updated');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleBannerUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error('Banner must be under 4MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      if (dataUrl) {
+        localStorage.setItem('nonstock_user_banner', dataUrl);
+        setBannerUrl(dataUrl);
+        toast.success('Profile banner updated');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Filter search results for Watchlist
   const searchResults = useMemo(() => {
@@ -49,33 +202,47 @@ export default function Dashboard() {
     );
   }, [searchQuery]);
 
-  // Tag details & progression
+  // Strict Tier & Color Logic:
+  // Contender: #0F172A (dark navy, never silver!)
+  // Silver: #94A3B8 (balance >= 2000)
+  // Gold: #F59E0B (balance >= 4000)
+  // Master: #EF4444 (balance >= 8000)
+  // Operator: #A855F7 (balance >= 15000)
   const balanceNum = Number(balance) || 1000;
-  const tagColor = badge?.color || '#64748B';
-  const tagGlow = badge?.glow || 'none';
-  const tagName = badge?.name || 'Contender';
-  const userName = user?.name || user?.email?.split('@')[0] || 'Trader';
-
-  // Progression math
+  
+  let dynamicTierName = 'Contender';
+  let dynamicTierColor = '#0F172A';
   let nextRankName = 'Silver';
   let nextRankTarget = 2000;
+
   if (balanceNum >= 15000) {
+    dynamicTierName = 'Operator';
+    dynamicTierColor = '#A855F7';
     nextRankName = 'Max Rank (Operator)';
     nextRankTarget = 15000;
   } else if (balanceNum >= 8000) {
+    dynamicTierName = 'Master';
+    dynamicTierColor = '#EF4444';
     nextRankName = 'Operator';
     nextRankTarget = 15000;
   } else if (balanceNum >= 4000) {
+    dynamicTierName = 'Gold';
+    dynamicTierColor = '#F59E0B';
     nextRankName = 'Master';
     nextRankTarget = 8000;
   } else if (balanceNum >= 2000) {
+    dynamicTierName = 'Silver';
+    dynamicTierColor = '#94A3B8';
     nextRankName = 'Gold';
     nextRankTarget = 4000;
   } else {
+    dynamicTierName = 'Contender';
+    dynamicTierColor = '#0F172A';
     nextRankName = 'Silver';
     nextRankTarget = 2000;
   }
 
+  const userName = user?.name || user?.email?.split('@')[0] || 'Trader';
   const rankProgress = Math.min(100, Math.max(0, (balanceNum / nextRankTarget) * 100));
 
   // 100% Real Verified Hall of Fame (NO FAKE / BOTS)
@@ -87,14 +254,19 @@ export default function Dashboard() {
       .then(res => {
         const data = res.data;
         if (data?.leaderboard && Array.isArray(data.leaderboard) && data.leaderboard.length > 0) {
-          setRealLeaderboard(data.leaderboard);
+          // Normalize any balances that exceed bounds for display
+          const normalized = data.leaderboard.map(item => ({
+            ...item,
+            balance: Number(item.balance) > 15000 ? 1000 : (Number(item.balance) || 1000)
+          }));
+          setRealLeaderboard(normalized);
         } else {
           setRealLeaderboard([
             {
               rank: 1,
               name: userName,
-              tag: tagName,
-              color: tagColor,
+              tag: dynamicTierName,
+              color: dynamicTierColor,
               der: 75.0,
               balance: balanceNum,
               isSelf: true
@@ -107,8 +279,8 @@ export default function Dashboard() {
           {
             rank: 1,
             name: userName,
-            tag: tagName,
-            color: tagColor,
+            tag: dynamicTierName,
+            color: dynamicTierColor,
             der: 75.0,
             balance: balanceNum,
             isSelf: true
@@ -116,153 +288,258 @@ export default function Dashboard() {
         ]);
       })
       .finally(() => setLoadingLeaderboard(false));
-  }, [userName, balanceNum, tagName, tagColor]);
+  }, [userName, balanceNum, dynamicTierName, dynamicTierColor]);
+
+  // Is Pro user?
+  const isProUser = Boolean(user?.is_pro || user?.isPro);
 
   return (
     <div style={{ maxWidth: '1360px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', fontFamily: 'Inter, sans-serif' }}>
       
-      {/* ─── 1. TOP PROFILE HERO (TAG & ACCOUNT HOLDER NAME IN TAG COLOR) ─── */}
+      {/* Hidden file inputs for avatar & banner upload */}
+      <input 
+        type="file" 
+        ref={avatarInputRef} 
+        onChange={handleAvatarUpload} 
+        accept="image/*" 
+        style={{ display: 'none' }} 
+      />
+      <input 
+        type="file" 
+        ref={bannerInputRef} 
+        onChange={handleBannerUpload} 
+        accept="image/*" 
+        style={{ display: 'none' }} 
+      />
+
+      {/* ─── 1. TOP PROFILE HERO (WITH BANNER BACKGROUND & CUSTOM AVATAR) ─── */}
       <div style={{
-        background: '#FFFFFF',
-        borderRadius: '20px',
-        border: `2px solid ${tagColor}`,
-        padding: '32px',
-        boxShadow: tagGlow !== 'none' ? tagGlow : '0 8px 30px rgba(0, 0, 0, 0.05)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '24px',
+        borderRadius: '24px',
+        border: `2px solid ${dynamicTierColor === '#0F172A' ? '#E2E8F0' : dynamicTierColor}`,
+        boxShadow: '0 8px 32px rgba(15, 23, 42, 0.08)',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        background: bannerUrl 
+          ? `linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.96) 100%), url(${bannerUrl}) center/cover no-repeat`
+          : 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)',
+        padding: '36px 32px'
       }}>
-        {/* Left Side: Avatar, Name & Current Tag */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-          
-          {/* Big Profile Emblem with Tag Border */}
+        {/* Subtle decorative grid/banner accent overlay if no custom banner */}
+        {!bannerUrl && (
           <div style={{
-            width: '84px',
-            height: '84px',
-            borderRadius: '20px',
-            background: '#F8FAFC',
-            border: `3px solid ${tagColor}`,
-            boxShadow: tagGlow !== 'none' ? tagGlow : '0 4px 15px rgba(0,0,0,0.06)',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '8px',
+            background: `linear-gradient(90deg, #10B981 0%, ${dynamicTierColor} 50%, #F59E0B 100%)`
+          }} />
+        )}
+
+        {/* Change Banner Button */}
+        <button
+          onClick={() => bannerInputRef.current?.click()}
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            background: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(6px)',
+            border: '1px solid #CBD5E1',
+            borderRadius: '8px',
+            padding: '6px 12px',
+            fontSize: '11px',
+            fontWeight: 800,
+            color: '#475569',
+            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '32px',
-            fontWeight: 900,
-            color: tagColor
-          }}>
-            {userName.charAt(0).toUpperCase()}
-          </div>
+            gap: '6px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+          }}
+          title="Upload custom background banner for your profile card"
+        >
+          <Image size={13} />
+          <span>Change Banner</span>
+        </button>
 
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              {/* Account Holder Name in Tag Color */}
-              <h1 style={{ 
-                fontSize: '32px', 
-                fontWeight: 900, 
-                color: tagColor, 
-                margin: 0,
-                textShadow: tagGlow !== 'none' ? tagGlow : 'none',
-                letterSpacing: '-0.5px'
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '24px'
+        }}>
+          {/* Left Side: Avatar, Name & Current Tag */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            
+            {/* Profile Avatar with Camera Upload Overlay */}
+            <div 
+              onClick={() => avatarInputRef.current?.click()}
+              style={{
+                position: 'relative',
+                width: '88px',
+                height: '88px',
+                borderRadius: '22px',
+                background: '#FFFFFF',
+                border: `3px solid ${dynamicTierColor}`,
+                boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'transform 0.2s'
+              }}
+              title="Click to change profile picture"
+            >
+              {avatarUrl ? (
+                <img 
+                  src={avatarUrl} 
+                  alt={userName} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+              ) : (
+                <div style={{
+                  fontSize: '34px',
+                  fontWeight: 900,
+                  color: dynamicTierColor
+                }}>
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              {/* Camera Hover Overlay */}
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: 'rgba(15, 23, 42, 0.75)',
+                padding: '3px 0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FFFFFF'
               }}>
-                {userName}
-              </h1>
+                <Camera size={13} />
+              </div>
+            </div>
 
-              {/* Big Tag Badge */}
-              <span style={{
-                background: '#0F172A',
-                color: tagColor,
-                border: `1.5px solid ${tagColor}`,
-                boxShadow: tagGlow !== 'none' ? tagGlow : 'none',
-                padding: '6px 16px',
-                borderRadius: '999px',
-                fontSize: '13px',
-                fontWeight: 900,
-                letterSpacing: '1.5px',
-                textTransform: 'uppercase'
-              }}>
-                {badge.name}
-              </span>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                {/* Account Holder Name in True Tier Color (Contender = #0F172A, NOT silver) */}
+                <h1 style={{ 
+                  fontSize: '32px', 
+                  fontWeight: 900, 
+                  color: dynamicTierColor, 
+                  margin: 0,
+                  letterSpacing: '-0.5px'
+                }}>
+                  {userName}
+                </h1>
 
-              {/* Pro Badge */}
-              <button
-                onClick={() => setShowProModal(true)}
-                style={{
-                  background: '#FEF3C7',
-                  border: '1px solid #FDE047',
-                  color: '#B45309',
-                  padding: '5px 12px',
+                {/* Big Tag Badge */}
+                <span style={{
+                  background: '#0F172A',
+                  color: dynamicTierColor === '#0F172A' ? '#94A3B8' : dynamicTierColor,
+                  border: `1.5px solid ${dynamicTierColor === '#0F172A' ? '#334155' : dynamicTierColor}`,
+                  padding: '5px 16px',
                   borderRadius: '999px',
                   fontSize: '12px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px'
-                }}
-              >
-                <Crown size={14} color="#B45309" /> Pro Account
-              </button>
-            </div>
+                  fontWeight: 900,
+                  letterSpacing: '1.5px',
+                  textTransform: 'uppercase'
+                }}>
+                  {dynamicTierName}
+                </span>
 
-            <div style={{ fontSize: '14px', color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span>Disciplined Proving Account</span>
-              <span>•</span>
-              <span>ID: NS-{user?.id?.substring(0, 8) || 'CONTENDER'}</span>
-              <span>•</span>
-              <span style={{ color: '#10B981', fontWeight: 700 }}>100% Verified Non-Tipster</span>
-            </div>
-
-            {/* Next Rank Progress Bar */}
-            <div style={{ marginTop: '14px', maxWidth: '380px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
-                <span>Current: ${balanceNum.toFixed(2)}</span>
-                <span>Next Tier: {nextRankName} (${nextRankTarget.toLocaleString()})</span>
+                {/* Pro Badge */}
+                <button
+                  onClick={() => setShowProModal(true)}
+                  style={{
+                    background: '#FEF3C7',
+                    border: '1px solid #FDE047',
+                    color: '#B45309',
+                    padding: '5px 12px',
+                    borderRadius: '999px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  <Crown size={14} color="#B45309" /> 
+                  <span>{isProUser ? 'Pro Member' : 'Pro Account'}</span>
+                </button>
               </div>
-              <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '10px', overflow: 'hidden' }}>
-                <div style={{ width: `${rankProgress}%`, height: '100%', background: tagColor, borderRadius: '10px', transition: 'width 0.3s' }} />
+
+              {/* Subtitle Details (Removed "100% Verified Non-Tipster") */}
+              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span>Disciplined Proving Account</span>
+                <span>•</span>
+                <span>ID: NS-{user?.id?.substring(0, 8) || 'CONTENDER'}</span>
+                <span>•</span>
+                <span style={{ color: '#0F172A', fontWeight: 700 }}>Starting Baseline: $1,000.00</span>
+              </div>
+
+              {/* Next Rank Progress Bar */}
+              <div style={{ marginTop: '14px', maxWidth: '400px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800, color: '#64748B', marginBottom: '4px' }}>
+                  <span>Current: ${balanceNum.toFixed(2)}</span>
+                  <span>Next Tier: {nextRankName} (${nextRankTarget.toLocaleString()})</span>
+                </div>
+                <div style={{ height: '7px', background: '#E2E8F0', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div style={{ 
+                    width: `${rankProgress}%`, 
+                    height: '100%', 
+                    background: dynamicTierColor === '#0F172A' ? '#10B981' : dynamicTierColor, 
+                    borderRadius: '10px', 
+                    transition: 'width 0.3s' 
+                  }} />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Side: Big Perfect Gold Coins Box */}
-        <div style={{
-          background: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)',
-          border: '2px solid #FACC15',
-          borderRadius: '16px',
-          padding: '20px 28px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '20px',
-          boxShadow: '0 8px 24px rgba(234, 179, 8, 0.15)'
-        }}>
+          {/* Right Side: Big Gold Coins Vault */}
           <div style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            background: '#FDE047',
-            border: '2px solid #CA8A04',
+            background: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)',
+            border: '2px solid #FACC15',
+            borderRadius: '18px',
+            padding: '20px 28px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '30px'
+            gap: '18px',
+            boxShadow: '0 8px 24px rgba(234, 179, 8, 0.18)'
           }}>
-            🪙
-          </div>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: '#FDE047',
+              border: '2px solid #CA8A04',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <Coins size={30} color="#854D0E" />
+            </div>
 
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: 800, color: '#854D0E', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              GOLD COINS VAULT
-            </div>
-            <div style={{ fontSize: '36px', fontWeight: 900, color: '#713F12', lineHeight: 1.1 }}>
-              {coins} <span style={{ fontSize: '18px', fontWeight: 800 }}>Coins</span>
-            </div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#A16207', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-              <Flame size={13} color="#EA580C" /> 4-Day Discipline Streak (+25 daily)
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#854D0E', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                GOLD COINS VAULT
+              </div>
+              <div style={{ fontSize: '34px', fontWeight: 900, color: '#713F12', lineHeight: 1.1 }}>
+                {coins} <span style={{ fontSize: '16px', fontWeight: 800 }}>Coins</span>
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#A16207', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                <Flame size={13} color="#EA580C" /> 
+                <span>{streakDays}-Day Discipline Streak (+25 daily)</span>
+              </div>
             </div>
           </div>
         </div>
@@ -304,7 +581,7 @@ export default function Dashboard() {
             border: 'none',
             padding: '14px 28px',
             borderRadius: '12px',
-            fontSize: '16px',
+            fontSize: '15px',
             fontWeight: 800,
             cursor: 'pointer',
             display: 'flex',
@@ -350,144 +627,122 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ─── 4. SHOWCASE OF RECENT & BIG BADGES ─── */}
-      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      {/* ─── 4. SHOWCASE OF EARNED DECAGON BADGES ─── */}
+      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '28px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Medal size={22} color="#F59E0B" /> Showcase of Earned Badges & Tags
+              <Award size={22} color="#10B981" /> Claimed Disciplined Badges
             </h3>
             <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
-              Badges verify true discipline and account progression. Display these in your trading portfolio.
+              Active 10-sided decagon badges earned through mathematical discipline and risk-managed execution.
             </p>
           </div>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#10B981', background: '#F0FDF4', padding: '4px 12px', borderRadius: '20px' }}>
-            4 / 8 UNLOCKED
+          <span style={{ fontSize: '12px', fontWeight: 800, color: '#10B981', background: '#F0FDF4', padding: '5px 14px', borderRadius: '20px' }}>
+            4 ACTIVE BADGES
           </span>
         </div>
 
-        {/* Big Badges Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
-          {/* Badge 1: Current Tier Rank */}
-          <div style={{
-            background: '#F8FAFC',
-            borderRadius: '14px',
-            border: `2px solid ${tagColor}`,
-            padding: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            boxShadow: tagGlow !== 'none' ? tagGlow : 'none'
-          }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '14px',
-              background: '#0F172A',
-              border: `2px solid ${tagColor}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '28px',
-              color: tagColor
-            }}>
-              🛡️
+        {/* Claimed Decagon Badges Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+          <DecagonBadge 
+            icon={ShieldCheck} 
+            color="#10B981" 
+            bgColor="#064E3B"
+            label={`${dynamicTierName} Prover`} 
+            subtitle="Verified participant in NonStock Proving Arena" 
+          />
+          <DecagonBadge 
+            icon={Zap} 
+            color="#3B82F6" 
+            bgColor="#1E3A8A"
+            label="Zero Blowup Streak" 
+            subtitle="100% disciplined margin maintenance without liquidation" 
+          />
+          <DecagonBadge 
+            icon={Coins} 
+            color="#F59E0B" 
+            bgColor="#78350F"
+            label="Centurion Vault" 
+            subtitle="Earned and accumulated 100+ active Gold Coins" 
+          />
+          <DecagonBadge 
+            icon={Target} 
+            color="#8B5CF6" 
+            bgColor="#4C1D95"
+            label="Calculated Risk" 
+            subtitle="Strict Stop-Loss execution on every initiated position" 
+          />
+        </div>
+
+        {/* ─── LOCKED BADGES BOX (BLURRED WITH LOCK ICON, DIRECTLY BELOW CLAIMED BADGES) ─── */}
+        <div style={{
+          marginTop: '28px',
+          padding: '24px',
+          borderRadius: '16px',
+          border: '1.5px dashed #CBD5E1',
+          background: 'rgba(248, 250, 252, 0.7)',
+          backdropFilter: 'blur(10px)',
+          position: 'relative'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: '#E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Lock size={16} color="#475569" />
+              </div>
+              <div>
+                <h4 style={{ fontSize: '15px', fontWeight: 900, color: '#334155', margin: 0 }}>
+                  Locked Milestone Badges (Unlock by Competing)
+                </h4>
+                <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748B' }}>
+                  Reach required capital hurdles and winning streaks to claim these prestigious honors.
+                </p>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: tagColor, textTransform: 'uppercase' }}>TIER RANK BADGE</div>
-              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{badge.name} Trader</div>
-              <div style={{ fontSize: '12px', color: '#64748B' }}>Starting level verified</div>
-            </div>
+
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', background: '#E2E8F0', padding: '4px 10px', borderRadius: '12px' }}>
+              4 LOCKED
+            </span>
           </div>
 
-          {/* Badge 2: Discipline Sentinel */}
-          <div style={{
-            background: '#F8FAFC',
-            borderRadius: '14px',
-            border: '1px solid #BBF7D0',
-            padding: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '14px',
-              background: '#F0FDF4',
-              border: '2px solid #86EFAC',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '28px'
-            }}>
-              ⚔️
-            </div>
-            <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#166534', textTransform: 'uppercase' }}>DISCIPLINE BADGE</div>
-              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>Zero Blowup Streak</div>
-              <div style={{ fontSize: '12px', color: '#64748B' }}>No liquidations hit</div>
-            </div>
-          </div>
-
-          {/* Badge 3: Gold Coin Collector */}
-          <div style={{
-            background: '#F8FAFC',
-            borderRadius: '14px',
-            border: '1px solid #FDE047',
-            padding: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '14px',
-              background: '#FEF9C3',
-              border: '2px solid #FACC15',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '28px'
-            }}>
-              🪙
-            </div>
-            <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#A16207', textTransform: 'uppercase' }}>COIN COLLECTOR</div>
-              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>Centurion Vault</div>
-              <div style={{ fontSize: '12px', color: '#64748B' }}>100+ Gold Coins active</div>
-            </div>
-          </div>
-
-          {/* Badge 4: Risk Guardian */}
-          <div style={{
-            background: '#F8FAFC',
-            borderRadius: '14px',
-            border: '1px solid #CBD5E1',
-            padding: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px'
-          }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '14px',
-              background: '#F1F5F9',
-              border: '2px solid #94A3B8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '28px'
-            }}>
-              🎯
-            </div>
-            <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>EXECUTION BADGE</div>
-              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>Calculated Risk</div>
-              <div style={{ fontSize: '12px', color: '#64748B' }}>Strict Stop-Loss usage</div>
-            </div>
+          {/* Locked Decagon Badges Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+            <DecagonBadge 
+              icon={ShieldCheck} 
+              color="#94A3B8" 
+              label="Silver Sovereign" 
+              locked={true}
+              requirement="Reach $2,000 Proving Capital (+$1,000 profit)" 
+            />
+            <DecagonBadge 
+              icon={Award} 
+              color="#F59E0B" 
+              label="Gold Sovereign" 
+              locked={true}
+              requirement="Reach $4,000 Proving Capital (+$3,000 profit)" 
+            />
+            <DecagonBadge 
+              icon={Trophy} 
+              color="#EF4444" 
+              label="Master Titan" 
+              locked={true}
+              requirement="Reach $8,000 Proving Capital & 10 consecutive wins" 
+            />
+            <DecagonBadge 
+              icon={Crown} 
+              color="#A855F7" 
+              label="Apex Operator" 
+              locked={true}
+              requirement="Reach $15,000 Capital & 30-day discipline streak" 
+            />
           </div>
         </div>
       </div>
@@ -513,7 +768,9 @@ export default function Dashboard() {
 
         {positions.length === 0 ? (
           <div style={{ padding: '40px 20px', textAlign: 'center', background: '#F8FAFC', borderRadius: '12px', border: '1px dashed #CBD5E1' }}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📊</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+              <BarChart2 size={36} color="#94A3B8" />
+            </div>
             <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>No Active Trades Running</h4>
             <p style={{ fontSize: '13px', color: '#64748B', maxWidth: '400px', margin: '0 auto 16px' }}>
               Your capital is currently 100% free. Head over to the Trading Terminal to open a spot or leveraged position.
@@ -698,7 +955,10 @@ export default function Dashboard() {
                   </button>
 
                   <button
-                    onClick={() => navigate('/trading')}
+                    onClick={() => {
+                      localStorage.setItem('nonstock_active_symbol', sym);
+                      navigate('/trading');
+                    }}
                     style={{
                       background: '#10B981',
                       color: '#FFF',
@@ -719,18 +979,20 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ─── 7. PLATFORM TOOLS VAULT (UNLOCKABLE WITH GOLD COINS) ─── */}
+      {/* ─── 7. PLATFORM TOOLS VAULT (PRO UNLOCKED OR GOLD COIN SINK) ─── */}
       <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Coins size={22} color="#EAB308" /> Platform Tools Vault (Unlock With Gold Coins)
+              <Coins size={22} color="#EAB308" /> Platform Tools Vault
             </h3>
             <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
-              Spend your earned Gold Coins to unlock institutional-grade trading edge tools.
+              {isProUser 
+                ? 'Pro Account Active: All institutional edge tools are completely unlocked.'
+                : 'Spend your earned Gold Coins to unlock institutional-grade trading edge tools, or upgrade to Pro.'}
             </p>
           </div>
-          <div style={{ fontSize: '14px', fontWeight: 800, color: '#713F12', background: '#FEF9C3', border: '1px solid #FDE047', padding: '6px 14px', borderRadius: '20px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#713F12', background: '#FEF9C3', border: '1px solid #FDE047', padding: '6px 14px', borderRadius: '20px' }}>
             Balance: {coins} Gold Coins Available
           </div>
         </div>
@@ -739,264 +1001,324 @@ export default function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
           
           {/* Tool 1: Real-Time Screener */}
-          <div style={{
-            background: '#F8FAFC',
-            borderRadius: '14px',
-            border: `1.5px solid ${unlockedTools?.screener ? '#10B981' : '#E2E8F0'}`,
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between'
-          }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '24px' }}>📡</span>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  padding: '3px 8px',
-                  borderRadius: '6px',
-                  background: unlockedTools?.screener ? '#F0FDF4' : '#F1F5F9',
-                  color: unlockedTools?.screener ? '#10B981' : '#64748B'
-                }}>
-                  {unlockedTools?.screener ? 'UNLOCKED' : '150 COINS'}
-                </span>
-              </div>
-              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Real-Time Market Screener</h4>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-                Filter thousands of global tickers in milliseconds. Scan for unusual volume, RSI extremes, and breakout momentum.
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                if (unlockedTools?.screener) {
-                  navigate('/screener');
-                } else {
-                  if (unlockTool('screener', 150, 'Market Screener')) {
-                    navigate('/screener');
-                  }
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '8px',
-                border: 'none',
-                background: unlockedTools?.screener ? '#10B981' : '#F59E0B',
-                color: '#FFFFFF',
-                fontWeight: 800,
-                fontSize: '13px',
-                cursor: 'pointer',
+          {(() => {
+            const isUnlocked = isProUser || Boolean(unlockedTools?.screener);
+            return (
+              <div style={{
+                background: '#F8FAFC',
+                borderRadius: '14px',
+                border: `1.5px solid ${isUnlocked ? '#10B981' : '#E2E8F0'}`,
+                padding: '20px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}
-            >
-              {unlockedTools?.screener ? (
-                <><span>Launch Screener</span> <ArrowRight size={14} /></>
-              ) : (
-                <><span>Unlock for 150 Coins</span> <Lock size={14} /></>
-              )}
-            </button>
-          </div>
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      background: isUnlocked ? '#F0FDF4' : '#F1F5F9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Search size={20} color={isUnlocked ? '#10B981' : '#64748B'} />
+                    </div>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      background: isUnlocked ? '#F0FDF4' : '#F1F5F9',
+                      color: isUnlocked ? '#10B981' : '#64748B'
+                    }}>
+                      {isUnlocked ? (isProUser ? 'PRO UNLOCKED' : 'UNLOCKED') : '150 COINS'}
+                    </span>
+                  </div>
+                  <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Real-Time Market Screener</h4>
+                  <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                    Filter thousands of global tickers in milliseconds. Scan for unusual volume, RSI extremes, and breakout momentum.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (isUnlocked) {
+                      navigate('/screener');
+                    } else {
+                      if (unlockTool('screener', 150, 'Market Screener')) {
+                        navigate('/screener');
+                      }
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: isUnlocked ? '#10B981' : '#F59E0B',
+                    color: '#FFFFFF',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {isUnlocked ? (
+                    <><span>Launch Screener</span> <ArrowRight size={14} /></>
+                  ) : (
+                    <><span>Unlock for 150 Coins</span> <Lock size={14} /></>
+                  )}
+                </button>
+              </div>
+            );
+          })()}
 
           {/* Tool 2: Strategy Lab */}
-          <div style={{
-            background: '#F8FAFC',
-            borderRadius: '14px',
-            border: `1.5px solid ${unlockedTools?.strategyLab ? '#10B981' : '#E2E8F0'}`,
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between'
-          }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '24px' }}>🧪</span>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  padding: '3px 8px',
-                  borderRadius: '6px',
-                  background: unlockedTools?.strategyLab ? '#F0FDF4' : '#F1F5F9',
-                  color: unlockedTools?.strategyLab ? '#10B981' : '#64748B'
-                }}>
-                  {unlockedTools?.strategyLab ? 'UNLOCKED' : '300 COINS'}
-                </span>
-              </div>
-              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Strategy Lab & Backtester</h4>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-                Test your algorithmic trading theories against historical multi-year tick feeds. Prove positive mathematical expectancy.
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                if (unlockedTools?.strategyLab) {
-                  navigate('/strategy-builder');
-                } else {
-                  if (unlockTool('strategyLab', 300, 'Strategy Lab')) {
-                    navigate('/strategy-builder');
-                  }
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '8px',
-                border: 'none',
-                background: unlockedTools?.strategyLab ? '#10B981' : '#F59E0B',
-                color: '#FFFFFF',
-                fontWeight: 800,
-                fontSize: '13px',
-                cursor: 'pointer',
+          {(() => {
+            const isUnlocked = isProUser || Boolean(unlockedTools?.strategyLab);
+            return (
+              <div style={{
+                background: '#F8FAFC',
+                borderRadius: '14px',
+                border: `1.5px solid ${isUnlocked ? '#10B981' : '#E2E8F0'}`,
+                padding: '20px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}
-            >
-              {unlockedTools?.strategyLab ? (
-                <><span>Launch Strategy Lab</span> <ArrowRight size={14} /></>
-              ) : (
-                <><span>Unlock for 300 Coins</span> <Lock size={14} /></>
-              )}
-            </button>
-          </div>
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      background: isUnlocked ? '#F0FDF4' : '#F1F5F9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <FlaskConical size={20} color={isUnlocked ? '#10B981' : '#64748B'} />
+                    </div>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      background: isUnlocked ? '#F0FDF4' : '#F1F5F9',
+                      color: isUnlocked ? '#10B981' : '#64748B'
+                    }}>
+                      {isUnlocked ? (isProUser ? 'PRO UNLOCKED' : 'UNLOCKED') : '300 COINS'}
+                    </span>
+                  </div>
+                  <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Strategy Lab & Backtester</h4>
+                  <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                    Test algorithmic trading theories against historical multi-year tick feeds. Prove positive mathematical expectancy.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (isUnlocked) {
+                      navigate('/strategy-builder');
+                    } else {
+                      if (unlockTool('strategyLab', 300, 'Strategy Lab')) {
+                        navigate('/strategy-builder');
+                      }
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: isUnlocked ? '#10B981' : '#F59E0B',
+                    color: '#FFFFFF',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {isUnlocked ? (
+                    <><span>Launch Strategy Lab</span> <ArrowRight size={14} /></>
+                  ) : (
+                    <><span>Unlock for 300 Coins</span> <Lock size={14} /></>
+                  )}
+                </button>
+              </div>
+            );
+          })()}
 
           {/* Tool 3: AI Trading Mentor */}
-          <div style={{
-            background: '#F8FAFC',
-            borderRadius: '14px',
-            border: `1.5px solid ${unlockedTools?.aiMentor ? '#10B981' : '#E2E8F0'}`,
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between'
-          }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '24px' }}>🤖</span>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  padding: '3px 8px',
-                  borderRadius: '6px',
-                  background: unlockedTools?.aiMentor ? '#F0FDF4' : '#F1F5F9',
-                  color: unlockedTools?.aiMentor ? '#10B981' : '#64748B'
-                }}>
-                  {unlockedTools?.aiMentor ? 'UNLOCKED' : '200 COINS'}
-                </span>
-              </div>
-              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>AI Trading Mentor</h4>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-                Real-time chart pattern analysis, support/resistance detection, and live post-trade psychological feedback. Powered by Groq LLaMA 3.3.
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                if (unlockedTools?.aiMentor) {
-                  navigate('/ai-mentor');
-                } else {
-                  if (unlockTool('aiMentor', 200, 'AI Mentor')) {
-                    navigate('/ai-mentor');
-                  }
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '8px',
-                border: 'none',
-                background: unlockedTools?.aiMentor ? '#10B981' : '#F59E0B',
-                color: '#FFFFFF',
-                fontWeight: 800,
-                fontSize: '13px',
-                cursor: 'pointer',
+          {(() => {
+            const isUnlocked = isProUser || Boolean(unlockedTools?.aiMentor);
+            return (
+              <div style={{
+                background: '#F8FAFC',
+                borderRadius: '14px',
+                border: `1.5px solid ${isUnlocked ? '#10B981' : '#E2E8F0'}`,
+                padding: '20px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}
-            >
-              {unlockedTools?.aiMentor ? (
-                <><span>Consult AI Mentor</span> <ArrowRight size={14} /></>
-              ) : (
-                <><span>Unlock for 200 Coins</span> <Lock size={14} /></>
-              )}
-            </button>
-          </div>
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      background: isUnlocked ? '#F0FDF4' : '#F1F5F9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Bot size={20} color={isUnlocked ? '#10B981' : '#64748B'} />
+                    </div>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      background: isUnlocked ? '#F0FDF4' : '#F1F5F9',
+                      color: isUnlocked ? '#10B981' : '#64748B'
+                    }}>
+                      {isUnlocked ? (isProUser ? 'PRO UNLOCKED' : 'UNLOCKED') : '200 COINS'}
+                    </span>
+                  </div>
+                  <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>AI Trading Mentor</h4>
+                  <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                    Real-time chart pattern analysis, support/resistance detection, and live post-trade psychological feedback. Powered by Groq.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (isUnlocked) {
+                      navigate('/ai-mentor');
+                    } else {
+                      if (unlockTool('aiMentor', 200, 'AI Mentor')) {
+                        navigate('/ai-mentor');
+                      }
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: isUnlocked ? '#10B981' : '#F59E0B',
+                    color: '#FFFFFF',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {isUnlocked ? (
+                    <><span>Consult AI Mentor</span> <ArrowRight size={14} /></>
+                  ) : (
+                    <><span>Unlock for 200 Coins</span> <Lock size={14} /></>
+                  )}
+                </button>
+              </div>
+            );
+          })()}
 
           {/* Tool 4: Trade Replay Simulator */}
-          <div style={{
-            background: '#F8FAFC',
-            borderRadius: '14px',
-            border: `1.5px solid ${unlockedTools?.replay ? '#10B981' : '#E2E8F0'}`,
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between'
-          }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '24px' }}>⏳</span>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  padding: '3px 8px',
-                  borderRadius: '6px',
-                  background: unlockedTools?.replay ? '#F0FDF4' : '#F1F5F9',
-                  color: unlockedTools?.replay ? '#10B981' : '#64748B'
-                }}>
-                  {unlockedTools?.replay ? 'UNLOCKED' : '500 COINS'}
-                </span>
-              </div>
-              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Trade Replay Simulator</h4>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-                Bar-by-bar historical price action time machine. Rewind to past volatility sessions and practice real setups.
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                if (unlockedTools?.replay) {
-                  navigate('/replay');
-                } else {
-                  if (unlockTool('replay', 500, 'Trade Replay Simulator')) {
-                    navigate('/replay');
-                  }
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '8px',
-                border: 'none',
-                background: unlockedTools?.replay ? '#10B981' : '#F59E0B',
-                color: '#FFFFFF',
-                fontWeight: 800,
-                fontSize: '13px',
-                cursor: 'pointer',
+          {(() => {
+            const isUnlocked = isProUser || Boolean(unlockedTools?.replay);
+            return (
+              <div style={{
+                background: '#F8FAFC',
+                borderRadius: '14px',
+                border: `1.5px solid ${isUnlocked ? '#10B981' : '#E2E8F0'}`,
+                padding: '20px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}
-            >
-              {unlockedTools?.replay ? (
-                <><span>Launch Replay</span> <ArrowRight size={14} /></>
-              ) : (
-                <><span>Unlock for 500 Coins</span> <Lock size={14} /></>
-              )}
-            </button>
-          </div>
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      background: isUnlocked ? '#F0FDF4' : '#F1F5F9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Clock size={20} color={isUnlocked ? '#10B981' : '#64748B'} />
+                    </div>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      background: isUnlocked ? '#F0FDF4' : '#F1F5F9',
+                      color: isUnlocked ? '#10B981' : '#64748B'
+                    }}>
+                      {isUnlocked ? (isProUser ? 'PRO UNLOCKED' : 'UNLOCKED') : '500 COINS'}
+                    </span>
+                  </div>
+                  <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Trade Replay Simulator</h4>
+                  <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                    Bar-by-bar historical price action time machine. Rewind to past volatility sessions and practice real setups.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (isUnlocked) {
+                      navigate('/replay');
+                    } else {
+                      if (unlockTool('replay', 500, 'Trade Replay Simulator')) {
+                        navigate('/replay');
+                      }
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: isUnlocked ? '#10B981' : '#F59E0B',
+                    color: '#FFFFFF',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {isUnlocked ? (
+                    <><span>Launch Replay</span> <ArrowRight size={14} /></>
+                  ) : (
+                    <><span>Unlock for 500 Coins</span> <Lock size={14} /></>
+                  )}
+                </button>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
-      {/* ─── 8. GLOBAL HALL OF FAME LEADERBOARD ─── */}
+      {/* ─── 8. GLOBAL HALL OF FAME LEADERBOARD (CLEAN $1,000 PROVING BALANCES) ─── */}
       <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
@@ -1027,7 +1349,12 @@ export default function Dashboard() {
               {realLeaderboard.map(item => (
                 <tr key={item.rank} style={{ borderBottom: '1px solid #F1F5F9', fontSize: '14px', background: item.isSelf ? '#F0FDF4' : 'transparent' }}>
                   <td style={{ padding: '16px', fontWeight: 900, color: item.rank <= 3 ? '#10B981' : '#64748B' }}>
-                    #{item.rank} {item.rank === 1 && '🥇'} {item.rank === 2 && '🥈'} {item.rank === 3 && '🥉'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>#{item.rank}</span>
+                      {item.rank === 1 && <Trophy size={14} color="#EAB308" />}
+                      {item.rank === 2 && <Medal size={14} color="#94A3B8" />}
+                      {item.rank === 3 && <Medal size={14} color="#D97706" />}
+                    </div>
                   </td>
                   <td style={{ padding: '16px', fontWeight: 800, color: '#0F172A' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1047,21 +1374,21 @@ export default function Dashboard() {
                   <td style={{ padding: '16px' }}>
                     <span style={{
                       fontWeight: 900,
-                      color: item.color || '#64748B',
+                      color: item.tag === 'Contender' ? '#94A3B8' : (item.color || '#94A3B8'),
                       background: '#0F172A',
                       padding: '3px 10px',
                       borderRadius: '6px',
                       fontSize: '11px',
                       letterSpacing: '1px'
                     }}>
-                      {item.tag}
+                      {item.tag || 'Contender'}
                     </span>
                   </td>
                   <td style={{ padding: '16px', textAlign: 'right', fontWeight: 800, color: '#10B981' }}>
                     {item.der != null ? Number(item.der).toFixed(1) : '75.0'}
                   </td>
                   <td style={{ padding: '16px', textAlign: 'right', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                    ${Number(item.balance || 1000).toLocaleString()}
+                    ${Number(item.balance || 1000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                 </tr>
               ))}
@@ -1074,7 +1401,7 @@ export default function Dashboard() {
       {showProModal && (
         <div style={{
           position: 'fixed', inset: 0,
-          background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(3px)',
+          background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
           padding: '20px'
         }}>
@@ -1088,7 +1415,18 @@ export default function Dashboard() {
             >
               ✕
             </button>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>👑</div>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              background: '#FEF3C7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '14px'
+            }}>
+              <Crown size={30} color="#D97706" />
+            </div>
             <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0' }}>Upgrade to NonStock Pro</h3>
             <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: '0 0 20px 0' }}>
               Unlock all platform tools permanently without coin deductions, receive monthly 1,000 Gold Coins drops, and access exclusive custom badges.
@@ -1100,7 +1438,7 @@ export default function Dashboard() {
             </ul>
             <button
               onClick={() => {
-                toast.success('Pro features activated!', { icon: '👑' });
+                toast.success('Pro features activated!');
                 setShowProModal(false);
               }}
               style={{
