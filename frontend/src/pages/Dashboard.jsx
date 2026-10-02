@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTrading } from '../contexts/TradingContext';
+import { apiClient } from '../services/api';
 import { 
   Trophy, Medal, Star, Zap, ArrowRight, ShieldCheck, 
   Lock, Unlock, Target, Coins, Activity, TrendingUp, TrendingDown,
@@ -31,9 +32,9 @@ export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { 
-    balance, coins, positions, history, badge, closePosition,
-    watchlist, addToWatchlist, removeFromWatchlist,
-    unlockedTools, unlockTool 
+    balance = 1000, coins = 100, positions = [], history = [], badge, closePosition,
+    watchlist = [], addToWatchlist, removeFromWatchlist,
+    unlockedTools = {}, unlockTool 
   } = useTrading();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,23 +50,25 @@ export default function Dashboard() {
   }, [searchQuery]);
 
   // Tag details & progression
-  const tagColor = badge.color || '#64748B';
-  const tagGlow = badge.glow || 'none';
+  const balanceNum = Number(balance) || 1000;
+  const tagColor = badge?.color || '#64748B';
+  const tagGlow = badge?.glow || 'none';
+  const tagName = badge?.name || 'Contender';
   const userName = user?.name || user?.email?.split('@')[0] || 'Trader';
 
   // Progression math
   let nextRankName = 'Silver';
   let nextRankTarget = 2000;
-  if (balance >= 15000) {
+  if (balanceNum >= 15000) {
     nextRankName = 'Max Rank (Operator)';
     nextRankTarget = 15000;
-  } else if (balance >= 8000) {
+  } else if (balanceNum >= 8000) {
     nextRankName = 'Operator';
     nextRankTarget = 15000;
-  } else if (balance >= 4000) {
+  } else if (balanceNum >= 4000) {
     nextRankName = 'Master';
     nextRankTarget = 8000;
-  } else if (balance >= 2000) {
+  } else if (balanceNum >= 2000) {
     nextRankName = 'Gold';
     nextRankTarget = 4000;
   } else {
@@ -73,28 +76,27 @@ export default function Dashboard() {
     nextRankTarget = 2000;
   }
 
-  const rankProgress = Math.min(100, Math.max(0, (balance / nextRankTarget) * 100));
+  const rankProgress = Math.min(100, Math.max(0, (balanceNum / nextRankTarget) * 100));
 
   // 100% Real Verified Hall of Fame (NO FAKE / BOTS)
   const [realLeaderboard, setRealLeaderboard] = useState([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/paper/hall-of-fame`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.leaderboard && data.leaderboard.length > 0) {
+    apiClient.get('/paper/hall-of-fame')
+      .then(res => {
+        const data = res.data;
+        if (data?.leaderboard && Array.isArray(data.leaderboard) && data.leaderboard.length > 0) {
           setRealLeaderboard(data.leaderboard);
         } else {
-          // If no other users registered yet, showcase real logged-in user at Rank #1
           setRealLeaderboard([
             {
               rank: 1,
-              name: user?.name || 'Verified Trader',
-              tag: badge.name,
+              name: userName,
+              tag: tagName,
               color: tagColor,
               der: 75.0,
-              balance: balance,
+              balance: balanceNum,
               isSelf: true
             }
           ]);
@@ -104,17 +106,17 @@ export default function Dashboard() {
         setRealLeaderboard([
           {
             rank: 1,
-            name: user?.name || 'Verified Trader',
-            tag: badge.name,
+            name: userName,
+            tag: tagName,
             color: tagColor,
             der: 75.0,
-            balance: balance,
+            balance: balanceNum,
             isSelf: true
           }
         ]);
       })
       .finally(() => setLoadingLeaderboard(false));
-  }, [user, balance, badge.name, tagColor]);
+  }, [userName, balanceNum, tagName, tagColor]);
 
   return (
     <div style={{ maxWidth: '1360px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', fontFamily: 'Inter, sans-serif' }}>
@@ -217,7 +219,7 @@ export default function Dashboard() {
             {/* Next Rank Progress Bar */}
             <div style={{ marginTop: '14px', maxWidth: '380px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
-                <span>Current: ${balance.toFixed(2)}</span>
+                <span>Current: ${balanceNum.toFixed(2)}</span>
                 <span>Next Tier: {nextRankName} (${nextRankTarget.toLocaleString()})</span>
               </div>
               <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '10px', overflow: 'hidden' }}>
@@ -323,7 +325,7 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         <div style={{ background: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
           <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>EQUITY / CAPITAL</div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>${balance.toFixed(2)}</div>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>${balanceNum.toFixed(2)}</div>
           <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>Starting Baseline: $1,000.00</span>
         </div>
 
@@ -548,8 +550,8 @@ export default function Dashboard() {
                         </span>
                       </td>
                       <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{pos.size} ({pos.leverage}x)</td>
-                      <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>${pos.entryPrice.toFixed(2)}</td>
-                      <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>${pos.margin.toFixed(2)}</td>
+                      <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>${Number(pos.entryPrice || 0).toFixed(2)}</td>
+                      <td style={{ padding: '14px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>${Number(pos.margin || 0).toFixed(2)}</td>
                       <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                         <button 
                           onClick={() => closePosition(pos.id, pos.entryPrice)}
@@ -740,7 +742,7 @@ export default function Dashboard() {
           <div style={{
             background: '#F8FAFC',
             borderRadius: '14px',
-            border: `1.5px solid ${unlockedTools.screener ? '#10B981' : '#E2E8F0'}`,
+            border: `1.5px solid ${unlockedTools?.screener ? '#10B981' : '#E2E8F0'}`,
             padding: '20px',
             display: 'flex',
             flexDirection: 'column',
@@ -754,10 +756,10 @@ export default function Dashboard() {
                   fontWeight: 800,
                   padding: '3px 8px',
                   borderRadius: '6px',
-                  background: unlockedTools.screener ? '#F0FDF4' : '#F1F5F9',
-                  color: unlockedTools.screener ? '#10B981' : '#64748B'
+                  background: unlockedTools?.screener ? '#F0FDF4' : '#F1F5F9',
+                  color: unlockedTools?.screener ? '#10B981' : '#64748B'
                 }}>
-                  {unlockedTools.screener ? 'UNLOCKED' : '150 COINS'}
+                  {unlockedTools?.screener ? 'UNLOCKED' : '150 COINS'}
                 </span>
               </div>
               <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Real-Time Market Screener</h4>
@@ -768,7 +770,7 @@ export default function Dashboard() {
 
             <button
               onClick={() => {
-                if (unlockedTools.screener) {
+                if (unlockedTools?.screener) {
                   navigate('/screener');
                 } else {
                   if (unlockTool('screener', 150, 'Market Screener')) {
@@ -781,7 +783,7 @@ export default function Dashboard() {
                 padding: '10px',
                 borderRadius: '8px',
                 border: 'none',
-                background: unlockedTools.screener ? '#10B981' : '#F59E0B',
+                background: unlockedTools?.screener ? '#10B981' : '#F59E0B',
                 color: '#FFFFFF',
                 fontWeight: 800,
                 fontSize: '13px',
@@ -792,7 +794,7 @@ export default function Dashboard() {
                 gap: '6px'
               }}
             >
-              {unlockedTools.screener ? (
+              {unlockedTools?.screener ? (
                 <><span>Launch Screener</span> <ArrowRight size={14} /></>
               ) : (
                 <><span>Unlock for 150 Coins</span> <Lock size={14} /></>
@@ -804,7 +806,7 @@ export default function Dashboard() {
           <div style={{
             background: '#F8FAFC',
             borderRadius: '14px',
-            border: `1.5px solid ${unlockedTools.strategyLab ? '#10B981' : '#E2E8F0'}`,
+            border: `1.5px solid ${unlockedTools?.strategyLab ? '#10B981' : '#E2E8F0'}`,
             padding: '20px',
             display: 'flex',
             flexDirection: 'column',
@@ -818,10 +820,10 @@ export default function Dashboard() {
                   fontWeight: 800,
                   padding: '3px 8px',
                   borderRadius: '6px',
-                  background: unlockedTools.strategyLab ? '#F0FDF4' : '#F1F5F9',
-                  color: unlockedTools.strategyLab ? '#10B981' : '#64748B'
+                  background: unlockedTools?.strategyLab ? '#F0FDF4' : '#F1F5F9',
+                  color: unlockedTools?.strategyLab ? '#10B981' : '#64748B'
                 }}>
-                  {unlockedTools.strategyLab ? 'UNLOCKED' : '300 COINS'}
+                  {unlockedTools?.strategyLab ? 'UNLOCKED' : '300 COINS'}
                 </span>
               </div>
               <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Strategy Lab & Backtester</h4>
@@ -832,7 +834,7 @@ export default function Dashboard() {
 
             <button
               onClick={() => {
-                if (unlockedTools.strategyLab) {
+                if (unlockedTools?.strategyLab) {
                   navigate('/strategy-builder');
                 } else {
                   if (unlockTool('strategyLab', 300, 'Strategy Lab')) {
@@ -845,7 +847,7 @@ export default function Dashboard() {
                 padding: '10px',
                 borderRadius: '8px',
                 border: 'none',
-                background: unlockedTools.strategyLab ? '#10B981' : '#F59E0B',
+                background: unlockedTools?.strategyLab ? '#10B981' : '#F59E0B',
                 color: '#FFFFFF',
                 fontWeight: 800,
                 fontSize: '13px',
@@ -856,7 +858,7 @@ export default function Dashboard() {
                 gap: '6px'
               }}
             >
-              {unlockedTools.strategyLab ? (
+              {unlockedTools?.strategyLab ? (
                 <><span>Launch Strategy Lab</span> <ArrowRight size={14} /></>
               ) : (
                 <><span>Unlock for 300 Coins</span> <Lock size={14} /></>
@@ -868,7 +870,7 @@ export default function Dashboard() {
           <div style={{
             background: '#F8FAFC',
             borderRadius: '14px',
-            border: `1.5px solid ${unlockedTools.aiMentor ? '#10B981' : '#E2E8F0'}`,
+            border: `1.5px solid ${unlockedTools?.aiMentor ? '#10B981' : '#E2E8F0'}`,
             padding: '20px',
             display: 'flex',
             flexDirection: 'column',
@@ -882,10 +884,10 @@ export default function Dashboard() {
                   fontWeight: 800,
                   padding: '3px 8px',
                   borderRadius: '6px',
-                  background: unlockedTools.aiMentor ? '#F0FDF4' : '#F1F5F9',
-                  color: unlockedTools.aiMentor ? '#10B981' : '#64748B'
+                  background: unlockedTools?.aiMentor ? '#F0FDF4' : '#F1F5F9',
+                  color: unlockedTools?.aiMentor ? '#10B981' : '#64748B'
                 }}>
-                  {unlockedTools.aiMentor ? 'UNLOCKED' : '200 COINS'}
+                  {unlockedTools?.aiMentor ? 'UNLOCKED' : '200 COINS'}
                 </span>
               </div>
               <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>AI Trading Mentor</h4>
@@ -896,7 +898,7 @@ export default function Dashboard() {
 
             <button
               onClick={() => {
-                if (unlockedTools.aiMentor) {
+                if (unlockedTools?.aiMentor) {
                   navigate('/ai-mentor');
                 } else {
                   if (unlockTool('aiMentor', 200, 'AI Mentor')) {
@@ -909,7 +911,7 @@ export default function Dashboard() {
                 padding: '10px',
                 borderRadius: '8px',
                 border: 'none',
-                background: unlockedTools.aiMentor ? '#10B981' : '#F59E0B',
+                background: unlockedTools?.aiMentor ? '#10B981' : '#F59E0B',
                 color: '#FFFFFF',
                 fontWeight: 800,
                 fontSize: '13px',
@@ -920,7 +922,7 @@ export default function Dashboard() {
                 gap: '6px'
               }}
             >
-              {unlockedTools.aiMentor ? (
+              {unlockedTools?.aiMentor ? (
                 <><span>Consult AI Mentor</span> <ArrowRight size={14} /></>
               ) : (
                 <><span>Unlock for 200 Coins</span> <Lock size={14} /></>
@@ -932,7 +934,7 @@ export default function Dashboard() {
           <div style={{
             background: '#F8FAFC',
             borderRadius: '14px',
-            border: `1.5px solid ${unlockedTools.replay ? '#10B981' : '#E2E8F0'}`,
+            border: `1.5px solid ${unlockedTools?.replay ? '#10B981' : '#E2E8F0'}`,
             padding: '20px',
             display: 'flex',
             flexDirection: 'column',
@@ -946,10 +948,10 @@ export default function Dashboard() {
                   fontWeight: 800,
                   padding: '3px 8px',
                   borderRadius: '6px',
-                  background: unlockedTools.replay ? '#F0FDF4' : '#F1F5F9',
-                  color: unlockedTools.replay ? '#10B981' : '#64748B'
+                  background: unlockedTools?.replay ? '#F0FDF4' : '#F1F5F9',
+                  color: unlockedTools?.replay ? '#10B981' : '#64748B'
                 }}>
-                  {unlockedTools.replay ? 'UNLOCKED' : '500 COINS'}
+                  {unlockedTools?.replay ? 'UNLOCKED' : '500 COINS'}
                 </span>
               </div>
               <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>Trade Replay Simulator</h4>
@@ -960,7 +962,7 @@ export default function Dashboard() {
 
             <button
               onClick={() => {
-                if (unlockedTools.replay) {
+                if (unlockedTools?.replay) {
                   navigate('/replay');
                 } else {
                   if (unlockTool('replay', 500, 'Trade Replay Simulator')) {
@@ -973,7 +975,7 @@ export default function Dashboard() {
                 padding: '10px',
                 borderRadius: '8px',
                 border: 'none',
-                background: unlockedTools.replay ? '#10B981' : '#F59E0B',
+                background: unlockedTools?.replay ? '#10B981' : '#F59E0B',
                 color: '#FFFFFF',
                 fontWeight: 800,
                 fontSize: '13px',
@@ -984,7 +986,7 @@ export default function Dashboard() {
                 gap: '6px'
               }}
             >
-              {unlockedTools.replay ? (
+              {unlockedTools?.replay ? (
                 <><span>Launch Replay</span> <ArrowRight size={14} /></>
               ) : (
                 <><span>Unlock for 500 Coins</span> <Lock size={14} /></>
@@ -1056,10 +1058,10 @@ export default function Dashboard() {
                     </span>
                   </td>
                   <td style={{ padding: '16px', textAlign: 'right', fontWeight: 800, color: '#10B981' }}>
-                    {item.der ? item.der.toFixed(1) : '75.0'}
+                    {item.der != null ? Number(item.der).toFixed(1) : '75.0'}
                   </td>
                   <td style={{ padding: '16px', textAlign: 'right', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                    ${item.balance?.toLocaleString() || '1,000'}
+                    ${Number(item.balance || 1000).toLocaleString()}
                   </td>
                 </tr>
               ))}

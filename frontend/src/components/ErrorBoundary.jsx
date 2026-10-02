@@ -64,9 +64,25 @@ export default class ErrorBoundary extends React.Component {
             <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px' }}>
               Something went wrong loading this desk
             </h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary, #94a3b8)', marginBottom: '24px', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary, #94a3b8)', marginBottom: '16px', lineHeight: 1.5 }}>
               A temporary display error occurred while rendering live market components. You can refresh the view or return to the main dashboard.
             </p>
+            {this.state.error?.message && (
+              <div style={{
+                background: 'rgba(0, 0, 0, 0.4)',
+                border: '1px solid rgba(255, 68, 68, 0.3)',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                fontSize: '12px',
+                fontFamily: 'monospace',
+                color: '#ff8888',
+                marginBottom: '20px',
+                textAlign: 'left',
+                overflowX: 'auto'
+              }}>
+                {this.state.error.message}
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <button

@@ -237,17 +237,17 @@ export default function Layout({ children }) {
                   padding: '4px 12px',
                   borderRadius: '999px',
                   background: '#0F172A',
-                  border: `1.5px solid ${badge.color}`,
-                  color: badge.color,
+                  border: `1.5px solid ${badge?.color || '#64748B'}`,
+                  color: badge?.color || '#64748B',
                   fontWeight: 900,
                   fontSize: '11px',
                   textTransform: 'uppercase',
                   letterSpacing: '1px',
-                  boxShadow: badge.glow !== 'none' ? badge.glow : 'none',
-                  textShadow: badge.glow !== 'none' ? badge.glow : 'none',
+                  boxShadow: badge?.glow && badge.glow !== 'none' ? badge.glow : 'none',
+                  textShadow: badge?.glow && badge.glow !== 'none' ? badge.glow : 'none',
                 }}
               >
-                {badge.name}
+                {badge?.name || 'CONTENDER'}
               </div>
 
               {/* Profile Pill with User Name in Tag Color */}
@@ -264,8 +264,8 @@ export default function Layout({ children }) {
                   cursor: 'pointer'
                 }}
               >
-                <User size={15} style={{ color: badge.color }} />
-                <span style={{ fontSize: '13px', fontWeight: 800, color: badge.color }}>
+                <User size={15} style={{ color: badge?.color || '#64748B' }} />
+                <span style={{ fontSize: '13px', fontWeight: 800, color: badge?.color || '#64748B' }}>
                   {user.name || user.email?.split('@')[0]}
                 </span>
               </div>
