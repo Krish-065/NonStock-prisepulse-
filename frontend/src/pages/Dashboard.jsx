@@ -1,27 +1,104 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { createChart, CandlestickSeries } from 'lightweight-charts';
+import { createChart, CandlestickSeries, LineSeries } from 'lightweight-charts';
 import { useTrading } from '../contexts/TradingContext';
-import { Settings, Maximize2, DollarSign, PieChart, Activity, TrendingUp, AlertTriangle } from 'lucide-react';
+import { 
+  Settings, Maximize2, DollarSign, PieChart, Activity, TrendingUp, 
+  AlertTriangle, Sliders, Layers, Sparkles, Trophy, Coins, RotateCcw,
+  CheckCircle2, ArrowRight
+} from 'lucide-react';
 import toast from 'react-hot-toast';
+import LiveMarketScreener from '../components/LiveMarketScreener';
 
 const ASSETS = {
   Crypto: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
-  Forex: ['EURUSD', 'GBPUSD', 'USDJPY'], // Simulated/Static for now if Binance doesn't provide
+  Forex: ['EURUSD', 'GBPUSD', 'USDJPY'],
   Commodities: ['XAUUSD', 'WTIUSD', 'XAGUSD'],
   Equities: ['AAPL', 'NVDA', 'TSLA', 'SPY']
+};
+
+// Indicator math helpers for Lightweight Charts
+const calculateSMA = (data, period) => {
+  const sma = [];
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) continue;
+    let sum = 0;
+    for (let j = 0; j < period; j++) {
+      sum += data[i - j].close;
+    }
+    sma.push({ time: data[i].time, value: sum / period });
+  }
+  return sma;
+};
+
+const calculateEMA = (data, period) => {
+  const ema = [];
+  if (data.length === 0) return ema;
+  const k = 2 / (period + 1);
+  let sum = 0;
+  for (let i = 0; i < Math.min(period, data.length); i++) {
+    sum += data[i].close;
+  }
+  let prevEma = sum / Math.min(period, data.length);
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) continue;
+    if (i === period - 1) {
+      ema.push({ time: data[i].time, value: prevEma });
+    } else {
+      const val = data[i].close * k + prevEma * (1 - k);
+      ema.push({ time: data[i].time, value: val });
+      prevEma = val;
+    }
+  }
+  return ema;
+};
+
+const calculateBollingerBands = (data, period = 20, multiplier = 2) => {
+  const upper = [];
+  const lower = [];
+  const middle = [];
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) continue;
+    let sum = 0;
+    for (let j = 0; j < period; j++) {
+      sum += data[i - j].close;
+    }
+    const mean = sum / period;
+    let varianceSum = 0;
+    for (let j = 0; j < period; j++) {
+      varianceSum += Math.pow(data[i - j].close - mean, 2);
+    }
+    const sd = Math.sqrt(varianceSum / period);
+    middle.push({ time: data[i].time, value: mean });
+    upper.push({ time: data[i].time, value: mean + multiplier * sd });
+    lower.push({ time: data[i].time, value: mean - multiplier * sd });
+  }
+  return { upper, lower, middle };
 };
 
 export default function Terminal() {
   const chartContainerRef = useRef(null);
   const chartRef = useRef(null);
   const candlestickSeriesRef = useRef(null);
+  const smaSeriesRef = useRef(null);
+  const emaSeriesRef = useRef(null);
+  const bbUpperRef = useRef(null);
+  const bbLowerRef = useRef(null);
   const wsRef = useRef(null);
+  const rawCandlesRef = useRef([]);
+
   const { balance, positions, placeOrder, closePosition } = useTrading();
 
   const [category, setCategory] = useState('Crypto');
   const [symbol, setSymbol] = useState('BTCUSDT');
-  const [currentPrice, setCurrentPrice] = useState(65000); // Default placeholder
+  const [currentPrice, setCurrentPrice] = useState(65000);
   const [historicalData, setHistoricalData] = useState([]);
+
+  // Indicator toggles
+  const [activeIndicators, setActiveIndicators] = useState({
+    sma20: false,
+    ema50: false,
+    bollinger: false
+  });
 
   // Order Ticket State
   const [side, setSide] = useState('LONG');
@@ -47,9 +124,6 @@ export default function Terminal() {
   }
   const rrr = dollarRiskAtSL > 0 && dollarRewardAtTP > 0 ? (dollarRewardAtTP / dollarRiskAtSL).toFixed(2) : 'N/A';
   
-  // Liquidation Price Calc
-  // Margin = Loss at liquidation
-  // Loss = |Current - Liq| * size => Liq = Current +/- (Margin / size)
   const liqDistance = marginReq / size;
   const liqPrice = side === 'LONG' ? currentPrice - liqDistance : currentPrice + liqDistance;
 
@@ -61,13 +135,14 @@ export default function Terminal() {
       layout: {
         background: { type: 'solid', color: '#ffffff' },
         textColor: '#0F172A',
+        fontFamily: 'Inter, sans-serif'
       },
       grid: {
         vertLines: { color: '#E2E8F0' },
         horzLines: { color: '#E2E8F0' },
       },
       crosshair: {
-        mode: 1, // Magnet
+        mode: 1,
       },
       timeScale: {
         timeVisible: true,
@@ -90,7 +165,9 @@ export default function Terminal() {
     candlestickSeriesRef.current = candlestickSeries;
 
     const handleResize = () => {
-      chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      if (chartContainerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
+      }
     };
     window.addEventListener('resize', handleResize);
 
@@ -100,15 +177,82 @@ export default function Terminal() {
     };
   }, []);
 
+  // Update Indicator Series when data or activeIndicators changes
+  const updateIndicatorsOnChart = (candles) => {
+    if (!chartRef.current || !candles || candles.length === 0) return;
+
+    // SMA 20
+    if (activeIndicators.sma20) {
+      if (!smaSeriesRef.current) {
+        smaSeriesRef.current = chartRef.current.addSeries(LineSeries, {
+          color: '#0284c7',
+          lineWidth: 2,
+          title: 'SMA 20'
+        });
+      }
+      smaSeriesRef.current.setData(calculateSMA(candles, 20));
+    } else if (smaSeriesRef.current) {
+      chartRef.current.removeSeries(smaSeriesRef.current);
+      smaSeriesRef.current = null;
+    }
+
+    // EMA 50
+    if (activeIndicators.ema50) {
+      if (!emaSeriesRef.current) {
+        emaSeriesRef.current = chartRef.current.addSeries(LineSeries, {
+          color: '#f97316',
+          lineWidth: 2,
+          title: 'EMA 50'
+        });
+      }
+      emaSeriesRef.current.setData(calculateEMA(candles, 50));
+    } else if (emaSeriesRef.current) {
+      chartRef.current.removeSeries(emaSeriesRef.current);
+      emaSeriesRef.current = null;
+    }
+
+    // Bollinger Bands
+    if (activeIndicators.bollinger) {
+      if (!bbUpperRef.current) {
+        bbUpperRef.current = chartRef.current.addSeries(LineSeries, {
+          color: 'rgba(234, 179, 8, 0.7)',
+          lineWidth: 1,
+          lineStyle: 1,
+          title: 'BB Upper'
+        });
+        bbLowerRef.current = chartRef.current.addSeries(LineSeries, {
+          color: 'rgba(234, 179, 8, 0.7)',
+          lineWidth: 1,
+          lineStyle: 1,
+          title: 'BB Lower'
+        });
+      }
+      const { upper, lower } = calculateBollingerBands(candles, 20, 2);
+      bbUpperRef.current.setData(upper);
+      bbLowerRef.current.setData(lower);
+    } else {
+      if (bbUpperRef.current) {
+        chartRef.current.removeSeries(bbUpperRef.current);
+        bbUpperRef.current = null;
+      }
+      if (bbLowerRef.current) {
+        chartRef.current.removeSeries(bbLowerRef.current);
+        bbLowerRef.current = null;
+      }
+    }
+  };
+
+  useEffect(() => {
+    updateIndicatorsOnChart(rawCandlesRef.current);
+  }, [activeIndicators]);
+
   // Fetch Data & Connect WebSocket
   useEffect(() => {
     if (!candlestickSeriesRef.current) return;
 
-    // We use binance klines for crypto. For others, we might mock it if they aren't available on binance.
     const isBinanceSymbol = category === 'Crypto';
     
     if (isBinanceSymbol) {
-      // Fetch Historical Data
       fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=100`)
         .then(res => res.json())
         .then(data => {
@@ -119,12 +263,13 @@ export default function Terminal() {
             low: parseFloat(d[3]),
             close: parseFloat(d[4])
           }));
+          rawCandlesRef.current = formattedData;
           candlestickSeriesRef.current.setData(formattedData);
           setCurrentPrice(formattedData[formattedData.length - 1].close);
+          updateIndicatorsOnChart(formattedData);
         })
         .catch(err => console.error(err));
 
-      // Connect WS
       if (wsRef.current) wsRef.current.close();
       const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_1m`);
       ws.onmessage = (event) => {
@@ -144,31 +289,32 @@ export default function Terminal() {
       };
       wsRef.current = ws;
     } else {
-      // Mock Data for non-crypto
-      let mockPrice = category === 'Forex' ? 1.10 : category === 'Commodities' ? 2000 : 150;
+      let mockPrice = category === 'Forex' ? 1.0845 : category === 'Commodities' ? 2518.00 : 185;
       const data = [];
       let time = Math.floor(Date.now() / 1000) - 100 * 60;
       for (let i = 0; i < 100; i++) {
         data.push({
           time: time + i * 60,
           open: mockPrice,
-          high: mockPrice + Math.random() * 2,
-          low: mockPrice - Math.random() * 2,
-          close: mockPrice + (Math.random() - 0.5) * 2
+          high: mockPrice + Math.random() * (mockPrice * 0.002),
+          low: mockPrice - Math.random() * (mockPrice * 0.002),
+          close: mockPrice + (Math.random() - 0.49) * (mockPrice * 0.002)
         });
         mockPrice = data[i].close;
       }
+      rawCandlesRef.current = data;
       candlestickSeriesRef.current.setData(data);
       setCurrentPrice(mockPrice);
+      updateIndicatorsOnChart(data);
 
       if (wsRef.current) wsRef.current.close();
       const interval = setInterval(() => {
-        mockPrice = mockPrice + (Math.random() - 0.5) * 1;
+        mockPrice = mockPrice + (Math.random() - 0.49) * (mockPrice * 0.0008);
         candlestickSeriesRef.current.update({
           time: Math.floor(Date.now() / 1000),
           open: mockPrice,
-          high: mockPrice + 0.5,
-          low: mockPrice - 0.5,
+          high: mockPrice + (mockPrice * 0.0004),
+          low: mockPrice - (mockPrice * 0.0004),
           close: mockPrice
         });
         setCurrentPrice(mockPrice);
@@ -182,146 +328,261 @@ export default function Terminal() {
   }, [symbol, category]);
 
   const handlePlaceOrder = () => {
+    if (marginReq > balance) {
+      toast.error('Insufficient Free Margin');
+      return;
+    }
     placeOrder({
       asset: symbol,
       side,
-      type: orderType,
-      size: parseFloat(size),
-      leverage: parseInt(leverage),
+      size,
+      leverage,
       entryPrice: currentPrice,
+      margin: marginReq,
       sl: sl ? parseFloat(sl) : null,
-      tp: tp ? parseFloat(tp) : null,
-      margin: marginReq
+      tp: tp ? parseFloat(tp) : null
     });
     setShowConfirmModal(false);
+    toast.success(`${side} order filled for ${size} ${symbol}`);
+  };
+
+  // Callback when a user clicks "Trade" on the Live Market Screener
+  const handleScreenerTradeSelect = (asset) => {
+    // Map screener symbols to Terminal symbols
+    if (asset.symbol === 'BTC-USD') {
+      setCategory('Crypto');
+      setSymbol('BTCUSDT');
+    } else if (asset.symbol === 'GC=F') {
+      setCategory('Commodities');
+      setSymbol('XAUUSD');
+    } else if (asset.symbol === 'EURUSD=X') {
+      setCategory('Forex');
+      setSymbol('EURUSD');
+    } else if (asset.symbol === 'GBPUSD=X') {
+      setCategory('Forex');
+      setSymbol('GBPUSD');
+    } else if (asset.symbol === 'USDJPY=X') {
+      setCategory('Forex');
+      setSymbol('USDJPY');
+    } else {
+      setCategory('Forex');
+      setSymbol(asset.badge.replace('/', ''));
+    }
+
+    // Smoothly scroll to the trading terminal
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toast.success(`Loaded ${asset.name} into Trading Terminal`, { icon: '📈' });
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: 'calc(100vh - 100px)' }}>
+    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '28px', fontFamily: 'Inter, sans-serif' }}>
       
-      {/* Top Bar: Asset Selector & Balance Stats */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FFFFFF', padding: '16px 24px', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <select 
-            value={category} 
-            onChange={(e) => { setCategory(e.target.value); setSymbol(ASSETS[e.target.value][0]); }}
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #E2E8F0', background: '#F8FAFC', fontWeight: '600', color: '#0F172A' }}
-          >
-            {Object.keys(ASSETS).map(cat => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
-          <select 
-            value={symbol} 
-            onChange={(e) => setSymbol(e.target.value)}
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #E2E8F0', background: '#F8FAFC', fontWeight: '600', color: '#0F172A' }}
-          >
-            {ASSETS[category].map(sym => <option key={sym} value={sym}>{sym}</option>)}
-          </select>
-          <div style={{ fontSize: '1.5rem', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#0F172A' }}>
-            ${currentPrice.toFixed(2)}
+      {/* ─── 1. TOP ACCOUNT BAR & STATS ─── */}
+      <div style={{ background: '#FFFFFF', padding: '16px 24px', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', letterSpacing: '0.5px' }}>PROVING CAPITAL</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', letterSpacing: '0.5px' }}>MAX LEVERAGE</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#10B981' }}>50x Unlocked</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', letterSpacing: '0.5px' }}>FREE MARGIN</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', letterSpacing: '0.5px' }}>OPEN POSITIONS</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0F172A' }}>{positions.length}</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.75rem', color: '#475569', fontWeight: '600', textTransform: 'uppercase' }}>Available Margin</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#10B981' }}>${balance.toFixed(2)}</div>
-          </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button 
+            onClick={() => {
+              if (window.confirm('Reset virtual portfolio back to $1,000 baseline?')) {
+                window.location.reload();
+              }
+            }}
+            style={{ padding: '8px 16px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '8px', fontWeight: '700', fontSize: '0.875rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <RotateCcw size={14} /> Reset Capital
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '24px', flex: 1, minHeight: 0 }}>
-        {/* Chart Area */}
-        <div style={{ flex: 1, background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ fontWeight: '700' }}>{symbol} / USD</div>
-            <Maximize2 size={16} color="#475569" style={{ cursor: 'pointer' }} />
+      {/* ─── 2. MAIN TRADING ARENA (CHART + ORDER TICKET) ─── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: '20px' }}>
+        
+        {/* Left: Terminal Chart */}
+        <div style={{ background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          
+          {/* Chart Header Bar */}
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <select 
+                value={category} 
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setSymbol(ASSETS[e.target.value][0]);
+                }}
+                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', fontWeight: '700', background: '#F8FAFC' }}
+              >
+                {Object.keys(ASSETS).map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+
+              <select 
+                value={symbol} 
+                onChange={(e) => setSymbol(e.target.value)}
+                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', fontWeight: '800', background: '#FFFFFF' }}
+              >
+                {ASSETS[category].map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+
+              <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
+                ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+
+            {/* Technical Indicators Toggle Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Sliders size={13} color="#10B981" /> Indicators:
+              </span>
+              {[
+                { id: 'sma20', label: 'SMA 20', color: '#0284c7' },
+                { id: 'ema50', label: 'EMA 50', color: '#f97316' },
+                { id: 'bollinger', label: 'Bollinger Bands', color: '#eab308' }
+              ].map(ind => {
+                const isAct = activeIndicators[ind.id];
+                return (
+                  <button
+                    key={ind.id}
+                    onClick={() => setActiveIndicators(prev => ({ ...prev, [ind.id]: !prev[ind.id] }))}
+                    style={{
+                      background: isAct ? ind.color : '#F1F5F9',
+                      color: isAct ? '#FFFFFF' : '#475569',
+                      border: `1px solid ${isAct ? ind.color : '#CBD5E1'}`,
+                      borderRadius: '6px',
+                      padding: '4px 10px',
+                      fontSize: '0.75rem',
+                      fontWeight: '800',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    {ind.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div ref={chartContainerRef} style={{ flex: 1, width: '100%' }} />
+
+          {/* Lightweight Chart Container */}
+          <div ref={chartContainerRef} style={{ width: '100%', height: '480px' }} />
         </div>
 
-        {/* Order Ticket Panel */}
-        <div style={{ width: '350px', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-          <div style={{ padding: '16px', borderBottom: '1px solid #E2E8F0', fontWeight: '800', fontSize: '1.125rem' }}>Order Ticket</div>
-          
-          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Side Toggle */}
-            <div style={{ display: 'flex', background: '#F8FAFC', borderRadius: '8px', padding: '4px', border: '1px solid #E2E8F0' }}>
-              <button 
-                onClick={() => setSide('LONG')}
-                style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: side === 'LONG' ? '#10B981' : 'transparent', color: side === 'LONG' ? '#FFF' : '#475569', fontWeight: '700', cursor: 'pointer', transition: '0.2s' }}
-              >LONG</button>
-              <button 
-                onClick={() => setSide('SHORT')}
-                style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: side === 'SHORT' ? '#EF4444' : 'transparent', color: side === 'SHORT' ? '#FFF' : '#475569', fontWeight: '700', cursor: 'pointer', transition: '0.2s' }}
-              >SHORT</button>
-            </div>
+        {/* Right: Order Ticket */}
+        <div style={{ background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: '800', margin: 0, color: '#0F172A' }}>Execution Ticket</h3>
 
-            {/* Inputs */}
-            <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>Size (Units)</label>
-              <input type="number" step="0.01" value={size} onChange={(e) => setSize(e.target.value)} className="terminal-input" />
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>Leverage: {leverage}x</label>
-                {isHighLeverage && <AlertTriangle size={14} color="#F59E0B" />}
-              </div>
-              <input type="range" min="1" max="50" value={leverage} onChange={(e) => setLeverage(e.target.value)} style={{ width: '100%', accentColor: isHighLeverage ? '#F59E0B' : '#3B82F6' }} />
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>Take Profit</label>
-                <input type="number" value={tp} onChange={(e) => setTp(e.target.value)} className="terminal-input" placeholder="Price" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>Stop Loss</label>
-                <input type="number" value={sl} onChange={(e) => setSl(e.target.value)} className="terminal-input" placeholder="Price" />
-              </div>
-            </div>
-
-            {/* Live Calcs */}
-            <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#475569' }}>Required Margin:</span>
-                <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)' }}>${marginReq.toFixed(2)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#475569' }}>Est. Liq Price:</span>
-                <span style={{ fontWeight: '700', color: '#F59E0B', fontFamily: 'var(--font-mono)' }}>${liqPrice.toFixed(2)}</span>
-              </div>
-              {sl && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#475569' }}>Risk at SL:</span>
-                  <span style={{ fontWeight: '700', color: '#EF4444', fontFamily: 'var(--font-mono)' }}>-${dollarRiskAtSL.toFixed(2)}</span>
-                </div>
-              )}
-              {tp && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#475569' }}>Reward at TP:</span>
-                  <span style={{ fontWeight: '700', color: '#10B981', fontFamily: 'var(--font-mono)' }}>+${dollarRewardAtTP.toFixed(2)}</span>
-                </div>
-              )}
-              {sl && tp && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#475569' }}>Risk:Reward:</span>
-                  <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)' }}>1 : {rrr}</span>
-                </div>
-              )}
-            </div>
-
+          {/* Long / Short Switch */}
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button 
-              onClick={() => setShowConfirmModal(true)}
-              style={{ padding: '12px', background: side === 'LONG' ? '#10B981' : '#EF4444', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: '800', cursor: 'pointer', marginTop: 'auto' }}
+              onClick={() => setSide('LONG')}
+              style={{ flex: 1, padding: '10px', background: side === 'LONG' ? '#10B981' : '#F1F5F9', color: side === 'LONG' ? '#FFF' : '#64748B', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}
             >
-              Place {side} Order
+              Buy / Long
+            </button>
+            <button 
+              onClick={() => setSide('SHORT')}
+              style={{ flex: 1, padding: '10px', background: side === 'SHORT' ? '#EF4444' : '#F1F5F9', color: side === 'SHORT' ? '#FFF' : '#64748B', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}
+            >
+              Sell / Short
             </button>
           </div>
+
+          {/* Size */}
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', marginBottom: '4px', display: 'block' }}>Position Size (Units)</label>
+            <input 
+              type="number" 
+              value={size} 
+              onChange={(e) => setSize(Math.max(0.001, parseFloat(e.target.value) || 0))} 
+              className="terminal-input"
+              step="0.1"
+            />
+          </div>
+
+          {/* Leverage */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>Leverage ({leverage}x)</label>
+              {isHighLeverage && <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: '800' }}>⚠️ High Risk</span>}
+            </div>
+            <input 
+              type="range" 
+              min="1" 
+              max="50" 
+              value={leverage} 
+              onChange={(e) => setLeverage(parseInt(e.target.value))} 
+              style={{ width: '100%', accentColor: isHighLeverage ? '#EF4444' : '#10B981' }}
+            />
+          </div>
+
+          {/* SL / TP */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>Take Profit</label>
+              <input type="number" value={tp} onChange={(e) => setTp(e.target.value)} className="terminal-input" placeholder="Price" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>Stop Loss</label>
+              <input type="number" value={sl} onChange={(e) => setSl(e.target.value)} className="terminal-input" placeholder="Price" />
+            </div>
+          </div>
+
+          {/* Live Calcs */}
+          <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#475569' }}>Required Margin:</span>
+              <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)' }}>${marginReq.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#475569' }}>Est. Liq Price:</span>
+              <span style={{ fontWeight: '700', color: '#F59E0B', fontFamily: 'var(--font-mono)' }}>${liqPrice.toFixed(2)}</span>
+            </div>
+            {sl && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#475569' }}>Risk at SL:</span>
+                <span style={{ fontWeight: '700', color: '#EF4444', fontFamily: 'var(--font-mono)' }}>-${dollarRiskAtSL.toFixed(2)}</span>
+              </div>
+            )}
+            {tp && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#475569' }}>Reward at TP:</span>
+                <span style={{ fontWeight: '700', color: '#10B981', fontFamily: 'var(--font-mono)' }}>+${dollarRewardAtTP.toFixed(2)}</span>
+              </div>
+            )}
+            {sl && tp && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#475569' }}>Risk:Reward:</span>
+                <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)' }}>1 : {rrr}</span>
+              </div>
+            )}
+          </div>
+
+          <button 
+            onClick={() => setShowConfirmModal(true)}
+            style={{ padding: '12px', background: side === 'LONG' ? '#10B981' : '#EF4444', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: '800', cursor: 'pointer', marginTop: 'auto' }}
+          >
+            Place {side} Order
+          </button>
         </div>
       </div>
 
-      {/* Active Positions Table */}
+      {/* ─── 3. ACTIVE POSITIONS TABLE ─── */}
       <div style={{ background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '16px', overflowX: 'auto' }}>
         <h3 style={{ fontSize: '1.125rem', fontWeight: '800', marginBottom: '16px' }}>Active Positions</h3>
         <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
@@ -334,7 +595,7 @@ export default function Terminal() {
               <th style={{ paddingBottom: '8px' }}>Mark</th>
               <th style={{ paddingBottom: '8px' }}>Liq. Price</th>
               <th style={{ paddingBottom: '8px' }}>PnL</th>
-              <th style={{ paddingBottom: '8px' }}>Actions</th>
+              <th style={{ paddingBottom: '8px', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -343,7 +604,6 @@ export default function Terminal() {
                 <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#94A3B8' }}>No active positions</td>
               </tr>
             ) : positions.map(pos => {
-              // Simulating live mark price if it's the current asset, otherwise static entry
               const posMark = pos.asset === symbol ? currentPrice : pos.entryPrice;
               const isLong = pos.side === 'LONG';
               const pnl = isLong ? (posMark - pos.entryPrice) * pos.size : (pos.entryPrice - posMark) * pos.size;
@@ -363,7 +623,7 @@ export default function Terminal() {
                   <td style={{ padding: '12px 0', color: pnlColor, fontWeight: '700' }}>
                     {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
                   </td>
-                  <td style={{ padding: '12px 0' }}>
+                  <td style={{ padding: '12px 0', textAlign: 'right' }}>
                     <button 
                       onClick={() => closePosition(pos.id, posMark)}
                       style={{ padding: '4px 8px', background: '#EF4444', color: '#FFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
@@ -372,13 +632,16 @@ export default function Terminal() {
                     </button>
                   </td>
                 </tr>
-              )
+              );
             })}
           </tbody>
         </table>
       </div>
 
-      {/* Confirmation Modal */}
+      {/* ─── 4. LIVE MARKET SCREENER & RADAR (BTC, GOLD, FOREX WITH LINE CHARTS) ─── */}
+      <LiveMarketScreener onSelectAsset={handleScreenerTradeSelect} />
+
+      {/* ─── 5. CONFIRMATION MODAL ─── */}
       {showConfirmModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',

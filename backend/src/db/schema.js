@@ -24,6 +24,9 @@ async function createTables() {
       dp_name VARCHAR(100) DEFAULT 'NonStock Securities Pvt Ltd',
       pan_id VARCHAR(50) DEFAULT 'ABCDE*****F',
       brokerage_plan VARCHAR(100) DEFAULT '₹0 Equity Delivery / ₹20 F&O Intraday',
+      gold_coins INT DEFAULT 0,
+      der_score DECIMAL(10,2) DEFAULT 0.00,
+      account_tag VARCHAR(50) DEFAULT 'None',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
@@ -40,6 +43,9 @@ async function createTables() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS brokerage_plan VARCHAR(100) DEFAULT '₹0 Equity Delivery / ₹20 F&O Intraday'`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS connected_broker VARCHAR(100)`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS gold_coins INT DEFAULT 0`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS der_score DECIMAL(10,2) DEFAULT 0.00`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS account_tag VARCHAR(50) DEFAULT 'None'`);
 
   // Migrate existing column type to TIMESTAMPTZ
   try {
@@ -505,8 +511,31 @@ async function createTables() {
   } catch (err) {
     console.warn('Migration warning (google sign-in fields):', err.message);
   }
+
+  // 10. Gamification tables
+  await query(`
+    CREATE TABLE IF NOT EXISTS user_badges (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+      badge_id VARCHAR(100) NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      earned_year INT
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS user_unlocked_features (
+      id VARCHAR(255) PRIMARY KEY,
+      user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+      feature_id VARCHAR(100) NOT NULL,
+      unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      expires_at TIMESTAMP
+    )
+  `);
   
-  // 10. Paper Trading symbols normalization migration
+  // 11. Paper Trading symbols normalization migration
   try {
     const { normalizeSymbol } = require('../utils/symbolUtils');
     
