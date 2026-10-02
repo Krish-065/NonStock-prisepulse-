@@ -47,25 +47,25 @@ export default function Landing() {
 
     if (projectedBalance >= 15000) {
       tierName = 'Apex Operator';
-      tierColor = '#7E22CE';
+      tierColor = '#A855F7'; // Neon bright purple
       tierBg = '#FAF5FF';
       tierBorder = '#C084FC';
       tierIcon = Crown;
     } else if (projectedBalance >= 8000) {
       tierName = 'Master Titan';
-      tierColor = '#BE123C';
+      tierColor = '#E11D48'; // Ruby bright red
       tierBg = '#FFF1F2';
       tierBorder = '#FDA4AF';
       tierIcon = Trophy;
     } else if (projectedBalance >= 4000) {
       tierName = 'Gold Sovereign';
-      tierColor = '#D97706';
+      tierColor = '#EAB308'; // Yellow gold bright
       tierBg = '#FFFBEB';
       tierBorder = '#FCD34D';
       tierIcon = Award;
     } else if (projectedBalance >= 2000) {
       tierName = 'Silver Prover';
-      tierColor = '#475569';
+      tierColor = '#94A3B8'; // Silver color
       tierBg = '#F8FAFC';
       tierBorder = '#CBD5E1';
       tierIcon = Medal;
@@ -1485,22 +1485,33 @@ export default function Landing() {
               </thead>
               <tbody>
                 {[
-                  { rank: 1, desk: 'NonStock', tag: 'Apex Operator', color: '#7E22CE', der: '94.2', balance: '$15,820.00', status: 'VERIFIED PRO' },
-                  { rank: 2, desk: 'NonStock', tag: 'Master Titan', color: '#BE123C', der: '91.8', balance: '$8,450.50', status: 'VERIFIED PRO' },
-                  { rank: 3, desk: 'NonStock', tag: 'Gold Sovereign', color: '#D97706', der: '88.5', balance: '$4,120.00', status: 'VERIFIED PRO' },
-                  { rank: 4, desk: 'NonStock', tag: 'Silver Prover', color: '#475569', der: '84.0', balance: '$2,380.00', status: 'ACTIVE' },
+                  { rank: 1, desk: 'NonStock', tag: 'Apex Operator', color: '#A855F7', der: '94.2', balance: '$15,820.00', status: 'VERIFIED PRO' },
+                  { rank: 2, desk: 'NonStock', tag: 'Master Titan', color: '#E11D48', der: '91.8', balance: '$8,450.50', status: 'VERIFIED PRO' },
+                  { rank: 3, desk: 'NonStock', tag: 'Gold Sovereign', color: '#EAB308', der: '88.5', balance: '$4,120.00', status: 'VERIFIED PRO' },
+                  { rank: 4, desk: 'NonStock', tag: 'Silver Prover', color: '#94A3B8', der: '84.0', balance: '$2,380.00', status: 'ACTIVE' },
                   { rank: 5, desk: 'NonStock', tag: 'Contender', color: '#0F172A', der: '75.0', balance: '$1,000.00', status: 'ACTIVE' }
                 ].map((item, idx) => (
                   <tr key={item.rank} style={{ borderBottom: '1px solid #F1F5F9', background: idx === 0 ? '#FAF5FF' : '#FFFFFF' }}>
-                    <td style={{ padding: '18px 24px', fontWeight: 900, color: item.rank === 1 ? '#7E22CE' : '#0F172A' }}>
+                    <td style={{ padding: '18px 24px', fontWeight: 900, color: item.rank === 1 ? '#A855F7' : '#0F172A' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>#{item.rank}</span>
-                        {item.rank === 1 && <Trophy size={14} color="#7E22CE" />}
+                        {item.rank === 1 && <Trophy size={14} color="#A855F7" />}
                       </div>
                     </td>
-                    <td style={{ padding: '18px 24px', fontWeight: 800, color: '#0F172A' }}>
+                    <td style={{ padding: '18px 24px', fontWeight: 800 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>{item.desk}</span>
+                        <span style={{ 
+                          color: item.color,
+                          fontWeight: 900,
+                          fontSize: '15px',
+                          textShadow: item.tag.includes('Silver') ? '0 1px 2px rgba(148, 163, 184, 0.4)'
+                            : item.tag.includes('Gold') ? '0 1px 8px rgba(234, 179, 8, 0.35)'
+                            : item.tag.includes('Master') ? '0 1px 8px rgba(225, 29, 72, 0.35)'
+                            : item.tag.includes('Operator') ? '0 1px 10px rgba(168, 85, 247, 0.4)'
+                            : 'none'
+                        }}>
+                          {item.desk}
+                        </span>
                         <span style={{ fontSize: '10px', background: item.status.includes('PRO') ? '#FEF3C7' : '#F1F5F9', color: item.status.includes('PRO') ? '#B45309' : '#475569', padding: '2px 6px', borderRadius: '4px', fontWeight: 900 }}>
                           {item.status}
                         </span>

@@ -282,7 +282,16 @@ export default function Layout({ children }) {
                 ) : (
                   <User size={15} style={{ color: badge?.color || '#0F172A' }} />
                 )}
-                <span style={{ fontSize: '13px', fontWeight: 800, color: badge?.color || '#0F172A' }}>
+                <span style={{ 
+                  fontSize: '13px', 
+                  fontWeight: 900, 
+                  color: badge?.color || '#0F172A',
+                  textShadow: badge?.name === 'Silver' ? '0 1px 2px rgba(148, 163, 184, 0.4)'
+                    : badge?.name === 'Gold' ? '0 1px 6px rgba(234, 179, 8, 0.35)'
+                    : badge?.name === 'Master' ? '0 1px 6px rgba(225, 29, 72, 0.35)'
+                    : badge?.name === 'Operator' ? '0 1px 8px rgba(168, 85, 247, 0.4)'
+                    : 'none'
+                }}>
                   {user.name || user.email?.split('@')[0]}
                 </span>
               </div>

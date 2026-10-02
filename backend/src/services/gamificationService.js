@@ -297,19 +297,19 @@ async function getRealLeaderboard() {
 
       if (bal >= 15000) {
         tag = 'Operator';
-        color = '#A855F7';
+        color = '#A855F7'; // Neon bright purple
       } else if (bal >= 8000) {
         tag = 'Master';
-        color = '#EF4444';
+        color = '#E11D48'; // Ruby bright red
       } else if (bal >= 4000) {
         tag = 'Gold';
-        color = '#F59E0B';
+        color = '#EAB308'; // Yellow gold bright
       } else if (bal >= 2000) {
         tag = 'Silver';
-        color = '#94A3B8';
+        color = '#94A3B8'; // Silver color
       } else {
         tag = 'Contender';
-        color = '#0F172A';
+        color = '#0F172A'; // Contender deep slate
       }
 
       return {

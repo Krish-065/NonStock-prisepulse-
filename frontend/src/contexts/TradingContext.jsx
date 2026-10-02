@@ -32,10 +32,10 @@ export const TradingProvider = ({ children }) => {
   // Badge Logic
   const getBadge = (equity) => {
     const num = Number(equity) || 0;
-    if (num >= 15000) return { name: 'Operator', color: '#A855F7', glow: '0 0 16px rgba(168, 85, 247, 0.6)' }; // Neon purple
-    if (num >= 8000) return { name: 'Master', color: '#EF4444', glow: '0 0 12px rgba(239, 68, 68, 0.4)' };
-    if (num >= 4000) return { name: 'Gold', color: '#F59E0B', glow: '0 0 12px rgba(245, 158, 11, 0.4)' };
-    if (num >= 2000) return { name: 'Silver', color: '#94A3B8', glow: '0 0 8px rgba(148, 163, 184, 0.4)' };
+    if (num >= 15000) return { name: 'Operator', color: '#A855F7', glow: '0 0 16px rgba(168, 85, 247, 0.6)' }; // Neon bright purple
+    if (num >= 8000) return { name: 'Master', color: '#E11D48', glow: '0 0 14px rgba(225, 29, 72, 0.45)' }; // Ruby bright red
+    if (num >= 4000) return { name: 'Gold', color: '#EAB308', glow: '0 0 14px rgba(234, 179, 8, 0.45)' }; // Yellow gold bright
+    if (num >= 2000) return { name: 'Silver', color: '#94A3B8', glow: '0 0 10px rgba(148, 163, 184, 0.4)' }; // Silver color
     return { name: 'Contender', color: '#0F172A', glow: 'none' }; // Deep bold navy/slate (NEVER silver)
   };
 

@@ -204,10 +204,10 @@ export default function Dashboard() {
 
   // Strict Tier & Color Logic:
   // Contender: #0F172A (dark navy, never silver!)
-  // Silver: #94A3B8 (balance >= 2000)
-  // Gold: #F59E0B (balance >= 4000)
-  // Master: #EF4444 (balance >= 8000)
-  // Operator: #A855F7 (balance >= 15000)
+  // Silver: #94A3B8 (balance >= 2000) -> silver color
+  // Gold: #EAB308 (balance >= 4000) -> yellow gold bright
+  // Master: #E11D48 (balance >= 8000) -> ruby bright red
+  // Operator: #A855F7 (balance >= 15000) -> neon bright purple
   const balanceNum = Number(balance) || 1000;
   
   let dynamicTierName = 'Contender';
@@ -217,30 +217,41 @@ export default function Dashboard() {
 
   if (balanceNum >= 15000) {
     dynamicTierName = 'Operator';
-    dynamicTierColor = '#A855F7';
+    dynamicTierColor = '#A855F7'; // Neon bright purple
     nextRankName = 'Max Rank (Operator)';
     nextRankTarget = 15000;
   } else if (balanceNum >= 8000) {
     dynamicTierName = 'Master';
-    dynamicTierColor = '#EF4444';
+    dynamicTierColor = '#E11D48'; // Ruby bright red
     nextRankName = 'Operator';
     nextRankTarget = 15000;
   } else if (balanceNum >= 4000) {
     dynamicTierName = 'Gold';
-    dynamicTierColor = '#F59E0B';
+    dynamicTierColor = '#EAB308'; // Yellow gold bright
     nextRankName = 'Master';
     nextRankTarget = 8000;
   } else if (balanceNum >= 2000) {
     dynamicTierName = 'Silver';
-    dynamicTierColor = '#94A3B8';
+    dynamicTierColor = '#94A3B8'; // Silver color
     nextRankName = 'Gold';
     nextRankTarget = 4000;
   } else {
     dynamicTierName = 'Contender';
-    dynamicTierColor = '#0F172A';
+    dynamicTierColor = '#0F172A'; // Contender deep slate
     nextRankName = 'Silver';
     nextRankTarget = 2000;
   }
+
+  // Helper to determine exact name color for any user/desk by category
+  const getItemTierColor = (item) => {
+    const tag = (item?.tag || '').toLowerCase();
+    const bal = Number(item?.balance || 0);
+    if (tag.includes('operator') || tag.includes('apex') || bal >= 15000) return '#A855F7'; // Neon bright purple
+    if (tag.includes('master') || tag.includes('titan') || bal >= 8000) return '#E11D48'; // Ruby bright red
+    if (tag.includes('gold') || tag.includes('sovereign') || bal >= 4000) return '#EAB308'; // Yellow gold bright
+    if (tag.includes('silver') || tag.includes('prover') || bal >= 2000) return '#94A3B8'; // Silver color
+    return '#0F172A'; // Contender deep slate
+  };
 
   const userName = user?.name || user?.email?.split('@')[0] || 'Trader';
   const rankProgress = Math.min(100, Math.max(0, (balanceNum / nextRankTarget) * 100));
@@ -428,11 +439,16 @@ export default function Dashboard() {
 
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                {/* Account Holder Name in True Tier Color (Contender = #0F172A, NOT silver) */}
+                {/* Account Holder Name in True Tier Color */}
                 <h1 style={{ 
                   fontSize: '32px', 
                   fontWeight: 900, 
                   color: dynamicTierColor, 
+                  textShadow: dynamicTierName === 'Silver' ? '0 1px 3px rgba(148, 163, 184, 0.4)'
+                    : dynamicTierName === 'Gold' ? '0 2px 10px rgba(234, 179, 8, 0.35)'
+                    : dynamicTierName === 'Master' ? '0 2px 10px rgba(225, 29, 72, 0.35)'
+                    : dynamicTierName === 'Operator' ? '0 2px 12px rgba(168, 85, 247, 0.45)'
+                    : 'none',
                   margin: 0,
                   letterSpacing: '-0.5px'
                 }}>
@@ -1356,9 +1372,20 @@ export default function Dashboard() {
                       {item.rank === 3 && <Medal size={14} color="#D97706" />}
                     </div>
                   </td>
-                  <td style={{ padding: '16px', fontWeight: 800, color: '#0F172A' }}>
+                  <td style={{ padding: '16px', fontWeight: 800 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>{item.name}</span>
+                      <span style={{ 
+                        color: getItemTierColor(item),
+                        fontWeight: 900,
+                        fontSize: '15px',
+                        textShadow: item.tag === 'Silver' ? '0 1px 2px rgba(148, 163, 184, 0.4)'
+                          : item.tag === 'Gold' ? '0 1px 8px rgba(234, 179, 8, 0.35)'
+                          : item.tag === 'Master' ? '0 1px 8px rgba(225, 29, 72, 0.35)'
+                          : item.tag === 'Operator' ? '0 1px 10px rgba(168, 85, 247, 0.4)'
+                          : 'none'
+                      }}>
+                        {item.name}
+                      </span>
                       {item.isSelf && (
                         <span style={{ fontSize: '11px', background: '#DCFCE7', color: '#15803D', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>
                           YOU
