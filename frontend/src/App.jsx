@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { TradingProvider } from './contexts/TradingContext';
 import PrivateRoute from './components/PrivateRoute';
 import PublicRoute from './components/PublicRoute';
 import Layout from './components/Layout';
@@ -21,7 +22,7 @@ const Terms          = lazy(() => import('./pages/Terms'));
 // Protected pages
 const Dashboard      = lazy(() => import('./pages/Dashboard'));
 const Portfolio      = lazy(() => import('./pages/Portfolio'));
-const PaperTrading   = lazy(() => import('./pages/PaperTrading'));
+const Terminal       = lazy(() => import('./pages/Terminal'));
 const Watchlist      = lazy(() => import('./pages/Watchlist'));
 const Screener       = lazy(() => import('./pages/Screener'));
 const FnO            = lazy(() => import('./pages/FnO'));
@@ -85,7 +86,7 @@ function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       import('./pages/Markets');
-      import('./pages/PaperTrading');
+      import('./pages/Terminal');
       import('./pages/IndianMarket');
       import('./pages/StrategyBuilder');
     }, 150);
@@ -97,10 +98,11 @@ function App() {
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <Toaster position="top-right" />
-            <ErrorBoundary>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
+            <TradingProvider>
+              <Toaster position="top-right" />
+              <ErrorBoundary>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
                   {/* Public Routes */}
                   <Route path="/"                  element={<PublicRoute><Landing /></PublicRoute>} />
                   <Route path="/login"             element={<PublicRoute><Login /></PublicRoute>} />
@@ -112,7 +114,7 @@ function App() {
                   {/* Protected Routes (require login) */}
                   <Route path="/dashboard"         element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
                   <Route path="/portfolio"         element={<PrivateRoute><Layout><Portfolio /></Layout></PrivateRoute>} />
-                  <Route path="/paper-trading"     element={<PrivateRoute><Layout><PaperTrading /></Layout></PrivateRoute>} />
+                  <Route path="/terminal"          element={<PrivateRoute><Layout><Terminal /></Layout></PrivateRoute>} />
                   <Route path="/watchlist"         element={<PrivateRoute><Layout><Watchlist /></Layout></PrivateRoute>} />
                   <Route path="/screener"          element={<PrivateRoute><Layout><Screener /></Layout></PrivateRoute>} />
                   <Route path="/ipos"              element={<Navigate to="/dashboard" replace />} />
@@ -135,9 +137,10 @@ function App() {
                   <Route path="/upgrade-pro"       element={<PrivateRoute><Layout><UpgradePro /></Layout></PrivateRoute>} />
                   <Route path="/shop"              element={<PrivateRoute><Layout><Shop /></Layout></PrivateRoute>} />
                   <Route path="/contact-us"        element={<PrivateRoute><Layout><ContactUs /></Layout></PrivateRoute>} />
-                </Routes>
-              </Suspense>
-            </ErrorBoundary>
+                  </Routes>
+                </Suspense>
+              </ErrorBoundary>
+            </TradingProvider>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>

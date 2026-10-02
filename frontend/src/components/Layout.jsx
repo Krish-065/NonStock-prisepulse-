@@ -14,6 +14,7 @@ import SearchWithSuggestions from './SearchWithSuggestions';
 import OnboardingTour from './OnboardingTour';
 import TickerTape from './TickerTape';
 import StockActionModal from './StockActionModal';
+import WarningModal from './WarningModal';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -30,7 +31,7 @@ export default function Layout({ children }) {
 
   const navLinks = [
     { path: '/markets', label: 'Markets', icon: <TrendingUp size={15} /> },
-    { path: '/paper-trading', label: 'Trade Desk', icon: <LineChart size={15} /> },
+    { path: '/terminal', label: 'Terminal', icon: <LineChart size={15} /> },
     { path: '/shop', label: 'Shop', icon: <Coins size={15} /> },
     { path: '/strategy-lab', label: 'Strategy Lab', icon: <Sparkles size={15} /> },
     { path: '/ai-mentor', label: 'AI Mentor', icon: <MessageSquare size={15} /> },
@@ -53,7 +54,7 @@ export default function Layout({ children }) {
 
   const handlePrefetch = (path) => {
     if (path === '/markets') import('../pages/Markets');
-    else if (path === '/paper-trading') import('../pages/PaperTrading');
+    else if (path === '/terminal') import('../pages/Terminal');
     else if (path === '/strategy-lab') import('../pages/StrategyBuilder');
     else if (path === '/indian-market') import('../pages/IndianMarket');
     else if (path === '/shop') import('../pages/Shop');
@@ -283,6 +284,7 @@ export default function Layout({ children }) {
       )}
 
       <OnboardingTour />
+      <WarningModal />
     </div>
   );
 }
