@@ -769,9 +769,11 @@ export default function Dashboard() {
             <button
               onClick={() => {
                 if (unlockedTools.screener) {
-                  navigate('/trading');
+                  navigate('/screener');
                 } else {
-                  unlockTool('screener', 150, 'Market Screener');
+                  if (unlockTool('screener', 150, 'Market Screener')) {
+                    navigate('/screener');
+                  }
                 }
               }}
               style={{
@@ -831,10 +833,11 @@ export default function Dashboard() {
             <button
               onClick={() => {
                 if (unlockedTools.strategyLab) {
-                  toast.success('Strategy Lab unlocked! Access in terminal.', { icon: '🧪' });
-                  navigate('/trading');
+                  navigate('/strategy-builder');
                 } else {
-                  unlockTool('strategyLab', 300, 'Strategy Lab');
+                  if (unlockTool('strategyLab', 300, 'Strategy Lab')) {
+                    navigate('/strategy-builder');
+                  }
                 }
               }}
               style={{
@@ -887,17 +890,18 @@ export default function Dashboard() {
               </div>
               <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>AI Trading Mentor</h4>
               <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-                Real-time chart pattern analysis, support/resistance detection, and live post-trade psychological feedback.
+                Real-time chart pattern analysis, support/resistance detection, and live post-trade psychological feedback. Powered by Groq LLaMA 3.3.
               </p>
             </div>
 
             <button
               onClick={() => {
                 if (unlockedTools.aiMentor) {
-                  toast.success('AI Mentor active on your trading terminal!', { icon: '🤖' });
-                  navigate('/trading');
+                  navigate('/ai-mentor');
                 } else {
-                  unlockTool('aiMentor', 200, 'AI Mentor');
+                  if (unlockTool('aiMentor', 200, 'AI Mentor')) {
+                    navigate('/ai-mentor');
+                  }
                 }
               }}
               style={{
@@ -957,9 +961,11 @@ export default function Dashboard() {
             <button
               onClick={() => {
                 if (unlockedTools.replay) {
-                  navigate('/trading');
+                  navigate('/replay');
                 } else {
-                  unlockTool('replay', 500, 'Trade Replay');
+                  if (unlockTool('replay', 500, 'Trade Replay Simulator')) {
+                    navigate('/replay');
+                  }
                 }
               }}
               style={{

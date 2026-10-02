@@ -14,7 +14,7 @@ import WarningModal from './WarningModal';
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { badge, coins } = useTrading();
+  const { badge, coins, unlockedTools } = useTrading();
   const navigate = useNavigate();
   const location = useLocation();
   const isDark = theme === 'dark';
@@ -108,6 +108,99 @@ export default function Layout({ children }) {
               >
                 <span>⚡ Trading Arena</span>
               </button>
+
+              {/* Dynamically Arrived Unlocked Features */}
+              {unlockedTools?.screener && (
+                <button
+                  onClick={() => navigate('/screener')}
+                  style={{
+                    background: location.pathname === '/screener' ? '#F0FDF4' : 'transparent',
+                    color: location.pathname === '/screener' ? '#10B981' : '#475569',
+                    border: location.pathname === '/screener' ? '1px solid #BBF7D0' : '1px solid transparent',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  <span>🔍</span>
+                  <span>Screener</span>
+                </button>
+              )}
+
+              {unlockedTools?.aiMentor && (
+                <button
+                  onClick={() => navigate('/ai-mentor')}
+                  style={{
+                    background: location.pathname === '/ai-mentor' ? '#F0FDF4' : 'transparent',
+                    color: location.pathname === '/ai-mentor' ? '#10B981' : '#475569',
+                    border: location.pathname === '/ai-mentor' ? '1px solid #BBF7D0' : '1px solid transparent',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  <span>🤖</span>
+                  <span>AI Mentor</span>
+                </button>
+              )}
+
+              {unlockedTools?.strategyLab && (
+                <button
+                  onClick={() => navigate('/strategy-builder')}
+                  style={{
+                    background: location.pathname === '/strategy-builder' ? '#F0FDF4' : 'transparent',
+                    color: location.pathname === '/strategy-builder' ? '#10B981' : '#475569',
+                    border: location.pathname === '/strategy-builder' ? '1px solid #BBF7D0' : '1px solid transparent',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  <span>🧪</span>
+                  <span>Strategy Lab</span>
+                </button>
+              )}
+
+              {unlockedTools?.replay && (
+                <button
+                  onClick={() => navigate('/replay')}
+                  style={{
+                    background: location.pathname === '/replay' ? '#F0FDF4' : 'transparent',
+                    color: location.pathname === '/replay' ? '#10B981' : '#475569',
+                    border: location.pathname === '/replay' ? '1px solid #BBF7D0' : '1px solid transparent',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  <span>⏳</span>
+                  <span>Replay Engine</span>
+                </button>
+              )}
             </nav>
           )}
         </div>

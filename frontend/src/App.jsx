@@ -19,8 +19,12 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword  = lazy(() => import('./pages/ResetPassword'));
 
 // Protected pages
-const Dashboard      = lazy(() => import('./pages/Dashboard'));
-const TradingPage    = lazy(() => import('./pages/TradingPage'));
+const Dashboard       = lazy(() => import('./pages/Dashboard'));
+const TradingPage     = lazy(() => import('./pages/TradingPage'));
+const AIMentor        = lazy(() => import('./pages/AIMentor'));
+const StrategyBuilder = lazy(() => import('./pages/StrategyBuilder'));
+const Screener        = lazy(() => import('./pages/Screener'));
+const MarketReplay    = lazy(() => import('./pages/MarketReplay'));
 
 // ─── Full-screen page loader skeleton ─────────────────────────────────────────
 function PageLoader() {
@@ -80,6 +84,16 @@ function App() {
                     <Route path="/trading"           element={<PrivateRoute><Layout><TradingPage /></Layout></PrivateRoute>} />
                     <Route path="/trade"             element={<Navigate to="/trading" replace />} />
                     <Route path="/paper-trading"     element={<Navigate to="/trading" replace />} />
+
+                    {/* Unlocked Platform Tools Routes */}
+                    <Route path="/ai-mentor"         element={<PrivateRoute><Layout><AIMentor /></Layout></PrivateRoute>} />
+                    <Route path="/mentor"            element={<Navigate to="/ai-mentor" replace />} />
+                    <Route path="/strategy-builder"  element={<PrivateRoute><Layout><StrategyBuilder /></Layout></PrivateRoute>} />
+                    <Route path="/strategy-lab"      element={<Navigate to="/strategy-builder" replace />} />
+                    <Route path="/screener"          element={<PrivateRoute><Layout><Screener /></Layout></PrivateRoute>} />
+                    <Route path="/markets"           element={<Navigate to="/screener" replace />} />
+                    <Route path="/replay"            element={<PrivateRoute><Layout><MarketReplay /></Layout></PrivateRoute>} />
+                    <Route path="/market-replay"     element={<Navigate to="/replay" replace />} />
                     
                     {/* Redirect anything else to Dashboard if logged in, or Landing if not */}
                     <Route path="*"                  element={<Navigate to="/dashboard" replace />} />

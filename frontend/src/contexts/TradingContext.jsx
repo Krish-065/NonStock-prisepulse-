@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from './AuthContext';
 
 const TradingContext = createContext();
 
 export const useTrading = () => useContext(TradingContext);
 
 export const TradingProvider = ({ children }) => {
+  const { user } = useAuth();
   const [balance, setBalance] = useState(1000);
   const [coins, setCoins] = useState(100);
   const [positions, setPositions] = useState([]);
@@ -19,6 +21,13 @@ export const TradingProvider = ({ children }) => {
     aiMentor: false,
     replay: false
   });
+
+  const effectiveUnlockedTools = {
+    screener: Boolean(user?.is_pro || unlockedTools.screener),
+    strategyLab: Boolean(user?.is_pro || unlockedTools.strategyLab),
+    aiMentor: Boolean(user?.is_pro || unlockedTools.aiMentor),
+    replay: Boolean(user?.is_pro || unlockedTools.replay),
+  };
 
   // Badge Logic
   const getBadge = (equity) => {
@@ -177,7 +186,7 @@ export const TradingProvider = ({ children }) => {
   };
 
   const unlockTool = (toolKey, cost, toolName) => {
-    if (unlockedTools[toolKey]) {
+    if (effectiveUnlockedTools[toolKey]) {
       toast.success(`${toolName || toolKey} is already unlocked!`);
       return true;
     }
@@ -187,14 +196,14 @@ export const TradingProvider = ({ children }) => {
     }
     setCoins(prev => prev - cost);
     setUnlockedTools(prev => ({ ...prev, [toolKey]: true }));
-    toast.success(`Successfully unlocked ${toolName || toolKey}! Deducted ${cost} Gold Coins.`, { icon: '🎉' });
+    toast.success(`🎉 ${toolName || toolKey} unlocked! Added directly to your top navbar.`);
     return true;
   };
 
   return (
     <TradingContext.Provider value={{
       balance, coins, positions, history, hasSeenModal, isBusted, badge,
-      watchlist, unlockedTools,
+      watchlist, unlockedTools: effectiveUnlockedTools,
       placeOrder, closePosition, updateSLTP, resetAccount, acknowledgeModal,
       addToWatchlist, removeFromWatchlist, unlockTool
     }}>

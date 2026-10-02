@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createChart, CandlestickSeries, LineSeries } from 'lightweight-charts';
 import { useTrading } from '../contexts/TradingContext';
 import { 
@@ -35,10 +36,13 @@ const ASSETS = {
 export default function TradingPage() {
   const { balance, positions, placeOrder, closePosition, resetAccount } = useTrading();
 
+  const navigate = useNavigate();
   const [category, setCategory] = useState('Crypto');
   const [symbol, setSymbol] = useState('ETHUSDT');
   const [chartEngine, setChartEngine] = useState('tradingview'); // 'tradingview' or 'lightweight'
   const [currentPrice, setCurrentPrice] = useState(2746.66);
+  const [aiInsightText, setAiInsightText] = useState('Bullish market structure on ETHUSDT. Watch key resistance for liquidity sweeps. Maintain strict SL.');
+  const [aiInsightLoading, setAiInsightLoading] = useState(false);
 
   // Lightweight chart refs
   const chartContainerRef = useRef(null);
@@ -56,6 +60,38 @@ export default function TradingPage() {
   useEffect(() => {
     if (activeAsset) {
       setCurrentPrice(activeAsset.defaultPrice);
+    }
+
+    // Generate real-time Groq insight for active asset
+    const token = localStorage.getItem('token');
+    if (token) {
+      setAiInsightLoading(true);
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/ai/ask`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          message: `Provide a 2-sentence institutional trade insight for ${symbol} at current price $${currentPrice}. State key momentum, immediate risk invalidation, and trailing stop tip.`,
+          marketData: {
+            symbol,
+            currentPrice,
+            timeframe: '15m'
+          }
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.response) {
+            const cleanText = data.response.replace(/###/g, '').replace(/\*\*/g, '').replace(/Disclaimer:[\s\S]*/i, '').trim();
+            setAiInsightText(cleanText.slice(0, 180));
+          }
+        })
+        .catch(() => {
+          setAiInsightText(`Institutional flow on ${symbol} shows strong volume near $${currentPrice.toFixed(2)}. Invalidate long setups below support floor.`);
+        })
+        .finally(() => setAiInsightLoading(false));
     }
   }, [symbol, category]);
 
@@ -433,8 +469,8 @@ export default function TradingPage() {
           </div>
         </div>
 
-        {/* Right: Clean Order Execution Ticket (No TradingView Logo, Order/DOM, Exits, Sliders) */}
-        <div>
+        {/* Right: Clean Order Execution Ticket & Live Groq AI Insight */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <ExecutionTicket 
             symbol={symbol}
             currentPrice={currentPrice}
@@ -446,6 +482,63 @@ export default function TradingPage() {
               toast('Ticket reset to default', { icon: '🔄' });
             }}
           />
+
+          {/* AI Mentor Trading Insight (From reference image) */}
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid #E2E8F0',
+            padding: '18px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={16} color="#10B981" />
+                <span style={{ fontSize: '11px', fontWeight: '900', color: '#64748B', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  AI MENTOR TRADING INSIGHT
+                </span>
+              </div>
+              <span style={{ fontSize: '10px', background: '#ECFDF5', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
+                GROQ LLaMA 3.3
+              </span>
+            </div>
+
+            <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+              {aiInsightLoading ? (
+                <span style={{ color: '#94A3B8' }}>Consulting Groq Quant Engine for {symbol}...</span>
+              ) : (
+                aiInsightText
+              )}
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid #F1F5F9' }}>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>
+                Risk Level: <span style={{ color: '#10B981', fontWeight: '800' }}>Low / Disciplined</span>
+              </div>
+              <button
+                onClick={() => navigate(`/ai-mentor?symbol=${symbol}`)}
+                style={{
+                  background: '#0F172A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '5px 12px',
+                  fontSize: '11px',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <span>Full Chat</span>
+                <ArrowRight size={12} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
