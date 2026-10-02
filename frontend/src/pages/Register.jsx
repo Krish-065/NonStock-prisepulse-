@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import CandlestickBg from '../components/CandlestickBg';
 import Logo from '../components/Logo';
 import { AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -22,7 +21,7 @@ export default function Register() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     if (!agreed) {
-      toast.error('Please agree to the Terms & Conditions and disclaimer first.');
+      toast.error('Please agree to the Terms & Conditions first.');
       return;
     }
     setLoading(true);
@@ -40,7 +39,7 @@ export default function Register() {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!agreed) {
-      toast.error('You must agree to the Terms & Conditions and disclaimer to register.');
+      toast.error('You must agree to the Terms & Conditions to register.');
       return;
     }
     setLoading(true);
@@ -55,7 +54,6 @@ export default function Register() {
     }
   };
 
-
   const handleVerifySubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -67,51 +65,88 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-container">
-      <CandlestickBg />
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', padding: '24px' }}>
       
-      <div className="auth-card" style={{ animation: 'fadeIn 0.5s ease', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ marginBottom: '24px' }}>
-          <Logo size={60} showName={true} showTagline={true} alignment="column" nameSize="26px" />
+      <div style={{ background: '#FFFFFF', padding: '48px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ marginBottom: '32px' }}>
+          <Logo size={50} showName={true} showTagline={false} />
         </div>
 
-        <h2 style={{ fontSize: '22px', fontWeight: '800', backgroundImage: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent', marginBottom: '8px', marginTop: '0' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', marginBottom: '8px', textAlign: 'center' }}>
           {requiresVerification ? 'Verify Email' : 'Create Account'}
         </h2>
-        <p style={{ color: '#9b9eac', fontSize: '13px', marginBottom: '24px', textAlign: 'center', marginTop: '0' }}>
-          {requiresVerification ? 'Enter the OTP sent to your email' : 'Get started with NonStock'}
+        <p style={{ color: '#475569', fontSize: '14px', marginBottom: '32px', textAlign: 'center' }}>
+          {requiresVerification ? 'Enter the OTP sent to your email' : 'Join the proving ground'}
         </p>
         
         {!requiresVerification ? (
-          <form onSubmit={handleRegisterSubmit} style={{ width: '100%' }}>
-            <input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
-            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            <p style={{ fontSize: '11px', marginTop: '-12px', marginBottom: '20px', color: '#9b9eac', textAlign: 'left', lineHeight: '1.4', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
-              <AlertCircle size={14} style={{ color: '#00bcd4', flexShrink: 0, marginTop: '2px' }} />
-              <span>Password must be 8+ characters, with at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&amp;).</span>
+          <form onSubmit={handleRegisterSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <input 
+              type="text" 
+              placeholder="Full Name" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+              required 
+              style={{ padding: '14px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '15px', color: '#0F172A', width: '100%', outline: 'none' }}
+            />
+            <input 
+              type="email" 
+              placeholder="Email address" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+              style={{ padding: '14px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '15px', color: '#0F172A', width: '100%', outline: 'none' }}
+            />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+              style={{ padding: '14px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '15px', color: '#0F172A', width: '100%', outline: 'none' }}
+            />
+            <p style={{ fontSize: '12px', color: '#64748B', lineHeight: '1.5', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <AlertCircle size={16} style={{ color: '#3B82F6', flexShrink: 0, marginTop: '2px' }} />
+              <span>Must be 8+ characters (uppercase, lowercase, number, special char).</span>
             </p>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '20px', marginTop: '-10px' }}>
+            
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', margin: '8px 0' }}>
               <input 
                 type="checkbox" 
                 id="termsCheckbox" 
                 checked={agreed} 
                 onChange={(e) => setAgreed(e.target.checked)} 
                 required 
-                style={{ marginTop: '2px', cursor: 'pointer', width: 'auto', height: 'auto' }}
+                style={{ marginTop: '4px', cursor: 'pointer', width: '16px', height: '16px', accentColor: '#10B981' }}
               />
-              <label htmlFor="termsCheckbox" style={{ fontSize: '11px', color: '#9b9eac', lineHeight: '1.4', cursor: 'pointer', textAlign: 'left' }}>
-                I agree to the <Link to="/terms" style={{ color: '#00ff88', textDecoration: 'underline', fontWeight: '600' }}>Terms &amp; Conditions</Link> and acknowledge the educational simulated nature of the platform.
+              <label htmlFor="termsCheckbox" style={{ fontSize: '12px', color: '#475569', lineHeight: '1.5', cursor: 'pointer' }}>
+                I agree to the <Link to="/terms" style={{ color: '#10B981', textDecoration: 'underline', fontWeight: '600' }}>Terms</Link> and understand this is a simulated paper trading platform.
               </label>
             </div>
-            <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg, #00ff88, #00bcd4)', border: 'none', color: '#0a0e27', padding: '14px', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', transition: 'transform 0.2s, box-shadow 0.2s', width: '100%' }}>
+            
+            <button 
+              type="submit" 
+              disabled={loading} 
+              style={{ background: '#10B981', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}
+            >
               {loading ? 'Creating Account...' : 'Register'}
             </button>
           </form>
         ) : (
-          <form onSubmit={handleVerifySubmit} style={{ width: '100%' }}>
-            <input type="text" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} required style={{ letterSpacing: '4px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }} />
-            <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg, #00ff88, #00bcd4)', border: 'none', color: '#0a0e27', padding: '14px', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', transition: 'transform 0.2s, box-shadow 0.2s', width: '100%' }}>
+          <form onSubmit={handleVerifySubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <input 
+              type="text" 
+              placeholder="Enter OTP" 
+              value={otp} 
+              onChange={(e) => setOtp(e.target.value)} 
+              required 
+              style={{ letterSpacing: '8px', textAlign: 'center', fontSize: '24px', fontWeight: '800', padding: '16px', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none', color: '#0F172A', width: '100%' }}
+            />
+            <button 
+              type="submit" 
+              disabled={loading} 
+              style={{ background: '#10B981', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}
+            >
               {loading ? 'Verifying...' : 'Verify Email'}
             </button>
           </form>
@@ -119,23 +154,24 @@ export default function Register() {
         
         {!requiresVerification && (
           <>
-            <div style={{ margin: '18px 0', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }}></div>
-              <span style={{ margin: '0 10px', color: '#9b9eac', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>or</span>
-              <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }}></div>
+            <div style={{ margin: '24px 0', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }}></div>
+              <span style={{ margin: '0 12px', color: '#64748B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600' }}>or</span>
+              <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }}></div>
             </div>
             
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
-                theme="filled_dark"
-                shape="pill"
+                theme="outline"
+                size="large"
+                width="100%"
                 text="signup_with"
               />
             </div>
 
-            <p style={{ marginTop: '16px', color: '#9b9eac' }}>Already have an account? <Link to="/login" style={{ color: '#00ff88', textDecoration: 'none', fontWeight: '600' }}>Login</Link></p>
+            <p style={{ color: '#475569', fontSize: '14px' }}>Already have an account? <Link to="/login" style={{ color: '#10B981', textDecoration: 'none', fontWeight: '700' }}>Log In</Link></p>
           </>
         )}
       </div>

@@ -446,7 +446,7 @@ app.get('/api/admin/verify-upgrade', async (req, res) => {
              pro_expires_at = NOW() + ($2 * INTERVAL '1 month'), 
              pro_pending_plan = NULL, 
              pro_pending_ref = NULL,
-             virtual_balance = CASE WHEN COALESCE(virtual_balance, 0) <= 50000.00 THEN 1000000.00 ELSE virtual_balance END
+             virtual_balance = CASE WHEN COALESCE(virtual_balance, 0) <= 1000.00 THEN 1000.00 ELSE virtual_balance END
          WHERE id = $3`,
         [plan, months, userId]
       );

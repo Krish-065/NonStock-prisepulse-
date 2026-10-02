@@ -1,1607 +1,419 @@
-import { useState, useEffect, useMemo } from 'react';
-import { apiClient } from '../services/api';
-import SearchWithSuggestions from '../components/SearchWithSuggestions';
-import { 
-  TrendingUp, TrendingDown, Newspaper, Search, Activity, 
-  Sparkles, PieChart, ArrowRight, Zap, Layers, BarChart2, 
-  Flame, LineChart, Globe, DollarSign, Clock, ChevronRight,
-  ArrowUpRight, ArrowDownRight, Coins, Cpu, RefreshCw,
-  Gauge, ExternalLink, ShieldCheck, Bot, Crown
-} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { createChart } from 'lightweight-charts';
+import { useTrading } from '../contexts/TradingContext';
+import { Settings, Maximize2, DollarSign, PieChart, Activity, TrendingUp, AlertTriangle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-// Smooth SVG Sparkline component
-const Sparkline = ({ points, color = '#10b981', height = 34, width = 110 }) => (
-  <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible' }}>
-    <defs>
-      <linearGradient id={`grad-${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor={color} stopOpacity="0.25" />
-        <stop offset="100%" stopColor={color} stopOpacity="0.0" />
-      </linearGradient>
-    </defs>
-    <path
-      d={points}
-      fill="none"
-      stroke={color}
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-// Fallback baseline international benchmark data
-const DEFAULT_GLOBAL_INDICES = {
-  '^GSPC': { name: 'S&P 500', region: 'US', price: 5635.80, change: 48.20, changePercent: 0.86, spark: 'M 0,26 Q 25,18 55,20 T 110,6' },
-  '^IXIC': { name: 'NASDAQ 100', region: 'US', price: 17892.40, change: 215.30, changePercent: 1.22, spark: 'M 0,28 Q 30,14 60,16 T 110,4' },
-  '^DJI': { name: 'DOW JONES', region: 'US', price: 41320.10, change: 165.40, changePercent: 0.40, spark: 'M 0,22 Q 35,24 70,12 T 110,8' },
-  'BTC-USD': { name: 'BITCOIN', region: 'Global', price: 64850.00, change: 1420.00, changePercent: 2.24, spark: 'M 0,30 Q 30,12 65,18 T 110,5' },
-  'ETH-USD': { name: 'ETHEREUM', region: 'Global', price: 3485.50, change: 95.20, changePercent: 2.81, spark: 'M 0,29 Q 28,15 62,20 T 110,6' },
-  'SOL-USD': { name: 'SOLANA', region: 'Global', price: 158.40, change: 6.80, changePercent: 4.49, spark: 'M 0,31 Q 30,10 65,14 T 110,3' },
-  'GC=F': { name: 'GOLD COMEX', region: 'Commodity', price: 2518.60, change: 16.40, changePercent: 0.65, spark: 'M 0,24 Q 30,16 60,18 T 110,8' },
-  'CL=F': { name: 'CRUDE OIL WTI', region: 'Commodity', price: 78.65, change: -0.85, changePercent: -1.07, spark: 'M 0,8 Q 30,20 65,16 T 110,28' },
-  'EURUSD=X': { name: 'EUR / USD', region: 'Forex', price: 1.1062, change: 0.0024, changePercent: 0.22, spark: 'M 0,18 Q 35,22 70,14 T 110,12' },
+const ASSETS = {
+  Crypto: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
+  Forex: ['EURUSD', 'GBPUSD', 'USDJPY'], // Simulated/Static for now if Binance doesn't provide
+  Commodities: ['XAUUSD', 'WTIUSD', 'XAGUSD'],
+  Equities: ['AAPL', 'NVDA', 'TSLA', 'SPY']
 };
 
-// Curated Wall Street & International Quant Research Insights
-const INTERNATIONAL_QUANT_SIGNALS = [
-  {
-    symbol: 'NVDA',
-    name: 'NVIDIA Corporation',
-    assetClass: 'US Tech Titan',
-    score: '96/100',
-    signal: 'Strong Bullish',
-    price: '$128.40',
-    change: '+4.25%',
-    isPositive: true,
-    target: '$148.00',
-    stoploss: '$119.50',
-    institutionalFlow: '+$1.85B Net Inflow (Block Trades)',
-    technicalPattern: 'Golden Crossover & Blackwell AI Supercycle',
-    category: 'macd',
-    spark: 'M 0,28 Q 30,10 60,16 T 110,4'
-  },
-  {
-    symbol: 'AAPL',
-    name: 'Apple Inc.',
-    assetClass: 'US Mega Cap',
-    score: '92/100',
-    signal: 'Bullish Breakout',
-    price: '$228.30',
-    change: '+1.40%',
-    isPositive: true,
-    target: '$246.00',
-    stoploss: '$219.00',
-    institutionalFlow: '+$940M Institutional Accumulation',
-    technicalPattern: 'Multi-week Cup & Handle Breakout',
-    category: 'sma',
-    spark: 'M 0,24 Q 30,18 60,12 T 110,6'
-  },
-  {
-    symbol: 'BTC-USD',
-    name: 'Bitcoin Digital Gold',
-    assetClass: 'Cryptocurrency',
-    score: '94/100',
-    signal: 'Accumulation Surge',
-    price: '$64,850.00',
-    change: '+2.80%',
-    isPositive: true,
-    target: '$72,500.00',
-    stoploss: '$61,200.00',
-    institutionalFlow: '+$1.20B Spot ETF Net Weekly Intake',
-    technicalPattern: 'Wyckoff Spring & 200d SMA Bounce',
-    category: 'rsi',
-    spark: 'M 0,30 Q 25,12 65,16 T 110,4'
-  },
-  {
-    symbol: 'TSLA',
-    name: 'Tesla, Inc.',
-    assetClass: 'Auto / AI Robotics',
-    score: '88/100',
-    signal: 'Momentum Reversal',
-    price: '$224.60',
-    change: '+2.45%',
-    isPositive: true,
-    target: '$255.00',
-    stoploss: '$208.00',
-    institutionalFlow: '+$680M Options Gamma Squeeze',
-    technicalPattern: 'Inverted Head & Shoulders Neckline Test',
-    category: 'volume',
-    spark: 'M 0,26 Q 30,12 60,18 T 110,6'
-  },
-  {
-    symbol: 'SOL-USD',
-    name: 'Solana Layer 1',
-    assetClass: 'High-Beta Crypto',
-    score: '91/100',
-    signal: 'High Velocity Breakout',
-    price: '$158.80',
-    change: '+3.90%',
-    isPositive: true,
-    target: '$190.00',
-    stoploss: '$142.00',
-    institutionalFlow: '+$420M DEX Volume & TVL Record',
-    technicalPattern: 'Ascending Triangle Breakout with Volume Surge',
-    category: 'volume',
-    spark: 'M 0,32 Q 35,14 65,18 T 110,3'
-  },
-  {
-    symbol: 'MSFT',
-    name: 'Microsoft Corp',
-    assetClass: 'Cloud & AI Enterprise',
-    score: '90/100',
-    signal: 'Steady Accumulation',
-    price: '$432.80',
-    change: '+1.20%',
-    isPositive: true,
-    target: '$465.00',
-    stoploss: '$418.00',
-    institutionalFlow: '+$780M Azure Enterprise Cloud Flow',
-    technicalPattern: '50-Day EMA Dynamic Support Rebound',
-    category: 'sma',
-    spark: 'M 0,22 Q 30,16 65,14 T 110,8'
+export default function Terminal() {
+  const chartContainerRef = useRef(null);
+  const chartRef = useRef(null);
+  const candlestickSeriesRef = useRef(null);
+  const wsRef = useRef(null);
+  const { balance, positions, placeOrder, closePosition } = useTrading();
+
+  const [category, setCategory] = useState('Crypto');
+  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [currentPrice, setCurrentPrice] = useState(65000); // Default placeholder
+  const [historicalData, setHistoricalData] = useState([]);
+
+  // Order Ticket State
+  const [side, setSide] = useState('LONG');
+  const [orderType, setOrderType] = useState('Market');
+  const [size, setSize] = useState(0.1);
+  const [leverage, setLeverage] = useState(10);
+  const [sl, setSl] = useState('');
+  const [tp, setTp] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Derived Calc
+  const positionValue = size * currentPrice;
+  const marginReq = positionValue / leverage;
+  const isHighLeverage = leverage > 20;
+
+  let dollarRiskAtSL = 0;
+  if (sl) {
+    dollarRiskAtSL = Math.abs(currentPrice - parseFloat(sl)) * size;
   }
-];
+  let dollarRewardAtTP = 0;
+  if (tp) {
+    dollarRewardAtTP = Math.abs(parseFloat(tp) - currentPrice) * size;
+  }
+  const rrr = dollarRiskAtSL > 0 && dollarRewardAtTP > 0 ? (dollarRewardAtTP / dollarRiskAtSL).toFixed(2) : 'N/A';
+  
+  // Liquidation Price Calc
+  // Margin = Loss at liquidation
+  // Loss = |Current - Liq| * size => Liq = Current +/- (Margin / size)
+  const liqDistance = marginReq / size;
+  const liqPrice = side === 'LONG' ? currentPrice - liqDistance : currentPrice + liqDistance;
 
-export default function Dashboard() {
-  const { user } = useAuth();
-  const { theme } = useTheme();
-  const navigate = useNavigate();
-  const isLight = theme === 'light';
-
-  // Live state
-  const [indices, setIndices] = useState(DEFAULT_GLOBAL_INDICES);
-  const [topGainers, setTopGainers] = useState([]);
-  const [topLosers, setTopLosers] = useState([]);
-  const [news, setNews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  // Interactive UI Filters
-  const [activeMoverTab, setActiveMoverTab] = useState('gainers'); // 'gainers' | 'losers' | 'active'
-  const [activeTechFilter, setActiveTechFilter] = useState('all'); // 'all' | 'rsi' | 'macd' | 'sma' | 'volume'
-
-  // Global Sector Performance Heatmap state
-  const [globalSectors, setGlobalSectors] = useState([
-    { name: 'Technology (XLK)', etf: 'XLK', change: 2.34, isPositive: true },
-    { name: 'Consumer Disc. (XLY)', etf: 'XLY', change: 1.58, isPositive: true },
-    { name: 'Crypto & Digital Assets', etf: 'BITO', change: 3.85, isPositive: true },
-    { name: 'Comm. Services (XLC)', etf: 'XLC', change: 1.25, isPositive: true },
-    { name: 'Financials (XLF)', etf: 'XLF', change: 0.82, isPositive: true },
-    { name: 'Industrials (XLI)', etf: 'XLI', change: 0.45, isPositive: true },
-    { name: 'Materials (XLB)', etf: 'XLB', change: -0.25, isPositive: false },
-    { name: 'Healthcare (XLV)', etf: 'XLV', change: -0.42, isPositive: false },
-    { name: 'Real Estate (XLRE)', etf: 'XLRE', change: -0.68, isPositive: false },
-    { name: 'Energy (XLE)', etf: 'XLE', change: -1.15, isPositive: false },
-  ]);
-
-  // Paper Trading Portfolio State for Dashboard Hero Spotlight
-  const [paperPortfolio, setPaperPortfolio] = useState({
-    virtualBalance: user?.is_pro ? 1000000 : 50000,
-    totalHoldingsValue: 0,
-    holdings: [],
-    loading: true
-  });
-
-  const fetchPaperData = async () => {
-    try {
-      const res = await apiClient.get('/paper/portfolio');
-      if (res.data) {
-        setPaperPortfolio({
-          virtualBalance: parseFloat(res.data.virtualBalance || (user?.is_pro ? 1000000 : 50000)),
-          totalHoldingsValue: parseFloat(res.data.totalHoldingsValue || 0),
-          holdings: res.data.holdings || [],
-          loading: false
-        });
-      }
-    } catch (e) {
-      console.warn('Dashboard paper portfolio fetch error:', e);
-      setPaperPortfolio(prev => ({ ...prev, loading: false }));
-    }
-  };
-
-  // Initial Fetch & Intervals
+  // Initialize Chart
   useEffect(() => {
-    fetchGlobalMarketData();
-    fetchNews();
-    fetchPaperData();
+    if (!chartContainerRef.current) return;
+    
+    const chart = createChart(chartContainerRef.current, {
+      layout: {
+        background: { type: 'solid', color: '#ffffff' },
+        textColor: '#0F172A',
+      },
+      grid: {
+        vertLines: { color: '#E2E8F0' },
+        horzLines: { color: '#E2E8F0' },
+      },
+      crosshair: {
+        mode: 1, // Magnet
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+      },
+      rightPriceScale: {
+        borderColor: '#E2E8F0',
+      }
+    });
 
-    // Regular API polling every 6 seconds
-    const pollInterval = setInterval(() => {
-      fetchGlobalMarketData();
-      fetchPaperData();
-    }, 6000);
+    const candlestickSeries = chart.addCandlestickSeries({
+      upColor: '#10B981',
+      downColor: '#EF4444',
+      borderVisible: false,
+      wickUpColor: '#10B981',
+      wickDownColor: '#EF4444'
+    });
 
-    // High frequency micro-tick simulation to make live charts feel alive
-    const tickInterval = setInterval(() => {
-      setIndices(prev => {
-        const next = { ...prev };
-        Object.keys(next).forEach(key => {
-          const item = next[key];
-          if (item && item.price) {
-            const varianceRatio = (Math.random() - 0.49) * 0.0004; // 0.04% variance
-            const variance = item.price * varianceRatio;
-            const newPrice = Number((item.price + variance).toFixed(key === 'EURUSD=X' ? 4 : 2));
-            const newChange = Number(((item.change || 0) + variance).toFixed(key === 'EURUSD=X' ? 4 : 2));
-            const newPercent = Number(((newChange / (newPrice - newChange)) * 100).toFixed(2));
-            next[key] = { ...item, price: newPrice, change: newChange, changePercent: newPercent };
-          }
-        });
-        return next;
-      });
+    chartRef.current = chart;
+    candlestickSeriesRef.current = candlestickSeries;
 
-      // Subtle sector drift
-      setGlobalSectors(prev => prev.map(sec => {
-        const drift = (Math.random() - 0.5) * 0.03;
-        const newChange = Number((sec.change + drift).toFixed(2));
-        return { ...sec, change: newChange, isPositive: newChange >= 0 };
-      }));
-    }, 2000);
-
-    const clockInterval = setInterval(() => setCurrentTime(new Date()), 1000);
+    const handleResize = () => {
+      chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+    };
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      clearInterval(pollInterval);
-      clearInterval(tickInterval);
-      clearInterval(clockInterval);
+      window.removeEventListener('resize', handleResize);
+      chart.remove();
     };
   }, []);
 
-  const fetchGlobalMarketData = async () => {
-    try {
-      const [indicesRes, moversRes] = await Promise.all([
-        apiClient.get('/market/indices'),
-        apiClient.get('/market/movers')
-      ]);
+  // Fetch Data & Connect WebSocket
+  useEffect(() => {
+    if (!candlestickSeriesRef.current) return;
 
-      if (indicesRes.data) {
-        setIndices(prev => {
-          const updated = { ...prev };
-          Object.keys(DEFAULT_GLOBAL_INDICES).forEach(key => {
-            if (indicesRes.data[key]) {
-              updated[key] = {
-                ...DEFAULT_GLOBAL_INDICES[key],
-                ...indicesRes.data[key],
-                name: DEFAULT_GLOBAL_INDICES[key].name,
-                region: DEFAULT_GLOBAL_INDICES[key].region,
-                spark: DEFAULT_GLOBAL_INDICES[key].spark
-              };
-            }
-          });
-          return updated;
+    // We use binance klines for crypto. For others, we might mock it if they aren't available on binance.
+    const isBinanceSymbol = category === 'Crypto';
+    
+    if (isBinanceSymbol) {
+      // Fetch Historical Data
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=100`)
+        .then(res => res.json())
+        .then(data => {
+          const formattedData = data.map(d => ({
+            time: d[0] / 1000,
+            open: parseFloat(d[1]),
+            high: parseFloat(d[2]),
+            low: parseFloat(d[3]),
+            close: parseFloat(d[4])
+          }));
+          candlestickSeriesRef.current.setData(formattedData);
+          setCurrentPrice(formattedData[formattedData.length - 1].close);
+        })
+        .catch(err => console.error(err));
+
+      // Connect WS
+      if (wsRef.current) wsRef.current.close();
+      const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_1m`);
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.e === 'kline') {
+          const k = msg.k;
+          const tick = {
+            time: k.t / 1000,
+            open: parseFloat(k.o),
+            high: parseFloat(k.h),
+            low: parseFloat(k.l),
+            close: parseFloat(k.c)
+          };
+          candlestickSeriesRef.current.update(tick);
+          setCurrentPrice(tick.close);
+        }
+      };
+      wsRef.current = ws;
+    } else {
+      // Mock Data for non-crypto
+      let mockPrice = category === 'Forex' ? 1.10 : category === 'Commodities' ? 2000 : 150;
+      const data = [];
+      let time = Math.floor(Date.now() / 1000) - 100 * 60;
+      for (let i = 0; i < 100; i++) {
+        data.push({
+          time: time + i * 60,
+          open: mockPrice,
+          high: mockPrice + Math.random() * 2,
+          low: mockPrice - Math.random() * 2,
+          close: mockPrice + (Math.random() - 0.5) * 2
         });
+        mockPrice = data[i].close;
       }
+      candlestickSeriesRef.current.setData(data);
+      setCurrentPrice(mockPrice);
 
-      if (moversRes.data) {
-        setTopGainers(moversRes.data.gainers || []);
-        setTopLosers(moversRes.data.losers || []);
-      }
-    } catch (err) {
-      console.error('Error fetching global market data:', err);
-    } finally {
-      setLoading(false);
+      if (wsRef.current) wsRef.current.close();
+      const interval = setInterval(() => {
+        mockPrice = mockPrice + (Math.random() - 0.5) * 1;
+        candlestickSeriesRef.current.update({
+          time: Math.floor(Date.now() / 1000),
+          open: mockPrice,
+          high: mockPrice + 0.5,
+          low: mockPrice - 0.5,
+          close: mockPrice
+        });
+        setCurrentPrice(mockPrice);
+      }, 2000);
+      wsRef.current = { close: () => clearInterval(interval) };
     }
+
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+    };
+  }, [symbol, category]);
+
+  const handlePlaceOrder = () => {
+    placeOrder({
+      asset: symbol,
+      side,
+      type: orderType,
+      size: parseFloat(size),
+      leverage: parseInt(leverage),
+      entryPrice: currentPrice,
+      sl: sl ? parseFloat(sl) : null,
+      tp: tp ? parseFloat(tp) : null,
+      margin: marginReq
+    });
+    setShowConfirmModal(false);
   };
-
-  const fetchNews = async () => {
-    try {
-      const res = await apiClient.get('/market/news');
-      setNews(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error('Error fetching news:', err);
-      setNews([]);
-    }
-  };
-
-  // Global Market Sessions Status calculation
-  const marketSessions = useMemo(() => {
-    // Current UTC hours and minutes
-    const nowUtc = new Date(currentTime.getTime() + currentTime.getTimezoneOffset() * 60000);
-    const utcHour = nowUtc.getHours() + nowUtc.getMinutes() / 60;
-
-    // NY (EDT is UTC-4): 09:30 to 16:00 EDT -> 13:30 to 20:00 UTC
-    const isNyOpen = utcHour >= 13.5 && utcHour < 20.0;
-    // London (BST is UTC+1): 08:00 to 16:30 BST -> 07:00 to 15:30 UTC
-    const isLondonOpen = utcHour >= 7.0 && utcHour < 15.5;
-    // Tokyo (JST is UTC+9): 09:00 to 15:00 JST -> 00:00 to 06:00 UTC
-    const isTokyoOpen = utcHour >= 0.0 && utcHour < 6.0;
-    // Sydney (AEST is UTC+10): 10:00 to 16:00 AEST -> 00:00 to 06:00 UTC
-    const isSydneyOpen = utcHour >= 0.0 && utcHour < 6.0;
-
-    return [
-      { name: 'New York (NYSE / NASDAQ)', status: isNyOpen ? 'OPEN' : 'CLOSED', time: currentTime.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' EDT', isOpen: isNyOpen },
-      { name: 'London (LSE)', status: isLondonOpen ? 'OPEN' : 'CLOSED', time: currentTime.toLocaleTimeString('en-US', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' BST', isOpen: isLondonOpen },
-      { name: 'Tokyo (TSE)', status: isTokyoOpen ? 'OPEN' : 'CLOSED', time: currentTime.toLocaleTimeString('en-US', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' JST', isOpen: isTokyoOpen },
-      { name: 'Crypto 24/7', status: 'LIVE', time: 'Non-stop global liquidity', isOpen: true }
-    ];
-  }, [currentTime]);
-
-  // Quick Discovery Navigation Hub
-  const quickDiscoveryPills = [
-    { label: 'US Tech Titans', path: '/stock/NVDA', icon: <Cpu size={16} />, badge: 'Mega Cap' },
-    { label: 'Crypto Desk', path: '/stock/BTC-USD', icon: <Coins size={16} />, badge: '24/7' },
-    { label: 'Global Screener', path: '/screener', icon: <Search size={16} />, badge: 'Multimarket' },
-    { label: 'AI Strategy Lab', path: '/strategy-lab', icon: <Zap size={16} />, badge: 'Quant' },
-    { label: 'Commodities & Forex', path: '/stock/GC=F', icon: <Globe size={16} />, badge: 'Futures' },
-    { label: 'Global Macro News', path: '/news', icon: <Newspaper size={16} />, badge: 'Live Feed' },
-  ];
-
-  // Curated Most Active Global Assets
-  const mostActiveGlobal = [
-    { symbol: 'NVDA', name: 'NVIDIA Corp', price: '128.40', changePercent: '4.25', volume: '64.8M', isPositive: true },
-    { symbol: 'TSLA', name: 'Tesla Inc', price: '224.60', changePercent: '2.45', volume: '51.2M', isPositive: true },
-    { symbol: 'BTC-USD', name: 'Bitcoin USD', price: '64850.00', changePercent: '2.80', volume: '$34.2B', isPositive: true },
-    { symbol: 'AAPL', name: 'Apple Inc', price: '228.30', changePercent: '1.40', volume: '42.6M', isPositive: true },
-    { symbol: 'PLTR', name: 'Palantir Tech', price: '32.15', changePercent: '3.65', volume: '38.4M', isPositive: true },
-    { symbol: 'AMD', name: 'Advanced Micro', price: '151.20', changePercent: '-0.95', volume: '28.1M', isPositive: false },
-  ];
-
-  const activeMoversList = useMemo(() => {
-    if (activeMoverTab === 'gainers') return topGainers.length ? topGainers : INTERNATIONAL_QUANT_SIGNALS.slice(0, 6);
-    if (activeMoverTab === 'losers') return topLosers.length ? topLosers : [];
-    return mostActiveGlobal;
-  }, [activeMoverTab, topGainers, topLosers]);
-
-  const filteredQuantSignals = useMemo(() => {
-    if (activeTechFilter === 'all') return INTERNATIONAL_QUANT_SIGNALS;
-    return INTERNATIONAL_QUANT_SIGNALS.filter(s => s.category === activeTechFilter);
-  }, [activeTechFilter]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '26px', paddingBottom: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: 'calc(100vh - 100px)' }}>
       
-      {/* 0. HERO SPOTLIGHT: Paper Trading Command Hub */}
-      <div style={{
-        background: isLight 
-          ? 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 50%, #ffffff 100%)' 
-          : 'linear-gradient(135deg, #09131f 0%, #0d231a 50%, #0a1120 100%)',
-        border: '1.5px solid #00b060',
-        borderRadius: '22px',
-        padding: '24px 28px',
-        boxShadow: isLight ? '0 10px 30px rgba(0, 176, 96, 0.08)' : '0 12px 40px rgba(0, 255, 136, 0.12)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Subtle decorative glow */}
-        <div style={{
-          position: 'absolute',
-          top: '-40px',
-          right: '-40px',
-          width: '260px',
-          height: '260px',
-          background: 'radial-gradient(circle, rgba(0, 255, 136, 0.15) 0%, transparent 70%)',
-          pointerEvents: 'none'
-        }} />
+      {/* Top Bar: Asset Selector & Balance Stats */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FFFFFF', padding: '16px 24px', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <select 
+            value={category} 
+            onChange={(e) => { setCategory(e.target.value); setSymbol(ASSETS[e.target.value][0]); }}
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #E2E8F0', background: '#F8FAFC', fontWeight: '600', color: '#0F172A' }}
+          >
+            {Object.keys(ASSETS).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
+          <select 
+            value={symbol} 
+            onChange={(e) => setSymbol(e.target.value)}
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #E2E8F0', background: '#F8FAFC', fontWeight: '600', color: '#0F172A' }}
+          >
+            {ASSETS[category].map(sym => <option key={sym} value={sym}>{sym}</option>)}
+          </select>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#0F172A' }}>
+            ${currentPrice.toFixed(2)}
+          </div>
+        </div>
 
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '20px',
-          position: 'relative',
-          zIndex: 1
-        }}>
-          {/* Left: Product Focus Title & Real-time Balance */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{
-                background: '#00b060',
-                color: '#ffffff',
-                padding: '4px 10px',
-                borderRadius: '8px',
-                fontSize: '11px',
-                fontWeight: 900,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <Zap size={13} /> HERO FEATURE • ZERO RISK
-              </span>
-              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                Live Virtual Capital Simulation
-              </span>
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.75rem', color: '#475569', fontWeight: '600', textTransform: 'uppercase' }}>Available Margin</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#10B981' }}>${balance.toFixed(2)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '24px', flex: 1, minHeight: 0 }}>
+        {/* Chart Area */}
+        <div style={{ flex: 1, background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ fontWeight: '700' }}>{symbol} / USD</div>
+            <Maximize2 size={16} color="#475569" style={{ cursor: 'pointer' }} />
+          </div>
+          <div ref={chartContainerRef} style={{ flex: 1, width: '100%' }} />
+        </div>
+
+        {/* Order Ticket Panel */}
+        <div style={{ width: '350px', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <div style={{ padding: '16px', borderBottom: '1px solid #E2E8F0', fontWeight: '800', fontSize: '1.125rem' }}>Order Ticket</div>
+          
+          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Side Toggle */}
+            <div style={{ display: 'flex', background: '#F8FAFC', borderRadius: '8px', padding: '4px', border: '1px solid #E2E8F0' }}>
+              <button 
+                onClick={() => setSide('LONG')}
+                style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: side === 'LONG' ? '#10B981' : 'transparent', color: side === 'LONG' ? '#FFF' : '#475569', fontWeight: '700', cursor: 'pointer', transition: '0.2s' }}
+              >LONG</button>
+              <button 
+                onClick={() => setSide('SHORT')}
+                style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: side === 'SHORT' ? '#EF4444' : 'transparent', color: side === 'SHORT' ? '#FFF' : '#475569', fontWeight: '700', cursor: 'pointer', transition: '0.2s' }}
+              >SHORT</button>
             </div>
 
-            <h2 style={{
-              fontSize: '24px',
-              fontWeight: 900,
-              color: 'var(--text-primary)',
-              margin: '2px 0 0 0',
-              letterSpacing: '-0.02em',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <span>NonStock Paper Trading Desk</span>
-              {user?.is_pro && (
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 900,
-                  color: '#ffb300',
-                  background: 'rgba(255, 179, 0, 0.12)',
-                  border: '1px solid rgba(255, 179, 0, 0.3)',
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}>
-                  <Crown size={12} /> PRO $1M ALLOCATION
-                </span>
+            {/* Inputs */}
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>Size (Units)</label>
+              <input type="number" step="0.01" value={size} onChange={(e) => setSize(e.target.value)} className="terminal-input" />
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>Leverage: {leverage}x</label>
+                {isHighLeverage && <AlertTriangle size={14} color="#F59E0B" />}
+              </div>
+              <input type="range" min="1" max="50" value={leverage} onChange={(e) => setLeverage(e.target.value)} style={{ width: '100%', accentColor: isHighLeverage ? '#F59E0B' : '#3B82F6' }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>Take Profit</label>
+                <input type="number" value={tp} onChange={(e) => setTp(e.target.value)} className="terminal-input" placeholder="Price" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>Stop Loss</label>
+                <input type="number" value={sl} onChange={(e) => setSl(e.target.value)} className="terminal-input" placeholder="Price" />
+              </div>
+            </div>
+
+            {/* Live Calcs */}
+            <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#475569' }}>Required Margin:</span>
+                <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)' }}>${marginReq.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#475569' }}>Est. Liq Price:</span>
+                <span style={{ fontWeight: '700', color: '#F59E0B', fontFamily: 'var(--font-mono)' }}>${liqPrice.toFixed(2)}</span>
+              </div>
+              {sl && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#475569' }}>Risk at SL:</span>
+                  <span style={{ fontWeight: '700', color: '#EF4444', fontFamily: 'var(--font-mono)' }}>-${dollarRiskAtSL.toFixed(2)}</span>
+                </div>
               )}
-            </h2>
-
-            <p style={{
-              fontSize: '13px',
-              color: 'var(--text-secondary)',
-              margin: 0,
-              maxWidth: '680px',
-              lineHeight: 1.5
-            }}>
-              Master global & Indian equity markets, futures, and crypto risk-free with institutional order executions, draggable TP/SL levels, and live P&L tracking.
-            </p>
-          </div>
-
-          {/* Right: Real-time Stats & Launch Button */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            flexWrap: 'wrap'
-          }}>
-            {/* Balance Pill */}
-            <div style={{
-              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.8)',
-              border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '14px',
-              padding: '12px 18px',
-              display: 'flex',
-              flexDirection: 'column',
-              minWidth: '160px'
-            }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
-                Virtual Cash Balance
-              </span>
-              <span style={{
-                fontSize: '20px',
-                fontWeight: 900,
-                color: '#00b060',
-                fontFamily: 'monospace',
-                marginTop: '2px'
-              }}>
-                ${paperPortfolio.virtualBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </div>
-
-            {/* Open Positions Pill */}
-            <div style={{
-              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.8)',
-              border: isLight ? '1px solid #cbd5e1' : '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '14px',
-              padding: '12px 18px',
-              display: 'flex',
-              flexDirection: 'column',
-              minWidth: '140px'
-            }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>
-                Open Positions
-              </span>
-              <span style={{
-                fontSize: '20px',
-                fontWeight: 900,
-                color: 'var(--text-primary)',
-                fontFamily: 'monospace',
-                marginTop: '2px'
-              }}>
-                {paperPortfolio.holdings.length} Active {paperPortfolio.holdings.length === 1 ? 'Trade' : 'Trades'}
-              </span>
-            </div>
-
-            {/* Launch CTA */}
-            <button
-              onClick={() => navigate('/paper-trading')}
-              style={{
-                background: '#00b060',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '14px',
-                padding: '14px 24px',
-                fontSize: '14px',
-                fontWeight: 900,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 6px 20px rgba(0, 176, 96, 0.35)',
-                transition: 'all 0.2s ease',
-                whiteSpace: 'nowrap'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 10px 28px rgba(0, 176, 96, 0.5)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 176, 96, 0.35)';
-              }}
-            >
-              <span>Launch Paper Trading</span>
-              <ArrowRight size={18} />
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      {/* 1. High-Profile Centered Exploration Hero & Universal Global Search */}
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        padding: '38px 24px',
-        borderRadius: '24px',
-        background: isLight 
-          ? 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,249,255,0.85) 100%)' 
-          : 'linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(30,41,59,0.8) 100%)',
-        border: '1px solid var(--border-color)',
-        backdropFilter: 'blur(16px)',
-        boxShadow: isLight ? '0 12px 36px rgba(0,0,0,0.04)' : '0 16px 40px rgba(0,0,0,0.35)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Ambient background glow */}
-        <div style={{
-          position: 'absolute',
-          top: '-60px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '560px',
-          height: '200px',
-          background: 'radial-gradient(ellipse at center, rgba(16, 185, 129, 0.15), transparent 70%)',
-          pointerEvents: 'none',
-          zIndex: 0
-        }} />
-
-        {/* Global Explorer Live Badge */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', zIndex: 1 }}>
-          <span style={{ 
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '11px', 
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            background: 'rgba(16, 185, 129, 0.12)', 
-            color: '#10b981', 
-            padding: '5px 12px', 
-            borderRadius: '20px', 
-            fontWeight: 800,
-            border: '1px solid rgba(16, 185, 129, 0.3)'
-          }}>
-            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 10px #10b981' }} />
-            GLOBAL EXPLORER • LIVE DESK
-          </span>
-          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-            {currentTime.toUTCString().slice(0, 22)} UTC
-          </span>
-        </div>
-
-        {/* Institutional Headline */}
-        <h1 style={{ 
-          fontSize: '32px', 
-          fontWeight: 900, 
-          color: 'var(--text-primary)', 
-          margin: '0 0 8px 0', 
-          letterSpacing: '-0.03em',
-          lineHeight: '1.2',
-          zIndex: 1
-        }}>
-          Explore Global Financial Markets
-        </h1>
-
-        <p style={{ 
-          fontSize: '14px', 
-          color: 'var(--text-secondary)', 
-          margin: '0 0 24px 0', 
-          maxWidth: '640px', 
-          lineHeight: '1.5',
-          fontWeight: 500,
-          zIndex: 1
-        }}>
-          Institutional-grade exploration across US Equities, Crypto Majors, Global Benchmarks, Forex & Commodities
-        </p>
-
-        {/* Centered Search Command Input */}
-        <div style={{ width: '100%', maxWidth: '720px', margin: '0 auto', position: 'relative', zIndex: 2 }}>
-          <SearchWithSuggestions 
-            onSelect={(stock) => navigate(`/stock/${stock.symbol}`)} 
-            placeholder="Search any global asset, ticker or index (e.g. NVDA, BTC, AAPL, SPY, TSLA, Gold)..." 
-            showSearchIcon={true}
-            inputStyle={{
-              width: '100%',
-              padding: '16px 95px 16px 48px',
-              borderRadius: '16px',
-              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.85)',
-              border: isLight ? '1.5px solid #cbd5e1' : '1.5px solid rgba(255, 255, 255, 0.15)',
-              color: 'var(--text-primary)',
-              fontSize: '15px',
-              fontWeight: 600,
-              outline: 'none',
-              boxSizing: 'border-box',
-              boxShadow: isLight ? '0 4px 20px rgba(0, 0, 0, 0.05)' : '0 8px 32px rgba(0, 0, 0, 0.4)',
-              transition: 'all 0.2s ease'
-            }}
-            rightElement={
-              <span style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                color: 'var(--text-secondary)',
-                background: isLight ? '#f1f5f9' : 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid var(--border-color)',
-                padding: '4px 8px',
-                borderRadius: '6px',
-                fontFamily: 'monospace'
-              }}>
-                EXPLORE
-              </span>
-            }
-          />
-        </div>
-
-        {/* Quick-Explore Trending Tickers Row */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          flexWrap: 'wrap', 
-          gap: '8px', 
-          marginTop: '16px',
-          zIndex: 1 
-        }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Flame size={14} style={{ color: '#f59e0b' }} /> Quick Explore:
-          </span>
-          {[
-            { label: 'NVDA', sym: 'NVDA' },
-            { label: 'BTC', sym: 'BTC-USD' },
-            { label: 'AAPL', sym: 'AAPL' },
-            { label: 'TSLA', sym: 'TSLA' },
-            { label: 'SOL', sym: 'SOL-USD' },
-            { label: 'S&P 500', sym: '^GSPC' },
-            { label: 'GOLD', sym: 'GC=F' },
-            { label: 'EUR/USD', sym: 'EURUSD=X' }
-          ].map(tag => (
-            <button
-              key={tag.sym}
-              type="button"
-              onClick={() => navigate(`/stock/${tag.sym}`)}
-              style={{
-                background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-primary)',
-                padding: '4px 10px',
-                borderRadius: '8px',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#10b981';
-                e.currentTarget.style.color = '#10b981';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-color)';
-                e.currentTarget.style.color = 'var(--text-primary)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              {tag.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Unique Modern Platform Features Showcase Bar */}
-      <div style={{
-        background: isLight 
-          ? 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)' 
-          : 'linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%)',
-        border: '1px solid var(--border-color)',
-        borderRadius: '20px',
-        padding: '20px 22px',
-        boxShadow: isLight ? '0 4px 20px rgba(0, 0, 0, 0.03)' : '0 8px 30px rgba(0, 0, 0, 0.25)',
-        backdropFilter: 'blur(12px)',
-        position: 'relative'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
-          marginBottom: '16px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '8px',
-              background: 'rgba(0, 176, 96, 0.12)',
-              color: '#00b060',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Sparkles size={16} />
-            </div>
-            <div>
-              <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                Next-Gen Trading Suite & Advanced Workspaces
-              </span>
-              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '10px' }}>
-                Explore institutional tools designed for serious market operators
-              </span>
-            </div>
-          </div>
-          <span style={{
-            fontSize: '11px',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            background: 'rgba(0, 176, 96, 0.08)',
-            color: '#00b060',
-            border: '1px solid rgba(0, 176, 96, 0.25)',
-            padding: '4px 10px',
-            borderRadius: '12px'
-          }}>
-            ✦ Instant Access
-          </span>
-        </div>
-
-        {/* 4 Feature Feature Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '14px'
-        }}>
-          {/* 1. Market Replay Engine */}
-          <div
-            onClick={() => navigate('/paper-trading?mode=replay')}
-            style={{
-              padding: '16px',
-              borderRadius: '14px',
-              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.5)',
-              border: isLight ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.07)',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: '12px',
-              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#00b060';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = isLight ? '0 8px 24px rgba(0, 176, 96, 0.12)' : '0 8px 24px rgba(0, 0, 0, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.07)';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none';
-            }}
-          >
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <div style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '10px',
-                  background: 'rgba(245, 158, 11, 0.12)',
-                  color: '#f59e0b',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Clock size={18} />
+              {tp && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#475569' }}>Reward at TP:</span>
+                  <span style={{ fontWeight: '700', color: '#10B981', fontFamily: 'var(--font-mono)' }}>+${dollarRewardAtTP.toFixed(2)}</span>
                 </div>
-                <span style={{
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  background: '#0f172a',
-                  color: '#00ff88',
-                  padding: '3px 7px',
-                  borderRadius: '6px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '3px'
-                }}>
-                  <Crown size={10} /> PRO TIER
-                </span>
-              </div>
-              <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
-                24/7 Market Replay Engine
-              </h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                Rewind historical price action candle-by-candle (1x to 5x speed) on evenings and weekends with zero live risk.
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#00b060' }}>
-              <span>Launch Replay</span>
-              <ArrowRight size={13} />
-            </div>
-          </div>
-
-          {/* 2. Capital Bailout Shop */}
-          <div
-            onClick={() => navigate('/shop')}
-            style={{
-              padding: '16px',
-              borderRadius: '14px',
-              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.5)',
-              border: isLight ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.07)',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: '12px',
-              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#00b060';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = isLight ? '0 8px 24px rgba(0, 176, 96, 0.12)' : '0 8px 24px rgba(0, 0, 0, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.07)';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none';
-            }}
-          >
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <div style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '10px',
-                  background: 'rgba(0, 176, 96, 0.12)',
-                  color: '#00b060',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Coins size={18} />
+              )}
+              {sl && tp && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#475569' }}>Risk:Reward:</span>
+                  <span style={{ fontWeight: '700', fontFamily: 'var(--font-mono)' }}>1 : {rrr}</span>
                 </div>
-                <span style={{
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  background: 'rgba(0, 176, 96, 0.12)',
-                  color: '#00b060',
-                  padding: '3px 7px',
-                  borderRadius: '6px'
-                }}>
-                  1:3 RATIO
-                </span>
-              </div>
-              <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
-                Capital Bailout Shop
-              </h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                Bankrupt at $0.00? Inject fresh trading capital from $1k to $1M with real-to-virtual bailout scaling.
-              </p>
+              )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#00b060' }}>
-              <span>Visit Shop</span>
-              <ArrowRight size={13} />
-            </div>
-          </div>
 
-          {/* 3. AI Mentor & Risk Officer */}
-          <div
-            onClick={() => navigate('/ai-mentor')}
-            style={{
-              padding: '16px',
-              borderRadius: '14px',
-              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.5)',
-              border: isLight ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.07)',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: '12px',
-              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#00b060';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = isLight ? '0 8px 24px rgba(0, 176, 96, 0.12)' : '0 8px 24px rgba(0, 0, 0, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.07)';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none';
-            }}
-          >
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <div style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '10px',
-                  background: 'rgba(59, 130, 246, 0.12)',
-                  color: '#3b82f6',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Bot size={18} />
-                </div>
-                <span style={{
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  background: 'rgba(59, 130, 246, 0.12)',
-                  color: '#3b82f6',
-                  padding: '3px 7px',
-                  borderRadius: '6px'
-                }}>
-                  AI RISK COACH
-                </span>
-              </div>
-              <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
-                AI Trading Coach & Auditor
-              </h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                Pre-trade risk validator analyzing entry sizing, risk-to-reward metrics, and stopping emotional revenge trades.
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#3b82f6' }}>
-              <span>Chat with Coach</span>
-              <ArrowRight size={13} />
-            </div>
-          </div>
-
-          {/* 4. Strategy Lab & Quantitative Backtester */}
-          <div
-            onClick={() => navigate('/strategy-lab')}
-            style={{
-              padding: '16px',
-              borderRadius: '14px',
-              background: isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.5)',
-              border: isLight ? '1px solid #e2e8f0' : '1px solid rgba(255, 255, 255, 0.07)',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              gap: '12px',
-              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#00b060';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = isLight ? '0 8px 24px rgba(0, 176, 96, 0.12)' : '0 8px 24px rgba(0, 0, 0, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.07)';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = isLight ? '0 2px 8px rgba(0,0,0,0.02)' : 'none';
-            }}
-          >
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <div style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '10px',
-                  background: 'rgba(168, 85, 247, 0.12)',
-                  color: '#a855f7',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Cpu size={18} />
-                </div>
-                <span style={{
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  background: 'rgba(168, 85, 247, 0.12)',
-                  color: '#a855f7',
-                  padding: '3px 7px',
-                  borderRadius: '6px'
-                }}>
-                  QUANT ENGINE
-                </span>
-              </div>
-              <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
-                No-Code Strategy Lab
-              </h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                Build visual algorithmic indicator rules and backtest on 1-year historical data with instant Sharpe & win rates.
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#a855f7' }}>
-              <span>Build Strategy</span>
-              <ArrowRight size={13} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Global Financial Sessions & Risk Sentiment Ticker Bar */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-        gap: '12px'
-      }}>
-        {marketSessions.map((session, i) => (
-          <div
-            key={i}
-            style={{
-              padding: '12px 16px',
-              borderRadius: '12px',
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {session.name}
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px', fontFamily: 'monospace' }}>
-                {session.time}
-              </div>
-            </div>
-            <span style={{
-              fontSize: '10px',
-              fontWeight: 800,
-              padding: '3px 8px',
-              borderRadius: '6px',
-              background: session.isOpen ? 'rgba(16, 185, 129, 0.15)' : 'rgba(148, 163, 184, 0.15)',
-              color: session.isOpen ? '#10b981' : 'var(--text-secondary)',
-              border: session.isOpen ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)'
-            }}>
-              {session.status}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* 3. Hero Benchmark Ticker Cards (S&P 500, NASDAQ, Bitcoin, Gold, etc.) */}
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Globe size={18} style={{ color: '#3b82f6' }} />
-            <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              Major International Benchmarks & Commodities
-            </h2>
-          </div>
-          <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-            Real-time Yahoo Finance / Spot Stream
-          </span>
-        </div>
-
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', 
-          gap: '14px' 
-        }}>
-          {Object.keys(DEFAULT_GLOBAL_INDICES).map((key) => {
-            const item = indices[key] || DEFAULT_GLOBAL_INDICES[key];
-            const isPos = (item.change ?? 0) >= 0;
-            return (
-              <div
-                key={key}
-                onClick={() => navigate(`/stock/${key}`)}
-                style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '16px',
-                  padding: '16px',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.03)' : 'none'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.borderColor = isPos ? '#10b981' : '#ef4444';
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-color)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                  <div>
-                    <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                      {item.name}
-                    </span>
-                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                      {key} • {item.region}
-                    </div>
-                  </div>
-                  <span style={{
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    padding: '2px 6px',
-                    borderRadius: '5px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '2px',
-                    background: isPos ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                    color: isPos ? '#10b981' : '#ef4444'
-                  }}>
-                    {isPos ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
-                    {isPos ? '+' : ''}{(item.changePercent ?? 0).toFixed(2)}%
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '10px' }}>
-                  <div>
-                    <div style={{ fontSize: '19px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                      ${key === 'EURUSD=X' ? Number(item.price).toFixed(4) : Number(item.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: isPos ? '#10b981' : '#ef4444', marginTop: '1px' }}>
-                      {isPos ? '+' : ''}{key === 'EURUSD=X' ? Number(item.change).toFixed(4) : Number(item.change).toFixed(2)} USD
-                    </div>
-                  </div>
-                  <Sparkline points={item.spark} color={isPos ? '#10b981' : '#ef4444'} width={75} height={28} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 4. Quick Action Category Discovery Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px' }}>
-        {quickDiscoveryPills.map((pill, i) => (
-          <div
-            key={i}
-            onClick={() => navigate(pill.path)}
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '14px',
-              padding: '14px 16px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              transition: 'all 0.2s ease',
-              boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.04)' : 'none'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.borderColor = '#10b981';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.borderColor = 'var(--border-color)';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ 
-                width: '34px', 
-                height: '34px', 
-                borderRadius: '10px', 
-                background: 'rgba(16, 185, 129, 0.1)', 
-                color: '#10b981',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                {pill.icon}
-              </span>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {pill.label}
-              </span>
-            </div>
-            <span style={{ fontSize: '10px', color: 'var(--text-secondary)', background: 'var(--bg-glass-light)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-              {pill.badge}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* 5. International Market Movers (Gainers, Losers, High Volume) & Global Sector Heatmap */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '22px' }}>
-        
-        {/* Left: Top Movers Table */}
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '18px', padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {[
-                { id: 'gainers', label: 'Top Gainers', color: '#10b981' },
-                { id: 'losers', label: 'Top Losers', color: '#ef4444' },
-                { id: 'active', label: 'Most Active', color: '#3b82f6' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveMoverTab(tab.id)}
-                  style={{
-                    background: activeMoverTab === tab.id ? `${tab.color}18` : 'transparent',
-                    border: activeMoverTab === tab.id ? `1px solid ${tab.color}` : '1px solid var(--border-color)',
-                    color: activeMoverTab === tab.id ? tab.color : 'var(--text-secondary)',
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    fontWeight: 700,
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>
-              GLOBAL REAL-TIME (USD)
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {activeMoversList.slice(0, 6).map((item, i) => {
-              const isPos = parseFloat(item.changePercent) >= 0;
-              return (
-                <div 
-                  key={i} 
-                  onClick={() => navigate(`/stock/${item.symbol}`)}
-                  style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    padding: '12px 16px', 
-                    background: 'var(--bg-glass-light)', 
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    border: '1px solid var(--border-color)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.borderColor = isPos ? '#10b981' : '#ef4444'}
-                  onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '8px',
-                      background: isLight ? '#f1f5f9' : '#1e293b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 800,
-                      fontSize: '12px',
-                      color: 'var(--text-primary)'
-                    }}>
-                      {item.symbol.slice(0, 3)}
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)' }}>{item.symbol}</span>
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', background: 'var(--bg-card)', padding: '1px 5px', borderRadius: '4px' }}>
-                          {item.symbol.includes('-USD') ? 'CRYPTO' : 'US'}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{item.name || item.symbol}</div>
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)' }}>
-                      ${parseFloat(item.price).toLocaleString()}
-                    </div>
-                    <div style={{ 
-                      fontSize: '11px', 
-                      fontWeight: 700, 
-                      color: isPos ? '#10b981' : '#ef4444',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-end',
-                      gap: '2px'
-                    }}>
-                      {isPos ? '+' : ''}{item.changePercent}%
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Right: Global Sector Rotation Heatmap */}
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '18px', padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Flame size={18} style={{ color: '#f59e0b' }} />
-              <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                Wall Street Sector Heatmap
-              </h2>
-            </div>
             <button 
-              onClick={() => navigate('/screener')} 
-              style={{ background: 'transparent', border: 'none', color: '#10b981', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => setShowConfirmModal(true)}
+              style={{ padding: '12px', background: side === 'LONG' ? '#10B981' : '#EF4444', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: '800', cursor: 'pointer', marginTop: 'auto' }}
             >
-              SCREENER <ChevronRight size={14} />
+              Place {side} Order
             </button>
           </div>
+        </div>
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
-            {globalSectors.map((sec, i) => (
-              <div 
-                key={i} 
-                onClick={() => navigate(`/stock/${sec.etf}`)}
-                style={{ 
-                  padding: '12px 14px', 
-                  borderRadius: '10px', 
-                  background: sec.isPositive 
-                    ? (isLight ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.15)') 
-                    : (isLight ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.15)'),
-                  border: `1px solid ${sec.isPositive ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  transition: 'all 0.15s ease'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{sec.name}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>ETF: {sec.etf}</div>
-                </div>
-                <div style={{ 
-                  fontSize: '13px', 
-                  fontWeight: 800, 
-                  color: sec.isPositive ? '#10b981' : '#ef4444' 
-                }}>
-                  {sec.change >= 0 ? '+' : ''}{sec.change.toFixed(2)}%
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Active Positions Table */}
+      <div style={{ background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '16px', overflowX: 'auto' }}>
+        <h3 style={{ fontSize: '1.125rem', fontWeight: '800', marginBottom: '16px' }}>Active Positions</h3>
+        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ color: '#475569', fontSize: '0.875rem', borderBottom: '1px solid #E2E8F0' }}>
+              <th style={{ paddingBottom: '8px' }}>Asset</th>
+              <th style={{ paddingBottom: '8px' }}>Side</th>
+              <th style={{ paddingBottom: '8px' }}>Size / Lev</th>
+              <th style={{ paddingBottom: '8px' }}>Entry</th>
+              <th style={{ paddingBottom: '8px' }}>Mark</th>
+              <th style={{ paddingBottom: '8px' }}>Liq. Price</th>
+              <th style={{ paddingBottom: '8px' }}>PnL</th>
+              <th style={{ paddingBottom: '8px' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {positions.length === 0 ? (
+              <tr>
+                <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#94A3B8' }}>No active positions</td>
+              </tr>
+            ) : positions.map(pos => {
+              // Simulating live mark price if it's the current asset, otherwise static entry
+              const posMark = pos.asset === symbol ? currentPrice : pos.entryPrice;
+              const isLong = pos.side === 'LONG';
+              const pnl = isLong ? (posMark - pos.entryPrice) * pos.size : (pos.entryPrice - posMark) * pos.size;
+              const pnlColor = pnl >= 0 ? '#10B981' : '#EF4444';
+              
+              const posLiqDistance = pos.margin / pos.size;
+              const posLiq = isLong ? pos.entryPrice - posLiqDistance : pos.entryPrice + posLiqDistance;
 
-          {/* Macro Gauge Card */}
+              return (
+                <tr key={pos.id} style={{ borderBottom: '1px solid #F1F5F9', fontFamily: 'var(--font-mono)' }}>
+                  <td style={{ padding: '12px 0', fontWeight: '700' }}>{pos.asset}</td>
+                  <td style={{ padding: '12px 0', color: isLong ? '#10B981' : '#EF4444', fontWeight: '700' }}>{pos.side}</td>
+                  <td style={{ padding: '12px 0' }}>{pos.size} ({pos.leverage}x)</td>
+                  <td style={{ padding: '12px 0' }}>${pos.entryPrice.toFixed(2)}</td>
+                  <td style={{ padding: '12px 0' }}>${posMark.toFixed(2)}</td>
+                  <td style={{ padding: '12px 0', color: '#F59E0B' }}>${posLiq.toFixed(2)}</td>
+                  <td style={{ padding: '12px 0', color: pnlColor, fontWeight: '700' }}>
+                    {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
+                  </td>
+                  <td style={{ padding: '12px 0' }}>
+                    <button 
+                      onClick={() => closePosition(pos.id, posMark)}
+                      style={{ padding: '4px 8px', background: '#EF4444', color: '#FFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
+                    >
+                      Market Close
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(2px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }}>
           <div style={{
-            marginTop: '16px',
-            padding: '14px',
-            borderRadius: '12px',
-            background: 'var(--bg-glass-light)',
-            border: '1px solid var(--border-color)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
+            background: '#FFFFFF', padding: '32px', borderRadius: '12px', maxWidth: '400px', width: '100%',
+            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)', color: '#0F172A'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Gauge size={22} style={{ color: '#10b981' }} />
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>GLOBAL SENTIMENT</div>
-                <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>Greed Index (68 / 100)</div>
-              </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '16px' }}>Confirm Execution</h3>
+            <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '8px', marginBottom: '24px', fontSize: '0.875rem' }}>
+              <div><strong>Order:</strong> {side} {size} {symbol} @ {orderType}</div>
+              <div><strong>Margin Allocated:</strong> ${marginReq.toFixed(2)}</div>
+              <div><strong>Leverage:</strong> {leverage}x</div>
+              <div style={{ marginTop: '8px', color: '#EF4444' }}>Max Loss (Liq): -${marginReq.toFixed(2)}</div>
+              {tp && <div style={{ color: '#10B981' }}>Max Profit (TP): +${dollarRewardAtTP.toFixed(2)}</div>}
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>CBOE VIX VOLATILITY</div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#10b981' }}>15.20 (-3.4%)</div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* 6. Section: Wall Street Quantitative Barometers & Institutional Setups */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '18px', padding: '22px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Zap size={18} style={{ color: '#8b5cf6' }} />
-              <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                Quantitative Barometers & Institutional Flow Models
-              </h2>
-            </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '3px 0 0 0' }}>
-              Algorithmic momentum scoring, dark-pool block flow, and technical pattern recognition
-            </p>
-          </div>
-
-          {/* Scanner Filter Pills */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {[
-              { id: 'all', label: 'All Models' },
-              { id: 'macd', label: 'MACD Golden Cross' },
-              { id: 'rsi', label: 'RSI Momentum' },
-              { id: 'sma', label: '200d SMA Breakout' },
-              { id: 'volume', label: 'Institutional Surge' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTechFilter(tab.id)}
-                style={{
-                  background: activeTechFilter === tab.id ? '#8b5cf6' : 'transparent',
-                  color: activeTechFilter === tab.id ? '#ffffff' : 'var(--text-secondary)',
-                  border: activeTechFilter === tab.id ? 'none' : '1px solid var(--border-color)',
-                  padding: '5px 12px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => setShowConfirmModal(false)}
+                style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid #E2E8F0', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
               >
-                {tab.label}
+                Cancel
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Quant Insight Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
-          {filteredQuantSignals.map((stock, i) => (
-            <div
-              key={i}
-              onClick={() => navigate(`/stock/${stock.symbol}`)}
-              style={{
-                padding: '18px',
-                borderRadius: '14px',
-                background: 'var(--bg-glass-light)',
-                border: '1px solid var(--border-color)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                position: 'relative'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.borderColor = '#8b5cf6';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-color)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>{stock.symbol}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{stock.name}</span>
-                  </div>
-                  <span style={{ fontSize: '10px', color: '#8b5cf6', fontWeight: 700, textTransform: 'uppercase' }}>
-                    {stock.assetClass}
-                  </span>
-                </div>
-                <span style={{ 
-                  fontSize: '11px', 
-                  fontWeight: 800, 
-                  background: 'rgba(139, 92, 246, 0.15)', 
-                  color: '#8b5cf6', 
-                  padding: '3px 8px', 
-                  borderRadius: '6px',
-                  border: '1px solid rgba(139, 92, 246, 0.3)'
-                }}>
-                  SCORE: {stock.score}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px' }}>
-                <span style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)' }}>{stock.price}</span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#10b981' }}>{stock.change}</span>
-              </div>
-
-              <div style={{ 
-                padding: '10px 12px', 
-                borderRadius: '8px', 
-                background: isLight ? '#f8fafc' : '#0f172a', 
-                border: '1px solid var(--border-color)', 
-                marginBottom: '12px' 
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#10b981' }}>
-                  SETUP: {stock.technicalPattern}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Institutional: {stock.institutionalFlow}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)', paddingTop: '10px' }}>
-                <span>Wall St. Target: <strong style={{ color: '#10b981' }}>{stock.target}</strong></span>
-                <span>Tactical Stop: <strong style={{ color: '#ef4444' }}>{stock.stoploss}</strong></span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 7. Live International Macro & Financial News Stream */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '18px', padding: '22px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Newspaper size={18} style={{ color: '#0ea5e9' }} />
-            <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              Live Global Intelligence & Macroeconomic Feed
-            </h2>
-          </div>
-          <button 
-            onClick={() => navigate('/news')} 
-            style={{ background: 'transparent', border: 'none', color: '#0ea5e9', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-          >
-            TERMINAL NEWS FEED <ChevronRight size={14} />
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
-          {news.slice(0, 6).map((n, i) => (
-            <a 
-              key={i} 
-              href={n.url} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={{ textDecoration: 'none' }}
-            >
-              <div style={{
-                padding: '16px',
-                borderRadius: '12px',
-                background: 'var(--bg-glass-light)',
-                border: '1px solid var(--border-color)',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.borderColor = '#0ea5e9';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-color)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              <button 
+                onClick={handlePlaceOrder}
+                style={{ flex: 1, padding: '12px', background: '#10B981', color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
               >
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                      {n.source} • {n.time}
-                    </span>
-                    <span style={{ 
-                      fontSize: '10px', 
-                      fontWeight: 800, 
-                      padding: '2px 6px', 
-                      borderRadius: '4px', 
-                      background: n.sentiment === 'Bullish' ? 'rgba(16, 185, 129, 0.15)' : (n.sentiment === 'Bearish' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)'), 
-                      color: n.sentiment === 'Bullish' ? '#10b981' : (n.sentiment === 'Bearish' ? '#ef4444' : 'var(--text-secondary)')
-                    }}>
-                      {n.sentiment ? n.sentiment.toUpperCase() : 'MARKET INTEL'}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700, lineHeight: '1.45', marginBottom: '8px' }}>
-                    {n.title}
-                  </div>
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    {n.description}
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#0ea5e9', fontWeight: 700, marginTop: '12px' }}>
-                  Read Full Wire <ExternalLink size={12} />
-                </div>
-              </div>
-            </a>
-          ))}
+                Confirm
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );

@@ -107,9 +107,11 @@ async function createTables() {
     )
   `);
 
-  // Add virtual_balance column to users table ($50,000 standard default, $1,000,000 for Pro)
-  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS virtual_balance DECIMAL(15,2) DEFAULT 50000.00`);
-  await query(`ALTER TABLE users ALTER COLUMN virtual_balance SET DEFAULT 50000.00`);
+  // Add virtual_balance column to users table
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS virtual_balance DECIMAL(15,2) DEFAULT 1000.00`);
+  await query(`ALTER TABLE users ALTER COLUMN virtual_balance SET DEFAULT 1000.00`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS gold_coins INT DEFAULT 100`);
+  await query(`ALTER TABLE users ALTER COLUMN gold_coins SET DEFAULT 100`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS virtual_refill_count INT DEFAULT 1`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS consecutive_sl_hits INT DEFAULT 0`);
 

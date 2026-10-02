@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import CandlestickBg from '../components/CandlestickBg';
 import Logo from '../components/Logo';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';
@@ -61,82 +60,105 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-container">
-      <CandlestickBg />
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', padding: '24px' }}>
       
       {!twoFactorRequired ? (
-        <div className="auth-card" style={{ animation: 'fadeIn 0.5s ease', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <Logo size={60} showName={true} showTagline={true} alignment="column" nameSize="26px" />
+        <div style={{ background: '#FFFFFF', padding: '48px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ marginBottom: '32px' }}>
+            <Logo size={50} showName={true} showTagline={false} />
           </div>
 
-          <h2 style={{ fontSize: '22px', fontWeight: '800', backgroundImage: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent', marginBottom: '8px', marginTop: '0' }}>Welcome Back</h2>
-          <p style={{ color: '#9b9eac', fontSize: '13px', marginBottom: '24px', textAlign: 'center', marginTop: '0' }}>Sign in to continue to NonStock</p>
-          <form onSubmit={handleLoginSubmit} style={{ width: '100%' }}>
-            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg, #00ff88, #00bcd4)', border: 'none', color: '#0a0e27', padding: '14px', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
-              {loading ? 'Logging in...' : 'Login'}
+          <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', marginBottom: '8px', textAlign: 'center' }}>Welcome Back</h2>
+          <p style={{ color: '#475569', fontSize: '14px', marginBottom: '32px', textAlign: 'center' }}>Sign in to access your Terminal</p>
+          
+          <form onSubmit={handleLoginSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <input 
+              type="email" 
+              placeholder="Email address" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+              style={{ padding: '14px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '15px', color: '#0F172A', width: '100%', outline: 'none' }} 
+            />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+              style={{ padding: '14px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '15px', color: '#0F172A', width: '100%', outline: 'none' }} 
+            />
+            <button 
+              type="submit" 
+              disabled={loading} 
+              style={{ background: '#10B981', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%', marginTop: '8px' }}
+            >
+              {loading ? 'Authenticating...' : 'Sign In'}
             </button>
           </form>
 
-          <div style={{ margin: '18px 0', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }}></div>
-            <span style={{ margin: '0 10px', color: '#9b9eac', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>or</span>
-            <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }}></div>
+          <div style={{ margin: '24px 0', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }}></div>
+            <span style={{ margin: '0 12px', color: '#64748B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600' }}>or</span>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#E2E8F0' }}></div>
           </div>
           
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleError}
-              theme="filled_dark"
-              shape="pill"
+              theme="outline"
+              size="large"
+              width="100%"
               text="signin_with"
             />
           </div>
 
-          <p style={{ marginTop: '16px', color: '#9b9eac' }}>Don't have an account? <Link to="/register" style={{ color: '#00ff88', textDecoration: 'none', fontWeight: '600' }}>Register</Link></p>
-          <p style={{ marginTop: '10px' }}><Link to="/forgot-password" style={{ color: '#00bcd4', textDecoration: 'none', fontSize: '13px' }}>Forgot Password?</Link></p>
+          <p style={{ color: '#475569', fontSize: '14px' }}>Don't have an account? <Link to="/register" style={{ color: '#10B981', textDecoration: 'none', fontWeight: '700' }}>Register</Link></p>
+          <p style={{ marginTop: '12px' }}><Link to="/forgot-password" style={{ color: '#3B82F6', textDecoration: 'none', fontSize: '14px', fontWeight: '600' }}>Forgot Password?</Link></p>
         </div>
       ) : (
-        <div className="auth-card" style={{ animation: 'fadeIn 0.5s ease', border: '1px solid rgba(0, 255, 136, 0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <Logo size={60} showName={true} showTagline={true} alignment="column" nameSize="26px" />
+        <div style={{ background: '#FFFFFF', padding: '48px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column', alignItems: 'center', border: '2px solid #10B981' }}>
+          <div style={{ marginBottom: '32px' }}>
+            <Logo size={50} showName={true} showTagline={false} />
           </div>
 
-          <h2 style={{ fontSize: '22px', fontWeight: '800', backgroundImage: 'linear-gradient(135deg, #00ff88, #00bcd4)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent', marginBottom: '8px', marginTop: '0' }}>2FA Verification</h2>
-          <p style={{ color: '#9b9eac', fontSize: '13px', marginBottom: '24px', textAlign: 'center', marginTop: '0', lineHeight: '1.5' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', marginBottom: '8px', textAlign: 'center' }}>2FA Verification</h2>
+          <p style={{ color: '#475569', fontSize: '14px', marginBottom: '32px', textAlign: 'center', lineHeight: '1.5' }}>
             Enter the 6-digit code from your <br />
-            <strong style={{ color: '#ffffff' }}>Google Authenticator</strong> app.
+            <strong>Google Authenticator</strong> app.
           </p>
           
-          <form onSubmit={handleTwoFactorSubmit} style={{ width: '100%' }}>
+          <form onSubmit={handleTwoFactorSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <input 
               type="text" 
               placeholder="000000" 
               value={twoFactorCode} 
               onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               maxLength={6}
-              style={{ textAlign: 'center', letterSpacing: '8px', fontSize: '24px', fontWeight: 'bold', padding: '14px', width: '100%', boxSizing: 'border-box' }}
+              style={{ textAlign: 'center', letterSpacing: '12px', fontSize: '28px', fontWeight: '800', padding: '16px', width: '100%', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none', color: '#0F172A' }}
               required 
             />
-            <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg, #00ff88, #00bcd4)', border: 'none', color: '#0a0e27', padding: '14px', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', marginTop: '10px', width: '100%' }}>
+            <button 
+              type="submit" 
+              disabled={loading} 
+              style={{ background: '#10B981', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}
+            >
               {loading ? 'Verifying...' : 'Verify & Login'}
             </button>
           </form>
           
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <button 
               type="button" 
               onClick={() => setTwoFactorRequired(false)} 
-              style={{ background: 'none', border: 'none', color: '#9b9eac', textDecoration: 'underline', cursor: 'pointer', fontSize: '13px' }}
+              style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}
             >
-              Back to Login
+              &larr; Back to Login
             </button>
           </div>
         </div>
       )}
     </div>
   );
-}
+}
