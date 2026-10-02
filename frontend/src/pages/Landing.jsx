@@ -1,2039 +1,1450 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import Logo from '../components/Logo';
 import { 
-  ShieldCheck, Cpu, Zap, Sparkles, Clock, ArrowRight, 
-  CheckCircle2, XCircle, ChevronDown, ChevronUp, Bot, 
-  Activity, Target, Lock, AlertTriangle, Compass, Layers,
-  BarChart3, RefreshCw, Coins, Crown, Play, Flame, Award,
-  Sliders, Check, TrendingUp, Key, Terminal, ExternalLink, Camera
+  ShieldCheck, Zap, Trophy, Medal, Award, Target, Flame, Coins, 
+  Crown, ArrowRight, CheckCircle2, XCircle, Search, Activity, 
+  Bot, Clock, FlaskConical, SlidersHorizontal, BarChart3, Users, 
+  ChevronDown, ChevronUp, Lock, Sparkles, TrendingUp, TrendingDown,
+  Layers, Compass, Check, AlertCircle, Eye, ExternalLink, HelpCircle
 } from 'lucide-react';
 
 export default function Landing() {
-  // Ensure body background is pure white while on Landing page
+  const navigate = useNavigate();
+
+  // Ensure body background is clean white while on Landing page
   useEffect(() => {
     const prevBg = document.body.style.backgroundColor;
     const prevColor = document.body.style.color;
-    document.body.style.backgroundColor = '#ffffff';
-    document.body.style.color = '#0f172a';
+    document.body.style.backgroundColor = '#FFFFFF';
+    document.body.style.color = '#0F172A';
     return () => {
       document.body.style.backgroundColor = prevBg;
       document.body.style.color = prevColor;
     };
   }, []);
 
-  // Active rule for the animated rules engine
-  const [activeRuleIndex, setActiveRuleIndex] = useState(0);
-  const [isAutoPlayingRules, setIsAutoPlayingRules] = useState(true);
+  // Persona Switcher State
+  const [activePersona, setActivePersona] = useState('educators'); // 'traders', 'educators', 'tipsters', 'propfirms'
 
-  // Interactive tier simulation state for Rule 3
-  const [simulatedEquity, setSimulatedEquity] = useState(1000);
+  // Interactive Edge & Tier Calculator State
+  const [winRate, setWinRate] = useState(58); // 58%
+  const [riskReward, setRiskReward] = useState(2.2); // 1:2.2 R:R
+  const [weeklyTrades, setWeeklyTrades] = useState(12); // 12 trades/week
+
+  // Calculate projected tier from user inputs
+  const calculatedEdge = useMemo(() => {
+    const expectedValuePerTrade = (winRate / 100) * riskReward - (1 - winRate / 100) * 1.0;
+    const monthlyTrades = weeklyTrades * 4;
+    const monthlyReturnPct = Math.max(0, expectedValuePerTrade * monthlyTrades * 1.5);
+    const projectedBalance = Math.round(1000 * (1 + monthlyReturnPct / 100));
+    
+    // Dynamic DER Score calculation
+    const derScore = Math.min(99.4, Math.max(50.0, 50 + (winRate - 40) * 0.8 + (riskReward - 1) * 12)).toFixed(1);
+    
+    let tierName = 'Contender';
+    let tierColor = '#0F172A';
+    let tierBg = '#F1F5F9';
+    let tierBorder = '#94A3B8';
+    let tierIcon = ShieldCheck;
+
+    if (projectedBalance >= 15000) {
+      tierName = 'Apex Operator';
+      tierColor = '#A855F7';
+      tierBg = '#FAF5FF';
+      tierBorder = '#C084FC';
+      tierIcon = Crown;
+    } else if (projectedBalance >= 8000) {
+      tierName = 'Master Titan';
+      tierColor = '#EF4444';
+      tierBg = '#FEF2F2';
+      tierBorder = '#FCA5A5';
+      tierIcon = Trophy;
+    } else if (projectedBalance >= 4000) {
+      tierName = 'Gold Sovereign';
+      tierColor = '#F59E0B';
+      tierBg = '#FFFBEB';
+      tierBorder = '#FCD34D';
+      tierIcon = Award;
+    } else if (projectedBalance >= 2000) {
+      tierName = 'Silver Prover';
+      tierColor = '#64748B';
+      tierBg = '#F8FAFC';
+      tierBorder = '#CBD5E1';
+      tierIcon = Medal;
+    }
+
+    return {
+      expectedValue: expectedValuePerTrade.toFixed(2),
+      monthlyReturn: monthlyReturnPct.toFixed(1),
+      projectedBalance,
+      derScore,
+      tierName,
+      tierColor,
+      tierBg,
+      tierBorder,
+      tierIcon
+    };
+  }, [winRate, riskReward, weeklyTrades]);
 
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState(0);
 
-  const scrollToSection = (id) => {
+  // Smooth scroll
+  const scrollTo = (id) => {
     const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
-
-  // ─── 6 COMPREHENSIVE ZIG-ZAG MODULES ───
-  const zigZagFeatures = [
-    {
-      id: 'trading-arena',
-      align: 'left', // image on left, text on right
-      badge: 'CORE ARENA • $1,000 PROVING CAPITAL',
-      badgeColor: '#10B981',
-      title: 'Real-Time Global Market Arena & Execution Desk',
-      subtitle: 'Institutional Speed with Zero Brokerage or Personal Capital Risk',
-      description: 'Step into a competitive trading terminal built for true skill validation. Connect to live exchange feeds across global crypto (BTC, ETH), commodities (Gold XAUUSD), forex (EURUSD), and leading global tech stocks (NVDA, AAPL). Execute Market, Limit, and Stop orders with dynamic position sizing and automated stop-loss protection.',
-      image: '/landing-dashboard-preview.png',
-      imageCaption: 'Live NVDA $895.42 candlestick chart with execution ticket, replay controls, and real-time indicators.',
-      tagText: 'Real-Time Terminal',
-      bulletPoints: [
-        'Instant order execution ticket with Market/Limit/Stop order types and % balance sizing',
-        'Built-in stop-loss and take-profit risk calculator enforcing strict risk-to-reward ratios',
-        'Real-time position tracking, live unrealized P&L calculations, and margin metrics',
-        '100% verified trades recorded in the engine — zero fake photoshop screenshots possible'
-      ],
-      edgeBox: 'Trade real market volatility with institutional precision. Prove your edge without risking your hard-earned savings.',
-      ctaText: 'Enter Trading Arena',
-      ctaRoute: '/trading'
-    },
-    {
-      id: 'ai-mentor',
-      align: 'right', // text on left, image on right
-      badge: 'GROQ LLaMA 3.3 70B • 24/7 RISK AUDITOR',
-      badgeColor: '#059669',
-      title: 'AI Trading Mentor: Pre-Trade Risk & Trap Auditor',
-      subtitle: 'Get Every Trade Setup Audited in Real-Time Before You Hit Execute',
-      description: 'Over 90% of retail traders blow their accounts due to emotional revenge trading and oversized positions. Powered by LLaMA 3.3 (70B) via Groq API, our AI Mentor scans live chart indicators, flags institutional liquidity sweeps and retail fakeouts, and evaluates your risk-to-reward ratio before you place an order.',
-      image: '/feature-ai-mentor.jpg',
-      imageCaption: 'Groq AI Mentor analyzing AAPL chart patterns, identifying liquidity traps, and verifying risk/reward ratio.',
-      tagText: 'Groq AI Engine',
-      bulletPoints: [
-        'Live technical ingestion: scans RSI, MACD crosses, support/resistance floors, and trend momentum',
-        'Identifies retail traps: warns against buying into liquidity fakeouts and selling the absolute floor',
-        'Conversational strategy backtester: ask "What if I buy when RSI < 30?" to generate backtests',
-        'Live AI Mentor Insight card directly below your order execution ticket on the trading desk'
-      ],
-      edgeBox: 'An unemotional, quantitative Wall Street risk officer watching your trades to prevent catastrophic drawdowns.',
-      ctaText: 'Consult AI Mentor',
-      ctaRoute: '/ai-mentor'
-    },
-    {
-      id: 'market-replay',
-      align: 'left', // image on left, text on right
-      badge: 'PRO EXCLUSIVE • 24/7 TIME MACHINE',
-      badgeColor: '#0284C7',
-      title: 'The Time Machine: Bar-by-Bar Historical Replay Engine',
-      subtitle: 'Trade Any Historical Market Session on Evenings & Weekends',
-      description: 'Stock exchanges close at 3:30 PM and stay shut all weekend — the exact time when retail traders have time to practice. The 24/7 Market Replay Engine lets you rewind the tape to any historical date, black out future candles, and replay candlesticks bar-by-bar at 1x to 5x speed with a full simulated trading desk.',
-      image: '/landing-replay-preview.png',
-      imageCaption: 'Historical candlestick replay simulator with play/pause, 1x-5x speed pills, and scrubber.',
-      tagText: 'Bar-by-Bar Replay',
-      bulletPoints: [
-        'Complete future candle blackout ensures honest, un-cheated pattern recognition practice',
-        'Variable replay speeds (1x, 2x, 5x) with instant pause, rewind, and bar-by-bar step controls',
-        'Execute simulated practice orders directly while the historical tape rolls forward',
-        'Compress months of chart screen time into a single focused weekend session'
-      ],
-      edgeBox: 'Accelerate your learning curve by 10x. Practice 50+ real price action setups before Monday morning opens.',
-      ctaText: 'Launch Replay Engine',
-      ctaRoute: '/replay'
-    },
-    {
-      id: 'coins-vault',
-      align: 'right', // text on left, image on right
-      badge: 'MERITOCRACY • DISCIPLINE STREAKS',
-      badgeColor: '#D97706',
-      title: 'Gold Coins Vault & Dynamic Navbar Arrival',
-      subtitle: 'Earn Coins on Discipline Streaks. Unlock Pro Edge-Building Tools.',
-      description: 'NonStock turns risk discipline into a game of mastery. Trade with strict risk management, log in daily, and maintain trade discipline to stack Gold Coins in your vault. Use your earned coins to unlock advanced edge-building tools — which directly arrive in your top navigation bar the moment you unlock them.',
-      image: '/landing-vault-badge-preview.png',
-      imageCaption: 'Gold Coins Vault with 4-Day Discipline Streak counter and verified Non-Tipster proving account badge.',
-      tagText: 'Utility Sink Economy',
-      bulletPoints: [
-        'Daily discipline streak rewards: earn +25 Gold Coins daily for consistent adherence to rules',
-        'Unlock edge-building tools: Screener (150c), AI Mentor (200c), Strategy Lab (300c), Replay (500c)',
-        'Zero-delay navbar arrival: unlocked tools instantly dock right into your top navigation bar',
-        'Pro accounts automatically unlock all 4 premium tools with unlimited permanent access'
-      ],
-      edgeBox: 'Coins cannot be bought with cheap shortcuts. They are proof of psychological consistency and patience.',
-      ctaText: 'View Dashboard & Vault',
-      ctaRoute: '/dashboard'
-    },
-    {
-      id: 'bailout-shop',
-      align: 'left', // image on left, text on right
-      badge: 'STRICT 1:3 RATIO • BANKRUPTCY LOCK',
-      badgeColor: '#EF4444',
-      title: 'The Capital Bailout Shop: Real Consequence Recapitalization',
-      subtitle: 'Bankrupt? Refuel with 1:3 Ratio Virtual Capital to Keep Skin in the Game',
-      description: 'Broke your paper trading account? In the real world, reckless over-leveraging leads to bankruptcy. If your virtual portfolio balance drops to $0.00, your terminal locks and the Bailout Shop activates. Purchase fresh virtual capital with real money starting at a strict 1:3 ratio ($1,000 capital for $333.33) up to $1,000,000.',
-      image: '/feature-paper-trading.jpg',
-      imageCaption: 'Bailout Shop showing 1:3 conversion ratios, bankruptcy status check, and recapitalization tiers.',
-      tagText: 'Skin in the Game',
-      bulletPoints: [
-        'Strict bankruptcy requirement: the shop only unlocks when your equity hits exactly $0.00',
-        '1:3 real-to-virtual conversion ratio maintains emotional stakes and stops careless click-festing',
-        'Tiered capital sizes from $1,000 up to $1,000,000 with progressive volume bonuses',
-        'Full audit trail logging records every bailout, ensuring leaderboard transparency'
-      ],
-      edgeBox: 'Treat your simulation like real wealth. Blowing up has consequences; staying disciplined keeps you in the game.',
-      ctaText: 'Visit Bailout Shop',
-      ctaRoute: '/shop'
-    },
-    {
-      id: 'strategy-builder',
-      align: 'right', // text on left, image on right
-      badge: 'NO-CODE LOGIC • PINE SCRIPT EXPORT',
-      badgeColor: '#8B5CF6',
-      title: 'No-Code Strategy Builder & Quantitative Backtester',
-      subtitle: 'Turn Discretionary Gut Feelings Into Mathematically Tested Rules',
-      description: 'Stop executing based on random Telegram tips. Visually construct algorithmic trading rules connecting indicators like EMA crossovers, RSI extremes, and stop-loss rules. Instantly run 1-year historical backtests to evaluate win rates, profit factors, Sharpe ratios, and equity curves before you trade.',
-      image: '/feature-strategy-lab.jpg',
-      imageCaption: 'Drag-and-drop indicator conditions with 1-year backtest report and Pine Script generator.',
-      tagText: 'Quantitative Lab',
-      bulletPoints: [
-        'Visual logic builder: combine RSI, EMA, MACD, and Price action triggers without coding',
-        'Comprehensive quantitative reports: total return, win rate, profit factor, and Sharpe ratio',
-        'Visual equity curve with historical buy and sell execution markers across past bull & bear cycles',
-        '1-click Pine Script code generation ready to deploy directly onto TradingView charts'
-      ],
-      edgeBox: 'Rule-based quantitative setups eliminate hesitation and fear. Validate your expectancy before risking capital.',
-      ctaText: 'Launch Strategy Lab',
-      ctaRoute: '/strategy-builder'
-    }
-  ];
-
-  // ─── 6 ANIMATED PROVING RULES ───
-  const provingRules = [
-    {
-      step: 'RULE 01',
-      title: 'The $1,000 Proving Account',
-      subtitle: 'Equal Ground. Zero Pay-to-Win Cheats.',
-      desc: 'Every trader begins with exactly $1,000 in proving equity. There are no artificial balance inflations or rigged starting points. Whether you are an experienced prop trader or an ambitious beginner, your rank is determined solely by your percentage return and risk discipline.',
-      icon: <Target size={24} color="#10B981" />,
-      color: '#10B981',
-      stats: 'Initial Balance: $1,000.00'
-    },
-    {
-      step: 'RULE 02',
-      title: '100% Cryptographic Trade Ledger',
-      subtitle: 'Eliminating Photoshopped P&L Forever.',
-      desc: 'Every order ticket, fill price, timestamp, stop-loss adjustment, and exit is permanently committed to our database. If a trader claims a 90% win rate or massive gains, our system calculates their true Discipline & Execution Rating (DER). Scammers cannot fake their track record here.',
-      icon: <ShieldCheck size={24} color="#059669" />,
-      color: '#059669',
-      stats: 'Verification: NS-c141ad16 Verified Non-Tipster'
-    },
-    {
-      step: 'RULE 03',
-      title: 'Prestige Badge Tier Progression',
-      subtitle: 'Grow Your Equity to Ascend the Hall of Fame.',
-      desc: 'As your verified account balance grows through disciplined risk management, you unlock prestigious status badges that glow on your profile and appear on the Global Hall of Fame:',
-      icon: <Award size={24} color="#8B5CF6" />,
-      color: '#8B5CF6',
-      stats: 'Tiers: Contender → Silver → Gold → Master → Operator'
-    },
-    {
-      step: 'RULE 04',
-      title: 'Gold Coins & Discipline Streaks',
-      subtitle: 'Patience & Risk Consistency are Generously Rewarded.',
-      desc: 'Maintain daily discipline to earn +25 Gold Coins every day in your vault. Consecutive winning sessions and clean risk-to-reward ratios add streak multipliers. Careless over-leveraging burns coins and halts your streak.',
-      icon: <Flame size={24} color="#F59E0B" />,
-      color: '#F59E0B',
-      stats: 'Streak: +25 Daily Coins • 4-Day Discipline Fire'
-    },
-    {
-      step: 'RULE 05',
-      title: 'Feature Gating: Direct Navbar Arrival',
-      subtitle: 'Earn Platform Superpowers with Gold Coins.',
-      desc: 'Advanced tools are not handed out for free — they are earned through proven discipline. Spend 150 coins for the Screener, 200 for Groq AI Mentor, 300 for Strategy Lab, or 500 for Replay. The second you unlock a tool, it dynamically arrives as an active button in your top navbar.',
-      icon: <Compass size={24} color="#0284C7" />,
-      color: '#0284C7',
-      stats: 'Unlocked Tools: Screener, AI Mentor, Strategy Lab, Replay'
-    },
-    {
-      step: 'RULE 06',
-      title: 'The Zero-Coin & 1:3 Bailout Rule',
-      subtitle: 'Real Stakes: Bankruptcy Freezes Your Desk.',
-      desc: 'Blowing your account to $0.00 has real psychological weight. The platform locks your trading desk and redirects you to the Bailout Shop. You can only resume trading by purchasing a disciplined 1:3 bailout with real funds, ensuring traders never treat simulation like a mindless video game.',
-      icon: <Coins size={24} color="#EF4444" />,
-      color: '#EF4444',
-      stats: 'Bailout Ratio: 1:3 ($1k to $1M)'
-    }
-  ];
-
-  // Auto-cycle through rules if auto-play is enabled
-  useEffect(() => {
-    if (!isAutoPlayingRules) return;
-    const interval = setInterval(() => {
-      setActiveRuleIndex((prev) => (prev + 1) % provingRules.length);
-    }, 4500);
-    return () => clearInterval(interval);
-  }, [isAutoPlayingRules, provingRules.length]);
-
-  // Dynamic Tier Badge calculation based on simulated equity
-  const getSimulatedBadge = (eq) => {
-    if (eq >= 15000) return { name: 'OPERATOR', color: '#A855F7', glow: '0 0 20px rgba(168, 85, 247, 0.7)' };
-    if (eq >= 8000) return { name: 'MASTER', color: '#EF4444', glow: '0 0 16px rgba(239, 68, 68, 0.5)' };
-    if (eq >= 4000) return { name: 'GOLD', color: '#F59E0B', glow: '0 0 16px rgba(245, 158, 11, 0.5)' };
-    if (eq >= 2000) return { name: 'SILVER', color: '#94A3B8', glow: '0 0 12px rgba(148, 163, 184, 0.4)' };
-    return { name: 'CONTENDER', color: '#64748B', glow: 'none' };
-  };
-
-  const currentBadge = getSimulatedBadge(simulatedEquity);
-
-  const faqs = [
-    {
-      q: 'What is NonStock and what problem does it solve?',
-      a: 'NonStock is the #1 verified competitive paper trading and skill proving platform. We solve the epidemic of fake profits and photoshopped P&L screenshots. On NonStock, every trade is cryptographically recorded in our engine. You start with a $1,000 proving balance, trade real market data, earn Gold Coins, and prove your true mathematical edge.'
-    },
-    {
-      q: 'How does the feature unlocking and navbar arrival work?',
-      a: 'As you trade with disciplined risk and maintain daily streaks, you accumulate Gold Coins in your vault. You can spend these coins in the Feature Vault to unlock tools like the Real-Time Screener (150 coins), Groq AI Mentor (200 coins), Strategy Lab (300 coins), and 24/7 Market Replay (500 coins). As soon as a tool is unlocked, it directly arrives in your top navigation bar for instant access!'
-    },
-    {
-      q: 'What powers the AI Trading Mentor?',
-      a: 'The AI Mentor is powered by LLaMA 3.3 (70B) via the ultra-fast Groq API. It operates both on its dedicated analysis page and live directly below the order execution ticket in the trading arena. It evaluates support/resistance levels, scans for bull/bear traps and liquidity sweeps, and checks your risk-to-reward ratio before you place an order.'
-    },
-    {
-      q: 'Can I practice trading when markets are closed on weekends?',
-      a: 'Yes! Our 24/7 Market Replay Engine allows you to trade historical market sessions bar-by-bar at 1x to 5x speed even when exchanges are closed. With future candle blackout, it provides the most authentic price action practice experience available.'
-    },
-    {
-      q: 'What is the 1:3 Bailout Shop?',
-      a: 'If you gamble carelessly and your virtual portfolio drops to $0.00, your terminal locks into bankruptcy mode. The Bailout Shop unlocks, allowing you to recapitalize your paper trading balance using real money at a strict 1:3 conversion ratio. This introduces real consequences to simulation and forces serious risk discipline.'
-    },
-    {
-      q: 'Do I need a broker or Demat account to use NonStock?',
-      a: 'No Demat or brokerage account is needed. NonStock operates with real-time global live feeds and our independent verified matching engine, allowing anyone in the world to prove their trading acumen completely risk-free.'
-    }
-  ];
 
   return (
-    <div className="landing-root">
-      {/* ─── 1. TOP STICKY NAVBAR ─── */}
-      <nav className="landing-navbar">
-        <div className="navbar-inner">
-          <Link to="/" className="navbar-brand">
-            <Logo size={36} showName={true} showTagline={true} />
+    <div style={{ minHeight: '100vh', background: '#FFFFFF', color: '#0F172A', fontFamily: 'Inter, sans-serif', overflowX: 'hidden' }}>
+      
+      {/* ─── 1. TOP GLOBAL NAVIGATION ─── */}
+      <header style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        background: 'rgba(255, 255, 255, 0.92)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid #E2E8F0',
+        padding: '0 32px',
+        height: '70px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
+          <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
+            <Logo size={36} showName={true} showTagline={false} nameSize="22px" />
+          </div>
+
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
+            <button onClick={() => scrollTo('why-nonstock')} style={navLinkStyle}>Why NonStock</button>
+            <button onClick={() => scrollTo('the-arena')} style={navLinkStyle}>The Arena</button>
+            <button onClick={() => scrollTo('personas')} style={navLinkStyle}>For Tipsters & Educators</button>
+            <button onClick={() => scrollTo('calculator')} style={navLinkStyle}>Edge Simulator</button>
+            <button onClick={() => scrollTo('hall-of-fame')} style={navLinkStyle}>Leaderboard</button>
+            <button onClick={() => scrollTo('faq')} style={navLinkStyle}>FAQ</button>
+          </nav>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <Link 
+            to="/login"
+            style={{
+              padding: '9px 18px',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: 700,
+              color: '#334155',
+              textDecoration: 'none',
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              transition: 'all 0.15s'
+            }}
+          >
+            Sign In
           </Link>
 
-          <div className="navbar-links">
-            <button onClick={() => scrollToSection('features-zigzag')} className="navbar-link-btn">
-              <Compass size={16} className="text-green" />
-              <span>Features Showcase</span>
-            </button>
-            <button onClick={() => scrollToSection('animated-rules')} className="navbar-link-btn">
-              <Award size={16} className="text-green" />
-              <span>The Proving Rules</span>
-            </button>
-            <button onClick={() => scrollToSection('faq')} className="navbar-link-btn">
-              <Clock size={16} className="text-green" />
-              <span>FAQ</span>
-            </button>
-          </div>
-
-          <div className="navbar-actions">
-            <Link to="/login" className="btn-nav-login">Sign In</Link>
-            <Link to="/register" className="btn-nav-cta">
-              <span>Start Proving</span>
-              <ArrowRight size={15} />
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* ─── 2. HERO SECTION ─── */}
-      <header className="hero-section">
-        <div className="hero-container">
-          <div className="hero-badge">
-            <span className="badge-pulse-dot"></span>
-            <span className="badge-text">THE #1 VERIFIED COMPETITIVE TRADING ARENA</span>
-          </div>
-
-          <h1 className="hero-title">
-            Prove Your Trading Skills. <br />
-            <span className="hero-gradient-text">Expose Fake Tipsters.</span>
-          </h1>
-
-          <p className="hero-description">
-            The era of fake screenshots and paper gurus is officially over. NonStock is the first competitive trading arena where every trade, rank, and badge is 100% mathematically verified. Start with a <strong className="text-highlight">$1,000 proving account</strong>, earn Gold Coins on discipline streaks, unlock pro tools that arrive in your navbar, and rise to the prestigious Operator status.
-          </p>
-
-          <div className="hero-actions">
-            <Link to="/register" className="btn-hero-primary">
-              <span>Enter The Proving Arena</span>
-              <ArrowRight size={18} />
-            </Link>
-            <button onClick={() => scrollToSection('features-zigzag')} className="btn-hero-secondary">
-              <Compass size={18} className="text-green" />
-              <span>Explore The Platform</span>
-            </button>
-          </div>
-
-          {/* Quick Trust Highlights */}
-          <div className="hero-trust-row">
-            <div className="trust-pill">
-              <ShieldCheck size={16} className="text-green" />
-              <span>100% Cryptographically Verified Trades</span>
-            </div>
-            <div className="trust-dot">•</div>
-            <div className="trust-pill">
-              <Bot size={16} className="text-green" />
-              <span>Groq LLaMA 3.3 AI Mentor</span>
-            </div>
-            <div className="trust-dot">•</div>
-            <div className="trust-pill">
-              <Clock size={16} className="text-green" />
-              <span>24/7 Bar-by-Bar Historical Replay</span>
-            </div>
-            <div className="trust-dot">•</div>
-            <div className="trust-pill">
-              <Coins size={16} className="text-green" />
-              <span>Gold Coins Vault & Tier Badges</span>
-            </div>
-          </div>
-
-          {/* Hero Window Mockup with Actual Live Interface */}
-          <div className="hero-preview-wrapper">
-            <div className="hero-preview-card">
-              <div className="preview-window-bar">
-                <div className="window-dots">
-                  <span className="dot red"></span>
-                  <span className="dot yellow"></span>
-                  <span className="dot green"></span>
-                </div>
-                <div className="window-address">
-                  nonstock.trade // verified competitive dashboard
-                </div>
-                <div className="window-tag">Verified Platform</div>
-              </div>
-              <img 
-                src="/landing-dashboard-preview.png" 
-                alt="NonStock Live Competitive Trading Desk and Analytics Interface" 
-                className="hero-preview-img"
-              />
-            </div>
-            <p className="preview-caption">
-              Actual interface: Real-time global market charts, verifiable skill ranking (DER Score), and unlockable badges.
-            </p>
-          </div>
+          <Link
+            to="/register"
+            style={{
+              padding: '10px 22px',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: 800,
+              color: '#FFFFFF',
+              textDecoration: 'none',
+              background: '#10B981',
+              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.15s'
+            }}
+          >
+            <span>Start Proving ($1,000 Free)</span>
+            <ArrowRight size={15} />
+          </Link>
         </div>
       </header>
 
-      {/* ─── 3. SECTION: THE PROVING RULES (ANIMATED FORM) ─── */}
-      <section id="animated-rules" className="section rules-section">
-        <div className="section-container">
-          <div className="section-header">
-            <div className="section-eyebrow">
-              <Award size={16} className="text-green" />
-              <span>THE NONSTOCK CODE OF DISCIPLINE</span>
+      {/* ─── 2. HERO SECTION: MONUMENTAL BIG TEXT THEME ─── */}
+      <section style={{
+        position: 'relative',
+        padding: '80px 24px 70px 24px',
+        maxWidth: '1280px',
+        margin: '0 auto',
+        textAlign: 'center'
+      }}>
+        {/* Glow Accent Circles */}
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '600px',
+          height: '350px',
+          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(255, 255, 255, 0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {/* Eyebrow Pill */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '6px 18px',
+            borderRadius: '999px',
+            background: '#F0FDF4',
+            border: '1.5px solid #BBF7D0',
+            color: '#15803D',
+            fontSize: '12px',
+            fontWeight: 800,
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+            marginBottom: '28px',
+            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)'
+          }}>
+            <ShieldCheck size={16} color="#10B981" />
+            <span>The World's First Verifiable Trading Proving Protocol</span>
+          </div>
+
+          {/* Monumental Headline */}
+          <h1 style={{
+            fontSize: 'clamp(42px, 6.2vw, 76px)',
+            fontWeight: 900,
+            lineHeight: 1.05,
+            letterSpacing: '-1.8px',
+            color: '#0F172A',
+            maxWidth: '1050px',
+            margin: '0 auto 24px auto'
+          }}>
+            Stop Flexing Fake Screenshots. <br />
+            <span style={{
+              background: 'linear-gradient(135deg, #059669 0%, #10B981 50%, #0284C7 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              Prove Your True Market Edge.
+            </span>
+          </h1>
+
+          {/* Deep Explanatory Description */}
+          <p style={{
+            fontSize: 'clamp(16px, 1.4vw, 20px)',
+            color: '#475569',
+            lineHeight: 1.6,
+            maxWidth: '820px',
+            margin: '0 auto 40px auto',
+            fontWeight: 500
+          }}>
+            The financial internet is plagued by photoshopped MT4 profits, cherry-picked trades, and reckless Telegram tipsters who hide their real blowups. <strong>NonStock</strong> is the transparent, mathematical proving ground. Every order, stop loss, and drawdown is verified on an unalterable ledger. 
+            <strong> Know yourself, prove who is truly better, and stand out in the global arena.</strong>
+          </p>
+
+          {/* Action CTAs */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '40px' }}>
+            <Link
+              to="/register"
+              style={{
+                padding: '16px 36px',
+                borderRadius: '12px',
+                background: '#10B981',
+                color: '#FFFFFF',
+                fontSize: '16px',
+                fontWeight: 800,
+                textDecoration: 'none',
+                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'transform 0.15s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              <span>Enter The Proving Arena ($1,000 Free)</span>
+              <ArrowRight size={18} />
+            </Link>
+
+            <button
+              onClick={() => scrollTo('the-arena')}
+              style={{
+                padding: '16px 30px',
+                borderRadius: '12px',
+                background: '#F8FAFC',
+                border: '1.5px solid #CBD5E1',
+                color: '#334155',
+                fontSize: '16px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.15s'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#94A3B8'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
+            >
+              <Trophy size={18} color="#D97706" />
+              <span>Explore The Rules & Tiers</span>
+            </button>
+          </div>
+
+          {/* Trust Value Badges */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '28px',
+            flexWrap: 'wrap',
+            fontSize: '13px',
+            fontWeight: 700,
+            color: '#64748B'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircle2 size={16} color="#10B981" />
+              <span>Equal $1,000 Starting Baseline</span>
             </div>
-            <h2 className="section-heading">
-              How The Platform Works: <br />
-              <span className="text-green">Rules Explained in Animated Form.</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircle2 size={16} color="#10B981" />
+              <span>Zero Personal Capital At Risk</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircle2 size={16} color="#10B981" />
+              <span>Mathematical DER Edge Score</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircle2 size={16} color="#10B981" />
+              <span>100% Anti-Fake Verified Ledger</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Hero Interactive Terminal Display Card */}
+        <div style={{
+          marginTop: '60px',
+          background: '#0F172A',
+          borderRadius: '24px',
+          padding: '16px',
+          boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.35)',
+          border: '2px solid #1E293B',
+          textAlign: 'left'
+        }}>
+          {/* Window Control Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px 14px 16px', borderBottom: '1px solid #1E293B' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#EF4444' }} />
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#F59E0B' }} />
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#10B981' }} />
+              <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700, marginLeft: '12px' }}>
+                nonstock-terminal // live-proving-engine v2.4
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: '#10B981',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                padding: '3px 10px',
+                borderRadius: '999px',
+                fontSize: '11px',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}>
+                <Activity size={12} />
+                <span>EXCHANGE TICKS ACTIVE</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Terminal Mock Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', padding: '20px 8px 8px 8px' }}>
+            
+            {/* Box 1: Prover Status */}
+            <div style={{ background: '#1E293B', borderRadius: '14px', padding: '20px', border: '1px solid #334155' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                VERIFIED PROVER
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span>Alex_Quant</span>
+                <span style={{ background: '#0F172A', color: '#10B981', border: '1.5px solid #10B981', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 900 }}>
+                  GOLD PROVER
+                </span>
+              </div>
+              <div style={{ fontSize: '13px', color: '#CBD5E1', marginTop: '6px' }}>
+                Proving Capital: <strong style={{ color: '#10B981' }}>$4,410.25</strong> (+$3,410.25 Profit)
+              </div>
+              <div style={{ height: '6px', background: '#334155', borderRadius: '6px', marginTop: '12px', overflow: 'hidden' }}>
+                <div style={{ width: '74%', height: '100%', background: '#F59E0B', borderRadius: '6px' }} />
+              </div>
+            </div>
+
+            {/* Box 2: DER Score */}
+            <div style={{ background: '#1E293B', borderRadius: '14px', padding: '20px', border: '1px solid #334155' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                DISCIPLINE & EDGE RATING
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: 900, color: '#10B981', marginTop: '4px' }}>
+                88.5 <span style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 700 }}>/ 100</span>
+              </div>
+              <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+                Risk Invalidation: <strong>100% SL Protected</strong> • Max DD: <strong>3.8%</strong>
+              </div>
+            </div>
+
+            {/* Box 3: Coins & Streak */}
+            <div style={{ background: '#1E293B', borderRadius: '14px', padding: '20px', border: '1px solid #334155' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                GOLD COIN VAULT & STREAK
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: 900, color: '#FACC15', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Coins size={24} color="#FACC15" />
+                <span>375 Coins</span>
+              </div>
+              <div style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 700, marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Flame size={14} color="#EA580C" /> 7-Day Discipline Streak (+25 daily)
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 3. SECTION: WHY NONSTOCK? KNOW YOURSELF. KNOW WHO IS BETTER ─── */}
+      <section id="why-nonstock" style={{
+        padding: '90px 24px',
+        background: '#F8FAFC',
+        borderTop: '1px solid #E2E8F0',
+        borderBottom: '1px solid #E2E8F0'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          
+          <div style={{ textAlign: 'center', maxWidth: '850px', margin: '0 auto 60px auto' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+              THE CORE PURPOSE
+            </span>
+            <h2 style={{ fontSize: 'clamp(32px, 4vw, 50px)', fontWeight: 900, letterSpacing: '-1px', color: '#0F172A', margin: '10px 0 18px 0' }}>
+              Why NonStock Exists: The Antidote to Trading Delusion.
             </h2>
-            <p className="section-subheading">
-              Our verified competitive framework eliminates luck and gambling. Click any rule below to see how our engine enforces discipline, calculates DER skill score, and unlocks badges.
+            <p style={{ fontSize: '17px', color: '#64748B', lineHeight: 1.6, fontWeight: 500 }}>
+              Trading without verified discipline is just gambling with a financial dictionary. NonStock was engineered to solve the three greatest dysfunctions in modern retail finance.
             </p>
           </div>
 
-          {/* Interactive Animated Rule Engine Container */}
-          <div className="rules-engine-card">
-            {/* Top Interactive Progress Tabs */}
-            <div className="rules-tabs-nav">
-              {provingRules.map((rule, idx) => {
-                const isActive = activeRuleIndex === idx;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setActiveRuleIndex(idx);
-                      setIsAutoPlayingRules(false);
-                    }}
-                    className={`rule-tab-btn ${isActive ? 'active' : ''}`}
-                    style={{
-                      borderColor: isActive ? rule.color : '#E2E8F0'
-                    }}
-                  >
-                    <div className="rule-tab-step">{rule.step}</div>
-                    <div className="rule-tab-label">{rule.title.split(':')[0]}</div>
-                    {isActive && <div className="rule-tab-indicator" style={{ background: rule.color }}></div>}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Main Animated Rule Stage */}
-            <div className="rule-stage-content">
-              <div className="rule-stage-left">
-                <div className="rule-badge-pill" style={{ background: `${provingRules[activeRuleIndex].color}15`, color: provingRules[activeRuleIndex].color }}>
-                  <span>{provingRules[activeRuleIndex].step}</span>
-                  <span className="rule-dot">•</span>
-                  <span>MANDATORY PROTOCOL</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '28px' }}>
+            
+            {/* Pillar 1: Know Yourself */}
+            <div style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '36px 32px',
+              border: '1.5px solid #E2E8F0',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: '#F0FDF4',
+                  border: '1px solid #BBF7D0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '20px'
+                }}>
+                  <Target size={28} color="#10B981" />
                 </div>
-
-                <h3 className="rule-stage-title" style={{ color: '#0F172A' }}>
-                  {provingRules[activeRuleIndex].title}
+                <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', marginBottom: '12px' }}>
+                  1. Know Yourself First
                 </h3>
-                <h4 className="rule-stage-subtitle" style={{ color: provingRules[activeRuleIndex].color }}>
-                  {provingRules[activeRuleIndex].subtitle}
-                </h4>
-
-                <p className="rule-stage-desc">
-                  {provingRules[activeRuleIndex].desc}
+                <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                  Do you actually possess a positive mathematical edge, or are you surviving on random winning streaks before the inevitable blowup? NonStock strips away emotional bias. Track your true win-rate, risk-to-reward ratio, and drawdown velocity on a 100% safe, verified proving ground before risking real family savings.
                 </p>
-
-                <div className="rule-stage-stats-box">
-                  <div className="stats-box-icon" style={{ background: `${provingRules[activeRuleIndex].color}15` }}>
-                    {provingRules[activeRuleIndex].icon}
-                  </div>
-                  <div>
-                    <div className="stats-box-label">ENGINE CONSTRAINT</div>
-                    <div className="stats-box-value">{provingRules[activeRuleIndex].stats}</div>
-                  </div>
-                </div>
-
-                <div className="rule-stage-controls">
-                  <button
-                    onClick={() => setIsAutoPlayingRules(!isAutoPlayingRules)}
-                    className="btn-rule-autoplay"
-                  >
-                    {isAutoPlayingRules ? (
-                      <><span>Pause Animation</span> <span className="pulse-circle"></span></>
-                    ) : (
-                      <><span>Auto-Play Rules</span> <Play size={14} /></>
-                    )}
-                  </button>
-                  <span className="rule-counter-text">
-                    Step {activeRuleIndex + 1} of {provingRules.length}
-                  </span>
-                </div>
               </div>
 
-              {/* Right: Live Interactive Rule Simulation Visualizer */}
-              <div className="rule-stage-right">
-                {activeRuleIndex === 2 ? (
-                  /* Interactive Tier Simulation Visualizer */
-                  <div className="simulated-tier-card">
-                    <div className="tier-sim-header">
-                      <span className="sim-title">Live Tier & Badge Simulator</span>
-                      <span className="sim-live-tag">Interactive</span>
-                    </div>
+              <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #F1F5F9', fontSize: '13px', fontWeight: 800, color: '#10B981', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={16} /> Objective Mathematical Self-Discovery
+              </div>
+            </div>
 
-                    <div className="tier-badge-showcase" style={{ boxShadow: currentBadge.glow }}>
-                      <div className="tier-badge-icon" style={{ borderColor: currentBadge.color, color: currentBadge.color }}>
-                        {currentBadge.name[0]}
-                      </div>
-                      <div className="tier-badge-details">
-                        <div className="tier-user-name">Trader Admin</div>
-                        <div className="tier-badge-name" style={{ color: currentBadge.color }}>
-                          {currentBadge.name} TIER
-                        </div>
-                      </div>
-                    </div>
+            {/* Pillar 2: Know Who is Better */}
+            <div style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '36px 32px',
+              border: '1.5px solid #E2E8F0',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '20px'
+                }}>
+                  <Trophy size={28} color="#3B82F6" />
+                </div>
+                <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', marginBottom: '12px' }}>
+                  2. Settle Who is Truly Better
+                </h3>
+                <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                  Anyone can talk theory, quote candlestick patterns, and argue in comment sections. But talk is free. In NonStock, everyone begins with the exact same <strong>$1,000 capital baseline</strong>. Rankings are determined purely by disciplined execution, mathematical returns, and risk control. No pay-to-win. No inspect-element cheating.
+                </p>
+              </div>
 
-                    <div className="tier-slider-group">
-                      <div className="slider-label-row">
-                        <span>Simulated Account Equity:</span>
-                        <strong style={{ color: '#10B981', fontSize: '18px' }}>
-                          ${simulatedEquity.toLocaleString()}
-                        </strong>
-                      </div>
-                      <input 
-                        type="range" 
-                        min="1000" 
-                        max="20000" 
-                        step="500" 
-                        value={simulatedEquity}
-                        onChange={(e) => {
-                          setSimulatedEquity(Number(e.target.value));
-                          setIsAutoPlayingRules(false);
-                        }}
-                        className="equity-slider"
-                      />
-                      <div className="slider-ticks">
-                        <span>$1K (Contender)</span>
-                        <span>$4K (Gold)</span>
-                        <span>$8K (Master)</span>
-                        <span>$15K+ (Operator)</span>
-                      </div>
-                    </div>
+              <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #F1F5F9', fontSize: '13px', fontWeight: 800, color: '#3B82F6', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={16} /> Public Tamper-Proof Leaderboard
+              </div>
+            </div>
 
-                    <div className="tier-milestone-pills">
-                      <div className={`milestone-pill ${simulatedEquity >= 1000 ? 'done' : ''}`}>
-                        Contender $1K
-                      </div>
-                      <div className={`milestone-pill ${simulatedEquity >= 2000 ? 'done' : ''}`}>
-                        Silver $2K
-                      </div>
-                      <div className={`milestone-pill ${simulatedEquity >= 4000 ? 'done' : ''}`}>
-                        Gold $4K
-                      </div>
-                      <div className={`milestone-pill ${simulatedEquity >= 8000 ? 'done' : ''}`}>
-                        Master $8K
-                      </div>
-                      <div className={`milestone-pill ${simulatedEquity >= 15000 ? 'done neon' : ''}`}>
-                        Operator $15K
-                      </div>
-                    </div>
+            {/* Pillar 3: Tipsters & Educators */}
+            <div style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '36px 32px',
+              border: '1.5px solid #E2E8F0',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: '#FEF9C3',
+                  border: '1px solid #FDE047',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '20px'
+                }}>
+                  <Crown size={28} color="#D97706" />
+                </div>
+                <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', marginBottom: '12px' }}>
+                  3. The Ultimate Asset For Educators & Tipsters
+                </h3>
+                <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                  Legitimate financial educators and tipsters face constant skepticism from online audiences burned by scammers. NonStock is your ultimate badge of honour. Link your verified NonStock track record in your bio to prove to your followers that you trade with genuine, audited mathematical discipline.
+                </p>
+              </div>
+
+              <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #F1F5F9', fontSize: '13px', fontWeight: 800, color: '#D97706', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={16} /> Unforgeable Professional Credibility
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 4. SECTION: PERSONA SHOWCASE (WHO NONSTOCK IS BUILT FOR) ─── */}
+      <section id="personas" style={{ padding: '90px 24px', maxWidth: '1200px', margin: '0 auto' }}>
+        
+        <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 48px auto' }}>
+          <span style={{ fontSize: '12px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+            TAILORED ADVANTAGES
+          </span>
+          <h2 style={{ fontSize: 'clamp(32px, 3.8vw, 46px)', fontWeight: 900, letterSpacing: '-1px', color: '#0F172A', margin: '10px 0 16px 0' }}>
+            Built For Anyone Who Takes Market Skill Seriously.
+          </h2>
+          <p style={{ fontSize: '16px', color: '#64748B', fontWeight: 500 }}>
+            Select your profile to discover how NonStock elevates your market presence and skill.
+          </p>
+        </div>
+
+        {/* Tab Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '36px' }}>
+          {[
+            { id: 'educators', label: 'Trading Mentors & Educators', icon: Crown },
+            { id: 'tipsters', label: 'Telegram Analysts & Tipsters', icon: Zap },
+            { id: 'traders', label: 'Retail & Aspiring Traders', icon: Target },
+            { id: 'propfirms', label: 'Capital Allocators & Prop Firms', icon: BarChart3 }
+          ].map(tab => {
+            const Icon = tab.icon;
+            const isActive = activePersona === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActivePersona(tab.id)}
+                style={{
+                  padding: '12px 22px',
+                  borderRadius: '12px',
+                  border: isActive ? '2px solid #10B981' : '1px solid #CBD5E1',
+                  background: isActive ? '#F0FDF4' : '#FFFFFF',
+                  color: isActive ? '#059669' : '#475569',
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <Icon size={16} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Persona Active Card Display */}
+        <div style={{
+          background: '#F8FAFC',
+          borderRadius: '24px',
+          padding: '44px 36px',
+          border: '1.5px solid #E2E8F0',
+          boxShadow: '0 12px 35px rgba(0,0,0,0.04)'
+        }}>
+          {activePersona === 'educators' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '36px', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#D97706', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  FOR EDUCATORS & CONTENT CREATORS
+                </span>
+                <h3 style={{ fontSize: '32px', fontWeight: 900, color: '#0F172A', margin: '8px 0 16px 0' }}>
+                  Prove Your Value With Public Mathematical Verification.
+                </h3>
+                <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.6, marginBottom: '20px' }}>
+                  Stop being lumped together with scammers who sell courses without ever placing a trade. When you maintain a public NonStock profile with a Master or Operator Decagon badge, your audience sees every verifiable trade tick, your Sharpe ratio, and zero liquidation marks.
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', fontWeight: 700, color: '#1E293B' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> Embed your verified NonStock badge in YouTube/Twitter bios</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> Prove live students can reproduce your edge on equal $1,000 accounts</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> Permanent anti-photoshop verification protects your reputation</li>
+                </ul>
+              </div>
+
+              <div style={{ background: '#FFFFFF', borderRadius: '18px', padding: '28px', border: '1.5px solid #CBD5E1' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>PUBLIC PROFILE PREVIEW</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', margin: '14px 0' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981', fontWeight: 900, fontSize: '20px' }}>E</div>
+                  <div>
+                    <strong style={{ fontSize: '18px', color: '#0F172A' }}>Sarah_FX_Academy</strong>
+                    <div style={{ fontSize: '12px', color: '#10B981', fontWeight: 800 }}>Master Operator • Top 2% Globally</div>
                   </div>
-                ) : activeRuleIndex === 3 ? (
-                  /* Animated Coins & Discipline Streak Visualizer */
-                  <div className="simulated-vault-card">
-                    <div className="vault-glow-header">
-                      <div className="vault-coin-icon">
-                        <Coins size={36} color="#D97706" />
-                      </div>
-                      <div>
-                        <div className="vault-title">GOLD COINS VAULT</div>
-                        <div className="vault-amount">100 <span className="vault-sub">Coins</span></div>
-                      </div>
-                    </div>
+                </div>
+                <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '13px', color: '#334155' }}>
+                  "My students used to question if I actually made money. Now I show them my live NonStock ID with a 1:2.4 R:R ledger and 92.1 DER score. Trust is instant."
+                </div>
+              </div>
+            </div>
+          )}
 
-                    <div className="streak-fire-box">
-                      <div className="fire-icon-wrap">
-                        <Flame size={24} className="flame-animated" />
-                      </div>
-                      <div>
-                        <div className="streak-title">4-Day Discipline Streak</div>
-                        <div className="streak-desc">+25 Gold Coins awarded every 24h of rule-compliant trading</div>
-                      </div>
-                    </div>
+          {activePersona === 'tipsters' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '36px', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  FOR TELEGRAM ANALYSTS & SIGNAL PROVIDERS
+                </span>
+                <h3 style={{ fontSize: '32px', fontWeight: 900, color: '#0F172A', margin: '8px 0 16px 0' }}>
+                  Transform Skeptical Followers Into Lifelong Subscribers.
+                </h3>
+                <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.6, marginBottom: '20px' }}>
+                  The signal market is saturated with anonymous channels posting cropped PnL screenshots from demo accounts. With NonStock, you execute every signal in the Arena with strict Stop-Loss timestamps. When your community sees consistent capital progression on an immutable ledger, your subscription retention skyrockets.
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', fontWeight: 700, color: '#1E293B' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> No more "Show your real ledger" accusations in comments</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> Highlight your rank in the Global Hall of Fame as proof of edge</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> Strict stop-loss logging verifies you protect client capital</li>
+                </ul>
+              </div>
 
-                    <div className="streak-progress-bar">
-                      <div className="streak-fill" style={{ width: '80%' }}></div>
-                    </div>
-
-                    <div className="vault-perks-list">
-                      <div className="perk-item">✓ Zero leverage breaches logged</div>
-                      <div className="perk-item">✓ Mandatory stop-loss placed on 100% of trades</div>
-                      <div className="perk-item">✓ 150 Coins ready to unlock Real-Time Screener</div>
-                    </div>
+              <div style={{ background: '#FFFFFF', borderRadius: '18px', padding: '28px', border: '1.5px solid #CBD5E1' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>CREDIBILITY AUDIT</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', margin: '14px 0' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', fontWeight: 900, fontSize: '20px' }}>T</div>
+                  <div>
+                    <strong style={{ fontSize: '18px', color: '#0F172A' }}>CryptoAlpha_VIP</strong>
+                    <div style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 800 }}>Gold Sovereign • 78 Trades Logged</div>
                   </div>
-                ) : (
-                  /* Default Animated Protocol Card */
-                  <div className="simulated-protocol-card">
-                    <div className="protocol-pulse-circle" style={{ borderColor: provingRules[activeRuleIndex].color }}>
-                      {provingRules[activeRuleIndex].icon}
-                    </div>
-                    <div className="protocol-title">{provingRules[activeRuleIndex].title}</div>
-                    <div className="protocol-subtitle">{provingRules[activeRuleIndex].subtitle}</div>
-                    <div className="protocol-terminal-box">
-                      <div className="terminal-header">
-                        <Terminal size={14} color="#10B981" />
-                        <span>nonstock-engine // verified-discipline</span>
+                </div>
+                <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '13px', color: '#334155' }}>
+                  "My channel conversion tripled once I replaced cropped broker screenshots with my verified NonStock URL. Real traders respect mathematical accountability."
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activePersona === 'traders' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '36px', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  FOR RETAIL & ASPIRING TRADERS
+                </span>
+                <h3 style={{ fontSize: '32px', fontWeight: 900, color: '#0F172A', margin: '8px 0 16px 0' }}>
+                  Stop Blowing Real Savings. Master Execution Here First.
+                </h3>
+                <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.6, marginBottom: '20px' }}>
+                  Most traders lose their first $5,000 in real cash within 90 days because they never practiced strict risk discipline. NonStock gives you an identical starting capital of $1,000, 50x leverage, and real exchange data. If you can grow $1,000 to $4,000 here, you are ready for real capital.
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', fontWeight: 700, color: '#1E293B' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> 100% free with identical $1,000 starting proves true ability</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> 24-hour timeout penalty on account blowout forces genuine care</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> Groq AI Mentor flags emotional trap entries before execution</li>
+                </ul>
+              </div>
+
+              <div style={{ background: '#FFFFFF', borderRadius: '18px', padding: '28px', border: '1.5px solid #CBD5E1' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>PROVEN MILESTONES</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', margin: '14px 0' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontWeight: 900, fontSize: '20px' }}>R</div>
+                  <div>
+                    <strong style={{ fontSize: '18px', color: '#0F172A' }}>Karan_Trader</strong>
+                    <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 800 }}>Silver Prover • $2,240 Proving Equity</div>
+                  </div>
+                </div>
+                <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '13px', color: '#334155' }}>
+                  "I blew 3 real broker accounts before joining NonStock. The Gold Coins penalty system finally taught me how to honor my stop losses. Now I am in Silver tier."
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activePersona === 'propfirms' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '36px', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  FOR CAPITAL ALLOCATORS & PROP FIRMS
+                </span>
+                <h3 style={{ fontSize: '32px', fontWeight: 900, color: '#0F172A', margin: '8px 0 16px 0' }}>
+                  Scout Verified Trading Talent Backed By Hard Math.
+                </h3>
+                <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.6, marginBottom: '20px' }}>
+                  Stop sorting through doctored PDF account statements. The NonStock Hall of Fame sorts global traders strictly by Discipline and Edge Rating (DER). Review bar-by-bar execution history, maximum drawdowns, and trade consistency on verified exchange ticks.
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', fontWeight: 700, color: '#1E293B' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> Full historical trade ledger auditable to the millisecond</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> Zero survivorship bias: every failed account and reset is recorded</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="#10B981" /> Direct talent scouting channel for proprietary trading desks</li>
+                </ul>
+              </div>
+
+              <div style={{ background: '#FFFFFF', borderRadius: '18px', padding: '28px', border: '1.5px solid #CBD5E1' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>INSTITUTIONAL METRICS</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', margin: '14px 0' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A855F7', fontWeight: 900, fontSize: '20px' }}>P</div>
+                  <div>
+                    <strong style={{ fontSize: '18px', color: '#0F172A' }}>Apex Capital Scout</strong>
+                    <div style={{ fontSize: '12px', color: '#A855F7', fontWeight: 800 }}>Institutional Allocator</div>
+                  </div>
+                </div>
+                <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '13px', color: '#334155' }}>
+                  "We look for traders with DER scores above 85.0 and minimum 50 closed trades. NonStock is the cleanest pipeline for finding real risk managers."
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ─── 5. SECTION: THE PROVING ARENA RULES & DECAGON TIERS ─── */}
+      <section id="the-arena" style={{
+        padding: '90px 24px',
+        background: '#0F172A',
+        color: '#FFFFFF'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          
+          <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto 60px auto' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+              THE COMPETITIVE FRAMEWORK
+            </span>
+            <h2 style={{ fontSize: 'clamp(32px, 4vw, 50px)', fontWeight: 900, letterSpacing: '-1px', color: '#FFFFFF', margin: '10px 0 18px 0' }}>
+              The 5 Decagon Tiers: From Contender to Apex Operator.
+            </h2>
+            <p style={{ fontSize: '17px', color: '#94A3B8', lineHeight: 1.6, fontWeight: 500 }}>
+              Everyone starts as a Contender with $1,000. Each rank is earned mathematically. Advance by compounding your proving capital and locking down drawdowns.
+            </p>
+          </div>
+
+          {/* 5 Tiers Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '20px', marginBottom: '60px' }}>
+            
+            {/* Tier 1: Contender */}
+            <div style={{ background: '#1E293B', borderRadius: '18px', padding: '24px', border: '1.5px solid #334155', textAlign: 'center' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                margin: '0 auto 16px auto',
+                background: '#0F172A',
+                border: '2px solid #64748B',
+                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <ShieldCheck size={28} color="#94A3B8" />
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>TIER 1 BASELINE</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '4px 0 8px 0' }}>Contender</h4>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#10B981', fontFamily: 'var(--font-mono)' }}>$1,000 Proving Capital</div>
+              <p style={{ fontSize: '12px', color: '#94A3B8', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+                The starting proving arena. Test your risk management.
+              </p>
+            </div>
+
+            {/* Tier 2: Silver */}
+            <div style={{ background: '#1E293B', borderRadius: '18px', padding: '24px', border: '1.5px solid #94A3B8', textAlign: 'center' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                margin: '0 auto 16px auto',
+                background: '#334155',
+                border: '2px solid #E2E8F0',
+                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Medal size={28} color="#E2E8F0" />
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>TIER 2 VERIFIED</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '4px 0 8px 0' }}>Silver Prover</h4>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#E2E8F0', fontFamily: 'var(--font-mono)' }}>$2,000+ Capital</div>
+              <p style={{ fontSize: '12px', color: '#94A3B8', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+                Doubled your capital baseline with consistent risk control.
+              </p>
+            </div>
+
+            {/* Tier 3: Gold */}
+            <div style={{ background: '#1E293B', borderRadius: '18px', padding: '24px', border: '1.5px solid #F59E0B', textAlign: 'center' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                margin: '0 auto 16px auto',
+                background: '#78350F',
+                border: '2px solid #FDE047',
+                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Award size={28} color="#FDE047" />
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#F59E0B', textTransform: 'uppercase' }}>TIER 3 SOVEREIGN</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '4px 0 8px 0' }}>Gold Sovereign</h4>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#FACC15', fontFamily: 'var(--font-mono)' }}>$4,000+ Capital</div>
+              <p style={{ fontSize: '12px', color: '#94A3B8', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+                Top 8% globally. Verified edge across multiple market regimes.
+              </p>
+            </div>
+
+            {/* Tier 4: Master */}
+            <div style={{ background: '#1E293B', borderRadius: '18px', padding: '24px', border: '1.5px solid #EF4444', textAlign: 'center' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                margin: '0 auto 16px auto',
+                background: '#7F1D1D',
+                border: '2px solid #FCA5A5',
+                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Trophy size={28} color="#FCA5A5" />
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#EF4444', textTransform: 'uppercase' }}>TIER 4 ELITE</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '4px 0 8px 0' }}>Master Titan</h4>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#EF4444', fontFamily: 'var(--font-mono)' }}>$8,000+ Capital</div>
+              <p style={{ fontSize: '12px', color: '#94A3B8', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+                8x baseline compounder with tight drawdowns and strict stops.
+              </p>
+            </div>
+
+            {/* Tier 5: Operator */}
+            <div style={{ background: '#1E293B', borderRadius: '18px', padding: '24px', border: '1.5px solid #A855F7', textAlign: 'center' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                margin: '0 auto 16px auto',
+                background: '#581C87',
+                border: '2px solid #D8B4FE',
+                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Crown size={28} color="#D8B4FE" />
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#A855F7', textTransform: 'uppercase' }}>TIER 5 APEX</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '4px 0 8px 0' }}>Apex Operator</h4>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#D8B4FE', fontFamily: 'var(--font-mono)' }}>$15,000+ Capital</div>
+              <p style={{ fontSize: '12px', color: '#94A3B8', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+                The top 0.1% of verified traders. Institutional caliber.
+              </p>
+            </div>
+
+          </div>
+
+          {/* Discipline Economy Spotlight (The 100 Gold Coins Vault) */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+            borderRadius: '24px',
+            padding: '36px',
+            border: '2px solid #334155',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '32px',
+            alignItems: 'center'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                <Coins size={28} color="#FACC15" />
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#FACC15', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  THE DISCIPLINE ECONOMY (GOLD COINS)
+                </span>
+              </div>
+              <h3 style={{ fontSize: '26px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 12px 0' }}>
+                Coins Reward Discipline. Blowouts Extract Penalties.
+              </h3>
+              <p style={{ fontSize: '14px', color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
+                Every participant begins with 100 Gold Coins. Earn +25 coins daily by maintaining your streak, and +5 coins on every protected order. If you blow your $1,000 balance, you must spend 100 coins to reset. Run out of coins, and you enter a mandatory 24-hour timeout.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div style={{ background: '#0F172A', padding: '16px', borderRadius: '12px', border: '1px solid #334155' }}>
+                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 700 }}>DAILY STREAK BONUS</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#10B981', marginTop: '2px' }}>+25 Coins / 24h</div>
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>Once per calendar day</div>
+              </div>
+
+              <div style={{ background: '#0F172A', padding: '16px', borderRadius: '12px', border: '1px solid #334155' }}>
+                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 700 }}>STOP-LOSS PROTECTION</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#10B981', marginTop: '2px' }}>+5 Coins / Trade</div>
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>Rewarding planned exits</div>
+              </div>
+
+              <div style={{ background: '#0F172A', padding: '16px', borderRadius: '12px', border: '1px solid #334155' }}>
+                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 700 }}>ACCOUNT BLOWOUT COST</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#EF4444', marginTop: '2px' }}>-100 Coins Reset</div>
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>Punishing reckless leverage</div>
+              </div>
+
+              <div style={{ background: '#0F172A', padding: '16px', borderRadius: '12px', border: '1px solid #334155' }}>
+                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 700 }}>TOOL UTILITY SINK</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#FACC15', marginTop: '2px' }}>Unlock Edge Tools</div>
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>Screener, Replay, AI Mentor</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ─── 6. SECTION: INTERACTIVE EDGE & TIER SIMULATOR ─── */}
+      <section id="calculator" style={{
+        padding: '90px 24px',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
+        <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 48px auto' }}>
+          <span style={{ fontSize: '12px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+            INTERACTIVE MATHEMATICAL CALCULATOR
+          </span>
+          <h2 style={{ fontSize: 'clamp(32px, 3.8vw, 46px)', fontWeight: 900, letterSpacing: '-1px', color: '#0F172A', margin: '10px 0 16px 0' }}>
+            Simulate Your Edge: Project Your Rank & Tier.
+          </h2>
+          <p style={{ fontSize: '16px', color: '#64748B', fontWeight: 500 }}>
+            Adjust your win-rate, risk-to-reward ratio, and weekly frequency to calculate your projected proving capital from the $1,000 baseline.
+          </p>
+        </div>
+
+        <div style={{
+          background: '#F8FAFC',
+          borderRadius: '24px',
+          padding: '40px',
+          border: '1.5px solid #E2E8F0',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '40px',
+          alignItems: 'center',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.03)'
+        }}>
+          {/* Sliders Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+            
+            {/* Slider 1: Win Rate */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Historical Win-Rate (%)</label>
+                <span style={{ fontSize: '16px', fontWeight: 900, color: '#10B981', fontFamily: 'var(--font-mono)' }}>{winRate}%</span>
+              </div>
+              <input 
+                type="range" 
+                min="35" 
+                max="85" 
+                value={winRate} 
+                onChange={(e) => setWinRate(Number(e.target.value))}
+                style={{ width: '100%', accentColor: '#10B981', cursor: 'pointer' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>
+                <span>35% (Trend Follower)</span>
+                <span>85% (High Accuracy Sniper)</span>
+              </div>
+            </div>
+
+            {/* Slider 2: Risk to Reward */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Risk-to-Reward Ratio (R:R)</label>
+                <span style={{ fontSize: '16px', fontWeight: 900, color: '#10B981', fontFamily: 'var(--font-mono)' }}>1:{riskReward}</span>
+              </div>
+              <input 
+                type="range" 
+                min="1.0" 
+                max="4.0" 
+                step="0.1" 
+                value={riskReward} 
+                onChange={(e) => setRiskReward(Number(e.target.value))}
+                style={{ width: '100%', accentColor: '#10B981', cursor: 'pointer' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>
+                <span>1:1.0 (Scalper)</span>
+                <span>1:4.0 (Macro Runner)</span>
+              </div>
+            </div>
+
+            {/* Slider 3: Weekly Frequency */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>Disciplined Trades per Week</label>
+                <span style={{ fontSize: '16px', fontWeight: 900, color: '#10B981', fontFamily: 'var(--font-mono)' }}>{weeklyTrades} Trades</span>
+              </div>
+              <input 
+                type="range" 
+                min="3" 
+                max="30" 
+                value={weeklyTrades} 
+                onChange={(e) => setWeeklyTrades(Number(e.target.value))}
+                style={{ width: '100%', accentColor: '#10B981', cursor: 'pointer' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>
+                <span>3 (Selective Swing)</span>
+                <span>30 (Active Intraday)</span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Results Projection Card */}
+          <div style={{
+            background: calculatedEdge.tierBg,
+            borderRadius: '20px',
+            padding: '32px',
+            border: `2px solid ${calculatedEdge.tierBorder}`,
+            textAlign: 'center'
+          }}>
+            <div style={{
+              width: '76px',
+              height: '76px',
+              margin: '0 auto 16px auto',
+              background: '#0F172A',
+              border: `2.5px solid ${calculatedEdge.tierColor}`,
+              clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <calculatedEdge.tierIcon size={34} color={calculatedEdge.tierColor} />
+            </div>
+
+            <div style={{ fontSize: '11px', fontWeight: 800, color: calculatedEdge.tierColor, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              PROJECTED PROVING TIER
+            </div>
+            <h3 style={{ fontSize: '26px', fontWeight: 900, color: calculatedEdge.tierColor, margin: '4px 0 14px 0' }}>
+              {calculatedEdge.tierName}
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', textAlign: 'left', background: '#FFFFFF', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '20px' }}>
+              <div>
+                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>PROJECTED CAPITAL</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
+                  ${calculatedEdge.projectedBalance.toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>ESTIMATED DER SCORE</div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#10B981', fontFamily: 'var(--font-mono)' }}>
+                  {calculatedEdge.derScore} <span style={{ fontSize: '11px', color: '#64748B' }}>/ 100</span>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              to="/register"
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '14px',
+                borderRadius: '10px',
+                background: calculatedEdge.tierColor,
+                color: '#FFFFFF',
+                fontWeight: 800,
+                fontSize: '14px',
+                textDecoration: 'none',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+              }}
+            >
+              Prove This Edge Now ($1,000 Capital)
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 7. SECTION: VERIFIED GLOBAL HALL OF FAME PREVIEW ─── */}
+      <section id="hall-of-fame" style={{
+        padding: '90px 24px',
+        background: '#F8FAFC',
+        borderTop: '1px solid #E2E8F0',
+        borderBottom: '1px solid #E2E8F0'
+      }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          
+          <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 48px auto' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+              PUBLIC LEADERBOARD
+            </span>
+            <h2 style={{ fontSize: 'clamp(32px, 3.8vw, 46px)', fontWeight: 900, letterSpacing: '-1px', color: '#0F172A', margin: '10px 0 16px 0' }}>
+              The Global Hall of Fame: 100% Anti-Fake.
+            </h2>
+            <p style={{ fontSize: '16px', color: '#64748B', fontWeight: 500 }}>
+              Rankings are based strictly on DER Score and verifiable proving returns. No manual overrides, no fake bots.
+            </p>
+          </div>
+
+          <div style={{ background: '#FFFFFF', borderRadius: '18px', border: '1px solid #CBD5E1', overflow: 'hidden', boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ background: '#F1F5F9', borderBottom: '2px solid #E2E8F0', color: '#64748B', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase' }}>
+                  <th style={{ padding: '14px 20px' }}>RANK</th>
+                  <th style={{ padding: '14px 20px' }}>TRADER & VERIFICATION</th>
+                  <th style={{ padding: '14px 20px' }}>TIER BADGE</th>
+                  <th style={{ padding: '14px 20px', textAlign: 'right' }}>DER SCORE</th>
+                  <th style={{ padding: '14px 20px', textAlign: 'right' }}>PROVING CAPITAL</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { rank: 1, name: 'Satyarajsinh Rathod', tag: 'Operator', color: '#A855F7', der: '94.2', balance: '$15,820.00', isPro: true },
+                  { rank: 2, name: 'Ashish Katira', tag: 'Master', color: '#EF4444', der: '91.8', balance: '$8,450.50', isPro: true },
+                  { rank: 3, name: 'Admin', tag: 'Gold', color: '#F59E0B', der: '88.5', balance: '$4,120.00', isPro: true },
+                  { rank: 4, name: 'Krish Shah', tag: 'Silver', color: '#64748B', der: '84.0', balance: '$2,380.00', isPro: false },
+                  { rank: 5, name: 'Test Trader', tag: 'Contender', color: '#0F172A', der: '75.0', balance: '$1,000.00', isPro: false }
+                ].map((item, idx) => (
+                  <tr key={item.rank} style={{ borderBottom: '1px solid #F1F5F9', background: idx === 0 ? '#FAF5FF' : '#FFFFFF' }}>
+                    <td style={{ padding: '16px 20px', fontWeight: 900, color: item.rank === 1 ? '#A855F7' : '#0F172A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>#{item.rank}</span>
+                        {item.rank === 1 && <Trophy size={14} color="#A855F7" />}
                       </div>
-                      <div className="terminal-body">
-                        <div>&gt; verifying account id: NS-c141ad16... [OK]</div>
-                        <div>&gt; checking trade execution ledger... 0 violations</div>
-                        <div>&gt; risk-to-reward ratio: 1:2.8 [VERIFIED]</div>
-                        <div>&gt; status: 100% AUTHENTIC NON-TIPSTER ACCOUNT</div>
+                    </td>
+                    <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0F172A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>{item.name}</span>
+                        {item.isPro && (
+                          <span style={{ fontSize: '10px', background: '#FEF3C7', color: '#B45309', padding: '2px 6px', borderRadius: '4px', fontWeight: 900 }}>
+                            PRO
+                          </span>
+                        )}
                       </div>
-                    </div>
+                    </td>
+                    <td style={{ padding: '16px 20px' }}>
+                      <span style={{
+                        background: '#0F172A',
+                        color: item.color,
+                        border: `1px solid ${item.color}`,
+                        padding: '3px 10px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 900,
+                        letterSpacing: '0.8px',
+                        textTransform: 'uppercase'
+                      }}>
+                        {item.tag}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontWeight: 900, color: '#10B981', fontFamily: 'var(--font-mono)' }}>
+                      {item.der}
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontWeight: 800, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
+                      {item.balance}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '24px' }}>
+            <Link
+              to="/dashboard"
+              style={{
+                fontSize: '13px',
+                fontWeight: 800,
+                color: '#10B981',
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <span>View Complete 50-Trader Global Leaderboard</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ─── 8. SECTION: FREQUENTLY ASKED QUESTIONS ─── */}
+      <section id="faq" style={{ padding: '90px 24px', maxWidth: '850px', margin: '0 auto' }}>
+        
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+            CLARITY & RULES
+          </span>
+          <h2 style={{ fontSize: 'clamp(32px, 3.8vw, 44px)', fontWeight: 900, letterSpacing: '-1px', color: '#0F172A', margin: '10px 0 16px 0' }}>
+            Frequently Asked Questions.
+          </h2>
+          <p style={{ fontSize: '16px', color: '#64748B', fontWeight: 500 }}>
+            Everything you need to know about the Proving Arena, verification badges, and coin rules.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {[
+            {
+              q: "Is real money deposited or risked on NonStock?",
+              a: "No. NonStock is 100% simulated capital with real live exchange tick data. Every trader starts with $1,000 in virtual proving capital. You never risk your real life savings, but you are held accountable to identical institutional execution and liquidation rules."
+            },
+            {
+              q: "How do tipsters and educators prove their track record to followers?",
+              a: "Every trader and educator gets a unique public ID (e.g. NS-c141ad16). When you share this link on Twitter, YouTube, or Telegram, your audience can view your verified DER Score, un-tampered trade ledger, and decagon rank badge. It is impossible to fake or edit."
+            },
+            {
+              q: "Can anyone cheat, inspect-element, or reset stats without penalty?",
+              a: "No. All trades, orders, entry prices, and exits are committed to our secure backend database connected to live exchange tick feeds. If an account is liquidated, a 100 Gold Coins fee is extracted. If you run out of coins, you face a 24-hour lockout."
+            },
+            {
+              q: "What is the Discipline & Edge Rating (DER Score)?",
+              a: "DER Score is NonStock's proprietary mathematical rating (0 to 100). It measures positive expectancy, risk-to-reward consistency (requiring active Stop-Loss orders), and maximum drawdown suppression. It is designed to expose lucky gamblers and highlight real risk managers."
+            },
+            {
+              q: "How do Gold Coins work and how are they earned?",
+              a: "Gold Coins are your Second Life and edge tool sink. You start with 100 coins. You earn +25 coins strictly once per calendar day by logging in and keeping your streak alive, and +5 coins on every trade placed with an active Stop Loss. You can spend coins to unlock the Real-Time Screener, Strategy Lab, AI Mentor, and Replay Simulator."
+            }
+          ].map((item, idx) => {
+            const isOpen = openFaq === idx;
+            return (
+              <div 
+                key={idx}
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: '14px',
+                  border: isOpen ? '1.5px solid #10B981' : '1px solid #E2E8F0',
+                  overflow: 'hidden',
+                  transition: 'all 0.2s',
+                  boxShadow: isOpen ? '0 4px 20px rgba(16, 185, 129, 0.08)' : 'none'
+                }}
+              >
+                <button
+                  onClick={() => setOpenFaq(isOpen ? -1 : idx)}
+                  style={{
+                    width: '100%',
+                    padding: '20px 24px',
+                    background: 'transparent',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                    {item.q}
+                  </span>
+                  {isOpen ? <ChevronUp size={18} color="#10B981" /> : <ChevronDown size={18} color="#94A3B8" />}
+                </button>
+
+                {isOpen && (
+                  <div style={{ padding: '0 24px 20px 24px', fontSize: '14px', color: '#475569', lineHeight: 1.6, borderTop: '1px solid #F1F5F9' }}>
+                    {item.a}
                   </div>
                 )}
               </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
+
       </section>
 
-      {/* ─── 4. SECTION: ZIG-ZAG FEATURE SHOWCASE ─── */}
-      <section id="features-zigzag" className="section zigzag-section">
-        <div className="section-container">
-          <div className="section-header">
-            <div className="section-eyebrow">
-              <Compass size={16} className="text-green" />
-              <span>THE COMPLETE PLATFORM ARSENAL</span>
-            </div>
-            <h2 className="section-heading">
-              Engineered For Institutional Precision. <br />
-              <span className="text-green">Built For Real Market Mastery.</span>
-            </h2>
-            <p className="section-subheading">
-              Scroll down to explore each core module of NonStock in full detail. Every tool is interconnected with real-time exchange data, AI auditing, and verifiable risk rankings.
-            </p>
+      {/* ─── 9. MASSIVE FINAL CALL TO ACTION ─── */}
+      <section style={{
+        padding: '100px 24px',
+        background: 'linear-gradient(135deg, #0F172A 0%, #064E3B 100%)',
+        color: '#FFFFFF',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '6px 18px',
+            borderRadius: '999px',
+            background: 'rgba(16, 185, 129, 0.2)',
+            border: '1px solid rgba(16, 185, 129, 0.4)',
+            color: '#A7F3D0',
+            fontSize: '12px',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '24px'
+          }}>
+            <ShieldCheck size={16} />
+            <span>JOIN THE UNTOUCHABLE GLOBAL PROVERS</span>
           </div>
 
-          {/* Alternating Zig-Zag Grid */}
-          <div className="zigzag-container">
-            {zigZagFeatures.map((feat, index) => {
-              const isEven = index % 2 === 1; // Alternating zig-zag
-              return (
-                <div 
-                  key={feat.id} 
-                  id={feat.id}
-                  className={`zigzag-item ${isEven ? 'reverse' : ''}`}
-                >
-                  {/* Visual / Screenshot Column */}
-                  <div className="zigzag-visual-col">
-                    <div className="zigzag-window-card">
-                      <div className="window-header-bar">
-                        <div className="window-dots">
-                          <span className="dot red"></span>
-                          <span className="dot yellow"></span>
-                          <span className="dot green"></span>
-                        </div>
-                        <span className="window-title-text">
-                          NonStock // {feat.tagText}
-                        </span>
-                        <span className="window-status-pill">Implemented</span>
-                      </div>
+          <h2 style={{
+            fontSize: 'clamp(38px, 5.2vw, 64px)',
+            fontWeight: 900,
+            lineHeight: 1.1,
+            letterSpacing: '-1.5px',
+            margin: '0 0 20px 0'
+          }}>
+            Stop Guessing. <br />
+            Enter The Proving Arena Today.
+          </h2>
 
-                      <div className="window-image-wrapper">
-                        <img 
-                          src={feat.image} 
-                          alt={feat.title} 
-                          className="window-img"
-                        />
-                      </div>
-
-                      <div className="window-footer-bar">
-                        <Camera size={13} color="#10B981" />
-                        <span className="caption-text">{feat.imageCaption}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Description / Content Column */}
-                  <div className="zigzag-text-col">
-                    <div className="zigzag-badge-row">
-                      <span className="zigzag-pill" style={{ color: feat.badgeColor, background: `${feat.badgeColor}12`, borderColor: `${feat.badgeColor}30` }}>
-                        {feat.badge}
-                      </span>
-                      <span className="zigzag-index">FEATURE 0{index + 1}</span>
-                    </div>
-
-                    <h3 className="zigzag-title">{feat.title}</h3>
-                    <p className="zigzag-subtitle">{feat.subtitle}</p>
-                    <p className="zigzag-desc">{feat.description}</p>
-
-                    {/* Bullet Points */}
-                    <div className="zigzag-bullets-box">
-                      <h4 className="bullets-title">
-                        <Layers size={15} className="text-green" />
-                        <span>CORE CAPABILITIES INCLUDED:</span>
-                      </h4>
-                      <ul className="bullets-list">
-                        {feat.bulletPoints.map((pt, pIdx) => (
-                          <li key={pIdx} className="bullet-item">
-                            <CheckCircle2 size={16} className="text-green flex-shrink-0" />
-                            <span>{pt}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Trader Edge Takeaway */}
-                    <div className="zigzag-edge-takeaway">
-                      <Zap size={18} className="text-green flex-shrink-0" />
-                      <p className="edge-takeaway-text">{feat.edgeBox}</p>
-                    </div>
-
-                    {/* Action CTA */}
-                    <div className="zigzag-cta-row">
-                      <Link to={feat.ctaRoute} className="btn-zigzag-cta">
-                        <span>{feat.ctaText}</span>
-                        <ArrowRight size={16} />
-                      </Link>
-                      <div className="zigzag-note">
-                        <ShieldCheck size={16} className="text-green" />
-                        <span>Direct Terminal Integration</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── 5. SECTION: FAQ ACCORDION ─── */}
-      <section id="faq" className="section faq-section">
-        <div className="section-container faq-container">
-          <div className="section-header">
-            <div className="section-eyebrow">
-              <Clock size={16} className="text-green" />
-              <span>FREQUENTLY ASKED QUESTIONS</span>
-            </div>
-            <h2 className="section-heading">Everything You Need To Know.</h2>
-            <p className="section-subheading">
-              Transparent answers regarding virtual balances, Groq AI calculations, and verified leaderboard integrity.
-            </p>
-          </div>
-
-          <div className="faq-list">
-            {faqs.map((faq, index) => {
-              const isOpen = openFaq === index;
-              return (
-                <div 
-                  key={index} 
-                  className={`faq-item ${isOpen ? 'open' : ''}`}
-                  onClick={() => setOpenFaq(isOpen ? -1 : index)}
-                >
-                  <div className="faq-question">
-                    <span>{faq.q}</span>
-                    {isOpen ? <ChevronUp size={18} className="text-green" /> : <ChevronDown size={18} />}
-                  </div>
-                  {isOpen && (
-                    <div className="faq-answer">
-                      <p>{faq.a}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── 6. SECTION: BOTTOM CALL TO ACTION ─── */}
-      <section className="section cta-section">
-        <div className="section-container">
-          <div className="cta-card">
-            <span className="cta-badge">JOIN THE VERIFIED ARENA TODAY</span>
-            <h2 className="cta-heading">
-              Ready To Prove Your True Market Edge?
-            </h2>
-            <p className="cta-subheading">
-              Create your account in 30 seconds. Start with your $1,000 disciplined proving balance, earn Gold Coins, consult the Groq AI Mentor, and earn your place in the Global Hall of Fame.
-            </p>
-            <div className="cta-buttons">
-              <Link to="/register" className="btn-cta-giant">
-                <span>Create Free Proving Account</span>
-                <ArrowRight size={18} />
-              </Link>
-            </div>
-            <div className="cta-guarantees">
-              <span>✓ 100% Free Forever</span>
-              <span>✓ $1,000 Proving Capital</span>
-              <span>✓ Groq LLaMA 3.3 AI Mentor</span>
-              <span>✓ Zero Real Money At Risk</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── 7. CLEAN FOOTER ─── */}
-      <footer className="landing-footer">
-        <div className="footer-inner">
-          <div className="footer-brand-col">
-            <Logo size={36} showName={true} showTagline={true} />
-            <p className="footer-bio">
-              NonStock is the #1 verified competitive paper trading and skill proving platform. 
-              Master the markets with disciplined proving accounts, 24/7 historical replay, and Groq-powered AI coaching.
-            </p>
-            <div className="footer-status-pill">
-              <span className="status-indicator"></span>
-              <span>All Systems Operational • Real-Time Feeds Active</span>
-            </div>
-          </div>
-
-          <div className="footer-links-col">
-            <h4>Platform</h4>
-            <Link to="/trading">Trading Arena</Link>
-            <Link to="/ai-mentor">Groq AI Mentor</Link>
-            <Link to="/replay">24/7 Market Replay</Link>
-            <Link to="/screener">Market Screener</Link>
-            <Link to="/strategy-builder">Strategy Builder</Link>
-            <Link to="/dashboard">Gold Coins Vault</Link>
-          </div>
-
-          <div className="footer-links-col">
-            <h4>Account</h4>
-            <Link to="/register">Create Free Account</Link>
-            <Link to="/login">Sign In</Link>
-            <Link to="/dashboard">Trader Dashboard</Link>
-          </div>
-        </div>
-
-        <div className="footer-bottom">
-          <p className="disclaimer-text">
-            <strong>Educational Disclaimer:</strong> NonStock is strictly a trading education, backtesting, and skill proving simulation platform. 
-            All capital and margins displayed are virtual. NonStock is not a SEBI or SEC registered financial advisor or broker. 
-            Past simulation performance does not guarantee future live market results.
+          <p style={{
+            fontSize: '18px',
+            color: '#D1D5DB',
+            maxWidth: '650px',
+            margin: '0 auto 36px auto',
+            lineHeight: 1.6
+          }}>
+            Claim your $1,000 baseline, execute with live ticks, and prove your real standing in front of the global trading community. 100% free forever.
           </p>
-          <div className="copyright-text">
-            © {new Date().getFullYear()} NonStock. All rights reserved.
+
+          <Link
+            to="/register"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '18px 42px',
+              borderRadius: '12px',
+              background: '#10B981',
+              color: '#FFFFFF',
+              fontSize: '17px',
+              fontWeight: 900,
+              textDecoration: 'none',
+              boxShadow: '0 8px 30px rgba(16, 185, 129, 0.4)',
+              transition: 'transform 0.15s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <span>Claim $1,000 Baseline & Start Proving</span>
+            <ArrowRight size={18} />
+          </Link>
+        </div>
+      </section>
+
+      {/* ─── 10. HIGH-PROFILE FOOTER ─── */}
+      <footer style={{
+        background: '#0B0F19',
+        color: '#64748B',
+        padding: '60px 24px 30px 24px',
+        borderTop: '1px solid #1E293B',
+        fontSize: '13px'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '32px', marginBottom: '40px' }}>
+          <div>
+            <Logo size={32} showName={true} showTagline={false} nameSize="20px" />
+            <p style={{ marginTop: '12px', maxWidth: '320px', lineHeight: 1.6 }}>
+              The global verifiable proving protocol. Transforming trading discipline into certified, mathematically auditable credentials.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '60px', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ color: '#FFFFFF', fontWeight: 800, marginBottom: '12px' }}>PLATFORM</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Link to="/trading" style={{ color: '#94A3B8', textDecoration: 'none' }}>Trading Arena</Link>
+                <Link to="/dashboard" style={{ color: '#94A3B8', textDecoration: 'none' }}>Leaderboard</Link>
+                <Link to="/screener" style={{ color: '#94A3B8', textDecoration: 'none' }}>Market Screener</Link>
+                <Link to="/ai-mentor" style={{ color: '#94A3B8', textDecoration: 'none' }}>AI Mentor</Link>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ color: '#FFFFFF', fontWeight: 800, marginBottom: '12px' }}>PROVING RULES</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <span style={{ color: '#94A3B8' }}>$1,000 Equal Baseline</span>
+                <span style={{ color: '#94A3B8' }}>5 Decagon Tiers</span>
+                <span style={{ color: '#94A3B8' }}>Discipline Gold Coins</span>
+                <span style={{ color: '#94A3B8' }}>DER Score Math</span>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ color: '#FFFFFF', fontWeight: 800, marginBottom: '12px' }}>ACCOUNT</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Link to="/login" style={{ color: '#94A3B8', textDecoration: 'none' }}>Sign In</Link>
+                <Link to="/register" style={{ color: '#94A3B8', textDecoration: 'none' }}>Create Free Account</Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ maxWidth: '1200px', margin: '0 auto', paddingTop: '24px', borderTop: '1px solid #1E293B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            © {new Date().getFullYear()} NonStock Protocol. Built for true market discipline.
+          </div>
+          <div style={{ fontSize: '12px', color: '#475569' }}>
+            Educational and skill verification simulator. No real money or financial deposits accepted.
           </div>
         </div>
       </footer>
 
-      {/* ─── COMPREHENSIVE WHITE & EMERALD STYLES ─── */}
-      <style>{`
-        .landing-root {
-          min-height: 100vh;
-          background: #ffffff !important;
-          color: #0f172a !important;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          position: relative;
-          overflow-x: hidden;
-        }
-
-        /* Utilities */
-        .text-green { color: #10B981 !important; }
-        .text-highlight { color: #0F172A; font-weight: 800; }
-        .flex-shrink-0 { flex-shrink: 0; }
-
-        /* 1. Navbar */
-        .landing-navbar {
-          position: sticky;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 1000;
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-bottom: 1px solid #E2E8F0;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-        }
-        .navbar-inner {
-          max-width: 1280px;
-          margin: 0 auto;
-          padding: 14px 24px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 20px;
-        }
-        .navbar-brand {
-          display: flex;
-          align-items: center;
-          text-decoration: none;
-        }
-        .navbar-links {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .navbar-link-btn {
-          background: transparent;
-          border: none;
-          color: #475569;
-          font-size: 14px;
-          font-weight: 700;
-          cursor: pointer;
-          padding: 8px 14px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          transition: all 0.2s ease;
-        }
-        .navbar-link-btn:hover {
-          color: #10B981;
-          background: #F0FDF4;
-        }
-        .navbar-actions {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .btn-nav-login {
-          color: #475569;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 700;
-          padding: 8px 16px;
-          border-radius: 8px;
-          transition: all 0.2s;
-        }
-        .btn-nav-login:hover {
-          color: #0F172A;
-          background: #F1F5F9;
-        }
-        .btn-nav-cta {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: #10B981;
-          color: #ffffff;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 800;
-          padding: 9px 18px;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-          transition: all 0.2s;
-        }
-        .btn-nav-cta:hover {
-          background: #059669;
-          transform: translateY(-1px);
-        }
-
-        /* 2. Hero Section */
-        .hero-section {
-          padding: 70px 24px 80px;
-          text-align: center;
-          background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
-        }
-        .hero-container {
-          max-width: 1100px;
-          margin: 0 auto;
-        }
-        .hero-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #ECFDF5;
-          border: 1px solid #A7F3D0;
-          padding: 6px 14px;
-          border-radius: 9999px;
-          margin-bottom: 24px;
-        }
-        .badge-pulse-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #10B981;
-          box-shadow: 0 0 10px #10B981;
-          animation: pulseGreen 2s infinite;
-        }
-        @keyframes pulseGreen {
-          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-          70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .badge-text {
-          font-size: 12px;
-          font-weight: 900;
-          color: #047857;
-          letter-spacing: 0.8px;
-        }
-        .hero-title {
-          font-size: 54px;
-          font-weight: 950;
-          line-height: 1.15;
-          color: #0F172A;
-          letter-spacing: -1.5px;
-          margin-bottom: 20px;
-        }
-        .hero-gradient-text {
-          background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        .hero-description {
-          font-size: 18px;
-          line-height: 1.6;
-          color: #475569;
-          max-width: 840px;
-          margin: 0 auto 36px;
-        }
-        .hero-actions {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 16px;
-          margin-bottom: 40px;
-          flex-wrap: wrap;
-        }
-        .btn-hero-primary {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #10B981;
-          color: #ffffff;
-          text-decoration: none;
-          font-size: 16px;
-          font-weight: 800;
-          padding: 14px 28px;
-          border-radius: 12px;
-          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-          transition: all 0.2s ease;
-        }
-        .btn-hero-primary:hover {
-          background: #059669;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
-        }
-        .btn-hero-secondary {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #ffffff;
-          color: #0F172A;
-          border: 1.5px solid #E2E8F0;
-          font-size: 16px;
-          font-weight: 800;
-          padding: 14px 28px;
-          border-radius: 12px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .btn-hero-secondary:hover {
-          border-color: #10B981;
-          background: #F0FDF4;
-        }
-        .hero-trust-row {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 14px;
-          flex-wrap: wrap;
-          margin-bottom: 48px;
-        }
-        .trust-pill {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          font-weight: 700;
-          color: #475569;
-        }
-        .trust-dot {
-          color: #CBD5E1;
-        }
-
-        /* Hero Preview Window */
-        .hero-preview-wrapper {
-          max-width: 1060px;
-          margin: 0 auto;
-        }
-        .hero-preview-card {
-          background: #ffffff;
-          border-radius: 16px;
-          border: 1.5px solid #E2E8F0;
-          overflow: hidden;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
-          transition: transform 0.3s ease;
-        }
-        .hero-preview-card:hover {
-          transform: translateY(-3px);
-        }
-        .preview-window-bar {
-          background: #F8FAFC;
-          border-bottom: 1px solid #E2E8F0;
-          padding: 12px 18px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .window-dots {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .dot {
-          width: 11px;
-          height: 11px;
-          border-radius: 50%;
-        }
-        .dot.red { background: #EF4444; }
-        .dot.yellow { background: #F59E0B; }
-        .dot.green { background: #10B981; }
-        .window-address {
-          font-family: monospace;
-          font-size: 12px;
-          color: #64748B;
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          padding: 4px 16px;
-          border-radius: 6px;
-        }
-        .window-tag {
-          font-size: 11px;
-          font-weight: 800;
-          color: #10B981;
-          background: #ECFDF5;
-          padding: 3px 8px;
-          border-radius: 6px;
-        }
-        .hero-preview-img {
-          width: 100%;
-          height: auto;
-          display: block;
-        }
-        .preview-caption {
-          font-size: 13px;
-          color: #64748B;
-          margin-top: 14px;
-          font-style: italic;
-        }
-
-        /* Common Section Layout */
-        .section {
-          padding: 90px 24px;
-        }
-        .section-container {
-          max-width: 1240px;
-          margin: 0 auto;
-        }
-        .section-header {
-          text-align: center;
-          max-width: 800px;
-          margin: 0 auto 60px;
-        }
-        .section-eyebrow {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 12px;
-          font-weight: 900;
-          color: #10B981;
-          letter-spacing: 1px;
-          margin-bottom: 12px;
-        }
-        .section-heading {
-          font-size: 38px;
-          font-weight: 950;
-          line-height: 1.25;
-          color: #0F172A;
-          letter-spacing: -0.8px;
-          margin-bottom: 16px;
-        }
-        .section-subheading {
-          font-size: 16px;
-          line-height: 1.6;
-          color: #64748B;
-        }
-
-        /* ─── 3. ANIMATED PROVING RULES ENGINE ─── */
-        .rules-section {
-          background: #F8FAFC;
-          border-top: 1px solid #E2E8F0;
-          border-bottom: 1px solid #E2E8F0;
-        }
-        .rules-engine-card {
-          background: #FFFFFF;
-          border-radius: 20px;
-          border: 1.5px solid #E2E8F0;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-          overflow: hidden;
-        }
-        .rules-tabs-nav {
-          display: flex;
-          border-bottom: 1.5px solid #E2E8F0;
-          background: #F8FAFC;
-          overflow-x: auto;
-        }
-        .rule-tab-btn {
-          flex: 1;
-          min-width: 150px;
-          padding: 16px 14px;
-          background: transparent;
-          border: none;
-          border-bottom: 3px solid transparent;
-          cursor: pointer;
-          text-align: center;
-          position: relative;
-          transition: all 0.2s;
-        }
-        .rule-tab-btn:hover {
-          background: #FFFFFF;
-        }
-        .rule-tab-btn.active {
-          background: #FFFFFF;
-        }
-        .rule-tab-step {
-          font-size: 11px;
-          font-weight: 900;
-          color: #64748B;
-          letter-spacing: 0.5px;
-          margin-bottom: 4px;
-        }
-        .rule-tab-btn.active .rule-tab-step {
-          color: #10B981;
-        }
-        .rule-tab-label {
-          font-size: 13px;
-          font-weight: 800;
-          color: #0F172A;
-          white-space: nowrap;
-        }
-        .rule-tab-indicator {
-          position: absolute;
-          bottom: -3px;
-          left: 0;
-          right: 0;
-          height: 3px;
-        }
-        .rule-stage-content {
-          padding: 40px;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 40px;
-          align-items: center;
-        }
-        .rule-badge-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 11px;
-          font-weight: 900;
-          padding: 4px 10px;
-          border-radius: 6px;
-          margin-bottom: 14px;
-          letter-spacing: 0.5px;
-        }
-        .rule-dot { opacity: 0.5; }
-        .rule-stage-title {
-          font-size: 28px;
-          font-weight: 900;
-          margin: 0 0 6px 0;
-        }
-        .rule-stage-subtitle {
-          font-size: 15px;
-          font-weight: 800;
-          margin: 0 0 16px 0;
-        }
-        .rule-stage-desc {
-          font-size: 15px;
-          line-height: 1.6;
-          color: #475569;
-          margin-bottom: 24px;
-        }
-        .rule-stage-stats-box {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          padding: 14px 18px;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          margin-bottom: 24px;
-        }
-        .stats-box-icon {
-          width: 44px;
-          height: 44px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .stats-box-label {
-          font-size: 10px;
-          font-weight: 900;
-          color: #64748B;
-          letter-spacing: 0.8px;
-          margin-bottom: 2px;
-        }
-        .stats-box-value {
-          font-size: 13px;
-          font-weight: 800;
-          color: #0F172A;
-          font-family: monospace;
-        }
-        .rule-stage-controls {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-        .btn-rule-autoplay {
-          background: #FFFFFF;
-          border: 1.5px solid #CBD5E1;
-          color: #0F172A;
-          font-size: 13px;
-          font-weight: 800;
-          padding: 8px 16px;
-          border-radius: 8px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          transition: all 0.2s;
-        }
-        .btn-rule-autoplay:hover {
-          border-color: #10B981;
-          background: #F0FDF4;
-        }
-        .pulse-circle {
-          width: 8px;
-          height: 8px;
-          background: #10B981;
-          border-radius: 50%;
-          animation: pulseGreen 1.5s infinite;
-        }
-        .rule-counter-text {
-          font-size: 13px;
-          font-weight: 700;
-          color: #94A3B8;
-        }
-
-        /* Right Side Rule Visualizers */
-        .simulated-tier-card {
-          background: #FFFFFF;
-          border: 1.5px solid #E2E8F0;
-          border-radius: 16px;
-          padding: 24px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-        }
-        .tier-sim-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 16px;
-        }
-        .sim-title {
-          font-size: 13px;
-          font-weight: 800;
-          color: #0F172A;
-        }
-        .sim-live-tag {
-          font-size: 11px;
-          font-weight: 800;
-          color: #10B981;
-          background: #ECFDF5;
-          padding: 2px 8px;
-          border-radius: 6px;
-        }
-        .tier-badge-showcase {
-          background: #F8FAFC;
-          border: 1.5px solid #E2E8F0;
-          border-radius: 14px;
-          padding: 18px;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 24px;
-          transition: all 0.3s ease;
-        }
-        .tier-badge-icon {
-          width: 56px;
-          height: 56px;
-          border-radius: 12px;
-          border: 2px solid;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 26px;
-          font-weight: 900;
-          background: #FFFFFF;
-        }
-        .tier-user-name {
-          font-size: 18px;
-          font-weight: 900;
-          color: #0F172A;
-          margin-bottom: 4px;
-        }
-        .tier-badge-name {
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 1px;
-        }
-        .tier-slider-group {
-          margin-bottom: 20px;
-        }
-        .slider-label-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
-          font-size: 13px;
-          font-weight: 700;
-          color: #475569;
-        }
-        .equity-slider {
-          width: 100%;
-          height: 8px;
-          border-radius: 4px;
-          background: #E2E8F0;
-          outline: none;
-          accent-color: #10B981;
-          cursor: pointer;
-        }
-        .slider-ticks {
-          display: flex;
-          justify-content: space-between;
-          font-size: 10px;
-          font-weight: 700;
-          color: #94A3B8;
-          margin-top: 6px;
-        }
-        .tier-milestone-pills {
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
-        .milestone-pill {
-          font-size: 11px;
-          font-weight: 800;
-          padding: 4px 10px;
-          border-radius: 6px;
-          background: #F1F5F9;
-          color: #94A3B8;
-          transition: all 0.2s;
-        }
-        .milestone-pill.done {
-          background: #ECFDF5;
-          color: #059669;
-          border: 1px solid #A7F3D0;
-        }
-        .milestone-pill.done.neon {
-          background: #FAF5FF;
-          color: #9333EA;
-          border: 1px solid #D8B4FE;
-        }
-
-        /* Vault Visualizer */
-        .simulated-vault-card {
-          background: #FFFFFF;
-          border: 1.5px solid #FDE68A;
-          border-radius: 16px;
-          padding: 24px;
-          box-shadow: 0 4px 20px rgba(245, 158, 11, 0.08);
-        }
-        .vault-glow-header {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          background: #FFFBEB;
-          border: 1px solid #FCD34D;
-          border-radius: 14px;
-          padding: 16px;
-          margin-bottom: 18px;
-        }
-        .vault-coin-icon {
-          width: 52px;
-          height: 52px;
-          background: #FDE68A;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .vault-title {
-          font-size: 11px;
-          font-weight: 900;
-          color: #B45309;
-          letter-spacing: 0.8px;
-        }
-        .vault-amount {
-          font-size: 32px;
-          font-weight: 950;
-          color: #92400E;
-          line-height: 1;
-        }
-        .vault-sub {
-          font-size: 14px;
-          font-weight: 800;
-          color: #B45309;
-        }
-        .streak-fire-box {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          padding: 12px 16px;
-          margin-bottom: 14px;
-        }
-        .fire-icon-wrap {
-          color: #EA580C;
-        }
-        .flame-animated {
-          animation: flamePulse 1.5s infinite alternate;
-        }
-        @keyframes flamePulse {
-          0% { transform: scale(1); filter: drop-shadow(0 0 2px #F97316); }
-          100% { transform: scale(1.15); filter: drop-shadow(0 0 8px #EA580C); }
-        }
-        .streak-title {
-          font-size: 13px;
-          font-weight: 800;
-          color: #0F172A;
-        }
-        .streak-desc {
-          font-size: 11px;
-          color: #64748B;
-        }
-        .streak-progress-bar {
-          height: 8px;
-          background: #E2E8F0;
-          border-radius: 4px;
-          overflow: hidden;
-          margin-bottom: 18px;
-        }
-        .streak-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #F59E0B, #EA580C);
-          border-radius: 4px;
-        }
-        .vault-perks-list {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .perk-item {
-          font-size: 12px;
-          font-weight: 700;
-          color: #059669;
-        }
-
-        /* Simulated Protocol Card */
-        .simulated-protocol-card {
-          background: #FFFFFF;
-          border: 1.5px solid #E2E8F0;
-          border-radius: 16px;
-          padding: 28px;
-          text-align: center;
-        }
-        .protocol-pulse-circle {
-          width: 68px;
-          height: 68px;
-          border-radius: 50%;
-          border: 3px solid;
-          margin: 0 auto 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #F8FAFC;
-        }
-        .protocol-title {
-          font-size: 20px;
-          font-weight: 900;
-          color: #0F172A;
-          margin-bottom: 4px;
-        }
-        .protocol-subtitle {
-          font-size: 13px;
-          font-weight: 700;
-          color: #64748B;
-          margin-bottom: 20px;
-        }
-        .protocol-terminal-box {
-          background: #0F172A;
-          border-radius: 10px;
-          padding: 14px;
-          text-align: left;
-          font-family: monospace;
-        }
-        .terminal-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 11px;
-          color: #94A3B8;
-          border-bottom: 1px solid #1E293B;
-          padding-bottom: 8px;
-          margin-bottom: 10px;
-        }
-        .terminal-body {
-          font-size: 12px;
-          color: #A7F3D0;
-          line-height: 1.6;
-        }
-
-        /* ─── 4. ZIG-ZAG SHOWCASE SECTION ─── */
-        .zigzag-section {
-          background: #FFFFFF;
-        }
-        .zigzag-container {
-          display: flex;
-          flex-direction: column;
-          gap: 100px;
-        }
-        .zigzag-item {
-          display: grid;
-          grid-template-columns: 1.15fr 1fr;
-          gap: 60px;
-          align-items: center;
-        }
-        .zigzag-item.reverse {
-          grid-template-columns: 1fr 1.15fr;
-        }
-        .zigzag-item.reverse .zigzag-visual-col {
-          order: 2;
-        }
-        .zigzag-item.reverse .zigzag-text-col {
-          order: 1;
-        }
-
-        /* Zig-Zag Window Mockup */
-        .zigzag-window-card {
-          background: #FFFFFF;
-          border-radius: 18px;
-          border: 1.5px solid #E2E8F0;
-          overflow: hidden;
-          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
-          transition: all 0.3s ease;
-        }
-        .zigzag-window-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 22px 50px rgba(0, 0, 0, 0.09);
-        }
-        .window-header-bar {
-          background: #F8FAFC;
-          border-bottom: 1px solid #E2E8F0;
-          padding: 12px 18px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .window-title-text {
-          font-family: monospace;
-          font-size: 12px;
-          color: #475569;
-          font-weight: 700;
-        }
-        .window-status-pill {
-          font-size: 11px;
-          font-weight: 800;
-          color: #10B981;
-          background: #ECFDF5;
-          padding: 3px 8px;
-          border-radius: 6px;
-        }
-        .window-image-wrapper {
-          background: #F1F5F9;
-          overflow: hidden;
-          max-height: 480px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .window-img {
-          width: 100%;
-          height: auto;
-          display: block;
-          object-fit: contain;
-        }
-        .window-footer-bar {
-          background: #FFFFFF;
-          border-top: 1px solid #F1F5F9;
-          padding: 10px 18px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 12px;
-          color: #64748B;
-        }
-        .caption-icon { font-size: 14px; }
-        .caption-text { font-style: italic; }
-
-        /* Zig-Zag Content */
-        .zigzag-badge-row {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 14px;
-        }
-        .zigzag-pill {
-          font-size: 11px;
-          font-weight: 900;
-          padding: 4px 10px;
-          border-radius: 6px;
-          border: 1px solid;
-          letter-spacing: 0.6px;
-        }
-        .zigzag-index {
-          font-size: 12px;
-          font-weight: 800;
-          color: #94A3B8;
-        }
-        .zigzag-title {
-          font-size: 32px;
-          font-weight: 950;
-          color: #0F172A;
-          line-height: 1.25;
-          margin: 0 0 10px 0;
-          letter-spacing: -0.5px;
-        }
-        .zigzag-subtitle {
-          font-size: 16px;
-          font-weight: 800;
-          color: #10B981;
-          margin: 0 0 16px 0;
-        }
-        .zigzag-desc {
-          font-size: 15px;
-          line-height: 1.6;
-          color: #475569;
-          margin: 0 0 24px 0;
-        }
-        .zigzag-bullets-box {
-          background: #F8FAFC;
-          border: 1px solid #E2E8F0;
-          border-radius: 14px;
-          padding: 20px;
-          margin-bottom: 20px;
-        }
-        .bullets-title {
-          font-size: 11px;
-          font-weight: 900;
-          color: #0F172A;
-          letter-spacing: 0.8px;
-          margin: 0 0 14px 0;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .bullets-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .bullet-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          font-size: 13.5px;
-          color: #334155;
-          line-height: 1.5;
-        }
-        .zigzag-edge-takeaway {
-          background: #ECFDF5;
-          border: 1px solid #A7F3D0;
-          border-radius: 12px;
-          padding: 14px 18px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 24px;
-        }
-        .edge-takeaway-text {
-          margin: 0;
-          font-size: 13px;
-          font-weight: 700;
-          color: #065F46;
-          line-height: 1.45;
-        }
-        .zigzag-cta-row {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-        .btn-zigzag-cta {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #10B981;
-          color: #ffffff;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 800;
-          padding: 11px 22px;
-          border-radius: 10px;
-          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
-          transition: all 0.2s;
-        }
-        .btn-zigzag-cta:hover {
-          background: #059669;
-          transform: translateY(-1px);
-        }
-        .zigzag-note {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          font-weight: 700;
-          color: #64748B;
-        }
-
-        /* ─── 5. FAQ SECTION ─── */
-        .faq-section {
-          background: #F8FAFC;
-          border-top: 1px solid #E2E8F0;
-        }
-        .faq-container {
-          max-width: 860px;
-        }
-        .faq-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .faq-item {
-          background: #FFFFFF;
-          border: 1.5px solid #E2E8F0;
-          border-radius: 12px;
-          overflow: hidden;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .faq-item:hover {
-          border-color: #CBD5E1;
-        }
-        .faq-item.open {
-          border-color: #10B981;
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
-        }
-        .faq-question {
-          padding: 18px 22px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          font-size: 15px;
-          font-weight: 800;
-          color: #0F172A;
-        }
-        .faq-answer {
-          padding: 0 22px 18px;
-          font-size: 14px;
-          line-height: 1.6;
-          color: #475569;
-          border-top: 1px solid #F1F5F9;
-          padding-top: 14px;
-        }
-        .faq-answer p { margin: 0; }
-
-        /* ─── 6. BOTTOM CTA ─── */
-        .cta-section {
-          background: #FFFFFF;
-          padding: 80px 24px;
-        }
-        .cta-card {
-          background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-          border-radius: 24px;
-          padding: 60px 40px;
-          text-align: center;
-          color: #FFFFFF;
-          box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
-        }
-        .cta-badge {
-          display: inline-block;
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 1px;
-          color: #10B981;
-          background: rgba(16, 185, 129, 0.15);
-          padding: 5px 12px;
-          border-radius: 9999px;
-          margin-bottom: 20px;
-        }
-        .cta-heading {
-          font-size: 42px;
-          font-weight: 950;
-          color: #FFFFFF;
-          margin-bottom: 16px;
-          letter-spacing: -1px;
-        }
-        .cta-subheading {
-          font-size: 17px;
-          color: #94A3B8;
-          max-width: 640px;
-          margin: 0 auto 36px;
-          line-height: 1.6;
-        }
-        .btn-cta-giant {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #10B981;
-          color: #FFFFFF;
-          text-decoration: none;
-          font-size: 16px;
-          font-weight: 800;
-          padding: 15px 32px;
-          border-radius: 12px;
-          box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-          transition: all 0.2s;
-        }
-        .btn-cta-giant:hover {
-          background: #059669;
-          transform: translateY(-2px);
-        }
-        .cta-guarantees {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 20px;
-          margin-top: 32px;
-          flex-wrap: wrap;
-          font-size: 13px;
-          font-weight: 700;
-          color: #A7F3D0;
-        }
-
-        /* ─── 7. FOOTER ─── */
-        .landing-footer {
-          background: #F8FAFC;
-          border-top: 1px solid #E2E8F0;
-          padding: 70px 24px 30px;
-        }
-        .footer-inner {
-          max-width: 1240px;
-          margin: 0 auto 50px;
-          display: grid;
-          grid-template-columns: 2fr 1fr 1fr;
-          gap: 50px;
-        }
-        .footer-bio {
-          font-size: 13.5px;
-          line-height: 1.6;
-          color: #64748B;
-          margin: 16px 0 20px;
-          max-width: 400px;
-        }
-        .footer-status-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 12px;
-          font-weight: 700;
-          color: #059669;
-          background: #ECFDF5;
-          padding: 5px 12px;
-          border-radius: 9999px;
-        }
-        .status-indicator {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #10B981;
-        }
-        .footer-links-col h4 {
-          font-size: 13px;
-          font-weight: 900;
-          color: #0F172A;
-          letter-spacing: 0.5px;
-          text-transform: uppercase;
-          margin: 0 0 16px 0;
-        }
-        .footer-links-col a {
-          display: block;
-          font-size: 13.5px;
-          font-weight: 600;
-          color: #64748B;
-          text-decoration: none;
-          margin-bottom: 10px;
-          transition: color 0.15s;
-        }
-        .footer-links-col a:hover {
-          color: #10B981;
-        }
-        .footer-bottom {
-          max-width: 1240px;
-          margin: 0 auto;
-          border-top: 1px solid #E2E8F0;
-          padding-top: 24px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 16px;
-        }
-        .disclaimer-text {
-          font-size: 11.5px;
-          line-height: 1.5;
-          color: #94A3B8;
-          max-width: 800px;
-          margin: 0;
-        }
-        .copyright-text {
-          font-size: 12px;
-          font-weight: 700;
-          color: #64748B;
-        }
-
-        /* ─── RESPONSIVE BREAKPOINTS ─── */
-        @media (max-width: 1024px) {
-          .rule-stage-content {
-            grid-template-columns: 1fr;
-          }
-          .zigzag-item, .zigzag-item.reverse {
-            grid-template-columns: 1fr;
-            gap: 36px;
-          }
-          .zigzag-item.reverse .zigzag-visual-col {
-            order: 1;
-          }
-          .zigzag-item.reverse .zigzag-text-col {
-            order: 2;
-          }
-          .footer-inner {
-            grid-template-columns: 1fr;
-            gap: 30px;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .hero-title {
-            font-size: 38px;
-          }
-          .section-heading {
-            font-size: 28px;
-          }
-          .navbar-links {
-            display: none;
-          }
-          .rules-tabs-nav {
-            overflow-x: scroll;
-          }
-          .rule-stage-content {
-            padding: 24px 16px;
-          }
-          .zigzag-container {
-            gap: 60px;
-          }
-          .cta-heading {
-            font-size: 28px;
-          }
-        }
-      `}</style>
     </div>
   );
 }
+
+const navLinkStyle = {
+  background: 'transparent',
+  border: 'none',
+  fontSize: '13px',
+  fontWeight: 700,
+  color: '#475569',
+  cursor: 'pointer',
+  transition: 'color 0.15s'
+};
