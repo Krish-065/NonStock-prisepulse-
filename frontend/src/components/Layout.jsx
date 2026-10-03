@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, Sun, Moon, User, Zap, Search, Bot, 
-  FlaskConical, Clock, Coins, LayoutDashboard, LogOut
+  FlaskConical, Clock, Coins, LogOut, Globe, Sparkles, X, ChevronRight, ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -15,209 +15,223 @@ import WarningModal from './WarningModal';
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { badge, coins, unlockedTools } = useTrading();
+  const { badge, coins, unlockedTools, isFreeGraceActive, trialDaysRemaining } = useTrading();
   const navigate = useNavigate();
   const location = useLocation();
   const isDark = theme === 'dark';
-  const isLight = theme === 'light';
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1100);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState(null);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    const handleResize = () => setIsMobile(window.innerWidth < 1100);
     window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const savedAvatar = typeof window !== 'undefined' ? localStorage.getItem('nonstock_user_avatar') : null;
+
+  const navItems = [
+    {
+      name: 'Trading Arena',
+      path: '/trading',
+      icon: Zap,
+      active: location.pathname === '/trading',
+      show: true,
+      highlight: true
+    },
+    {
+      name: 'Global Markets',
+      path: '/global-markets',
+      icon: Globe,
+      active: location.pathname === '/global-markets' || location.pathname === '/foreign-markets',
+      show: true,
+      tag: 'NEW'
+    },
+    {
+      name: 'Screener',
+      path: '/screener',
+      icon: Search,
+      active: location.pathname === '/screener',
+      show: Boolean(unlockedTools?.screener)
+    },
+    {
+      name: 'AI Mentor',
+      path: '/ai-mentor',
+      icon: Bot,
+      active: location.pathname === '/ai-mentor',
+      show: true
+    },
+    {
+      name: 'Strategy Lab',
+      path: '/strategy-builder',
+      icon: FlaskConical,
+      active: location.pathname === '/strategy-builder',
+      show: Boolean(unlockedTools?.strategyLab)
+    },
+    {
+      name: 'Replay Engine',
+      path: '/replay',
+      icon: Clock,
+      active: location.pathname === '/replay',
+      show: Boolean(unlockedTools?.replay)
+    }
+  ];
 
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'var(--bg-primary, #F8FAFC)', 
-      color: 'var(--text-primary, #0F172A)',
+      background: 'var(--bg-primary, #0B0F19)', 
+      color: 'var(--text-primary, #F8FAFC)',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     }}>
-      {/* High-Profile Competitive Navbar */}
+      {/* Executive Obsidian Glass Navbar */}
       <header style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
-        height: '62px',
-        background: '#FFFFFF',
-        borderBottom: '1.5px solid #E2E8F0',
+        height: '64px',
+        background: isDark 
+          ? 'rgba(11, 15, 25, 0.88)' 
+          : 'rgba(255, 255, 255, 0.92)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderBottom: isDark 
+          ? '1px solid rgba(255, 255, 255, 0.08)' 
+          : '1px solid rgba(226, 232, 240, 0.9)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
         zIndex: 1000,
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)'
+        boxShadow: isDark
+          ? '0 4px 24px rgba(0, 0, 0, 0.4)'
+          : '0 2px 14px rgba(0, 0, 0, 0.04)'
       }}>
-        {/* Left: Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: 0 }}>
+        {/* Left: Brand Logo (Navigates directly to /dashboard - No Dashboard word needed) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexShrink: 0 }}>
           <div 
             onClick={() => navigate('/dashboard')} 
             style={{ 
               cursor: 'pointer',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              transition: 'transform 0.15s ease'
             }}
+            title="NonStock Dashboard"
           >
-            <Logo size={34} showName={true} showTagline={false} nameSize="19px" />
+            <Logo size={34} showName={true} showTagline={false} nameSize="20px" color={isDark ? '#F8FAFC' : '#0F172A'} />
           </div>
 
-          {/* Navigation Links */}
-          {user && (
+          {/* Desktop Navigation Links */}
+          {user && !isMobile && (
             <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <button
-                onClick={() => navigate('/dashboard')}
-                style={{
-                  background: location.pathname === '/dashboard' ? '#F0FDF4' : 'transparent',
-                  color: location.pathname === '/dashboard' ? '#10B981' : '#475569',
-                  border: location.pathname === '/dashboard' ? '1px solid #BBF7D0' : '1px solid transparent',
-                  borderRadius: '8px',
-                  padding: '6px 12px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.15s'
-                }}
-              >
-                <LayoutDashboard size={14} />
-                <span>Dashboard</span>
-              </button>
-
-              <button
-                onClick={() => navigate('/trading')}
-                style={{
-                  background: location.pathname === '/trading' ? '#10B981' : '#F8FAFC',
-                  color: location.pathname === '/trading' ? '#FFFFFF' : '#0F172A',
-                  border: location.pathname === '/trading' ? '1px solid #10B981' : '1px solid #E2E8F0',
-                  borderRadius: '8px',
-                  padding: '6px 14px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: location.pathname === '/trading' ? '0 2px 8px rgba(16, 185, 129, 0.25)' : 'none',
-                  transition: 'all 0.15s'
-                }}
-              >
-                <Zap size={14} />
-                <span>Trading Arena</span>
-              </button>
-
-              {/* Dynamically Arrived Unlocked Features */}
-              {unlockedTools?.screener && (
-                <button
-                  onClick={() => navigate('/screener')}
-                  style={{
-                    background: location.pathname === '/screener' ? '#F0FDF4' : 'transparent',
-                    color: location.pathname === '/screener' ? '#10B981' : '#475569',
-                    border: location.pathname === '/screener' ? '1px solid #BBF7D0' : '1px solid transparent',
-                    borderRadius: '8px',
-                    padding: '6px 12px',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.15s'
-                  }}
-                >
-                  <Search size={14} />
-                  <span>Screener</span>
-                </button>
-              )}
-
-              {unlockedTools?.aiMentor && (
-                <button
-                  onClick={() => navigate('/ai-mentor')}
-                  style={{
-                    background: location.pathname === '/ai-mentor' ? '#F0FDF4' : 'transparent',
-                    color: location.pathname === '/ai-mentor' ? '#10B981' : '#475569',
-                    border: location.pathname === '/ai-mentor' ? '1px solid #BBF7D0' : '1px solid transparent',
-                    borderRadius: '8px',
-                    padding: '6px 12px',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.15s'
-                  }}
-                >
-                  <Bot size={14} />
-                  <span>AI Mentor</span>
-                </button>
-              )}
-
-              {unlockedTools?.strategyLab && (
-                <button
-                  onClick={() => navigate('/strategy-builder')}
-                  style={{
-                    background: location.pathname === '/strategy-builder' ? '#F0FDF4' : 'transparent',
-                    color: location.pathname === '/strategy-builder' ? '#10B981' : '#475569',
-                    border: location.pathname === '/strategy-builder' ? '1px solid #BBF7D0' : '1px solid transparent',
-                    borderRadius: '8px',
-                    padding: '6px 12px',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.15s'
-                  }}
-                >
-                  <FlaskConical size={14} />
-                  <span>Strategy Lab</span>
-                </button>
-              )}
-
-              {unlockedTools?.replay && (
-                <button
-                  onClick={() => navigate('/replay')}
-                  style={{
-                    background: location.pathname === '/replay' ? '#F0FDF4' : 'transparent',
-                    color: location.pathname === '/replay' ? '#10B981' : '#475569',
-                    border: location.pathname === '/replay' ? '1px solid #BBF7D0' : '1px solid transparent',
-                    borderRadius: '8px',
-                    padding: '6px 12px',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.15s'
-                  }}
-                >
-                  <Clock size={14} />
-                  <span>Replay Engine</span>
-                </button>
-              )}
+              {navItems.filter(item => item.show).map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => navigate(item.path)}
+                    style={{
+                      position: 'relative',
+                      background: item.active
+                        ? (item.highlight 
+                            ? 'linear-gradient(135deg, #10B981, #059669)'
+                            : (isDark ? 'rgba(16, 185, 129, 0.15)' : '#F0FDF4'))
+                        : 'transparent',
+                      color: item.active
+                        ? (item.highlight ? '#FFFFFF' : '#10B981')
+                        : (isDark ? '#94A3B8' : '#475569'),
+                      border: item.active && !item.highlight
+                        ? '1px solid rgba(16, 185, 129, 0.35)'
+                        : '1px solid transparent',
+                      borderRadius: '8px',
+                      padding: item.highlight ? '6px 14px' : '6px 12px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: item.active && item.highlight 
+                        ? '0 2px 10px rgba(16, 185, 129, 0.35)' 
+                        : 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!item.active) {
+                        e.currentTarget.style.color = isDark ? '#FFFFFF' : '#0F172A';
+                        e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!item.active) {
+                        e.currentTarget.style.color = isDark ? '#94A3B8' : '#475569';
+                        e.currentTarget.style.background = 'transparent';
+                      }
+                    }}
+                  >
+                    <Icon size={15} />
+                    <span>{item.name}</span>
+                    {item.tag && (
+                      <span style={{
+                        fontSize: '9px',
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        background: '#3B82F6',
+                        color: '#FFFFFF',
+                        fontWeight: 900,
+                        letterSpacing: '0.5px'
+                      }}>
+                        {item.tag}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </nav>
           )}
         </div>
 
-        {/* Right: Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Right: Actions, Badges & Profile */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* 60-Day Free All-Tools Grace Period Banner Badge */}
+              {isFreeGraceActive && (
+                <div 
+                  onClick={() => navigate('/dashboard')}
+                  style={{
+                    display: isMobile ? 'none' : 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    background: 'rgba(16, 185, 129, 0.12)',
+                    border: '1px solid rgba(16, 185, 129, 0.35)',
+                    color: '#10B981',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    letterSpacing: '0.3px',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title="2-Month Free Introductory Access: All tools are 100% unlocked for your account!"
+                >
+                  <Sparkles size={12} color="#10B981" />
+                  <span>60D Free Pass ({trialDaysRemaining}d)</span>
+                </div>
+              )}
+
               {/* Gold Coins Count in Navbar */}
               <div 
                 onClick={() => navigate('/dashboard')}
@@ -227,51 +241,57 @@ export default function Layout({ children }) {
                   gap: '6px',
                   padding: '5px 12px',
                   borderRadius: '999px',
-                  background: '#FEF9C3',
-                  border: '1.5px solid #FACC15',
-                  color: '#713F12',
-                  fontWeight: 900,
+                  background: isDark ? 'rgba(234, 179, 8, 0.12)' : '#FEF9C3',
+                  border: isDark ? '1px solid rgba(234, 179, 8, 0.35)' : '1.5px solid #FACC15',
+                  color: isDark ? '#FACC15' : '#854D0E',
+                  fontWeight: 800,
                   fontSize: '12px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease'
                 }}
-                title="Your Gold Coins Vault (Click to view analysis & unlock tools)"
+                title="Your Gold Coins Vault (Click to view Badges & Tools)"
               >
-                <Coins size={14} color="#D97706" />
-                <span>{coins || 0} Coins</span>
+                <Coins size={14} color={isDark ? '#FACC15' : '#D97706'} />
+                <span>{coins || 0}</span>
               </div>
 
-              {/* Tag Badge */}
+              {/* User Rank Tier Badge */}
               <div 
+                onClick={() => navigate('/dashboard')}
                 style={{
-                  padding: '4px 12px',
+                  padding: '4px 11px',
                   borderRadius: '999px',
-                  background: '#0F172A',
+                  background: isDark ? '#111827' : '#0F172A',
                   border: `1.5px solid ${badge?.color || '#64748B'}`,
                   color: badge?.color || '#64748B',
                   fontWeight: 900,
                   fontSize: '11px',
                   textTransform: 'uppercase',
-                  letterSpacing: '1px',
+                  letterSpacing: '0.8px',
+                  cursor: 'pointer',
                   boxShadow: badge?.glow && badge.glow !== 'none' ? badge.glow : 'none',
                   textShadow: badge?.glow && badge.glow !== 'none' ? badge.glow : 'none',
                 }}
+                title={`Rank: ${badge?.name || 'CONTENDER'}`}
               >
                 {badge?.name || 'CONTENDER'}
               </div>
 
-              {/* Profile Pill with User Name in Tag Color */}
+              {/* Profile Pill with User Name */}
               <div 
                 onClick={() => navigate('/dashboard')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '5px 12px',
+                  padding: '4px 10px',
                   borderRadius: '8px',
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  cursor: 'pointer'
+                  background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F1F5F9',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
                 }}
+                title="Account & Badges Dashboard"
               >
                 {savedAvatar ? (
                   <img 
@@ -280,17 +300,29 @@ export default function Layout({ children }) {
                     style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }} 
                   />
                 ) : (
-                  <User size={15} style={{ color: badge?.color || '#0F172A' }} />
+                  <div style={{
+                    width: '22px',
+                    height: '22px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #3B82F6, #10B981)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFFFFF',
+                    fontSize: '11px',
+                    fontWeight: 800
+                  }}>
+                    {(user.name || user.email || 'U')[0].toUpperCase()}
+                  </div>
                 )}
                 <span style={{ 
                   fontSize: '13px', 
-                  fontWeight: 900, 
-                  color: badge?.color || '#0F172A',
-                  textShadow: badge?.name === 'Silver' ? '0 1px 2px rgba(148, 163, 184, 0.4)'
-                    : badge?.name === 'Gold' ? '0 1px 6px rgba(234, 179, 8, 0.35)'
-                    : badge?.name === 'Master' ? '0 1px 6px rgba(225, 29, 72, 0.35)'
-                    : badge?.name === 'Operator' ? '0 1px 8px rgba(168, 85, 247, 0.4)'
-                    : 'none'
+                  fontWeight: 800, 
+                  color: isDark ? '#E2E8F0' : '#0F172A',
+                  maxWidth: '120px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
                 }}>
                   {user.name || user.email?.split('@')[0]}
                 </span>
@@ -303,17 +335,37 @@ export default function Layout({ children }) {
                 background: '#10B981',
                 color: '#ffffff',
                 border: 'none',
-                padding: '8px 16px',
+                padding: '7px 16px',
                 borderRadius: '8px',
                 fontWeight: 700,
                 fontSize: '13px',
                 cursor: 'pointer'
               }}
             >
-              Log In
+              Sign In
             </button>
           )}
 
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            style={{
+              background: 'transparent',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E2E8F0',
+              borderRadius: '8px',
+              padding: '7px',
+              cursor: 'pointer',
+              color: isDark ? '#94A3B8' : '#475569',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {isDark ? <Sun size={15} color="#FACC15" /> : <Moon size={15} color="#475569" />}
+          </button>
+
+          {/* Logout */}
           <button
             onClick={() => {
               logout();
@@ -321,32 +373,155 @@ export default function Layout({ children }) {
             }}
             style={{
               background: 'transparent',
-              border: '1px solid #E2E8F0',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0',
               borderRadius: '8px',
-              padding: '7px 14px',
+              padding: '7px 11px',
               cursor: 'pointer',
-              color: '#475569',
+              color: isDark ? '#94A3B8' : '#64748B',
               fontWeight: 700,
-              fontSize: '13px',
-              display: 'flex',
+              fontSize: '12px',
+              display: isMobile ? 'none' : 'flex',
               alignItems: 'center',
               gap: '6px'
             }}
+            title="Log out from NonStock"
           >
-            <LogOut size={14} />
+            <LogOut size={13} />
             <span>Logout</span>
           </button>
+
+          {/* Mobile Menu Burger */}
+          {isMobile && (
+            <button
+              onClick={() => setMobileMenuOpen(prev => !prev)}
+              style={{
+                background: 'transparent',
+                border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E2E8F0',
+                borderRadius: '8px',
+                padding: '7px',
+                color: isDark ? '#F8FAFC' : '#0F172A',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          )}
         </div>
       </header>
+
+      {/* Mobile Drawer */}
+      {isMobile && mobileMenuOpen && (
+        <div style={{
+          position: 'fixed',
+          top: '64px',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: isDark ? 'rgba(11, 15, 25, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          zIndex: 999,
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E2E8F0'
+        }}>
+          {isFreeGraceActive && (
+            <div style={{
+              padding: '10px 14px',
+              borderRadius: '10px',
+              background: 'rgba(16, 185, 129, 0.12)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              color: '#10B981',
+              fontSize: '12px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <Sparkles size={16} />
+              <span>60-Day Free Tool Access Active ({trialDaysRemaining} days remaining)</span>
+            </div>
+          )}
+
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748B', fontWeight: 800, marginTop: '8px' }}>
+            Platform Tools
+          </div>
+
+          {navItems.filter(item => item.show).map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileMenuOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '10px',
+                  background: item.active ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#F0FDF4') : (isDark ? 'rgba(255, 255, 255, 0.03)' : '#F8FAFC'),
+                  border: item.active ? '1px solid #10B981' : (isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid #E2E8F0'),
+                  color: item.active ? '#10B981' : (isDark ? '#F8FAFC' : '#0F172A'),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Icon size={18} />
+                  <span>{item.name}</span>
+                </div>
+                <ChevronRight size={16} color="#64748B" />
+              </button>
+            );
+          })}
+
+          <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E2E8F0' }}>
+            <button
+              onClick={() => {
+                logout();
+                navigate('/');
+              }}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '10px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#EF4444',
+                fontWeight: 800,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <LogOut size={16} />
+              <span>Log Out</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <main style={{ 
         flex: 1, 
-        marginTop: '60px', 
-        padding: '24px',
+        marginTop: '64px', 
+        padding: '24px 20px',
         maxWidth: '1600px',
         width: '100%',
-        margin: '60px auto 0 auto'
+        margin: '64px auto 0 auto',
+        boxSizing: 'border-box'
       }}>
         {children}
       </main>

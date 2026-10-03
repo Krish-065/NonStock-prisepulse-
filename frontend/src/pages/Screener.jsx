@@ -1,61 +1,66 @@
 import { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '../services/api';
-import { Search, TrendingUp, TrendingDown, RefreshCw, Filter, Zap, Sliders, CheckCircle } from 'lucide-react';
+import { 
+  Search, TrendingUp, TrendingDown, RefreshCw, Filter, Zap, Sliders, 
+  CheckCircle, ArrowUpRight, Download, BarChart2, ShieldCheck, Flame, 
+  ChevronRight, Sparkles, Layers, SlidersHorizontal, ArrowUpDown
+} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import LiveMarketScreener from '../components/LiveMarketScreener';
+import toast from 'react-hot-toast';
 
 const SECTORS = ['All', 'IT', 'Banking', 'NBFC', 'Insurance', 'Oil & Gas', 'Auto', 'Pharma', 'FMCG', 'Metals', 'Power', 'Infra', 'Real Estate', 'Telecom'];
+
+const TECHNICAL_PRESETS = [
+  { id: 'all', label: 'All Equities', icon: Layers },
+  { id: 'golden_cross', label: 'Golden Cross (20>50)', icon: Sparkles, badge: 'Bullish' },
+  { id: 'volume_spike', label: 'Volume Surge (>1.8x)', icon: Flame, badge: 'High Flow' },
+  { id: 'bb_squeeze', label: 'Bollinger Squeeze', icon: SlidersHorizontal, badge: 'Breakout Ready' },
+  { id: 'rsi_oversold', label: 'RSI Oversold (<38)', icon: TrendingDown, badge: 'Dip Buy' },
+  { id: 'rsi_overbought', label: 'RSI Overbought (>65)', icon: TrendingUp, badge: 'Overheated' },
+  { id: 'near_52w_high', label: '52W High (<3%)', icon: ArrowUpRight, badge: 'ATH Test' },
+  { id: 'strong_buy', label: 'Strong Buy Rating', icon: ShieldCheck, badge: 'Quant 80+' }
+];
 
 export default function Screener() {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const isLight = theme === 'light';
+  const isDark = theme === 'dark';
 
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [moverFilter, setMoverFilter] = useState('all');
+  const [refreshing, setRefreshing] = useState(false);
+  const [moverFilter, setMoverFilter] = useState('all'); // all, gainers, losers
   const [sectorFilter, setSectorFilter] = useState('All');
-  const [screenerTab, setScreenerTab] = useState('all'); // all, rsi, volume, high52
+  const [technicalPreset, setTechnicalPreset] = useState('all');
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState('changePercent');
   const [sortDir, setSortDir] = useState('desc');
 
-  const fetchStocks = async () => {
+  // Custom technical filter panel
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [supertrendFilter, setSupertrendFilter] = useState('all'); // all, bullish, bearish
+  const [minVolumeMultiple, setMinVolumeMultiple] = useState(0);
+
+  const fetchStocks = async (isManual = false) => {
+    if (isManual) setRefreshing(true);
     try {
       const res = await apiClient.get('/market/stock-list');
-      // Enrich stock data with quantitative technical metrics
-      const enriched = (res.data || []).map((s, idx) => {
-        const priceNum = parseFloat(s.price) || 100;
-        const changeNum = parseFloat(s.changePercent) || 0;
-        const rsiVal = Math.round(35 + (idx * 7) % 45 + (changeNum * 1.5));
-        const peRatio = (15 + (idx * 3) % 35).toFixed(1);
-        const mktCap = (priceNum * (50 + (idx * 12) % 200)).toFixed(0) + ' Cr';
-        const high52 = (priceNum * 1.18).toFixed(2);
-        const low52 = (priceNum * 0.82).toFixed(2);
-        const quantScore = Math.min(98, Math.max(45, Math.round(70 + changeNum * 3 + (rsiVal > 40 && rsiVal < 70 ? 10 : -5))));
-        
-        return {
-          ...s,
-          rsi: rsiVal,
-          pe: peRatio,
-          mktCap,
-          high52,
-          low52,
-          quantScore
-        };
-      });
-      setStocks(enriched);
+      const data = res.data || [];
+      setStocks(data);
+      if (isManual) toast.success('Technical screener refreshed');
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching screener stocks:', err);
     } finally {
       setLoading(false);
+      if (isManual) setRefreshing(false);
     }
   };
 
   useEffect(() => {
     fetchStocks();
-    const interval = setInterval(fetchStocks, 3000);
+    const interval = setInterval(() => fetchStocks(false), 4000);
     return () => clearInterval(interval);
   }, []);
 
@@ -68,28 +73,57 @@ export default function Screener() {
     }
   };
 
+  // Filtered stocks computation
   const filtered = useMemo(() => {
     let result = [...stocks];
 
+    // Search query
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter(s => 
-        s.symbol.toLowerCase().includes(q) || 
+        (s.symbol || '').toLowerCase().includes(q) || 
         (s.name || '').toLowerCase().includes(q) || 
         (s.sector || '').toLowerCase().includes(q)
       );
     }
 
+    // Sector
     if (sectorFilter !== 'All') {
       result = result.filter(s => s.sector === sectorFilter);
     }
 
+    // Movers
     if (moverFilter === 'gainers') result = result.filter(s => parseFloat(s.changePercent) > 0);
     if (moverFilter === 'losers')  result = result.filter(s => parseFloat(s.changePercent) < 0);
 
-    if (screenerTab === 'rsi') result = result.filter(s => s.rsi < 35 || s.rsi > 65);
-    if (screenerTab === 'high52') result = result.filter(s => parseFloat(s.changePercent) > 1.5);
+    // SuperTrend
+    if (supertrendFilter !== 'all') {
+      result = result.filter(s => (s.superTrend || '').toLowerCase() === supertrendFilter.toLowerCase());
+    }
 
+    // Min Volume Multiple
+    if (minVolumeMultiple > 0) {
+      result = result.filter(s => (s.volumeMultiple || 1) >= minVolumeMultiple);
+    }
+
+    // Technical Presets
+    if (technicalPreset === 'golden_cross') {
+      result = result.filter(s => s.isGoldenCross);
+    } else if (technicalPreset === 'volume_spike') {
+      result = result.filter(s => s.isVolumeSpike || (s.volumeMultiple || 0) >= 1.8);
+    } else if (technicalPreset === 'bb_squeeze') {
+      result = result.filter(s => s.isBBSqueeze);
+    } else if (technicalPreset === 'rsi_oversold') {
+      result = result.filter(s => (s.rsi || 50) < 38);
+    } else if (technicalPreset === 'rsi_overbought') {
+      result = result.filter(s => (s.rsi || 50) > 65);
+    } else if (technicalPreset === 'near_52w_high') {
+      result = result.filter(s => (s.dist52WHigh || 10) <= 3.5);
+    } else if (technicalPreset === 'strong_buy') {
+      result = result.filter(s => s.technicalRating === 'STRONG_BUY' || (s.quantScore || 0) >= 78);
+    }
+
+    // Sorting
     result.sort((a, b) => {
       const av = parseFloat(a[sortKey]) || 0;
       const bv = parseFloat(b[sortKey]) || 0;
@@ -97,84 +131,310 @@ export default function Screener() {
     });
 
     return result;
-  }, [stocks, search, sectorFilter, moverFilter, screenerTab, sortKey, sortDir]);
+  }, [stocks, search, sectorFilter, moverFilter, technicalPreset, supertrendFilter, minVolumeMultiple, sortKey, sortDir]);
+
+  // Export CSV
+  const exportCSV = () => {
+    if (filtered.length === 0) {
+      toast.error('No rows to export');
+      return;
+    }
+    const headers = ['Symbol', 'Name', 'Sector', 'Price', 'Change%', 'RSI', 'EMA20', 'EMA50', 'VolumeMult', 'SuperTrend', 'Rating'];
+    const rows = filtered.map(s => [
+      s.symbol,
+      `"${s.name || ''}"`,
+      s.sector || '',
+      s.price,
+      s.changePercent,
+      s.rsi,
+      s.ema20,
+      s.ema50,
+      s.volumeMultiple,
+      s.superTrend,
+      s.technicalRating
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `nonstock_technical_screener_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Technical screener CSV exported');
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', color: '#F8FAFC' }}>
       {/* 1. Global Market Screener & Price Radar (Crypto, Metals, Forex) */}
       <LiveMarketScreener />
 
-      {/* 2. Equities & Quant Radar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      {/* 2. Screener Header & Actions */}
+      <div style={{
+        background: 'rgba(15, 23, 42, 0.75)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '20px',
+        padding: '24px 28px',
+        backdropFilter: 'blur(16px)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-            NSE Stock Screener & Quant Radar
-            <span style={{ fontSize: '11px', background: 'rgba(0, 176, 96, 0.1)', color: '#00b060', padding: '3px 10px', borderRadius: '20px', fontWeight: 800 }}>
-              {filtered.length} STOCKS LISTED
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.3px' }}>
+              Advanced Technical Screener & Quant Radar
+            </h1>
+            <span style={{
+              fontSize: '11px',
+              background: 'rgba(16, 185, 129, 0.15)',
+              color: '#10B981',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              padding: '3px 9px',
+              borderRadius: '999px',
+              fontWeight: 800
+            }}>
+              {filtered.length} SCREENED
             </span>
-          </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
-            Multi-factor Technical Analysis, RSI Indicators, Market Cap & 52-Week Range Scanners
+          </div>
+          <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0 0 0' }}>
+            Multi-factor technical filters: EMA 20/50 Golden Crosses, Volume Spikes, Bollinger Squeeze, RSI Bands, & SuperTrend signals.
           </p>
         </div>
 
-        {/* Screener Preset Tabs */}
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {[
-            { id: 'all', label: 'All Equities' },
-            { id: 'rsi', label: 'RSI Reversal Signals' },
-            { id: 'high52', label: 'Breakout Momentum' }
-          ].map(tab => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            onClick={() => fetchStocks(true)}
+            disabled={refreshing}
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              padding: '8px 14px',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#CBD5E1',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+            <span>Refresh</span>
+          </button>
+
+          <button
+            onClick={exportCSV}
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              padding: '8px 14px',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#CBD5E1',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <Download size={13} />
+            <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={() => setShowAdvancedFilters(prev => !prev)}
+            style={{
+              background: showAdvancedFilters ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+              border: showAdvancedFilters ? '1px solid #10B981' : '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              padding: '8px 14px',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: showAdvancedFilters ? '#10B981' : '#CBD5E1',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <Sliders size={13} />
+            <span>Advanced Filters</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Technical Strategy Presets Chips */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        overflowX: 'auto',
+        paddingBottom: '4px'
+      }}>
+        {TECHNICAL_PRESETS.map((preset) => {
+          const Icon = preset.icon;
+          const isActive = technicalPreset === preset.id;
+          return (
             <button
-              key={tab.id}
-              onClick={() => setScreenerTab(tab.id)}
+              key={preset.id}
+              onClick={() => setTechnicalPreset(preset.id)}
               style={{
-                background: screenerTab === tab.id ? '#00b060' : 'transparent',
-                color: screenerTab === tab.id ? '#ffffff' : 'var(--text-secondary)',
-                border: screenerTab === tab.id ? 'none' : '1px solid var(--border-color)',
+                background: isActive ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15))' : 'rgba(15, 23, 42, 0.65)',
+                border: isActive ? '1px solid #10B981' : '1px solid rgba(255, 255, 255, 0.08)',
+                color: isActive ? '#10B981' : '#94A3B8',
                 padding: '8px 14px',
+                borderRadius: '10px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Icon size={14} color={isActive ? '#10B981' : '#64748B'} />
+              <span>{preset.label}</span>
+              {preset.badge && (
+                <span style={{
+                  fontSize: '9px',
+                  fontWeight: 900,
+                  padding: '1px 5px',
+                  borderRadius: '4px',
+                  background: isActive ? '#10B981' : 'rgba(255, 255, 255, 0.08)',
+                  color: isActive ? '#042F2E' : '#94A3B8'
+                }}>
+                  {preset.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 4. Advanced Filter Dropdowns (Optional Drawer) */}
+      {showAdvancedFilters && (
+        <div style={{
+          background: 'rgba(15, 23, 42, 0.85)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '16px',
+          padding: '18px 24px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px'
+        }}>
+          <div>
+            <label style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+              SuperTrend Direction
+            </label>
+            <select
+              value={supertrendFilter}
+              onChange={e => setSupertrendFilter(e.target.value)}
+              style={{
+                width: '100%',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '8px',
+                padding: '8px',
+                color: '#FFFFFF',
+                fontSize: '12px',
+                outline: 'none'
+              }}
+            >
+              <option value="all" style={{ background: '#0F172A' }}>All Directions</option>
+              <option value="bullish" style={{ background: '#0F172A' }}>🟢 Bullish SuperTrend</option>
+              <option value="bearish" style={{ background: '#0F172A' }}>🔴 Bearish SuperTrend</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+              Min Volume Spike Multiple: {minVolumeMultiple > 0 ? `${minVolumeMultiple}x` : 'Any'}
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="4"
+              step="0.5"
+              value={minVolumeMultiple}
+              onChange={e => setMinVolumeMultiple(parseFloat(e.target.value))}
+              style={{ width: '100%', accentColor: '#10B981' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <button
+              onClick={() => {
+                setSupertrendFilter('all');
+                setMinVolumeMultiple(0);
+                setTechnicalPreset('all');
+                setMoverFilter('all');
+                setSectorFilter('All');
+                setSearch('');
+              }}
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#EF4444',
+                borderRadius: '8px',
+                padding: '8px 16px',
                 fontSize: '12px',
                 fontWeight: 700,
                 cursor: 'pointer'
               }}
             >
-              {tab.label}
+              Reset All Filters
             </button>
-          ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Filters Toolbar */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '14px', padding: '16px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
+      {/* 5. Toolbar & Sector Selector */}
+      <div style={{
+        background: 'rgba(15, 23, 42, 0.65)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '16px',
+        padding: '16px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '14px',
+        alignItems: 'center'
+      }}>
+        {/* Search input */}
         <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+          <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search by Symbol, Company or Sector..."
+            placeholder="Search by Symbol, Company or Sector (e.g. RELIANCE, TCS, Banking)..."
             style={{
               width: '100%',
-              padding: '10px 14px 10px 38px',
-              background: 'var(--bg-glass-light)',
-              border: '1px solid var(--border-color)',
+              padding: '9px 14px 9px 36px',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '8px',
-              color: 'var(--text-primary)',
+              color: '#FFFFFF',
               fontSize: '13px',
               outline: 'none'
             }}
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* Gainers / Losers Pills */}
+        <div style={{ display: 'flex', gap: '6px' }}>
           {['all', 'gainers', 'losers'].map(m => (
             <button
               key={m}
               onClick={() => setMoverFilter(m)}
               style={{
-                background: moverFilter === m ? 'rgba(0, 176, 96, 0.12)' : 'transparent',
-                border: moverFilter === m ? '1px solid #00b060' : '1px solid var(--border-color)',
-                color: moverFilter === m ? '#00b060' : 'var(--text-secondary)',
+                background: moverFilter === m ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                border: moverFilter === m ? '1px solid #10B981' : '1px solid rgba(255, 255, 255, 0.08)',
+                color: moverFilter === m ? '#10B981' : '#94A3B8',
                 padding: '6px 12px',
                 borderRadius: '8px',
                 fontSize: '12px',
@@ -200,9 +460,9 @@ export default function Screener() {
               borderRadius: '16px',
               fontSize: '11px',
               fontWeight: 700,
-              background: sectorFilter === sec ? '#00b060' : 'var(--bg-card)',
-              color: sectorFilter === sec ? '#ffffff' : 'var(--text-secondary)',
-              border: '1px solid var(--border-color)',
+              background: sectorFilter === sec ? '#10B981' : 'rgba(15, 23, 42, 0.65)',
+              color: sectorFilter === sec ? '#042F2E' : '#94A3B8',
+              border: sectorFilter === sec ? '1px solid #10B981' : '1px solid rgba(255, 255, 255, 0.06)',
               cursor: 'pointer',
               whiteSpace: 'nowrap'
             }}
@@ -212,60 +472,189 @@ export default function Screener() {
         ))}
       </div>
 
-      {/* Table */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', overflowX: 'auto' }}>
+      {/* 6. Technical Results Table */}
+      <div style={{
+        background: 'rgba(15, 23, 42, 0.75)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '16px',
+        overflowX: 'auto',
+        backdropFilter: 'blur(16px)'
+      }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase' }}>
-              <th style={{ padding: '14px 16px' }}>Company & Symbol</th>
-              <th style={{ padding: '14px 12px' }}>Sector</th>
+            <tr style={{
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              textAlign: 'left',
+              color: '#64748B',
+              fontSize: '11px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.8px'
+            }}>
+              <th style={{ padding: '14px 16px' }}>Asset / Sector</th>
               <th style={{ padding: '14px 12px', cursor: 'pointer' }} onClick={() => handleSort('price')}>Price (₹)</th>
-              <th style={{ padding: '14px 12px', cursor: 'pointer' }} onClick={() => handleSort('changePercent')}>1D Change %</th>
-              <th style={{ padding: '14px 12px', cursor: 'pointer' }} onClick={() => handleSort('quantScore')}>Quant Score</th>
-              <th style={{ padding: '14px 12px' }}>RSI (14)</th>
-              <th style={{ padding: '14px 12px' }}>P/E Ratio</th>
-              <th style={{ padding: '14px 12px' }}>Est. Mkt Cap</th>
-              <th style={{ padding: '14px 16px', textAlign: 'right' }}>52W Range (L - H)</th>
+              <th style={{ padding: '14px 12px', cursor: 'pointer' }} onClick={() => handleSort('changePercent')}>1D Change</th>
+              <th style={{ padding: '14px 12px', cursor: 'pointer' }} onClick={() => handleSort('rsi')}>RSI (14)</th>
+              <th style={{ padding: '14px 12px' }}>Moving Avg Cross</th>
+              <th style={{ padding: '14px 12px' }}>Volume Flow</th>
+              <th style={{ padding: '14px 12px' }}>SuperTrend</th>
+              <th style={{ padding: '14px 12px' }}>Quant Score</th>
+              <th style={{ padding: '14px 16px', textAlign: 'right' }}>Arena Action</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((s) => {
-              const chg = parseFloat(s.changePercent);
-              return (
-                <tr
-                  key={s.symbol}
-                  onClick={() => navigate(`/stock/${s.symbol}`)}
-                  style={{ borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
-                >
-                  <td style={{ padding: '14px 16px' }}>
-                    <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '14px' }}>{s.symbol}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{s.name || 'NSE Equity'}</div>
-                  </td>
-                  <td style={{ padding: '14px 12px' }}>
-                    <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px', background: 'rgba(0, 176, 96, 0.1)', color: '#00b060', fontWeight: 700 }}>
-                      {s.sector || 'Other'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 12px', fontWeight: 800, color: 'var(--text-primary)' }}>₹{s.price}</td>
-                  <td style={{ padding: '14px 12px', fontWeight: 800, color: chg >= 0 ? '#00b060' : '#dc2626' }}>
-                    {chg >= 0 ? '+' : ''}{s.changePercent}%
-                  </td>
-                  <td style={{ padding: '14px 12px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 800, background: 'rgba(124, 58, 237, 0.15)', color: '#7c3aed', padding: '2px 8px', borderRadius: '6px' }}>
-                      {s.quantScore}/100
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 12px', fontWeight: 700, color: s.rsi < 35 ? '#00b060' : s.rsi > 65 ? '#dc2626' : 'var(--text-primary)' }}>
-                    {s.rsi} {s.rsi < 35 ? '(Oversold)' : s.rsi > 65 ? '(Overbought)' : ''}
-                  </td>
-                  <td style={{ padding: '14px 12px', color: 'var(--text-secondary)', fontWeight: 600 }}>{s.pe}</td>
-                  <td style={{ padding: '14px 12px', color: 'var(--text-secondary)', fontWeight: 600 }}>₹{s.mktCap}</td>
-                  <td style={{ padding: '14px 16px', textAlign: 'right', color: 'var(--text-secondary)', fontSize: '12px' }}>
-                    ₹{s.low52} - ₹{s.high52}
-                  </td>
-                </tr>
-              );
-            })}
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan="9" style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                  No stocks match the selected technical filters and search query.
+                </td>
+              </tr>
+            ) : (
+              filtered.map((s) => {
+                const chg = parseFloat(s.changePercent) || 0;
+                const rsi = s.rsi || 50;
+                const isCross = s.isGoldenCross;
+                const isDeath = s.isDeathCross;
+                const volMult = s.volumeMultiple || 1.0;
+                const isSuperBull = (s.superTrend || '').toUpperCase() === 'BULLISH';
+
+                return (
+                  <tr
+                    key={s.symbol}
+                    style={{
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+                      transition: 'background 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    {/* Symbol & Sector */}
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ fontWeight: 800, color: '#FFFFFF', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{s.symbol}</span>
+                        {s.isBBSqueeze && (
+                          <span style={{ fontSize: '9px', background: '#38BDF8', color: '#0C4A6E', padding: '1px 5px', borderRadius: '4px', fontWeight: 900 }}>
+                            SQUEEZE
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#94A3B8' }}>{s.name || s.sector || 'Equity'}</div>
+                    </td>
+
+                    {/* Price */}
+                    <td style={{ padding: '14px 12px', fontWeight: 800, color: '#FFFFFF' }}>
+                      ₹{Number(s.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+
+                    {/* Change % */}
+                    <td style={{ padding: '14px 12px', fontWeight: 800, color: chg >= 0 ? '#10B981' : '#EF4444' }}>
+                      {chg >= 0 ? '+' : ''}{chg.toFixed(2)}%
+                    </td>
+
+                    {/* RSI */}
+                    <td style={{ padding: '14px 12px' }}>
+                      <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        background: rsi < 38 ? 'rgba(16, 185, 129, 0.15)' : rsi > 65 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                        color: rsi < 38 ? '#10B981' : rsi > 65 ? '#EF4444' : '#CBD5E1'
+                      }}>
+                        <span>{rsi}</span>
+                        <span style={{ fontSize: '10px', opacity: 0.8 }}>
+                          {rsi < 38 ? 'OS' : rsi > 65 ? 'OB' : ''}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Moving Avg Cross */}
+                    <td style={{ padding: '14px 12px' }}>
+                      {isCross ? (
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', background: 'rgba(16, 185, 129, 0.15)', padding: '2px 8px', borderRadius: '6px' }}>
+                          Golden Cross (20 &gt; 50)
+                        </span>
+                      ) : isDeath ? (
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#EF4444', background: 'rgba(239, 68, 68, 0.15)', padding: '2px 8px', borderRadius: '6px' }}>
+                          Death Cross (20 &lt; 50)
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '11px', color: '#64748B' }}>
+                          Neutral Range
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Volume Flow */}
+                    <td style={{ padding: '14px 12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          color: volMult >= 1.8 ? '#F59E0B' : '#CBD5E1'
+                        }}>
+                          {volMult.toFixed(1)}x
+                        </span>
+                        {volMult >= 1.8 && <Flame size={12} color="#F59E0B" />}
+                      </div>
+                    </td>
+
+                    {/* SuperTrend */}
+                    <td style={{ padding: '14px 12px' }}>
+                      <span style={{
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        background: isSuperBull ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                        color: isSuperBull ? '#10B981' : '#EF4444'
+                      }}>
+                        {isSuperBull ? 'BULLISH' : 'BEARISH'}
+                      </span>
+                    </td>
+
+                    {/* Quant Score */}
+                    <td style={{ padding: '14px 12px' }}>
+                      <span style={{
+                        fontSize: '12px',
+                        fontWeight: 900,
+                        background: 'rgba(168, 85, 247, 0.15)',
+                        color: '#C084FC',
+                        padding: '2px 8px',
+                        borderRadius: '6px'
+                      }}>
+                        {s.quantScore || 72}/100
+                      </span>
+                    </td>
+
+                    {/* Action */}
+                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                      <button
+                        onClick={() => navigate('/trading')}
+                        style={{
+                          background: '#10B981',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <span>Trade</span>
+                        <ArrowUpRight size={12} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>

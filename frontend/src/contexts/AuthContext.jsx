@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { apiClient } from '../services/api';
+import { apiClient, getDeviceId, getDeviceName } from '../services/api';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -75,7 +75,9 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const res = await apiClient.post('/auth/login', { email, password });
+      const deviceId = getDeviceId();
+      const deviceName = getDeviceName();
+      const res = await apiClient.post('/auth/login', { email, password, deviceId, deviceName });
       if (res.data.twoFactorRequired) {
         return { success: true, twoFactorRequired: true, tempToken: res.data.tempToken };
       }
@@ -93,7 +95,9 @@ export function AuthProvider({ children }) {
 
   const register = async (email, password, name) => {
     try {
-      const res = await apiClient.post('/auth/register', { email, password, name });
+      const deviceId = getDeviceId();
+      const deviceName = getDeviceName();
+      const res = await apiClient.post('/auth/register', { email, password, name, deviceId, deviceName });
       if (res.data.requiresVerification) {
         toast.success('Registration successful. Please check your email for the OTP.');
         return { success: true, requiresVerification: true, email: res.data.email };
@@ -115,7 +119,9 @@ export function AuthProvider({ children }) {
 
   const verifyEmail = async (email, otp) => {
     try {
-      const res = await apiClient.post('/auth/verify-email', { email, otp });
+      const deviceId = getDeviceId();
+      const deviceName = getDeviceName();
+      const res = await apiClient.post('/auth/verify-email', { email, otp, deviceId, deviceName });
       const { token, user } = res.data;
       localStorage.setItem('token', token);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -133,7 +139,9 @@ export function AuthProvider({ children }) {
 
   const verify2FALogin = async (tempToken, token) => {
     try {
-      const res = await apiClient.post('/auth/2fa/login-verify', { tempToken, token });
+      const deviceId = getDeviceId();
+      const deviceName = getDeviceName();
+      const res = await apiClient.post('/auth/2fa/login-verify', { tempToken, token, deviceId, deviceName });
       const { token: jwtToken, user } = res.data;
       localStorage.setItem('token', jwtToken);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
@@ -148,7 +156,9 @@ export function AuthProvider({ children }) {
 
   const googleLogin = async (credential) => {
     try {
-      const res = await apiClient.post('/auth/google', { credential });
+      const deviceId = getDeviceId();
+      const deviceName = getDeviceName();
+      const res = await apiClient.post('/auth/google', { credential, deviceId, deviceName });
       const { token, user } = res.data;
       localStorage.setItem('token', token);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -161,7 +171,12 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (e) {
+      // Ignore network errors on logout
+    }
     localStorage.removeItem('token');
     delete apiClient.defaults.headers.common['Authorization'];
     setUser(null);

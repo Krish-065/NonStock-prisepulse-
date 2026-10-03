@@ -229,6 +229,43 @@ async function sendPasswordChangeNotificationEmail(email, userName) {
   });
 }
 
+// CREATE PERSISTENT DEVICE SESSION (Enforces Single Active Device)
+async function createDeviceSession({ userId, email, ip, userAgent, deviceId, deviceName }) {
+  // 1. Invalidate any existing active sessions for this user on other devices
+  await query(
+    `UPDATE sessions SET is_valid = false WHERE user_id = $1 AND is_valid = true`,
+    [userId]
+  );
+
+  // 2. Generate new session token and ID
+  const sessionToken = crypto.randomBytes(32).toString('hex');
+  const sessionId = generateUUID();
+  const validDeviceId = deviceId || ('dev_' + crypto.randomBytes(12).toString('hex'));
+  const validDeviceName = deviceName || 'Device';
+
+  // 3. Insert new active session with 30-day validity
+  await query(
+    `INSERT INTO sessions (id, user_id, token, ip_address, user_agent, device_id, device_name, is_valid, expires_at) 
+     VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW() + INTERVAL '30 days')`,
+    [sessionId, userId, sessionToken, ip, userAgent, validDeviceId, validDeviceName]
+  );
+
+  // 4. Update current active device and session on user record
+  await query(
+    `UPDATE users SET current_session_id = $1, current_device_id = $2, current_device_name = $3 WHERE id = $4`,
+    [sessionId, validDeviceId, validDeviceName, userId]
+  );
+
+  // 5. Generate long-lived JWT token (30 days) containing sessionId and deviceId
+  const jwtToken = jwt.sign(
+    { id: userId, email, sessionId, deviceId: validDeviceId },
+    process.env.JWT_SECRET,
+    { expiresIn: '30d' }
+  );
+
+  return { sessionId, sessionToken, jwtToken, deviceId: validDeviceId };
+}
+
 // REGISTER
 async function register(req, res) {
   try {
@@ -299,8 +336,21 @@ async function verifyEmail(req, res) {
 
     const isPro = email.toLowerCase() === 'krishshah8201@gmail.com' ? true : user.rows[0].is_pro;
     const proPlan = email.toLowerCase() === 'krishshah8201@gmail.com' ? 'lifetime' : user.rows[0].pro_plan;
-    const token = jwt.sign({ id: user.rows[0].id, email }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ message: 'Email verified', token, user: { id: user.rows[0].id, email, name: user.rows[0].name, is_admin: user.rows[0].is_admin, is_pro: isPro, pro_plan: proPlan, has_completed_tutorial: user.rows[0].has_completed_tutorial, has_completed_pro_tutorial: user.rows[0].has_completed_pro_tutorial } });
+
+    const deviceId = req.body.deviceId || req.headers['x-device-id'] || req.headers['x_device_id'];
+    const deviceName = req.body.deviceName || req.headers['x-device-name'] || req.headers['x_device_name'];
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+
+    const { jwtToken } = await createDeviceSession({
+      userId: user.rows[0].id,
+      email,
+      ip: req.ip,
+      userAgent,
+      deviceId,
+      deviceName
+    });
+
+    res.json({ message: 'Email verified', token: jwtToken, user: { id: user.rows[0].id, email, name: user.rows[0].name, is_admin: user.rows[0].is_admin, is_pro: isPro, pro_plan: proPlan, has_completed_tutorial: user.rows[0].has_completed_tutorial, has_completed_pro_tutorial: user.rows[0].has_completed_pro_tutorial } });
   } catch (error) {
     res.status(500).json({ error: 'Verification failed' });
   }
@@ -335,18 +385,27 @@ async function login(req, res) {
 
     await query(`INSERT INTO login_attempts (id, email, ip_address, success) VALUES ($1,$2,$3,$4)`, [generateUUID(), email, ip, true]);
 
+    // Check if 2FA is enabled
+    if (user.two_factor_enabled) {
+      const tempToken = jwt.sign({ id: user.id, isPending2FA: true }, process.env.JWT_SECRET, { expiresIn: '10m' });
+      return res.json({ twoFactorRequired: true, tempToken });
+    }
 
+    const deviceId = req.body.deviceId || req.headers['x-device-id'] || req.headers['x_device_id'];
+    const deviceName = req.body.deviceName || req.headers['x-device-name'] || req.headers['x_device_name'];
+    const userAgent = req.headers['user-agent'] || 'Unknown';
 
-    const sessionToken = crypto.randomBytes(32).toString('hex');
-    const sessionId = generateUUID();
-    await query(
-      `INSERT INTO sessions (id, user_id, token, ip_address, user_agent, expires_at) VALUES ($1,$2,$3,$4,$5, NOW() + INTERVAL '7 days')`,
-      [sessionId, user.id, sessionToken, ip, req.headers['user-agent']]
-    );
+    const { jwtToken } = await createDeviceSession({
+      userId: user.id,
+      email,
+      ip,
+      userAgent,
+      deviceId,
+      deviceName
+    });
 
     const isPro = email.toLowerCase() === 'krishshah8201@gmail.com' ? true : user.is_pro;
     const proPlan = email.toLowerCase() === 'krishshah8201@gmail.com' ? 'lifetime' : user.pro_plan;
-    const jwtToken = jwt.sign({ id: user.id, email, sessionId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     // Process dynamic daily login reward and streak
     let loginReward = null;
@@ -380,7 +439,8 @@ async function login(req, res) {
       } 
     });
   } catch (error) {
-    res.status(500).json({ error: 'Login failed' });
+    console.error('❌ Login error:', error);
+    res.status(500).json({ error: error.message || 'Login failed' });
   }
 }
 
@@ -422,16 +482,21 @@ async function verifyTwoFactorLogin(req, res) {
 
     // Code is valid! Complete the login session creation.
     const ip = req.ip;
-    const sessionToken = crypto.randomBytes(32).toString('hex');
-    const sessionId = generateUUID();
-    await query(
-      `INSERT INTO sessions (id, user_id, token, ip_address, user_agent, expires_at) VALUES ($1,$2,$3,$4,$5, NOW() + INTERVAL '7 days')`,
-      [sessionId, user.id, sessionToken, ip, req.headers['user-agent']]
-    );
+    const deviceId = req.body.deviceId || req.headers['x-device-id'] || req.headers['x_device_id'];
+    const deviceName = req.body.deviceName || req.headers['x-device-name'] || req.headers['x_device_name'];
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+
+    const { jwtToken } = await createDeviceSession({
+      userId: user.id,
+      email: user.email,
+      ip,
+      userAgent,
+      deviceId,
+      deviceName
+    });
 
     const isPro = user.email.toLowerCase() === 'krishshah8201@gmail.com' ? true : user.is_pro;
     const proPlan = user.email.toLowerCase() === 'krishshah8201@gmail.com' ? 'lifetime' : user.pro_plan;
-    const jwtToken = jwt.sign({ id: user.id, email: user.email, sessionId }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ message: 'Login successful', token: jwtToken, user: { id: user.id, email: user.email, name: user.name, is_admin: user.is_admin, is_pro: isPro, pro_plan: proPlan, has_completed_tutorial: user.has_completed_tutorial, has_completed_pro_tutorial: user.has_completed_pro_tutorial } });
   } catch (error) {
     console.error('❌ 2FA login verification failed:', error);
@@ -505,7 +570,7 @@ async function resetPassword(req, res) {
 async function getSessions(req, res) {
   try {
     const result = await query(
-      `SELECT id, ip_address, user_agent, last_active, created_at, expires_at FROM sessions WHERE user_id = $1 AND is_valid = true ORDER BY last_active DESC`,
+      `SELECT id, ip_address, user_agent, device_id, device_name, last_active, created_at, expires_at FROM sessions WHERE user_id = $1 AND is_valid = true ORDER BY last_active DESC`,
       [req.user.id]
     );
     res.json({ sessions: result.rows });
@@ -514,10 +579,31 @@ async function getSessions(req, res) {
   }
 }
 
-// LOGOUT SESSION
+// LOGOUT CURRENT SESSION
+async function logout(req, res) {
+  try {
+    if (req.sessionId) {
+      await query(`UPDATE sessions SET is_valid = false WHERE id = $1 AND user_id = $2`, [req.sessionId, req.user.id]);
+    }
+    await query(
+      `UPDATE users SET current_session_id = NULL, current_device_id = NULL, current_device_name = NULL WHERE id = $1 AND current_session_id = $2`,
+      [req.user.id, req.sessionId]
+    );
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Logout failed' });
+  }
+}
+
+// LOGOUT SPECIFIC SESSION
 async function logoutSession(req, res) {
   try {
     await query(`UPDATE sessions SET is_valid = false WHERE id = $1 AND user_id = $2`, [req.params.sessionId, req.user.id]);
+    await query(
+      `UPDATE users SET current_session_id = NULL, current_device_id = NULL, current_device_name = NULL WHERE id = $1 AND current_session_id = $2`,
+      [req.user.id, req.params.sessionId]
+    );
     res.json({ message: 'Logged out' });
   } catch (error) {
     res.status(500).json({ error: 'Logout failed' });
@@ -667,18 +753,22 @@ async function googleLogin(req, res) {
       }
     }
 
-    // Create session (exactly like traditional login)
-    const sessionToken = crypto.randomBytes(32).toString('hex');
-    const sessionId = generateUUID();
-    await query(
-      `INSERT INTO sessions (id, user_id, token, ip_address, user_agent, expires_at) 
-       VALUES ($1, $2, $3, $4, $5, NOW() + INTERVAL '7 days')`,
-      [sessionId, user.id, sessionToken, ip, req.headers['user-agent']]
-    );
+    // Create session bound to device (single active device enforcement)
+    const deviceId = req.body.deviceId || req.headers['x-device-id'] || req.headers['x_device_id'];
+    const deviceName = req.body.deviceName || req.headers['x-device-name'] || req.headers['x_device_name'];
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+
+    const { jwtToken } = await createDeviceSession({
+      userId: user.id,
+      email: user.email,
+      ip,
+      userAgent,
+      deviceId,
+      deviceName
+    });
 
     const isPro = user.email.toLowerCase() === 'krishshah8201@gmail.com' ? true : user.is_pro;
     const proPlan = user.email.toLowerCase() === 'krishshah8201@gmail.com' ? 'lifetime' : user.pro_plan;
-    const jwtToken = jwt.sign({ id: user.id, email: user.email, sessionId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
       message: 'Google login successful',
@@ -708,10 +798,12 @@ module.exports = {
   forgotPassword,
   resetPassword,
   getSessions,
+  logout,
   logoutSession,
   setupTwoFactor,
   verifyAndEnableTwoFactor,
   disableTwoFactor,
   changePassword,
   googleLogin,
+  createDeviceSession,
 };

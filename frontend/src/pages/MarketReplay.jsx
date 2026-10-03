@@ -71,17 +71,17 @@ export default function MarketReplay() {
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: 'solid', color: '#FFFFFF' },
-        textColor: '#0F172A',
+        background: { type: 'solid', color: '#0B0F19' },
+        textColor: '#94A3B8',
         fontFamily: 'Inter, sans-serif'
       },
       grid: {
-        vertLines: { color: '#F1F5F9' },
-        horzLines: { color: '#F1F5F9' },
+        vertLines: { color: 'rgba(255, 255, 255, 0.04)' },
+        horzLines: { color: 'rgba(255, 255, 255, 0.04)' },
       },
       crosshair: { mode: 1 },
-      timeScale: { timeVisible: true, secondsVisible: false },
-      rightPriceScale: { borderColor: '#E2E8F0' }
+      timeScale: { timeVisible: true, secondsVisible: false, borderColor: 'rgba(255, 255, 255, 0.08)' },
+      rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.08)' }
     });
 
     const series = chart.addSeries(CandlestickSeries, {
@@ -181,12 +181,13 @@ export default function MarketReplay() {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1440px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', color: '#F8FAFC' }}>
       
       {/* ─── 1. TOP HEADER BANNER ─── */}
       <div style={{
-        background: 'linear-gradient(135deg, #064E3B 0%, #065F46 100%)',
-        borderRadius: '16px',
+        background: 'linear-gradient(135deg, rgba(6, 78, 59, 0.9) 0%, rgba(6, 95, 70, 0.95) 100%)',
+        borderRadius: '20px',
+        border: '1px solid rgba(16, 185, 129, 0.3)',
         padding: '24px 32px',
         color: '#FFFFFF',
         display: 'flex',
@@ -194,18 +195,18 @@ export default function MarketReplay() {
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '20px',
-        boxShadow: '0 8px 24px rgba(6, 78, 59, 0.25)'
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
       }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-            <span style={{ background: '#10B981', color: '#FFFFFF', fontSize: '11px', fontWeight: '900', padding: '3px 8px', borderRadius: '4px', letterSpacing: '0.8px' }}>
+            <span style={{ background: '#10B981', color: '#042F2E', fontSize: '11px', fontWeight: '900', padding: '3px 8px', borderRadius: '4px', letterSpacing: '0.8px' }}>
               PRO ENGINE
             </span>
             <span style={{ fontSize: '13px', color: '#A7F3D0', fontWeight: '700' }}>
               Module 02 // 24/7 Market Replay
             </span>
           </div>
-          <h2 style={{ fontSize: '24px', fontWeight: '900', margin: '0 0 6px 0' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: '900', margin: '0 0 6px 0', letterSpacing: '-0.3px' }}>
             The Time Machine: Bar-by-Bar Historical Replay Engine
           </h2>
           <p style={{ margin: 0, fontSize: '14px', color: '#D1FAE5', maxWidth: '720px', lineHeight: 1.5 }}>
@@ -214,7 +215,7 @@ export default function MarketReplay() {
         </div>
 
         {/* Asset Selector */}
-        <div style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '12px 18px', borderRadius: '12px', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ background: 'rgba(0, 0, 0, 0.25)', padding: '10px 16px', borderRadius: '12px', backdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontSize: '12px', fontWeight: '800', color: '#A7F3D0' }}>SESSION:</span>
           <select 
             value={selectedAsset.symbol} 
@@ -223,14 +224,15 @@ export default function MarketReplay() {
               if (found) setSelectedAsset(found);
             }}
             style={{
-              background: '#FFFFFF',
-              color: '#0F172A',
-              border: 'none',
+              background: '#0F172A',
+              color: '#FFFFFF',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
               borderRadius: '8px',
               padding: '6px 12px',
               fontWeight: '800',
               fontSize: '13px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              outline: 'none'
             }}
           >
             {REPLAY_ASSETS.map(a => (
@@ -247,33 +249,34 @@ export default function MarketReplay() {
         
         {/* Left: Replay Chart & Controls */}
         <div style={{
-          background: '#FFFFFF',
-          borderRadius: '16px',
-          border: '1px solid #E2E8F0',
+          background: 'rgba(15, 23, 42, 0.75)',
+          borderRadius: '20px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.03)'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(16px)'
         }}>
           {/* Top Bar of Chart */}
           <div style={{
             padding: '14px 20px',
-            borderBottom: '1px solid #E2E8F0',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            background: '#FAFAFA'
+            background: 'rgba(255, 255, 255, 0.02)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '18px', fontWeight: '900', color: '#0F172A' }}>
+              <span style={{ fontSize: '18px', fontWeight: '900', color: '#FFFFFF' }}>
                 {selectedAsset.symbol}
               </span>
-              <span style={{ fontSize: '18px', fontWeight: '900', color: '#10B981', fontFamily: 'var(--font-mono)' }}>
+              <span style={{ fontSize: '18px', fontWeight: '900', color: '#10B981' }}>
                 ${currentCandle.close?.toFixed(2)}
               </span>
             </div>
 
-            <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Clock size={14} color="#10B981" />
               Bar {currentIndex} of {candles.length} ({Math.round((currentIndex / candles.length) * 100)}% Replayed)
             </div>
@@ -282,11 +285,11 @@ export default function MarketReplay() {
           {/* Chart Canvas */}
           <div ref={chartContainerRef} style={{ width: '100%', height: '480px' }} />
 
-          {/* Replay Control Scrub Bar (From user reference image) */}
+          {/* Replay Control Scrub Bar */}
           <div style={{
             padding: '14px 20px',
-            borderTop: '1px solid #E2E8F0',
-            background: '#F8FAFC',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            background: 'rgba(255, 255, 255, 0.02)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -309,7 +312,7 @@ export default function MarketReplay() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
                 }}
               >
                 {isPlaying ? <><Pause size={15} /> Pause</> : <><Play size={15} /> Play Replay</>}
@@ -319,8 +322,8 @@ export default function MarketReplay() {
                 onClick={handleStepForward}
                 title="Step forward 1 candle"
                 style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '8px',
                   padding: '8px 12px',
                   fontWeight: '700',
@@ -329,7 +332,7 @@ export default function MarketReplay() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  color: '#0F172A'
+                  color: '#FFFFFF'
                 }}
               >
                 <SkipForward size={14} /> Next Bar
@@ -339,8 +342,8 @@ export default function MarketReplay() {
                 onClick={handleRewind}
                 title="Rewind to start"
                 style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '8px',
                   padding: '8px 12px',
                   fontWeight: '700',
@@ -349,7 +352,7 @@ export default function MarketReplay() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  color: '#64748B'
+                  color: '#94A3B8'
                 }}
               >
                 <RotateCcw size={14} /> Rewind
@@ -358,15 +361,15 @@ export default function MarketReplay() {
 
             {/* Speed Selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B' }}>SPEED:</span>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#94A3B8' }}>SPEED:</span>
               {[1, 2, 5].map(s => (
                 <button
                   key={s}
                   onClick={() => setSpeed(s)}
                   style={{
-                    background: speed === s ? '#0F172A' : '#FFFFFF',
-                    color: speed === s ? '#FFFFFF' : '#475569',
-                    border: '1px solid #CBD5E1',
+                    background: speed === s ? '#10B981' : 'rgba(255, 255, 255, 0.06)',
+                    color: speed === s ? '#042F2E' : '#94A3B8',
+                    border: speed === s ? '1px solid #10B981' : '1px solid rgba(255, 255, 255, 0.1)',
                     borderRadius: '6px',
                     padding: '4px 10px',
                     fontSize: '12px',
@@ -401,20 +404,21 @@ export default function MarketReplay() {
           
           {/* Order Ticket */}
           <div style={{
-            background: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
+            background: 'rgba(15, 23, 42, 0.75)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             padding: '20px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(16px)',
             display: 'flex',
             flexDirection: 'column',
             gap: '14px'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, color: '#0F172A' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, color: '#FFFFFF' }}>
                 Replay Trade Desk
               </h3>
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#10B981', background: '#ECFDF5', padding: '2px 8px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#10B981', background: 'rgba(16, 185, 129, 0.15)', padding: '2px 8px', borderRadius: '4px' }}>
                 LIVE BAR
               </span>
             </div>
@@ -427,8 +431,8 @@ export default function MarketReplay() {
                   padding: '9px 0',
                   borderRadius: '8px',
                   border: 'none',
-                  background: orderSide === 'BUY' ? '#10B981' : '#F1F5F9',
-                  color: orderSide === 'BUY' ? '#FFFFFF' : '#64748B',
+                  background: orderSide === 'BUY' ? '#10B981' : 'rgba(255, 255, 255, 0.05)',
+                  color: orderSide === 'BUY' ? '#FFFFFF' : '#94A3B8',
                   fontWeight: '800',
                   cursor: 'pointer'
                 }}
@@ -441,8 +445,8 @@ export default function MarketReplay() {
                   padding: '9px 0',
                   borderRadius: '8px',
                   border: 'none',
-                  background: orderSide === 'SELL' ? '#EF4444' : '#F1F5F9',
-                  color: orderSide === 'SELL' ? '#FFFFFF' : '#64748B',
+                  background: orderSide === 'SELL' ? '#EF4444' : 'rgba(255, 255, 255, 0.05)',
+                  color: orderSide === 'SELL' ? '#FFFFFF' : '#94A3B8',
                   fontWeight: '800',
                   cursor: 'pointer'
                 }}
@@ -453,7 +457,7 @@ export default function MarketReplay() {
 
             {/* Units Input */}
             <div>
-              <label style={{ fontSize: '12px', fontWeight: '700', color: '#64748B', display: 'block', marginBottom: '4px' }}>
+              <label style={{ fontSize: '12px', fontWeight: '700', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>
                 Position Size (Units)
               </label>
               <input
@@ -465,7 +469,9 @@ export default function MarketReplay() {
                   width: '100%',
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  border: '1px solid #CBD5E1',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: '#FFFFFF',
                   fontWeight: '800',
                   fontSize: '14px',
                   boxSizing: 'border-box'
@@ -474,16 +480,16 @@ export default function MarketReplay() {
             </div>
 
             {/* Financial Summary */}
-            <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: '8px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '10px 14px', borderRadius: '8px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748B' }}>Order Value:</span>
-                <span style={{ fontWeight: '800', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ color: '#94A3B8' }}>Order Value:</span>
+                <span style={{ fontWeight: '800', color: '#FFFFFF' }}>
                   ${(currentCandle.close * orderUnits).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748B' }}>Sim Balance:</span>
-                <span style={{ fontWeight: '800', color: '#10B981', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ color: '#94A3B8' }}>Sim Balance:</span>
+                <span style={{ fontWeight: '800', color: '#10B981' }}>
                   ${replayBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -501,7 +507,7 @@ export default function MarketReplay() {
                 fontWeight: '900',
                 fontSize: '14px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
               }}
             >
               Place {orderSide} @ Bar {currentIndex}
@@ -510,27 +516,28 @@ export default function MarketReplay() {
 
           {/* Replay History */}
           <div style={{
-            background: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
+            background: 'rgba(15, 23, 42, 0.75)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             padding: '16px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.03)'
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(16px)'
           }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '800', margin: '0 0 10px 0', color: '#0F172A' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '800', margin: '0 0 10px 0', color: '#FFFFFF' }}>
               Session Trades ({replayTrades.length})
             </h4>
             {replayTrades.length === 0 ? (
-              <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0 }}>
+              <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
                 No trades taken in this replay session yet.
               </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
                 {replayTrades.map(t => (
-                  <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 8px', background: '#F8FAFC', borderRadius: '6px', fontSize: '11px' }}>
+                  <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 8px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '6px', fontSize: '11px' }}>
                     <span style={{ fontWeight: '800', color: t.side === 'BUY' ? '#10B981' : '#EF4444' }}>
                       {t.side} {t.units} {t.symbol}
                     </span>
-                    <span style={{ fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ color: '#CBD5E1' }}>
                       ${t.price.toFixed(2)} (Bar {t.barIndex})
                     </span>
                   </div>

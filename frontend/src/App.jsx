@@ -25,6 +25,7 @@ const AIMentor        = lazy(() => import('./pages/AIMentor'));
 const StrategyBuilder = lazy(() => import('./pages/StrategyBuilder'));
 const Screener        = lazy(() => import('./pages/Screener'));
 const MarketReplay    = lazy(() => import('./pages/MarketReplay'));
+const GlobalMarkets   = lazy(() => import('./pages/GlobalMarkets'));
 
 // ─── Full-screen page loader skeleton ─────────────────────────────────────────
 function PageLoader() {
@@ -91,7 +92,10 @@ function App() {
                     <Route path="/strategy-builder"  element={<PrivateRoute><Layout><StrategyBuilder /></Layout></PrivateRoute>} />
                     <Route path="/strategy-lab"      element={<Navigate to="/strategy-builder" replace />} />
                     <Route path="/screener"          element={<PrivateRoute><Layout><Screener /></Layout></PrivateRoute>} />
-                    <Route path="/markets"           element={<Navigate to="/screener" replace />} />
+                    <Route path="/global-markets"    element={<PrivateRoute><Layout><GlobalMarkets /></Layout></PrivateRoute>} />
+                    <Route path="/foreign-markets"   element={<Navigate to="/global-markets" replace />} />
+                    <Route path="/markets"           element={<Navigate to="/global-markets" replace />} />
+                    <Route path="/macro"             element={<Navigate to="/global-markets" replace />} />
                     <Route path="/replay"            element={<PrivateRoute><Layout><MarketReplay /></Layout></PrivateRoute>} />
                     <Route path="/market-replay"     element={<Navigate to="/replay" replace />} />
                     

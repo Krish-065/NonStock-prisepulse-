@@ -49,7 +49,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Device-Id', 'x-device-id', 'X-Device-Name', 'x-device-name']
 }));
 app.options('*', cors());
 app.use(express.json());
@@ -69,6 +69,7 @@ app.post('/api/auth/google', authRoutes.googleLogin);
 app.post('/api/auth/2fa/login-verify', authRoutes.verifyTwoFactorLogin);
 app.post('/api/auth/forgot-password', authRoutes.forgotPassword);
 app.post('/api/auth/reset-password', authRoutes.resetPassword);
+app.post('/api/auth/logout', authenticate, authRoutes.logout);
 app.get('/api/auth/sessions', authenticate, authRoutes.getSessions);
 app.delete('/api/auth/sessions/:sessionId', authenticate, authRoutes.logoutSession);
 app.post('/api/auth/2fa/setup', authenticate, authRoutes.setupTwoFactor);
@@ -115,7 +116,7 @@ app.post('/api/auth/change-password', authenticate, authRoutes.changePassword);
 app.get('/api/user/profile', authenticate, async (req, res) => {
   try {
     const result = await query(
-      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref, has_completed_tutorial, has_completed_pro_tutorial FROM users WHERE id = $1`, 
+      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref, has_completed_tutorial, has_completed_pro_tutorial, created_at FROM users WHERE id = $1`, 
       [req.user.id]
     );
     if (result.rows.length === 0) {
@@ -130,6 +131,16 @@ app.get('/api/user/profile', authenticate, async (req, res) => {
         [user.id]
       );
     }
+
+    // 60-Day Full Platform Access Trial for all account holders
+    const createdAt = user.created_at ? new Date(user.created_at).getTime() : Date.now();
+    const trialDurationMs = 60 * 24 * 60 * 60 * 1000; // 60 days
+    const elapsedMs = Date.now() - createdAt;
+    const isTrialActive = elapsedMs < trialDurationMs;
+    const trialDaysRemaining = isTrialActive ? Math.max(0, Math.ceil((trialDurationMs - elapsedMs) / (24 * 60 * 60 * 1000))) : 0;
+
+    user.is_trial_active = isTrialActive;
+    user.trial_days_remaining = trialDaysRemaining;
     res.json(user);
   } catch (error) {
     console.error('❌ Get profile error:', error);

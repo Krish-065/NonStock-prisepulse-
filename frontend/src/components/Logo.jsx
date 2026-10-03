@@ -3,7 +3,8 @@ import React from 'react';
 export default function Logo({ 
   size = 40, 
   showName = true, 
-  nameSize = '22px' 
+  nameSize = '22px',
+  color
 }) {
   return (
     <div style={{ 
@@ -40,7 +41,7 @@ export default function Logo({
         <span style={{ 
           fontSize: nameSize, 
           fontWeight: 800, 
-          color: '#0F172A',
+          color: color || 'var(--text-primary, #0F172A)',
           letterSpacing: '-0.5px',
           lineHeight: '1.1'
         }}>

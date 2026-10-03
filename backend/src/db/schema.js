@@ -68,6 +68,12 @@ async function createTables() {
     )
   `);
 
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS current_session_id VARCHAR(255)`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS current_device_id VARCHAR(255)`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS current_device_name VARCHAR(255)`);
+  await query(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_id VARCHAR(255)`);
+  await query(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_name VARCHAR(255)`);
+
   await query(`
     CREATE TABLE IF NOT EXISTS login_attempts (
       id VARCHAR(255) PRIMARY KEY,

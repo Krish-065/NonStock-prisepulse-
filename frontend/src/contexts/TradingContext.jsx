@@ -22,11 +22,21 @@ export const TradingProvider = ({ children }) => {
     replay: false
   });
 
+  // 60-Day (2 Months) Free Access for all account holders
+  const createdAtMs = user?.created_at ? new Date(user.created_at).getTime() : Date.now();
+  const trialDurationMs = 60 * 24 * 60 * 60 * 1000; // 60 days
+  const elapsedMs = Date.now() - createdAtMs;
+  const isFreeGraceActive = elapsedMs < trialDurationMs;
+  const trialDaysRemaining = isFreeGraceActive 
+    ? Math.max(0, Math.ceil((trialDurationMs - elapsedMs) / (24 * 60 * 60 * 1000)))
+    : 0;
+
   const effectiveUnlockedTools = {
-    screener: Boolean(user?.is_pro || unlockedTools.screener),
-    strategyLab: Boolean(user?.is_pro || unlockedTools.strategyLab),
-    aiMentor: Boolean(user?.is_pro || unlockedTools.aiMentor),
-    replay: Boolean(user?.is_pro || unlockedTools.replay),
+    screener: Boolean(user?.is_pro || isFreeGraceActive || unlockedTools.screener),
+    strategyLab: Boolean(user?.is_pro || isFreeGraceActive || unlockedTools.strategyLab),
+    aiMentor: true, // Unrestricted AI Mentor per user requirements
+    replay: Boolean(user?.is_pro || isFreeGraceActive || unlockedTools.replay),
+    globalMarkets: true,
   };
 
   // Badge Logic
@@ -241,6 +251,7 @@ export const TradingProvider = ({ children }) => {
     <TradingContext.Provider value={{
       balance, coins, positions, history, hasSeenModal, isBusted, badge,
       watchlist, unlockedTools: effectiveUnlockedTools, streakDays,
+      isFreeGraceActive, trialDaysRemaining,
       placeOrder, closePosition, updateSLTP, resetAccount, acknowledgeModal,
       addToWatchlist, removeFromWatchlist, unlockTool
     }}>
