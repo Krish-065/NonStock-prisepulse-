@@ -13,7 +13,6 @@ export default function GlobalMarkets() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('All');
-  const [activeTab, setActiveTab] = useState('overview'); // overview, macro, sessions, correlations
 
   const fetchGlobalData = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -42,49 +41,38 @@ export default function GlobalMarkets() {
   }, [data, selectedRegion]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1600px', margin: '0 auto', width: '100%', color: '#0F172A', background: '#F8FAFC' }}>
       {/* ─── 1. TOP HEADER & GLOBAL MACRO SENTIMENT BANNER ─── */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(10, 14, 27, 0.98))',
+        background: '#FFFFFF',
         borderRadius: '20px',
-        border: '1px solid rgba(0, 255, 136, 0.15)',
-        padding: '30px',
+        border: '1px solid #E2E8F0',
+        padding: '28px 32px',
         position: 'relative',
         overflow: 'hidden',
-        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.45)'
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
       }}>
-        {/* Ambient glow */}
-        <div style={{
-          position: 'absolute',
-          top: '-60px',
-          right: '-40px',
-          width: '260px',
-          height: '260px',
-          background: 'radial-gradient(circle, rgba(0, 255, 136, 0.12) 0%, transparent 70%)',
-          pointerEvents: 'none'
-        }} />
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
               <div style={{
-                background: 'rgba(0, 255, 136, 0.15)',
-                color: '#00FF88',
+                background: '#ECFDF5',
+                color: '#059669',
                 borderRadius: '10px',
                 padding: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1px solid rgba(0, 255, 136, 0.3)'
+                border: '1px solid #A7F3D0'
               }}>
-                <Globe size={22} />
+                <Globe size={20} />
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#00FF88', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: '#059669', letterSpacing: '1px', textTransform: 'uppercase' }}>
                 FOREIGN MARKET INTELLIGENCE & GLOBAL MACRO
               </span>
               <span style={{
-                background: 'rgba(255, 255, 255, 0.06)',
-                color: '#94A3B8',
+                background: '#F1F5F9',
+                color: '#64748B',
                 fontSize: '11px',
                 padding: '3px 8px',
                 borderRadius: '6px',
@@ -94,11 +82,11 @@ export default function GlobalMarkets() {
               </span>
             </div>
 
-            <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>
               Global Markets Radar & Technical Macro Barometer
             </h1>
-            <p style={{ fontSize: '14px', color: '#94A3B8', margin: '6px 0 0 0', maxWidth: '720px', lineHeight: 1.5 }}>
-              Institutional-grade cross-asset analysis tracking US equities, European bourses, Asian powerhouses, US 10Y Yields, Dollar Index, and Foreign Capital Flow proxies.
+            <p style={{ fontSize: '13px', color: '#64748B', margin: '6px 0 0 0', maxWidth: '720px', lineHeight: 1.5 }}>
+              Institutional cross-asset analysis tracking US equities, European bourses, Asian powerhouses, US 10Y Yields, Dollar Index, and Foreign Capital Flow proxies.
             </p>
           </div>
 
@@ -108,21 +96,20 @@ export default function GlobalMarkets() {
               onClick={() => fetchGlobalData(true)}
               disabled={refreshing}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#E2E8F0',
-                padding: '10px 16px',
-                borderRadius: '10px',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                color: '#0F172A',
+                padding: '9px 16px',
+                borderRadius: '8px',
                 fontSize: '13px',
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.2s'
+                gap: '8px'
               }}
             >
-              <RefreshCw size={15} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} color="#059669" />
               <span>{refreshing ? 'Updating Feeds...' : 'Refresh Quotes'}</span>
             </button>
           </div>
@@ -131,10 +118,10 @@ export default function GlobalMarkets() {
         {/* Sentiment & Global Risk Meter Bar */}
         {data?.sentiment && (
           <div style={{
-            marginTop: '24px',
+            marginTop: '22px',
             padding: '18px 24px',
-            background: 'rgba(10, 14, 27, 0.65)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: '#F8FAFC',
+            border: '1px solid #E2E8F0',
             borderRadius: '14px',
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
@@ -146,16 +133,16 @@ export default function GlobalMarkets() {
                 GLOBAL RISK APPETITE COMPOSITE
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginTop: '4px' }}>
-                <span style={{ fontSize: '32px', fontWeight: 900, color: '#00FF88', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '32px', fontWeight: 900, color: '#059669' }}>
                   {data.sentiment.score}
                 </span>
-                <span style={{ fontSize: '14px', fontWeight: 800, color: '#FFFFFF' }}>
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
                   {data.sentiment.label}
                 </span>
               </div>
               <div style={{
-                height: '6px',
-                background: 'rgba(255, 255, 255, 0.08)',
+                height: '7px',
+                background: '#E2E8F0',
                 borderRadius: '999px',
                 marginTop: '10px',
                 overflow: 'hidden',
@@ -164,36 +151,35 @@ export default function GlobalMarkets() {
                 <div style={{
                   height: '100%',
                   width: `${data.sentiment.score}%`,
-                  background: 'linear-gradient(90deg, #3B82F6, #10B981, #00FF88)',
-                  borderRadius: '999px',
-                  boxShadow: '0 0 10px rgba(0, 255, 136, 0.5)'
+                  background: 'linear-gradient(90deg, #10B981, #059669)',
+                  borderRadius: '999px'
                 }} />
               </div>
             </div>
 
             {/* FII Foreign Capital Bias */}
-            <div style={{ borderLeft: '1px solid rgba(255, 255, 255, 0.08)', paddingLeft: '20px' }}>
+            <div style={{ borderLeft: '1px solid #E2E8F0', paddingLeft: '20px' }}>
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 FII CAPITAL FLOW PROXY
               </div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#38BDF8', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Zap size={16} color="#38BDF8" />
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Zap size={16} color="#059669" />
                 {data.fiiAnalysis?.bias}
               </div>
-              <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px', lineHeight: 1.4 }}>
+              <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', lineHeight: 1.4 }}>
                 {data.fiiAnalysis?.keyDriver}
               </div>
             </div>
 
             {/* FII Flow Estimate */}
-            <div style={{ borderLeft: '1px solid rgba(255, 255, 255, 0.08)', paddingLeft: '20px' }}>
+            <div style={{ borderLeft: '1px solid #E2E8F0', paddingLeft: '20px' }}>
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 PROJECTED EM ALLOCATION
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: '#10B981', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#059669', marginTop: '4px' }}>
                 {data.fiiAnalysis?.fiiScore}
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#10B981', background: 'rgba(16, 185, 129, 0.12)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '6px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#047857', background: '#ECFDF5', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '6px', border: '1px solid #A7F3D0' }}>
                 {data.fiiAnalysis?.signalStrength}
               </div>
             </div>
@@ -204,8 +190,8 @@ export default function GlobalMarkets() {
       {/* ─── 2. MACRO BAROMETER CARDS (YIELDS, DOLLAR, VIX, CRUDE, GOLD) ─── */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-          <Activity size={18} color="#00FF88" />
-          <h2 style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF', margin: 0, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <Activity size={18} color="#059669" />
+          <h2 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Foreign Macro Barometer & Crucial Yields
           </h2>
         </div>
@@ -217,39 +203,30 @@ export default function GlobalMarkets() {
               <div 
                 key={item.id}
                 style={{
-                  background: 'rgba(15, 23, 42, 0.85)',
-                  border: '1px solid rgba(255, 255, 255, 0.07)',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
                   borderRadius: '14px',
                   padding: '18px',
-                  backdropFilter: 'blur(12px)',
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
-                  transition: 'transform 0.2s, border-color 0.2s'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.3)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.07)';
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
+                  transition: 'transform 0.15s ease'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#94A3B8' }}>{item.name}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B' }}>{item.name}</div>
                   <span style={{
                     fontSize: '10px',
                     fontWeight: 800,
                     padding: '2px 6px',
                     borderRadius: '4px',
-                    background: item.impact === 'Bullish' ? 'rgba(0, 255, 136, 0.12)' : (item.impact === 'Risk-On' ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255, 255, 255, 0.08)'),
-                    color: item.impact === 'Bullish' ? '#00FF88' : (item.impact === 'Risk-On' ? '#38BDF8' : '#CBD5E1')
+                    background: item.impact === 'Bullish' ? '#ECFDF5' : (item.impact === 'Risk-On' ? '#EFF6FF' : '#F1F5F9'),
+                    color: item.impact === 'Bullish' ? '#059669' : (item.impact === 'Risk-On' ? '#0284C7' : '#475569')
                   }}>
                     {item.impact}
                   </span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '10px' }}>
-                  <span style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'var(--font-mono)' }}>
+                  <span style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A' }}>
                     {item.unit === '₹' ? `₹${item.price?.toFixed(2)}` : (item.unit === '$' ? `$${item.price?.toFixed(4)}` : item.price?.toFixed(2))}
                   </span>
                   <span style={{ fontSize: '11px', color: '#64748B' }}>{item.unit}</span>
@@ -259,7 +236,7 @@ export default function GlobalMarkets() {
                   <span style={{
                     fontSize: '12px',
                     fontWeight: 800,
-                    color: isPositive ? '#00FF88' : '#F43F5E',
+                    color: isPositive ? '#059669' : '#DC2626',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '2px'
@@ -274,7 +251,7 @@ export default function GlobalMarkets() {
                   color: '#64748B',
                   marginTop: '10px',
                   paddingTop: '8px',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                  borderTop: '1px solid #F1F5F9',
                   lineHeight: 1.3
                 }}>
                   {item.signal}
@@ -287,18 +264,18 @@ export default function GlobalMarkets() {
 
       {/* ─── 3. GLOBAL EQUITY INDICES GRID WITH REGION TABS ─── */}
       <div style={{
-        background: 'rgba(15, 23, 42, 0.9)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
         borderRadius: '18px',
         padding: '24px',
-        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)'
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BarChart3 size={20} color="#00FF88" /> Major Foreign Stock Exchanges & Indices
+            <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BarChart3 size={20} color="#059669" /> Major Foreign Stock Exchanges & Indices
             </h3>
-            <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
               Real-time foreign index benchmarks from Wall Street, Europe, and Asia-Pacific.
             </p>
           </div>
@@ -310,9 +287,9 @@ export default function GlobalMarkets() {
                 key={region}
                 onClick={() => setSelectedRegion(region)}
                 style={{
-                  background: selectedRegion === region ? '#00FF88' : 'rgba(255, 255, 255, 0.05)',
-                  color: selectedRegion === region ? '#0A0E17' : '#94A3B8',
-                  border: selectedRegion === region ? '1px solid #00FF88' : '1px solid rgba(255, 255, 255, 0.08)',
+                  background: selectedRegion === region ? '#10B981' : '#F8FAFC',
+                  color: selectedRegion === region ? '#FFFFFF' : '#64748B',
+                  border: selectedRegion === region ? '1px solid #10B981' : '1px solid #E2E8F0',
                   padding: '6px 14px',
                   borderRadius: '8px',
                   fontSize: '12px',
@@ -335,22 +312,13 @@ export default function GlobalMarkets() {
               <div 
                 key={idx.id}
                 style={{
-                  background: 'rgba(10, 14, 27, 0.65)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
                   borderRadius: '14px',
                   padding: '18px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(0, 255, 136, 0.35)';
-                  e.currentTarget.style.background = 'rgba(15, 23, 42, 0.9)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
-                  e.currentTarget.style.background = 'rgba(10, 14, 27, 0.65)';
+                  gap: '12px'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -358,18 +326,18 @@ export default function GlobalMarkets() {
                     <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                       {idx.country} • {idx.region}
                     </span>
-                    <h4 style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF', margin: '2px 0 0 0' }}>
+                    <h4 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: '2px 0 0 0' }}>
                       {idx.name}
                     </h4>
                   </div>
                   <span style={{
                     fontSize: '11px',
                     fontWeight: 800,
-                    color: '#94A3B8',
-                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#64748B',
+                    background: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
                     padding: '3px 8px',
-                    borderRadius: '6px',
-                    fontFamily: 'var(--font-mono)'
+                    borderRadius: '6px'
                   }}>
                     {idx.ticker}
                   </span>
@@ -377,7 +345,7 @@ export default function GlobalMarkets() {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '4px' }}>
                   <div>
-                    <div style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'var(--font-mono)' }}>
+                    <div style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A' }}>
                       {idx.price ? Number(idx.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--'}
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
@@ -391,8 +359,8 @@ export default function GlobalMarkets() {
                     gap: '4px',
                     padding: '6px 10px',
                     borderRadius: '8px',
-                    background: isUp ? 'rgba(0, 255, 136, 0.12)' : 'rgba(244, 63, 94, 0.12)',
-                    color: isUp ? '#00FF88' : '#F43F5E',
+                    background: isUp ? '#ECFDF5' : '#FEF2F2',
+                    color: isUp ? '#059669' : '#DC2626',
                     fontSize: '13px',
                     fontWeight: 900
                   }}>
@@ -408,17 +376,17 @@ export default function GlobalMarkets() {
 
       {/* ─── 4. WORLD FINANCIAL SESSIONS & TRADING CLOCKS ─── */}
       <div style={{
-        background: 'rgba(15, 23, 42, 0.9)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
         borderRadius: '18px',
         padding: '24px',
-        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)'
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
       }}>
         <div style={{ marginBottom: '18px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Clock size={20} color="#38BDF8" /> World Financial Centers Live Status
+          <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Clock size={20} color="#059669" /> World Financial Centers Live Status
           </h3>
-          <p style={{ fontSize: '13px', color: '#94A3B8', margin: '4px 0 0 0' }}>
+          <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
             Live status of world stock exchanges, session overlap times, and active liquidity cycles.
           </p>
         </div>
@@ -428,8 +396,8 @@ export default function GlobalMarkets() {
             <div 
               key={idx}
               style={{
-                background: sess.isOpen ? 'rgba(0, 255, 136, 0.05)' : 'rgba(10, 14, 27, 0.65)',
-                border: sess.isOpen ? '1.5px solid rgba(0, 255, 136, 0.35)' : '1px solid rgba(255, 255, 255, 0.06)',
+                background: sess.isOpen ? '#ECFDF5' : '#F8FAFC',
+                border: sess.isOpen ? '1.5px solid #10B981' : '1px solid #E2E8F0',
                 borderRadius: '14px',
                 padding: '16px',
                 display: 'flex',
@@ -444,8 +412,8 @@ export default function GlobalMarkets() {
                   fontWeight: 900,
                   padding: '3px 8px',
                   borderRadius: '6px',
-                  background: sess.isOpen ? '#00FF88' : 'rgba(255, 255, 255, 0.08)',
-                  color: sess.isOpen ? '#0A0E17' : '#94A3B8',
+                  background: sess.isOpen ? '#10B981' : '#F1F5F9',
+                  color: sess.isOpen ? '#FFFFFF' : '#64748B',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px'
@@ -454,7 +422,7 @@ export default function GlobalMarkets() {
                     width: '6px',
                     height: '6px',
                     borderRadius: '50%',
-                    background: sess.isOpen ? '#0A0E17' : '#64748B',
+                    background: sess.isOpen ? '#FFFFFF' : '#64748B',
                     display: 'inline-block'
                   }} />
                   {sess.status}
@@ -462,18 +430,18 @@ export default function GlobalMarkets() {
               </div>
 
               <div>
-                <div style={{ fontSize: '15px', fontWeight: 800, color: '#FFFFFF' }}>{sess.city}</div>
-                <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>{sess.market}</div>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>{sess.city}</div>
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>{sess.market}</div>
               </div>
 
-              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
                 Session: {sess.hours}
               </div>
 
               <div style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: sess.trend.includes('Bullish') || sess.trend.includes('Rally') ? '#00FF88' : '#38BDF8',
+                color: sess.trend.includes('Bullish') || sess.trend.includes('Rally') ? '#059669' : '#0284C7',
                 marginTop: '4px'
               }}>
                 Signal: {sess.trend}
@@ -487,16 +455,16 @@ export default function GlobalMarkets() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
         {/* Quantitative Correlations */}
         <div style={{
-          background: 'rgba(15, 23, 42, 0.9)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
           borderRadius: '18px',
           padding: '24px',
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)'
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
         }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Compass size={18} color="#00FF88" /> Cross-Market Macro Correlations
+          <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Compass size={18} color="#059669" /> Cross-Market Macro Correlations
           </h3>
-          <p style={{ fontSize: '12px', color: '#94A3B8', margin: '0 0 16px 0' }}>
+          <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 16px 0' }}>
             Statistical relationship between global assets and domestic market direction.
           </p>
 
@@ -506,24 +474,24 @@ export default function GlobalMarkets() {
                 key={i}
                 style={{
                   padding: '12px 14px',
-                  background: 'rgba(10, 14, 27, 0.6)',
+                  background: '#F8FAFC',
                   borderRadius: '10px',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  border: '1px solid #E2E8F0',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center'
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#E2E8F0' }}>{c.pair}</div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>{c.pair}</div>
                   <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>{c.impact}</div>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 900, color: c.coefficient.startsWith('+') ? '#00FF88' : '#F43F5E', fontFamily: 'var(--font-mono)' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 900, color: c.coefficient.startsWith('+') ? '#059669' : '#DC2626' }}>
                     {c.coefficient}
                   </div>
-                  <div style={{ fontSize: '10px', color: '#94A3B8' }}>{c.correlation}</div>
+                  <div style={{ fontSize: '10px', color: '#64748B' }}>{c.correlation}</div>
                 </div>
               </div>
             ))}
@@ -532,16 +500,16 @@ export default function GlobalMarkets() {
 
         {/* Global Economic Catalysts */}
         <div style={{
-          background: 'rgba(15, 23, 42, 0.9)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
           borderRadius: '18px',
           padding: '24px',
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)'
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
         }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Calendar size={18} color="#38BDF8" /> High-Impact Foreign Economic Catalysts
+          <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Calendar size={18} color="#0284C7" /> High-Impact Foreign Economic Catalysts
           </h3>
-          <p style={{ fontSize: '12px', color: '#94A3B8', margin: '0 0 16px 0' }}>
+          <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 16px 0' }}>
             Upcoming central bank meetings, inflation reports, and liquidity events.
           </p>
 
@@ -551,18 +519,18 @@ export default function GlobalMarkets() {
                 key={idx}
                 style={{
                   padding: '12px 14px',
-                  background: 'rgba(10, 14, 27, 0.6)',
+                  background: '#F8FAFC',
                   borderRadius: '10px',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  border: '1px solid #E2E8F0',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center'
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFFFFF' }}>{item.event}</div>
-                  <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>
-                    Consensus: <span style={{ color: '#00FF88' }}>{item.consensus}</span>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>{item.event}</div>
+                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                    Consensus: <span style={{ color: '#059669', fontWeight: 700 }}>{item.consensus}</span>
                   </div>
                 </div>
 
@@ -572,8 +540,9 @@ export default function GlobalMarkets() {
                     fontWeight: 900,
                     padding: '3px 8px',
                     borderRadius: '4px',
-                    background: item.impact === 'High' ? 'rgba(244, 63, 94, 0.15)' : 'rgba(251, 191, 36, 0.15)',
-                    color: item.impact === 'High' ? '#F43F5E' : '#FBBF24',
+                    background: item.impact === 'High' ? '#FEF2F2' : '#FEF3C7',
+                    color: item.impact === 'High' ? '#DC2626' : '#B45309',
+                    border: item.impact === 'High' ? '1px solid #FCA5A5' : '1px solid #FDE047',
                     textTransform: 'uppercase'
                   }}>
                     {item.impact} Impact

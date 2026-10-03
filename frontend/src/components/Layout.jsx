@@ -18,7 +18,6 @@ export default function Layout({ children }) {
   const { badge, coins, unlockedTools, isFreeGraceActive, trialDaysRemaining } = useTrading();
   const navigate = useNavigate();
   const location = useLocation();
-  const isDark = theme === 'dark';
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1100);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -87,35 +86,27 @@ export default function Layout({ children }) {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'var(--bg-primary, #0B0F19)', 
-      color: 'var(--text-primary, #F8FAFC)',
+      background: '#F8FAFC', 
+      color: '#0F172A',
       display: 'flex',
       flexDirection: 'column',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     }}>
-      {/* Executive Obsidian Glass Navbar */}
+      {/* Crisp White & Emerald Navbar */}
       <header style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
-        height: '64px',
-        background: isDark 
-          ? 'rgba(11, 15, 25, 0.88)' 
-          : 'rgba(255, 255, 255, 0.92)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: isDark 
-          ? '1px solid rgba(255, 255, 255, 0.08)' 
-          : '1px solid rgba(226, 232, 240, 0.9)',
+        height: '66px',
+        background: '#FFFFFF',
+        borderBottom: '1px solid #E2E8F0',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
         zIndex: 1000,
-        boxShadow: isDark
-          ? '0 4px 24px rgba(0, 0, 0, 0.4)'
-          : '0 2px 14px rgba(0, 0, 0, 0.04)'
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
       }}>
         {/* Left: Brand Logo (Navigates directly to /dashboard - No Dashboard word needed) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexShrink: 0 }}>
@@ -127,9 +118,9 @@ export default function Layout({ children }) {
               alignItems: 'center',
               transition: 'transform 0.15s ease'
             }}
-            title="NonStock Dashboard"
+            title="NonStock Dashboard (Verified Proving Ground)"
           >
-            <Logo size={34} showName={true} showTagline={false} nameSize="20px" color={isDark ? '#F8FAFC' : '#0F172A'} />
+            <Logo size={36} showName={true} showTagline={false} nameSize="21px" color="#0F172A" />
           </div>
 
           {/* Desktop Navigation Links */}
@@ -146,48 +137,48 @@ export default function Layout({ children }) {
                       background: item.active
                         ? (item.highlight 
                             ? 'linear-gradient(135deg, #10B981, #059669)'
-                            : (isDark ? 'rgba(16, 185, 129, 0.15)' : '#F0FDF4'))
+                            : '#F0FDF4')
                         : 'transparent',
                       color: item.active
-                        ? (item.highlight ? '#FFFFFF' : '#10B981')
-                        : (isDark ? '#94A3B8' : '#475569'),
+                        ? (item.highlight ? '#FFFFFF' : '#059669')
+                        : '#475569',
                       border: item.active && !item.highlight
-                        ? '1px solid rgba(16, 185, 129, 0.35)'
+                        ? '1px solid #A7F3D0'
                         : '1px solid transparent',
                       borderRadius: '8px',
-                      padding: item.highlight ? '6px 14px' : '6px 12px',
+                      padding: item.highlight ? '7px 15px' : '7px 13px',
                       fontSize: '13px',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '7px',
-                      transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+                      transition: 'all 0.15s ease',
                       boxShadow: item.active && item.highlight 
-                        ? '0 2px 10px rgba(16, 185, 129, 0.35)' 
+                        ? '0 2px 10px rgba(16, 185, 129, 0.25)' 
                         : 'none'
                     }}
                     onMouseEnter={(e) => {
                       if (!item.active) {
-                        e.currentTarget.style.color = isDark ? '#FFFFFF' : '#0F172A';
-                        e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
+                        e.currentTarget.style.color = '#0F172A';
+                        e.currentTarget.style.background = '#F1F5F9';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!item.active) {
-                        e.currentTarget.style.color = isDark ? '#94A3B8' : '#475569';
+                        e.currentTarget.style.color = '#475569';
                         e.currentTarget.style.background = 'transparent';
                       }
                     }}
                   >
-                    <Icon size={15} />
+                    <Icon size={15} color={item.active ? (item.highlight ? '#FFFFFF' : '#059669') : '#64748B'} />
                     <span>{item.name}</span>
                     {item.tag && (
                       <span style={{
                         fontSize: '9px',
                         padding: '1px 5px',
                         borderRadius: '4px',
-                        background: '#3B82F6',
+                        background: '#10B981',
                         color: '#FFFFFF',
                         fontWeight: 900,
                         letterSpacing: '0.5px'
@@ -214,11 +205,11 @@ export default function Layout({ children }) {
                     display: isMobile ? 'none' : 'flex',
                     alignItems: 'center',
                     gap: '5px',
-                    padding: '4px 10px',
+                    padding: '5px 12px',
                     borderRadius: '20px',
-                    background: 'rgba(16, 185, 129, 0.12)',
-                    border: '1px solid rgba(16, 185, 129, 0.35)',
-                    color: '#10B981',
+                    background: '#ECFDF5',
+                    border: '1px solid #A7F3D0',
+                    color: '#047857',
                     fontSize: '11px',
                     fontWeight: 800,
                     cursor: 'pointer',
@@ -227,7 +218,7 @@ export default function Layout({ children }) {
                   }}
                   title="2-Month Free Introductory Access: All tools are 100% unlocked for your account!"
                 >
-                  <Sparkles size={12} color="#10B981" />
+                  <Sparkles size={13} color="#10B981" />
                   <span>60D Free Pass ({trialDaysRemaining}d)</span>
                 </div>
               )}
@@ -241,9 +232,9 @@ export default function Layout({ children }) {
                   gap: '6px',
                   padding: '5px 12px',
                   borderRadius: '999px',
-                  background: isDark ? 'rgba(234, 179, 8, 0.12)' : '#FEF9C3',
-                  border: isDark ? '1px solid rgba(234, 179, 8, 0.35)' : '1.5px solid #FACC15',
-                  color: isDark ? '#FACC15' : '#854D0E',
+                  background: '#FEF9C3',
+                  border: '1.5px solid #FDE047',
+                  color: '#854D0E',
                   fontWeight: 800,
                   fontSize: '12px',
                   cursor: 'pointer',
@@ -251,7 +242,7 @@ export default function Layout({ children }) {
                 }}
                 title="Your Gold Coins Vault (Click to view Badges & Tools)"
               >
-                <Coins size={14} color={isDark ? '#FACC15' : '#D97706'} />
+                <Coins size={14} color="#D97706" />
                 <span>{coins || 0}</span>
               </div>
 
@@ -259,35 +250,34 @@ export default function Layout({ children }) {
               <div 
                 onClick={() => navigate('/dashboard')}
                 style={{
-                  padding: '4px 11px',
+                  padding: '4px 12px',
                   borderRadius: '999px',
-                  background: isDark ? '#111827' : '#0F172A',
+                  background: '#0F172A',
                   border: `1.5px solid ${badge?.color || '#64748B'}`,
-                  color: badge?.color || '#64748B',
+                  color: badge?.color || '#94A3B8',
                   fontWeight: 900,
                   fontSize: '11px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.8px',
                   cursor: 'pointer',
-                  boxShadow: badge?.glow && badge.glow !== 'none' ? badge.glow : 'none',
-                  textShadow: badge?.glow && badge.glow !== 'none' ? badge.glow : 'none',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                 }}
                 title={`Rank: ${badge?.name || 'CONTENDER'}`}
               >
                 {badge?.name || 'CONTENDER'}
               </div>
 
-              {/* Profile Pill with User Name */}
+              {/* Profile Pill with User Name in Black Text */}
               <div 
                 onClick={() => navigate('/dashboard')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '4px 10px',
+                  padding: '5px 12px',
                   borderRadius: '8px',
-                  background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F1F5F9',
-                  border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0',
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease'
                 }}
@@ -304,7 +294,7 @@ export default function Layout({ children }) {
                     width: '22px',
                     height: '22px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #3B82F6, #10B981)',
+                    background: 'linear-gradient(135deg, #10B981, #059669)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -318,7 +308,7 @@ export default function Layout({ children }) {
                 <span style={{ 
                   fontSize: '13px', 
                   fontWeight: 800, 
-                  color: isDark ? '#E2E8F0' : '#0F172A',
+                  color: '#0F172A',
                   maxWidth: '120px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -335,7 +325,7 @@ export default function Layout({ children }) {
                 background: '#10B981',
                 color: '#ffffff',
                 border: 'none',
-                padding: '7px 16px',
+                padding: '8px 18px',
                 borderRadius: '8px',
                 fontWeight: 700,
                 fontSize: '13px',
@@ -346,25 +336,6 @@ export default function Layout({ children }) {
             </button>
           )}
 
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            style={{
-              background: 'transparent',
-              border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E2E8F0',
-              borderRadius: '8px',
-              padding: '7px',
-              cursor: 'pointer',
-              color: isDark ? '#94A3B8' : '#475569',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {isDark ? <Sun size={15} color="#FACC15" /> : <Moon size={15} color="#475569" />}
-          </button>
-
           {/* Logout */}
           <button
             onClick={() => {
@@ -373,11 +344,11 @@ export default function Layout({ children }) {
             }}
             style={{
               background: 'transparent',
-              border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #E2E8F0',
+              border: '1px solid #E2E8F0',
               borderRadius: '8px',
-              padding: '7px 11px',
+              padding: '7px 12px',
               cursor: 'pointer',
-              color: isDark ? '#94A3B8' : '#64748B',
+              color: '#64748B',
               fontWeight: 700,
               fontSize: '12px',
               display: isMobile ? 'none' : 'flex',
@@ -396,10 +367,10 @@ export default function Layout({ children }) {
               onClick={() => setMobileMenuOpen(prev => !prev)}
               style={{
                 background: 'transparent',
-                border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E2E8F0',
+                border: '1px solid #E2E8F0',
                 borderRadius: '8px',
                 padding: '7px',
-                color: isDark ? '#F8FAFC' : '#0F172A',
+                color: '#0F172A',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -416,33 +387,33 @@ export default function Layout({ children }) {
       {isMobile && mobileMenuOpen && (
         <div style={{
           position: 'fixed',
-          top: '64px',
+          top: '66px',
           left: 0,
           right: 0,
           bottom: 0,
-          background: isDark ? 'rgba(11, 15, 25, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(20px)',
+          background: '#FFFFFF',
           zIndex: 999,
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
-          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E2E8F0'
+          borderBottom: '1px solid #E2E8F0',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.08)'
         }}>
           {isFreeGraceActive && (
             <div style={{
               padding: '10px 14px',
               borderRadius: '10px',
-              background: 'rgba(16, 185, 129, 0.12)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              color: '#10B981',
+              background: '#ECFDF5',
+              border: '1px solid #A7F3D0',
+              color: '#047857',
               fontSize: '12px',
               fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
             }}>
-              <Sparkles size={16} />
+              <Sparkles size={16} color="#10B981" />
               <span>60-Day Free Tool Access Active ({trialDaysRemaining} days remaining)</span>
             </div>
           )}
@@ -464,9 +435,9 @@ export default function Layout({ children }) {
                   width: '100%',
                   padding: '12px 16px',
                   borderRadius: '10px',
-                  background: item.active ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#F0FDF4') : (isDark ? 'rgba(255, 255, 255, 0.03)' : '#F8FAFC'),
-                  border: item.active ? '1px solid #10B981' : (isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid #E2E8F0'),
-                  color: item.active ? '#10B981' : (isDark ? '#F8FAFC' : '#0F172A'),
+                  background: item.active ? '#F0FDF4' : '#F8FAFC',
+                  border: item.active ? '1px solid #10B981' : '1px solid #E2E8F0',
+                  color: item.active ? '#059669' : '#0F172A',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -484,7 +455,7 @@ export default function Layout({ children }) {
             );
           })}
 
-          <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #E2E8F0' }}>
+          <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid #E2E8F0' }}>
             <button
               onClick={() => {
                 logout();
@@ -494,9 +465,9 @@ export default function Layout({ children }) {
                 width: '100%',
                 padding: '12px',
                 borderRadius: '10px',
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                color: '#EF4444',
+                background: '#FEF2F2',
+                border: '1px solid #FCA5A5',
+                color: '#DC2626',
                 fontWeight: 800,
                 fontSize: '14px',
                 cursor: 'pointer',
@@ -516,11 +487,11 @@ export default function Layout({ children }) {
       {/* Main Content Area */}
       <main style={{ 
         flex: 1, 
-        marginTop: '64px', 
+        marginTop: '66px', 
         padding: '24px 20px',
         maxWidth: '1600px',
         width: '100%',
-        margin: '64px auto 0 auto',
+        margin: '66px auto 0 auto',
         boxSizing: 'border-box'
       }}>
         {children}
