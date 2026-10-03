@@ -1759,7 +1759,9 @@ export default function Dashboard() {
       </div>
 
       {/* ─── 5. THE 52-BADGE VAULT WITH CURATED INITIAL VIEW & "SHOW MORE" ─── */}
-      <div style={{
+      <div 
+        id="badges-vault-box"
+        style={{
         background: '#FFFFFF',
         border: '1px solid #E2E8F0',
         borderRadius: '20px',
@@ -1808,7 +1810,7 @@ export default function Dashboard() {
                 transition: 'all 0.15s ease'
               }}
             >
-              <span>{showAllBadges ? 'Collapse Badges' : 'Show All 52 Badges'}</span>
+              <span>{showAllBadges ? 'Show Less' : 'Show More (All 52)'}</span>
               {showAllBadges ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
 
@@ -2041,9 +2043,43 @@ export default function Dashboard() {
           })}
         </div>
 
-        {/* Bottom Expand Prompt if collapsed */}
-        {!showAllBadges && (
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        {/* Bottom Expand / Collapse Controls */}
+        <div style={{ textAlign: 'center', marginTop: '24px' }}>
+          {showAllBadges ? (
+            <button
+              onClick={() => {
+                setShowAllBadges(false);
+                const el = document.getElementById('badges-vault-box');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              style={{
+                background: '#FFFFFF',
+                border: '1.5px solid #CBD5E1',
+                color: '#0F172A',
+                borderRadius: '8px',
+                padding: '9px 24px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#10B981';
+                e.currentTarget.style.color = '#059669';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#CBD5E1';
+                e.currentTarget.style.color = '#0F172A';
+              }}
+            >
+              <ChevronUp size={15} />
+              <span>Show Less</span>
+            </button>
+          ) : (
             <button
               onClick={() => setShowAllBadges(true)}
               style={{
@@ -2058,14 +2094,21 @@ export default function Dashboard() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)'
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#ECFDF5';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#F0FDF4';
               }}
             >
-              <span>Explore All 52 Achievements ({totalUnlockedCount} Unlocked)</span>
+              <span>Show More • Explore All 52 Achievements ({totalUnlockedCount} Unlocked)</span>
               <ChevronDown size={15} />
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* ─── 6. ACTIVE POSITIONS TERMINAL (WHITE & GREEN TABLE) ─── */}
