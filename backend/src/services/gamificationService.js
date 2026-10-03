@@ -183,16 +183,16 @@ async function processTradeCloseReward(userId, { pnl, isProfit, symbol, rrr }) {
     const rawDer = (winRate * 0.5) + (growthRatio * 20) + 15;
     const derScore = parseFloat(Math.min(99.4, Math.max(50.0, rawDer)).toFixed(1));
 
-    // Dynamic Rank Tag Allocation based strictly on transparent performance
+    // Dynamic Rank Tag Allocation based strictly on the 5 Decagon Tiers
     let accountTag = 'Contender';
-    if (balance >= 10000 && derScore >= 92) {
-      accountTag = 'Operator';
-    } else if (balance >= 5000 && derScore >= 85) {
-      accountTag = 'Master';
-    } else if (balance >= 2500 && derScore >= 75) {
-      accountTag = 'Gold';
-    } else if (balance >= 1500 && derScore >= 65) {
-      accountTag = 'Silver';
+    if (balance >= 15000) {
+      accountTag = 'Apex Operator';
+    } else if (balance >= 8000) {
+      accountTag = 'Master Titan';
+    } else if (balance >= 4000) {
+      accountTag = 'Gold Sovereign';
+    } else if (balance >= 2000) {
+      accountTag = 'Silver Prover';
     } else {
       accountTag = 'Contender';
     }
@@ -301,23 +301,23 @@ async function getRealLeaderboard() {
     return res.rows.map((user, index) => {
       const bal = parseFloat(user.virtualBalance) || 1000.00;
       let tag = 'Contender';
-      let color = '#0F172A'; // Dark slate/navy for Contender (NOT silver)
+      let color = '#059669'; // Contender emerald green
 
       if (bal >= 15000) {
-        tag = 'Operator';
+        tag = 'Apex Operator';
         color = '#A855F7'; // Neon bright purple
       } else if (bal >= 8000) {
-        tag = 'Master';
+        tag = 'Master Titan';
         color = '#E11D48'; // Ruby bright red
       } else if (bal >= 4000) {
-        tag = 'Gold';
+        tag = 'Gold Sovereign';
         color = '#EAB308'; // Yellow gold bright
       } else if (bal >= 2000) {
-        tag = 'Silver';
-        color = '#94A3B8'; // Silver color
+        tag = 'Silver Prover';
+        color = '#64748B'; // Silver color
       } else {
         tag = 'Contender';
-        color = '#0F172A'; // Contender deep slate
+        color = '#059669'; // Contender emerald green
       }
 
       return {

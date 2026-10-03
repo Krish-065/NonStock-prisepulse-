@@ -9,9 +9,11 @@ import {
   Search, Plus, X, Crown, Sparkles, Sliders, ExternalLink,
   Flame, CheckCircle2, AlertCircle, BarChart2, Camera, Image,
   Bot, FlaskConical, Clock, ShieldAlert, Award, Globe, ArrowUpRight,
-  ChevronRight, Filter, Info, Eye, ChevronDown, ChevronUp, Layers, Check
+  ChevronRight, Filter, Info, Eye, ChevronDown, ChevronUp, Layers, Check,
+  Server, Play, Pause, RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import BrokerMirrorModal from '../components/BrokerMirrorModal';
 
 // Available assets for the Watchlist search dropdown
 const WATCHLIST_DATABASE = [
@@ -898,6 +900,45 @@ export default function Dashboard() {
   // Show More / Collapse state for badges (curated default view of 6 badges)
   const [showAllBadges, setShowAllBadges] = useState(false);
 
+  // Broker Mirror & Real Account Sync state
+  const [showBrokerModal, setShowBrokerModal] = useState(false);
+  const [brokerMirror, setBrokerMirror] = useState(null);
+
+  const fetchBrokerMirror = () => {
+    apiClient.get('/broker-mirror/status')
+      .then(res => setBrokerMirror(res.data))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchBrokerMirror();
+  }, []);
+
+  const handleToggleMirror = async () => {
+    try {
+      const res = await apiClient.post('/broker-mirror/toggle');
+      if (res.data?.success) {
+        toast.success(res.data.message);
+        fetchBrokerMirror();
+      }
+    } catch {
+      toast.error('Failed to toggle mirror state');
+    }
+  };
+
+  const handleDisconnectMirror = async () => {
+    if (!window.confirm('Disconnect broker mirror? Real trades will no longer replicate to the proving baseline.')) return;
+    try {
+      const res = await apiClient.post('/broker-mirror/disconnect');
+      if (res.data?.success) {
+        toast.success('Broker disconnected');
+        fetchBrokerMirror();
+      }
+    } catch {
+      toast.error('Failed to disconnect broker');
+    }
+  };
+
   // Avatar & Banner state
   const [avatarUrl, setAvatarUrl] = useState(() => {
     return typeof window !== 'undefined' ? localStorage.getItem('nonstock_user_avatar') || '' : '';
@@ -1592,7 +1633,7 @@ export default function Dashboard() {
           gap: '10px'
         }}>
           {[
-            { name: 'Contender', target: '$1,000', color: '#0F172A', active: balanceNum < 2000, desc: 'Starting Baseline' },
+            { name: 'Contender', target: '$1,000', color: '#059669', active: balanceNum < 2000, desc: 'Starting Baseline' },
             { name: 'Silver Prover', target: '$2,000', color: '#64748B', active: balanceNum >= 2000 && balanceNum < 4000, desc: '2x Capital Proved' },
             { name: 'Gold Sovereign', target: '$4,000', color: '#EAB308', active: balanceNum >= 4000 && balanceNum < 8000, desc: '4x Edge Established' },
             { name: 'Master Titan', target: '$8,000', color: '#E11D48', active: balanceNum >= 8000 && balanceNum < 15000, desc: '8x Elite Mastery' },
@@ -1625,6 +1666,253 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* ─── 3.5. BROKER MIRROR • REAL ACCOUNT EQUITY SYNC (HIGH-TRUST PROVING) ─── */}
+      <div style={{
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
+        borderRadius: '20px',
+        padding: '24px 28px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: brokerMirror?.connectedBroker ? '#ECFDF5' : '#F1F5F9',
+                border: brokerMirror?.connectedBroker ? '1px solid #A7F3D0' : '1px solid #CBD5E1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Server size={18} color={brokerMirror?.connectedBroker ? '#059669' : '#64748B'} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                  Broker Mirror • Real Account Equity Sync
+                </h3>
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>
+                    {brokerMirror?.connectedBroker 
+                      ? `Mirrored from ${brokerMirror.connectedBroker} • Live Equity Sync Active`
+                      : 'Non-Custodial 1:1 Proportional Risk Replicator'}
+                  </span>
+                  {brokerMirror?.connectedBroker && (
+                    <span style={{
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      background: brokerMirror.isActive ? '#ECFDF5' : '#FEF3C7',
+                      color: brokerMirror.isActive ? '#059669' : '#B45309',
+                      border: brokerMirror.isActive ? '1px solid #A7F3D0' : '1px solid #FDE68A'
+                    }}>
+                      {brokerMirror.isActive ? '• LIVE SYNC ACTIVE' : '|| MIRROR PAUSED'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {brokerMirror?.connectedBroker ? (
+              <>
+                <button
+                  onClick={handleToggleMirror}
+                  style={{
+                    background: brokerMirror.isActive ? '#FFFBEB' : '#ECFDF5',
+                    border: brokerMirror.isActive ? '1px solid #FCD34D' : '1px solid #A7F3D0',
+                    color: brokerMirror.isActive ? '#B45309' : '#059669',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {brokerMirror.isActive ? <Pause size={13} /> : <Play size={13} />}
+                  <span>{brokerMirror.isActive ? 'Pause Mirror' : 'Resume Mirror'}</span>
+                </button>
+                <button
+                  onClick={() => setShowBrokerModal(true)}
+                  style={{
+                    background: '#F8FAFC',
+                    border: '1px solid #CBD5E1',
+                    color: '#0F172A',
+                    borderRadius: '8px',
+                    padding: '8px 14px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Configure
+                </button>
+                <button
+                  onClick={handleDisconnectMirror}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#94A3B8',
+                    padding: '8px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  title="Disconnect broker"
+                >
+                  Disconnect
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setShowBrokerModal(true)}
+                style={{
+                  background: '#059669',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '9px 20px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)'
+                }}
+              >
+                <span>Connect Broker (IBKR, Binance, MT5)</span>
+                <ArrowRight size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Proportional Equity Mapping Cards */}
+        {brokerMirror?.connectedBroker && (
+          <div style={{
+            marginTop: '20px',
+            background: '#F8FAFC',
+            border: '1px solid #E2E8F0',
+            borderRadius: '14px',
+            padding: '16px 20px'
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  REAL BROKER EQUITY ({brokerMirror.connectedBroker})
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
+                  ${Number(brokerMirror.realBalance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                  Active Execution Capital
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ECFDF5',
+                  border: '1px solid #A7F3D0',
+                  color: '#059669',
+                  padding: '4px 10px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 800
+                }}>
+                  <span>Scale Ratio: {brokerMirror.mapping?.ratio || '1:1'}</span>
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                  Risk Mapping: {brokerMirror.riskPct}% Real (${brokerMirror.mapping?.realRiskAmount}) = {brokerMirror.riskPct}% Proving (${brokerMirror.mapping?.nonstockRiskAmount})
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  NONSTOCK PROVING BASELINE
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#059669', marginTop: '2px' }}>
+                  ${Number(brokerMirror.nonstockCapital || 1000).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </div>
+                <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
+                  Decagon Audited Capital
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Mirrored Trades Table */}
+            {brokerMirror.trades && brokerMirror.trades.length > 0 && (
+              <div style={{ marginTop: '16px', borderTop: '1px solid #E2E8F0', paddingTop: '14px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '8px' }}>
+                  Recent 1:1 Mirrored Executions (Real → NonStock)
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                    <thead>
+                      <tr style={{ color: '#64748B', textAlign: 'left', borderBottom: '1px solid #E2E8F0' }}>
+                        <th style={{ padding: '6px 8px' }}>Instrument</th>
+                        <th style={{ padding: '6px 8px' }}>Type</th>
+                        <th style={{ padding: '6px 8px' }}>Real Entry / Exit</th>
+                        <th style={{ padding: '6px 8px' }}>Real P&L (%)</th>
+                        <th style={{ padding: '6px 8px' }}>NonStock Mirrored Capital</th>
+                        <th style={{ padding: '6px 8px' }}>NonStock P&L ($)</th>
+                        <th style={{ padding: '6px 8px', textAlign: 'right' }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {brokerMirror.trades.slice(0, 4).map(t => (
+                        <tr key={t.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '8px', fontWeight: 800, color: '#0F172A' }}>{t.symbol}</td>
+                          <td style={{ padding: '8px' }}>
+                            <span style={{
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              fontWeight: 900,
+                              background: t.type === 'BUY' ? '#ECFDF5' : '#FEF2F2',
+                              color: t.type === 'BUY' ? '#059669' : '#DC2626'
+                            }}>
+                              {t.type}
+                            </span>
+                          </td>
+                          <td style={{ padding: '8px', color: '#475569' }}>
+                            {t.realEntryPrice} → {t.realExitPrice || 'Active'}
+                          </td>
+                          <td style={{ padding: '8px', fontWeight: 700, color: Number(t.realPnl || 0) >= 0 ? '#059669' : '#DC2626' }}>
+                            {Number(t.realPnl || 0) >= 0 ? '+' : ''}${Number(t.realPnl || 0).toFixed(2)} ({t.realPnlPct}%)
+                          </td>
+                          <td style={{ padding: '8px', color: '#475569' }}>
+                            ${Number(t.nonstockCapital || 1000).toFixed(2)} (${Number(t.nonstockRiskAmount || 20).toFixed(2)} Risk)
+                          </td>
+                          <td style={{ padding: '8px', fontWeight: 800, color: Number(t.nonstockPnl || 0) >= 0 ? '#059669' : '#DC2626' }}>
+                            {Number(t.nonstockPnl || 0) >= 0 ? '+' : ''}${Number(t.nonstockPnl || 0).toFixed(2)}
+                          </td>
+                          <td style={{ padding: '8px', textAlign: 'right' }}>
+                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#059669', background: '#ECFDF5', padding: '2px 6px', borderRadius: '4px' }}>
+                              VERIFIED 1:1
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ─── 4. EXECUTIVE TRADING METRICS BAR (6 WHITE TILES WITH BLACK TEXT & GREEN ACCENTS) ─── */}
@@ -1884,15 +2172,23 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Badges Grid (Curated when collapsed, full when expanded) */}
+        {/* Badges Grid — Large Prominent Decagons */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))',
-          gap: '14px'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: '18px'
         }}>
           {visibleBadges.map((badgeItem) => {
             const Icon = badgeItem.icon;
             const isUnlocked = badgeItem.unlocked;
+
+            // Tier-specific styling
+            const tierGrad = badgeItem.tier === 1 
+              ? 'linear-gradient(135deg, #10B981, #047857)' 
+              : badgeItem.tier === 2 
+              ? 'linear-gradient(135deg, #0284C7, #0F172A)' 
+              : 'linear-gradient(135deg, #F59E0B, #B45309)';
+            const tierRoman = badgeItem.tier === 1 ? 'I' : badgeItem.tier === 2 ? 'II' : 'III';
 
             return (
               <div
@@ -1900,24 +2196,24 @@ export default function Dashboard() {
                 onClick={() => setSelectedBadge(badgeItem)}
                 style={{
                   background: isUnlocked ? '#FFFFFF' : '#F8FAFC',
-                  borderRadius: '14px',
+                  borderRadius: '18px',
                   border: isUnlocked 
                     ? '2px solid #10B981' 
                     : '1px solid #E2E8F0',
-                  padding: '16px',
+                  padding: '24px 20px',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '14px',
+                  textAlign: 'center',
                   cursor: 'pointer',
                   position: 'relative',
-                  overflow: 'hidden',
-                  transition: 'all 0.15s ease',
+                  transition: 'all 0.2s ease',
                   boxShadow: isUnlocked 
-                    ? '0 4px 14px rgba(16, 185, 129, 0.08)' 
-                    : 'none'
+                    ? '0 6px 20px rgba(16, 185, 129, 0.08)' 
+                    : '0 2px 8px rgba(0, 0, 0, 0.02)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.transform = 'translateY(-3px)';
                   if (!isUnlocked) e.currentTarget.style.borderColor = '#CBD5E1';
                 }}
                 onMouseLeave={(e) => {
@@ -1925,117 +2221,147 @@ export default function Dashboard() {
                   if (!isUnlocked) e.currentTarget.style.borderColor = '#E2E8F0';
                 }}
               >
-                {/* Status tag */}
+                {/* Header Tag / Tier Marker */}
                 <div style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
                   display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  padding: '2px 7px',
-                  borderRadius: '999px',
-                  background: isUnlocked ? '#ECFDF5' : '#F1F5F9',
-                  color: isUnlocked ? '#059669' : '#64748B',
-                  border: isUnlocked ? '1px solid #A7F3D0' : '1px solid #E2E8F0'
+                  width: '100%',
+                  marginBottom: '16px'
                 }}>
-                  {isUnlocked ? (
-                    <>
-                      <CheckCircle2 size={10} color="#059669" />
-                      <span>UNLOCKED</span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock size={10} color="#64748B" />
-                      <span>LOCKED</span>
-                    </>
-                  )}
+                  <span style={{
+                    fontSize: '10px',
+                    fontWeight: 900,
+                    letterSpacing: '0.8px',
+                    color: '#64748B',
+                    textTransform: 'uppercase'
+                  }}>
+                    TIER {tierRoman} • #{String(badgeItem.id).padStart(2, '0')}
+                  </span>
+
+                  <span style={{
+                    fontSize: '9px',
+                    fontWeight: 900,
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    background: isUnlocked ? '#ECFDF5' : '#F1F5F9',
+                    color: isUnlocked ? '#059669' : '#64748B',
+                    border: isUnlocked ? '1px solid #A7F3D0' : '1px solid #CBD5E1'
+                  }}>
+                    {isUnlocked ? 'VERIFIED' : 'LOCKED'}
+                  </span>
                 </div>
 
-                {/* 10-Sided Decagon Shield Icon */}
+                {/* ─── LARGE PROMINENT DECAGON (10-SIDED CREST) ─── */}
                 <div style={{
                   position: 'relative',
-                  width: '56px',
-                  height: '56px',
+                  width: '112px',
+                  height: '112px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  margin: '0 auto 16px auto',
                   flexShrink: 0
                 }}>
+                  {/* Outer Decagon Rim */}
                   <div style={{
                     position: 'absolute',
                     inset: 0,
-                    background: isUnlocked ? 'linear-gradient(135deg, #10B981, #059669)' : '#CBD5E1',
+                    background: isUnlocked ? tierGrad : '#334155',
                     clipPath: decagonClip,
-                    boxShadow: isUnlocked ? '0 0 12px rgba(16, 185, 129, 0.3)' : 'none'
+                    boxShadow: isUnlocked ? '0 4px 18px rgba(16, 185, 129, 0.25)' : 'none'
                   }} />
 
+                  {/* Middle Metallic Spacer */}
                   <div style={{
                     position: 'absolute',
-                    inset: '2.5px',
-                    background: isUnlocked ? '#FFFFFF' : '#F1F5F9',
+                    inset: '3.5px',
+                    background: isUnlocked ? '#FFFFFF' : '#1E293B',
                     clipPath: decagonClip,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
+                  }} />
+
+                  {/* Inner Decagon Field */}
+                  <div style={{
+                    position: 'absolute',
+                    inset: '7px',
+                    background: isUnlocked ? '#F0FDF4' : '#0F172A',
+                    clipPath: decagonClip,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}>
                     {isUnlocked ? (
-                      <Icon size={22} color="#059669" />
+                      <Icon size={34} color={badgeItem.color || '#059669'} />
                     ) : (
-                      <Lock size={18} color="#94A3B8" />
+                      <Lock size={28} color="#94A3B8" />
                     )}
                   </div>
                 </div>
 
-                {/* Badge Info with Crisp Black Text */}
-                <div style={{ flex: 1, minWidth: 0, paddingRight: '45px' }}>
+                {/* Credential Name */}
+                <div style={{
+                  fontSize: '15px',
+                  fontWeight: 900,
+                  color: '#0F172A',
+                  letterSpacing: '-0.2px',
+                  marginBottom: '4px'
+                }}>
+                  {badgeItem.name}
+                </div>
+
+                {/* Tagline / Criteria */}
+                <div style={{
+                  fontSize: '11px',
+                  color: '#64748B',
+                  lineHeight: 1.4,
+                  minHeight: '32px',
+                  marginBottom: '12px'
+                }}>
+                  {badgeItem.tagline}
+                </div>
+
+                {/* Gold Bullion Coins Bounty */}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: '#FEF9C3',
+                  border: '1px solid #FDE047',
+                  padding: '3px 10px',
+                  borderRadius: '6px',
+                  marginBottom: '14px'
+                }}>
+                  <Coins size={12} color="#854D0E" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#713F12' }}>
+                    +{badgeItem.coins} Gold Coins
+                  </span>
+                </div>
+
+                {/* Progress Bar & Status Footer */}
+                <div style={{ width: '100%', marginTop: 'auto' }}>
                   <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     fontSize: '10px',
                     fontWeight: 800,
                     color: isUnlocked ? '#059669' : '#64748B',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.8px',
-                    marginBottom: '2px'
+                    marginBottom: '4px'
                   }}>
-                    Tier {badgeItem.tier} • #{badgeItem.id}
+                    <span>{isUnlocked ? 'Requirement Satisfied' : badgeItem.progressText}</span>
+                    <span>{isUnlocked ? '100%' : `${badgeItem.progressPct}%`}</span>
                   </div>
-                  <div style={{
-                    fontSize: '14px',
-                    fontWeight: 900,
-                    color: '#0F172A',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {badgeItem.name}
-                  </div>
-                  <div style={{ 
-                    fontSize: '11px', 
-                    color: '#64748B', 
-                    marginTop: '2px',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis' 
-                  }}>
-                    {badgeItem.tagline}
-                  </div>
-
-                  {/* Progress Bar in Green & Light Gray */}
-                  <div style={{ marginTop: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: 700, color: '#64748B', marginBottom: '2px' }}>
-                      <span>{badgeItem.progressText}</span>
-                      <span style={{ color: '#D97706', fontWeight: 800 }}>+{badgeItem.coins} Coins</span>
-                    </div>
-                    <div style={{ height: '5px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{
-                        width: isUnlocked ? '100%' : `${badgeItem.progressPct}%`,
-                        height: '100%',
-                        background: isUnlocked ? '#10B981' : '#64748B',
-                        borderRadius: '4px'
-                      }} />
-                    </div>
+                  <div style={{ height: '6px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{
+                      width: isUnlocked ? '100%' : `${badgeItem.progressPct}%`,
+                      height: '100%',
+                      background: isUnlocked ? '#10B981' : '#64748B',
+                      borderRadius: '4px',
+                      transition: 'width 0.3s'
+                    }} />
                   </div>
                 </div>
               </div>
@@ -2724,6 +3050,15 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* ─── BROKER MIRROR MODAL ─── */}
+      <BrokerMirrorModal
+        isOpen={showBrokerModal}
+        onClose={() => setShowBrokerModal(false)}
+        onSyncSuccess={fetchBrokerMirror}
+        currentBroker={brokerMirror?.connectedBroker}
+        isActive={brokerMirror?.isActive}
+      />
     </div>
   );
 }

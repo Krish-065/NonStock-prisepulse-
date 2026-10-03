@@ -110,6 +110,10 @@ app.use('/api/chart', chartDrawingsRoutes);
 const paymentRoutes = require('./api/payments');
 app.use('/api/payment', paymentRoutes);
 
+// Broker Mirror & Real Account Sync Protocol
+const brokerMirrorRoutes = require('./api/brokerMirror');
+app.use('/api/broker-mirror', brokerMirrorRoutes);
+
 // User profile & Password routes
 app.post('/api/auth/change-password', authenticate, authRoutes.changePassword);
 
