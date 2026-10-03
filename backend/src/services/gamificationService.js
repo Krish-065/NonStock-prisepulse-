@@ -285,7 +285,15 @@ async function getRealLeaderboard() {
          COALESCE(u.total_trades_count, 0) as "totalTrades",
          COALESCE(u.winning_trades_count, 0) as "winningTrades"
        FROM users u
-       WHERE u.email NOT LIKE '%testbot%' AND u.name IS NOT NULL
+       WHERE u.name IS NOT NULL 
+         AND TRIM(u.name) != ''
+         AND LOWER(u.name) NOT LIKE '%tester%'
+         AND LOWER(u.name) NOT LIKE '%test%'
+         AND LOWER(u.name) NOT LIKE '%dummy%'
+         AND LOWER(u.email) NOT LIKE '%test%'
+         AND LOWER(u.email) NOT LIKE '%tester%'
+         AND LOWER(u.email) NOT LIKE '%demo%'
+         AND LOWER(u.email) NOT LIKE '%bot%'
        ORDER BY u.der_score DESC, u.virtual_balance DESC
        LIMIT 50`
     );

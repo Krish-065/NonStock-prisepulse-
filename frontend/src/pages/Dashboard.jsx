@@ -1083,10 +1083,15 @@ export default function Dashboard() {
       .then(res => {
         const data = res.data;
         if (data?.leaderboard && Array.isArray(data.leaderboard) && data.leaderboard.length > 0) {
-          const normalized = data.leaderboard.map(item => ({
-            ...item,
-            balance: Number(item.balance) > 15000 ? 1000 : (Number(item.balance) || 1000)
-          }));
+          const normalized = data.leaderboard
+            .filter(item => {
+              const nameLower = (item.name || '').toLowerCase();
+              return !nameLower.includes('tester') && !nameLower.includes('test') && !nameLower.includes('demo');
+            })
+            .map(item => ({
+              ...item,
+              balance: Number(item.balance) > 15000 ? 1000 : (Number(item.balance) || 1000)
+            }));
           setRealLeaderboard(normalized);
         } else {
           setRealLeaderboard([
