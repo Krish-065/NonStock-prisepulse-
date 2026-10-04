@@ -895,6 +895,10 @@ router.get('/coin-vault', authenticate, async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Coin vault error:', error);
+    res.status(500).json({ error: 'Failed to retrieve coin vault data' });
+  }
+});
+
 // POST /api/paper/record-discipline-coins - Record coins earned from trading discipline (SL set, win, milestone)
 router.post('/record-discipline-coins', authenticate, async (req, res) => {
   try {

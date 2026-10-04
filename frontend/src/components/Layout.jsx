@@ -250,21 +250,30 @@ export default function Layout({ children }) {
               <div 
                 onClick={() => navigate('/dashboard')}
                 style={{
-                  padding: '4px 12px',
-                  borderRadius: '999px',
-                  background: '#0F172A',
-                  border: `1.5px solid ${badge?.color || '#64748B'}`,
-                  color: badge?.color || '#94A3B8',
-                  fontWeight: 900,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 12px',
+                  borderRadius: '20px',
+                  background: '#F8FAFC',
+                  border: '1.5px solid #E2E8F0',
+                  color: '#0F172A',
+                  fontWeight: 800,
                   fontSize: '11px',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.8px',
+                  letterSpacing: '0.6px',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                  transition: 'all 0.15s ease'
                 }}
                 title={`Rank: ${badge?.name || 'CONTENDER'}`}
               >
-                {badge?.name || 'CONTENDER'}
+                <span style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: badge?.name === 'Contender' ? '#10B981' : (badge?.color || '#10B981')
+                }} />
+                <span>{badge?.name || 'CONTENDER'}</span>
               </div>
 
               {/* Profile Pill with User Name in Black Text */}
