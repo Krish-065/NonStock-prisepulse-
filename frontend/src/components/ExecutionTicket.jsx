@@ -10,6 +10,7 @@ export default function ExecutionTicket({
   currentPrice = 2746.66,
   balance = 1000,
   onPlaceOrder,
+  onClose,
   onReset
 }) {
   // Mode: 'ORDER' or 'DOM'
@@ -260,8 +261,8 @@ export default function ExecutionTicket({
             <MoreHorizontal size={17} />
           </button>
           <button 
-            title="Reset Ticket"
-            onClick={onReset}
+            title="Close Trade Panel"
+            onClick={onClose || onReset}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: '4px', borderRadius: '6px' }}
           >
             <X size={17} />

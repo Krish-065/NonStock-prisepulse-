@@ -699,14 +699,10 @@ export default function AIMentor() {
         }
       `}</style>
 
-      {/* Top Title Banner with Gold & Cyan Theme */}
+      {/* Top Title Banner */}
       <div style={{
-        background: accountMode === 'pro' || user?.is_pro
-          ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.09) 0%, rgba(0, 243, 255, 0.05) 50%, rgba(16, 20, 39, 0.8) 100%)'
-          : 'linear-gradient(135deg, rgba(16, 20, 39, 0.6) 0%, rgba(22, 28, 59, 0.4) 100%)',
-        border: accountMode === 'pro' || user?.is_pro
-          ? '1px solid rgba(255, 215, 0, 0.35)'
-          : mentorType === 'none' ? '1px solid rgba(0, 188, 212, 0.25)' : '1px solid rgba(0, 255, 136, 0.15)',
+        background: '#FFFFFF',
+        border: '1.5px solid #E2E8F0',
         borderRadius: '16px',
         padding: '20px 24px',
         marginBottom: '20px',
@@ -715,55 +711,52 @@ export default function AIMentor() {
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '16px',
-        boxShadow: accountMode === 'pro' || user?.is_pro ? '0 0 30px rgba(255, 215, 0, 0.1)' : 'none',
-        transition: 'all 0.3s'
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
+        position: 'relative',
+        zIndex: 2
       }}>
         <div>
           <h1 style={{ 
-            fontSize: '26px', 
+            fontSize: '24px', 
             fontWeight: '900', 
-            margin: '0 0 4px 0', 
-            background: accountMode === 'pro' || user?.is_pro
-              ? 'linear-gradient(135deg, #ffd700 0%, #00f3ff 100%)'
-              : 'linear-gradient(135deg, #00bcd4 0%, #a855f7 100%)', 
-            WebkitBackgroundClip: 'text', 
-            WebkitTextFillColor: 'transparent', 
+            margin: '0 0 6px 0', 
+            color: '#0F172A',
             display: 'flex', 
             alignItems: 'center', 
             gap: '10px' 
           }}>
-            <Sparkles size={26} style={{ color: accountMode === 'pro' || user?.is_pro ? '#ffd700' : '#00bcd4' }} />
-            None AI Mentor
+            <Sparkles size={24} style={{ color: '#00D26A' }} />
+            NonStock AI Mentor
             {(accountMode === 'pro' || user?.is_pro) && (
               <span style={{
-                fontSize: '10px',
+                fontSize: '11px',
                 fontWeight: '900',
-                background: 'linear-gradient(135deg, #ffd700 0%, #f59e0b 100%)',
-                color: '#0a0e27',
-                padding: '3px 8px',
+                background: '#FEF08A',
+                border: '1px solid #FACC15',
+                color: '#854D0E',
+                padding: '3px 10px',
                 borderRadius: '12px',
                 letterSpacing: '0.8px',
                 textTransform: 'uppercase',
-                verticalAlign: 'middle',
-                boxShadow: '0 0 10px rgba(255, 215, 0, 0.4)'
+                verticalAlign: 'middle'
               }}>
                 PRO ELITE
               </span>
             )}
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
-            Connect indicator configurations and study setups with None AI, our high-precision Groq quantitative assistant.
+          <p style={{ color: '#334155', fontSize: '13px', margin: 0, fontWeight: 500 }}>
+            Connect indicator configurations and study setups with NonStock AI, our high-precision Groq quantitative assistant.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <span style={{ 
-            fontSize: '11px', 
-            color: accountMode === 'pro' || user?.is_pro ? '#ffd700' : '#c0c2cc', 
-            background: accountMode === 'pro' || user?.is_pro ? 'rgba(255, 215, 0, 0.08)' : 'rgba(255,255,255,0.05)', 
+            fontSize: '12px', 
+            color: '#006C2E', 
+            background: '#F0FDF4', 
             padding: '6px 14px', 
             borderRadius: '20px', 
-            border: accountMode === 'pro' || user?.is_pro ? '1px solid rgba(255, 215, 0, 0.3)' : '1px solid rgba(255,255,255,0.08)', 
-            fontWeight: '700' 
+            border: '1.5px solid #86EFAC', 
+            fontWeight: '800' 
           }}>
             Groq LLaMA 3.3 70B
           </span>
@@ -773,14 +766,14 @@ export default function AIMentor() {
       {/* Mobile Tab Selectors */}
       {isMobile && (
         <div style={{ marginBottom: '16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <button type="button" onClick={() => setMobileTab('history')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: 'pointer', background: mobileTab === 'history' ? '#10142d' : 'transparent', color: mobileTab === 'history' ? '#00bcd4' : '#9b9eac', transition: 'all 0.2s' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: '#F1F5F9', padding: '4px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+            <button type="button" onClick={() => setMobileTab('history')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: mobileTab === 'history' ? '#FFFFFF' : 'transparent', color: mobileTab === 'history' ? '#006C2E' : '#475569', boxShadow: mobileTab === 'history' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s' }}>
               History
             </button>
-            <button type="button" onClick={() => setMobileTab('chat')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: 'pointer', background: mobileTab === 'chat' ? '#10142d' : 'transparent', color: mobileTab === 'chat' ? '#00bcd4' : '#9b9eac', transition: 'all 0.2s' }}>
+            <button type="button" onClick={() => setMobileTab('chat')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: mobileTab === 'chat' ? '#FFFFFF' : 'transparent', color: mobileTab === 'chat' ? '#006C2E' : '#475569', boxShadow: mobileTab === 'chat' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s' }}>
               AI Chat
             </button>
-            <button type="button" onClick={() => setMobileTab('technicals')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '700', cursor: 'pointer', background: mobileTab === 'technicals' ? '#10142d' : 'transparent', color: mobileTab === 'technicals' ? '#00bcd4' : '#9b9eac', transition: 'all 0.2s' }}>
+            <button type="button" onClick={() => setMobileTab('technicals')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: mobileTab === 'technicals' ? '#FFFFFF' : 'transparent', color: mobileTab === 'technicals' ? '#006C2E' : '#475569', boxShadow: mobileTab === 'technicals' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s' }}>
               Analytics
             </button>
           </div>
@@ -792,23 +785,25 @@ export default function AIMentor() {
         
         {/* LEFT COLUMN: ALWAYS CONVERSATION HISTORY */}
         <div style={{
-          background: 'var(--bg-card-glass)',
-          border: '1px solid var(--border-color)',
+          background: '#FFFFFF',
+          border: '1.5px solid #E2E8F0',
           borderRadius: '16px',
           padding: '16px',
           display: isMobile && mobileTab !== 'history' ? 'none' : 'flex',
           flexDirection: 'column',
           gap: '12px',
           height: '640px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)'
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+          position: 'relative',
+          zIndex: 2
         }}>
           <button
             onClick={handleNewChat}
             style={{
-              background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.12) 0%, rgba(168, 85, 247, 0.03) 100%)',
-              border: '1px solid rgba(0, 188, 212, 0.25)',
+              background: '#F0FDF4',
+              border: '1.5px solid #86EFAC',
               borderRadius: '8px',
-              color: '#00bcd4',
+              color: '#006C2E',
               padding: '10px',
               fontWeight: '800',
               fontSize: '12px',
@@ -820,25 +815,25 @@ export default function AIMentor() {
               transition: 'all 0.2s ease'
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(0, 188, 212, 0.18)';
+              e.currentTarget.style.background = '#DCFCE7';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(0, 188, 212, 0.12)';
+              e.currentTarget.style.background = '#F0FDF4';
             }}
           >
             <Plus size={14} />
             New Conversation
           </button>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', margin: '2px 0' }} />
+          <div style={{ borderTop: '1px solid #E2E8F0', margin: '2px 0' }} />
 
-          <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            None AI Conversations
+          <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            NonStock AI Conversations
           </span>
 
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px', paddingRight: '4px' }}>
             {conversations.length === 0 ? (
-              <div style={{ color: 'var(--text-secondary)', fontSize: '11px', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>
+              <div style={{ color: '#64748B', fontSize: '12px', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>
                 No past conversations.
               </div>
             ) : (
@@ -849,8 +844,8 @@ export default function AIMentor() {
                      key={conv.id}
                      onClick={() => handleSelectConversation(conv.id)}
                      style={{
-                       background: isActive ? 'rgba(0, 188, 212, 0.08)' : 'rgba(255,255,255,0.02)',
-                       border: isActive ? '1px solid rgba(0, 188, 212, 0.25)' : '1px solid rgba(255,255,255,0.04)',
+                       background: isActive ? '#F0FDF4' : '#F8FAFC',
+                       border: isActive ? '1.5px solid #86EFAC' : '1px solid #E2E8F0',
                        borderRadius: '8px',
                        padding: '8px 10px',
                        cursor: 'pointer',
@@ -862,11 +857,11 @@ export default function AIMentor() {
                      }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', flex: 1 }}>
-                      <MessageSquare size={13} style={{ color: isActive ? '#00bcd4' : 'var(--text-secondary)', flexShrink: 0 }} />
+                      <MessageSquare size={13} style={{ color: isActive ? '#006C2E' : '#64748B', flexShrink: 0 }} />
                       <span style={{
-                        fontSize: '11px',
-                        fontWeight: isActive ? '750' : '500',
-                        color: isActive ? '#ffffff' : '#d0d2dd',
+                        fontSize: '12px',
+                        fontWeight: isActive ? '800' : '600',
+                        color: isActive ? '#006C2E' : '#0F172A',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -1146,33 +1141,35 @@ export default function AIMentor() {
 
         </div>
 
-        {/* RIGHT COLUMN: SIMULATION & ANALYTICS TAB HUB (REMOVES MESSINESS) */}
+        {/* RIGHT COLUMN: SIMULATION & ANALYTICS TAB HUB */}
         <div style={{
-          background: 'var(--bg-card-glass)',
-          border: '1px solid var(--border-color)',
+          background: '#FFFFFF',
+          border: '1.5px solid #E2E8F0',
           borderRadius: '16px',
           display: isMobile && mobileTab !== 'technicals' ? 'none' : 'flex',
           flexDirection: 'column',
           height: '640px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
-          overflow: 'hidden'
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+          overflow: 'hidden',
+          position: 'relative',
+          zIndex: 2
         }}>
           
           {/* Tab Selector Header */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr 1fr',
-            background: 'rgba(255,255,255,0.02)',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
-            padding: '4px'
+            background: '#F8FAFC',
+            borderBottom: '1px solid #E2E8F0',
+            padding: '6px'
           }}>
             <button
               onClick={() => setRightTab('simulator')}
               style={{
-                padding: '12px 6px',
-                border: 'none',
-                background: rightTab === 'simulator' ? 'rgba(0, 188, 212, 0.08)' : 'transparent',
-                color: rightTab === 'simulator' ? '#00bcd4' : '#9b9eac',
+                padding: '10px 6px',
+                border: rightTab === 'simulator' ? '1px solid #86EFAC' : 'none',
+                background: rightTab === 'simulator' ? '#F0FDF4' : 'transparent',
+                color: rightTab === 'simulator' ? '#006C2E' : '#475569',
                 fontSize: '11px',
                 fontWeight: '800',
                 cursor: 'pointer',
@@ -1181,19 +1178,20 @@ export default function AIMentor() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '4px',
+                boxShadow: rightTab === 'simulator' ? '0 1px 4px rgba(0,0,0,0.04)' : 'none',
                 transition: 'all 0.2s'
               }}
             >
-              <Sliders size={12} />
+              <Sliders size={13} />
               Simulator
             </button>
             <button
               onClick={() => setRightTab('forecast')}
               style={{
-                padding: '12px 6px',
-                border: 'none',
-                background: rightTab === 'forecast' ? 'rgba(0, 255, 136, 0.06)' : 'transparent',
-                color: rightTab === 'forecast' ? '#00ff88' : '#9b9eac',
+                padding: '10px 6px',
+                border: rightTab === 'forecast' ? '1px solid #86EFAC' : 'none',
+                background: rightTab === 'forecast' ? '#F0FDF4' : 'transparent',
+                color: rightTab === 'forecast' ? '#006C2E' : '#475569',
                 fontSize: '11px',
                 fontWeight: '800',
                 cursor: 'pointer',
@@ -1202,19 +1200,20 @@ export default function AIMentor() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '4px',
+                boxShadow: rightTab === 'forecast' ? '0 1px 4px rgba(0,0,0,0.04)' : 'none',
                 transition: 'all 0.2s'
               }}
             >
-              <BarChart2 size={12} />
+              <BarChart2 size={13} />
               Forecasts
             </button>
             <button
               onClick={() => setRightTab('library')}
               style={{
-                padding: '12px 6px',
-                border: 'none',
-                background: rightTab === 'library' ? 'rgba(168, 85, 247, 0.08)' : 'transparent',
-                color: rightTab === 'library' ? '#a855f7' : '#9b9eac',
+                padding: '10px 6px',
+                border: rightTab === 'library' ? '1px solid #86EFAC' : 'none',
+                background: rightTab === 'library' ? '#F0FDF4' : 'transparent',
+                color: rightTab === 'library' ? '#006C2E' : '#475569',
                 fontSize: '11px',
                 fontWeight: '800',
                 cursor: 'pointer',
@@ -1223,10 +1222,11 @@ export default function AIMentor() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '4px',
+                boxShadow: rightTab === 'library' ? '0 1px 4px rgba(0,0,0,0.04)' : 'none',
                 transition: 'all 0.2s'
               }}
             >
-              <BookOpen size={12} />
+              <BookOpen size={13} />
               Library
             </button>
           </div>
@@ -1238,8 +1238,10 @@ export default function AIMentor() {
             {rightTab === 'simulator' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', color: '#00bcd4', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Simulation Ingestion</span>
-                  <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', padding: '2px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span style={{ fontSize: '11px', color: '#006C2E', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Simulation Ingestion
+                  </span>
+                  <div style={{ display: 'flex', gap: '4px', background: '#F1F5F9', padding: '2px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
                     <button
                       onClick={() => setAccountMode('learner')}
                       style={{
@@ -1247,10 +1249,10 @@ export default function AIMentor() {
                         borderRadius: '4px',
                         border: 'none',
                         fontSize: '10px',
-                        fontWeight: '700',
+                        fontWeight: '800',
                         cursor: 'pointer',
-                        background: accountMode === 'learner' ? '#00bcd4' : 'transparent',
-                        color: accountMode === 'learner' ? '#0a0e27' : '#9b9eac'
+                        background: accountMode === 'learner' ? '#00D26A' : 'transparent',
+                        color: accountMode === 'learner' ? '#FFFFFF' : '#475569'
                       }}
                     >
                       Learner
@@ -1262,10 +1264,10 @@ export default function AIMentor() {
                         borderRadius: '4px',
                         border: 'none',
                         fontSize: '10px',
-                        fontWeight: '700',
+                        fontWeight: '800',
                         cursor: 'pointer',
-                        background: accountMode === 'pro' ? '#a855f7' : 'transparent',
-                        color: accountMode === 'pro' ? '#ffffff' : '#9b9eac'
+                        background: accountMode === 'pro' ? '#0F172A' : 'transparent',
+                        color: accountMode === 'pro' ? '#FFFFFF' : '#475569'
                       }}
                     >
                       Pro
@@ -1275,15 +1277,15 @@ export default function AIMentor() {
 
                 {/* Scenario presets pills */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>SCENARIO PRESETS</span>
+                  <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>SCENARIO PRESETS</span>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                     {Object.keys(presets).map((key) => {
-                      let color = '#00bcd4';
-                      let bg = 'rgba(0,188,212,0.05)';
-                      let border = 'rgba(0,188,212,0.15)';
-                      if (key === 'trap') { color = '#ff4444'; bg = 'rgba(255,68,68,0.05)'; border = 'rgba(255,68,68,0.15)'; }
-                      if (key === 'breakout') { color = '#00ff88'; bg = 'rgba(0,255,136,0.05)'; border = 'rgba(0,255,136,0.15)'; }
-                      if (key === 'bearTrap') { color = '#ffb300'; bg = 'rgba(255,179,0,0.05)'; border = 'rgba(255,179,0,0.15)'; }
+                      let color = '#006C2E';
+                      let bg = '#F0FDF4';
+                      let border = '#BBF7D0';
+                      if (key === 'trap') { color = '#DC2626'; bg = '#FEF2F2'; border = '#FECACA'; }
+                      if (key === 'breakout') { color = '#15803D'; bg = '#F0FDF4'; border = '#BBF7D0'; }
+                      if (key === 'bearTrap') { color = '#B45309'; bg = '#FFFBEB'; border = '#FDE68A'; }
 
                       return (
                         <button
@@ -1292,11 +1294,11 @@ export default function AIMentor() {
                           style={{
                             background: bg,
                             border: `1px solid ${border}`,
-                            borderRadius: '6px',
-                            padding: '6px',
+                            borderRadius: '8px',
+                            padding: '7px 8px',
                             color: color,
                             fontSize: '11px',
-                            fontWeight: '700',
+                            fontWeight: '800',
                             cursor: 'pointer',
                             transition: 'all 0.2s'
                           }}
@@ -1308,27 +1310,27 @@ export default function AIMentor() {
                   </div>
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }} />
+                <div style={{ borderTop: '1px solid #E2E8F0' }} />
 
                 {/* Input Fields */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>SYMBOL</span>
+                    <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>SYMBOL</span>
                     <input
                       type="text"
                       value={symbol}
                       onChange={e => setSymbol(e.target.value.toUpperCase())}
-                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                      style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '7px 10px', color: '#0F172A', fontSize: '12px', fontWeight: '700', outline: 'none' }}
                     />
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>TIMEFRAME</span>
+                      <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>TIMEFRAME</span>
                       <select
                         value={timeframe}
                         onChange={e => setTimeframe(e.target.value)}
-                        style={{ background: '#0f1124', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 8px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                        style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '7px 8px', color: '#0F172A', fontSize: '12px', fontWeight: '700', outline: 'none' }}
                       >
                         <option value="15m">15m</option>
                         <option value="1h">1h</option>
@@ -1336,21 +1338,21 @@ export default function AIMentor() {
                       </select>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>PRICE</span>
+                      <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>PRICE</span>
                       <input
                         type="number"
                         value={currentPrice}
                         step="0.01"
                         onChange={e => setCurrentPrice(e.target.value)}
-                        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                        style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '7px 10px', color: '#0F172A', fontSize: '12px', fontWeight: '700', outline: 'none' }}
                       />
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>RSI (14)</span>
-                      <span style={{ fontSize: '11px', fontWeight: '800', color: rsi > 70 ? '#ff4444' : rsi < 30 ? '#00ff88' : '#00bcd4' }}>{rsi}</span>
+                      <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>RSI (14)</span>
+                      <span style={{ fontSize: '12px', fontWeight: '900', color: rsi > 70 ? '#DC2626' : rsi < 30 ? '#15803D' : '#006C2E' }}>{rsi}</span>
                     </div>
                     <input
                       type="range"
@@ -1358,16 +1360,16 @@ export default function AIMentor() {
                       max="90"
                       value={rsi}
                       onChange={e => setRsi(e.target.value)}
-                      style={{ width: '100%', accentColor: '#00bcd4', background: 'rgba(255,255,255,0.1)', height: '4px', borderRadius: '2px' }}
+                      style={{ width: '100%', accentColor: '#00D26A', height: '6px', borderRadius: '3px' }}
                     />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>MACD SIGNAL</span>
+                    <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>MACD SIGNAL</span>
                     <select
                       value={macdSignal}
                       onChange={e => setMacdSignal(e.target.value)}
-                      style={{ background: '#0f1124', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 8px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                      style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '7px 8px', color: '#0F172A', fontSize: '12px', fontWeight: '700', outline: 'none' }}
                     >
                       <option value="bullish_cross">Bullish Crossover</option>
                       <option value="bearish_cross">Bearish Crossover</option>
@@ -1378,22 +1380,22 @@ export default function AIMentor() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>TREND CONTEXT</span>
+                    <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>TREND CONTEXT</span>
                     <input
                       type="text"
                       value={trend}
                       onChange={e => setTrend(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '11px', outline: 'none' }}
+                      style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '7px 10px', color: '#0F172A', fontSize: '12px', fontWeight: '700', outline: 'none' }}
                     />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>CANDLESTICK PATTERN</span>
+                    <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>CANDLESTICK PATTERN</span>
                     <textarea
                       value={patternDetected}
                       onChange={e => setPatternDetected(e.target.value)}
                       rows="2"
-                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '11px', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
+                      style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '7px 10px', color: '#0F172A', fontSize: '12px', fontWeight: '600', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
                     />
                   </div>
                 </div>
@@ -1473,28 +1475,29 @@ export default function AIMentor() {
                         onChange={e => setForecastSearch(e.target.value)}
                         style={{
                           flex: 1,
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(168, 85, 247, 0.4)',
-                          borderRadius: '6px',
-                          padding: '7px 10px',
-                          color: '#ffffff',
-                          fontSize: '11px',
+                          background: '#F8FAFC',
+                          border: '1.5px solid #CBD5E1',
+                          borderRadius: '8px',
+                          padding: '8px 12px',
+                          color: '#0F172A',
+                          fontSize: '12px',
+                          fontWeight: '600',
                           outline: 'none',
                           transition: 'border 0.2s'
                         }}
-                        onFocus={e => e.currentTarget.style.borderColor = '#a855f7'}
-                        onBlur={e => e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.4)'}
+                        onFocus={e => e.currentTarget.style.borderColor = '#00D26A'}
+                        onBlur={e => e.currentTarget.style.borderColor = '#CBD5E1'}
                       />
                       <button
                         type="submit"
                         style={{
-                          background: 'rgba(168, 85, 247, 0.25)',
-                          border: '1px solid #a855f7',
-                          borderRadius: '6px',
-                          color: '#c084fc',
-                          padding: '7px 12px',
+                          background: '#0F172A',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: '#FFFFFF',
+                          padding: '8px 16px',
                           cursor: 'pointer',
-                          fontSize: '11px',
+                          fontSize: '12px',
                           fontWeight: '800',
                           whiteSpace: 'nowrap'
                         }}
@@ -1504,33 +1507,33 @@ export default function AIMentor() {
                     </form>
 
                     {/* Quick Market Suggestions Bar */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--text-secondary, #94a3b8)', marginRight: '2px', fontWeight: '600' }}>Quick:</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '11px', color: '#64748B', marginRight: '2px', fontWeight: '800' }}>Quick:</span>
                       {quickSuggestions.map(qs => (
                         <button
                           key={qs}
                           type="button"
                           onClick={() => loadStockForecast(qs, false)}
                           style={{
-                            background: 'rgba(255,255,255,0.04)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            color: '#94a3b8',
-                            borderRadius: '4px',
-                            padding: '2px 6px',
-                            fontSize: '10px',
-                            fontWeight: '700',
+                            background: '#F8FAFC',
+                            border: '1px solid #CBD5E1',
+                            color: '#0F172A',
+                            borderRadius: '6px',
+                            padding: '3px 8px',
+                            fontSize: '11px',
+                            fontWeight: '800',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease'
                           }}
                           onMouseEnter={e => {
-                            e.currentTarget.style.borderColor = '#a855f7';
-                            e.currentTarget.style.color = '#c084fc';
-                            e.currentTarget.style.background = 'rgba(168, 85, 247, 0.15)';
+                            e.currentTarget.style.borderColor = '#00D26A';
+                            e.currentTarget.style.color = '#006C2E';
+                            e.currentTarget.style.background = '#F0FDF4';
                           }}
                           onMouseLeave={e => {
-                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                            e.currentTarget.style.color = '#94a3b8';
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                            e.currentTarget.style.borderColor = '#CBD5E1';
+                            e.currentTarget.style.color = '#0F172A';
+                            e.currentTarget.style.background = '#F8FAFC';
                           }}
                         >
                           {qs}
@@ -1541,59 +1544,59 @@ export default function AIMentor() {
 
                   {/* TradingView Live Chart widget */}
                   <div>
-                    <span style={{ fontSize: '11px', color: '#00bcd4', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
                       Live Market Chart ({tvSymbol})
                     </span>
                     <iframe
                       key={tvSymbol}
-                      src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${encodeURIComponent(tvSymbol)}&interval=D&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=10121c&theme=dark&style=1&timezone=exchange&locale=en`}
-                      style={{ width: '100%', height: '200px', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px' }}
+                      src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${encodeURIComponent(tvSymbol)}&interval=D&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=ffffff&theme=light&style=1&timezone=exchange&locale=en`}
+                      style={{ width: '100%', height: '220px', border: '1px solid #E2E8F0', borderRadius: '10px' }}
                       title="TradingView Live Chart"
                     />
                   </div>
 
                   {/* Live Technicals Section */}
                   <div>
-                    <span style={{ fontSize: '11px', color: '#00ff88', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '11px', color: '#006C2E', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
                       Live Technical Signals
                     </span>
                     
                     {activeTechnicals ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
-                          <span style={{ fontSize: '14px', fontWeight: '900', color: '#ffffff' }}>{activeTechnicals.symbol}</span>
-                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#00ff88' }}>{formatPrice(activeTechnicals.price)}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '14px', borderRadius: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '8px' }}>
+                          <span style={{ fontSize: '15px', fontWeight: '900', color: '#0F172A' }}>{activeTechnicals.symbol}</span>
+                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#008736' }}>{formatPrice(activeTechnicals.price)}</span>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>RSI (14):</span>
-                            <span style={{ fontWeight: '800', color: activeTechnicals.rsi > 70 ? '#ff4444' : activeTechnicals.rsi < 30 ? '#00ff88' : '#00bcd4' }}>
+                            <span style={{ color: '#64748B', fontWeight: '600' }}>RSI (14):</span>
+                            <span style={{ fontWeight: '800', color: activeTechnicals.rsi > 70 ? '#DC2626' : activeTechnicals.rsi < 30 ? '#15803D' : '#006C2E' }}>
                               {activeTechnicals.rsi} ({activeTechnicals.rsi > 70 ? 'Overbought' : activeTechnicals.rsi < 30 ? 'Oversold' : 'Neutral'})
                             </span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>30-Day Trend:</span>
-                            <span style={{ fontWeight: '800', color: activeTechnicals.trend === 'BULLISH' ? '#00ff88' : '#ff4444', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                              {activeTechnicals.trend === 'BULLISH' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                            <span style={{ color: '#64748B', fontWeight: '600' }}>30-Day Trend:</span>
+                            <span style={{ fontWeight: '800', color: activeTechnicals.trend === 'BULLISH' ? '#15803D' : '#DC2626', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                              {activeTechnicals.trend === 'BULLISH' ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
                               {activeTechnicals.trend}
                             </span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>Support Floor:</span>
-                             <span style={{ fontWeight: '800', color: '#00ff88' }}>{formatPrice(activeTechnicals.support)}</span>
+                            <span style={{ color: '#64748B', fontWeight: '600' }}>Support Floor:</span>
+                             <span style={{ fontWeight: '800', color: '#15803D' }}>{formatPrice(activeTechnicals.support)}</span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: 'var(--text-secondary)' }}>Resistance Ceiling:</span>
-                             <span style={{ fontWeight: '800', color: '#ff4444' }}>{formatPrice(activeTechnicals.resistance)}</span>
+                            <span style={{ color: '#64748B', fontWeight: '600' }}>Resistance Ceiling:</span>
+                             <span style={{ fontWeight: '800', color: '#DC2626' }}>{formatPrice(activeTechnicals.resistance)}</span>
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div style={{ color: 'var(--text-secondary)', fontSize: '11px', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>
+                      <div style={{ color: '#64748B', fontSize: '12px', textAlign: 'center', padding: '16px 0', fontStyle: 'italic' }}>
                         No active technical data. Submit a prompt to start simulator analysis.
                       </div>
                     )}
@@ -1601,41 +1604,41 @@ export default function AIMentor() {
 
                   {/* ML Ensemble Section */}
                   {activeMLEnsemble && (
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
-                      <span style={{ fontSize: '11px', color: '#00bcd4', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                    <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+                      <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
                         ML Ensemble Forecast
                       </span>
                       
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '10px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '14px', borderRadius: '12px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>OVERALL FORECAST PROBABILITY</span>
-                          <div style={{ height: '20px', borderRadius: '10px', overflow: 'hidden', display: 'flex', fontSize: '9px', fontWeight: '800', color: '#0a0e27' }}>
+                          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '800' }}>OVERALL FORECAST PROBABILITY</span>
+                          <div style={{ height: '22px', borderRadius: '11px', overflow: 'hidden', display: 'flex', fontSize: '10px', fontWeight: '800', color: '#FFFFFF' }}>
                             {activeMLEnsemble.overall.buy > 0 && (
-                              <div style={{ background: '#00ff88', width: `${activeMLEnsemble.overall.buy}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ background: '#16A34A', width: `${activeMLEnsemble.overall.buy}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 Buy {activeMLEnsemble.overall.buy}%
                               </div>
                             )}
                             {activeMLEnsemble.overall.hold > 0 && (
-                              <div style={{ background: '#ffb300', width: `${activeMLEnsemble.overall.hold}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ background: '#D97706', width: `${activeMLEnsemble.overall.hold}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 Hold {activeMLEnsemble.overall.hold}%
                               </div>
                             )}
                             {activeMLEnsemble.overall.sell > 0 && (
-                              <div style={{ background: '#ff4444', width: `${activeMLEnsemble.overall.sell}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ background: '#DC2626', width: `${activeMLEnsemble.overall.sell}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 Sell {activeMLEnsemble.overall.sell}%
                               </div>
                             )}
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '8px' }}>
-                          <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: '700' }}>COMPONENT SIGNALS</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid #E2E8F0', paddingTop: '8px' }}>
+                          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '800' }}>COMPONENT SIGNALS</span>
                           {activeMLEnsemble.components.map((comp, idx) => (
-                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                              <span style={{ color: '#c0c2cc' }}>{comp.name}</span>
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                              <span style={{ color: '#0F172A', fontWeight: '600' }}>{comp.name}</span>
                               <span style={{ 
                                 fontWeight: '800', 
-                                color: comp.signal === 'Buy' || comp.signal === 'Bullish' ? '#00ff88' : comp.signal === 'Sell' || comp.signal === 'Bearish' ? '#ff4444' : '#ffb300' 
+                                color: comp.signal === 'Buy' || comp.signal === 'Bullish' ? '#16A34A' : comp.signal === 'Sell' || comp.signal === 'Bearish' ? '#DC2626' : '#D97706' 
                               }}>
                                 {comp.signal} ({comp.strength}%)
                               </span>
@@ -1643,9 +1646,9 @@ export default function AIMentor() {
                           ))}
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '8px', fontSize: '11px' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Ensemble Confidence:</span>
-                          <span style={{ fontWeight: '950', color: '#00bcd4' }}>{activeMLEnsemble.confidence}%</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: '8px', fontSize: '12px' }}>
+                          <span style={{ color: '#64748B', fontWeight: '600' }}>Ensemble Confidence:</span>
+                          <span style={{ fontWeight: '900', color: '#006C2E' }}>{activeMLEnsemble.confidence}%</span>
                         </div>
                       </div>
                     </div>
@@ -1653,8 +1656,8 @@ export default function AIMentor() {
 
                   {/* Live News Section */}
                   {activeNews && activeNews.length > 0 && (
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
-                      <span style={{ fontSize: '11px', color: '#a855f7', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                    <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+                      <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
                         Live Market News
                       </span>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1666,26 +1669,26 @@ export default function AIMentor() {
                             rel="noopener noreferrer"
                             style={{
                               display: 'block',
-                              background: 'rgba(255,255,255,0.01)',
-                              border: '1px solid rgba(255,255,255,0.03)',
-                              padding: '10px',
+                              background: '#F8FAFC',
+                              border: '1px solid #E2E8F0',
+                              padding: '10px 12px',
                               borderRadius: '8px',
                               textDecoration: 'none',
                               transition: 'all 0.2s',
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                              e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)';
+                              e.currentTarget.style.background = '#FFFFFF';
+                              e.currentTarget.style.borderColor = '#86EFAC';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
-                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.03)';
+                              e.currentTarget.style.background = '#F8FAFC';
+                              e.currentTarget.style.borderColor = '#E2E8F0';
                             }}
                           >
-                            <div style={{ fontSize: '11px', fontWeight: '800', color: '#e0e0e0', marginBottom: '4px', lineHeight: '1.4' }}>
+                            <div style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A', marginBottom: '4px', lineHeight: '1.4' }}>
                               {n.title}
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'var(--text-secondary)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748B', fontWeight: '600' }}>
                               <span>{n.publisher}</span>
                               <span>{n.time}</span>
                             </div>
@@ -1696,8 +1699,8 @@ export default function AIMentor() {
                   )}
 
                   {/* Trending Symbols Selection */}
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
-                    <span style={{ fontSize: '10px', color: '#00bcd4', fontWeight: '880', display: 'block', marginBottom: '8px', letterSpacing: '0.5px' }}>TRENDING SYMBOLS</span>
+                  <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+                    <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '850', display: 'block', marginBottom: '8px', letterSpacing: '0.5px' }}>TRENDING SYMBOLS</span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                       {['RELIANCE', 'TCS', 'SBIN', 'NIFTY', 'BTC', 'ETH'].map((t) => (
                         <button
@@ -1706,13 +1709,13 @@ export default function AIMentor() {
                             loadStockForecast(t, false);
                           }}
                           style={{
-                            background: 'rgba(255,255,255,0.02)',
-                            border: '1px solid rgba(255,255,255,0.06)',
+                            background: '#F8FAFC',
+                            border: '1px solid #CBD5E1',
                             borderRadius: '6px',
-                            color: '#ffffff',
+                            color: '#0F172A',
                             padding: '4px 10px',
                             fontSize: '11px',
-                            fontWeight: '700',
+                            fontWeight: '800',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
                           }}
@@ -1730,20 +1733,20 @@ export default function AIMentor() {
             {/* 3. SYLLABUS LIBRARY TAB CONTENT */}
             {rightTab === 'library' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <span style={{ fontSize: '11px', color: '#a855f7', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>
+                <span style={{ fontSize: '11px', color: '#006C2E', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>
                   Trading Library Syllabus
                 </span>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {Object.keys(syllabus).length === 0 ? (
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', padding: '16px' }}>
+                    <div style={{ fontSize: '12px', color: '#64748B', textAlign: 'center', padding: '16px' }}>
                       Loading library topics...
                     </div>
                   ) : (
                     Object.keys(syllabus).map(category => {
                       const isExpanded = expandedCategory === category;
                       return (
-                        <div key={category} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px' }}>
+                        <div key={category} style={{ borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
                           <button
                             type="button"
                             onClick={() => setExpandedCategory(isExpanded ? null : category)}
@@ -1751,10 +1754,10 @@ export default function AIMentor() {
                               width: '100%',
                               background: 'none',
                               border: 'none',
-                              color: isExpanded ? '#00bcd4' : '#e0e0e0',
-                              padding: '6px 0',
-                              fontSize: '11px',
-                              fontWeight: '700',
+                              color: isExpanded ? '#006C2E' : '#0F172A',
+                              padding: '8px 0',
+                              fontSize: '12px',
+                              fontWeight: '800',
                               textAlign: 'left',
                               cursor: 'pointer',
                               display: 'flex',
@@ -1763,7 +1766,7 @@ export default function AIMentor() {
                             }}
                           >
                             <span>{category}</span>
-                            {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                            {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                           </button>
                           
                           {isExpanded && (
@@ -1774,12 +1777,13 @@ export default function AIMentor() {
                                   type="button"
                                   onClick={() => handleSendMessage(`Explain ${topic.title} and how it applies to our setup`)}
                                   style={{
-                                    background: 'rgba(255, 255, 255, 0.01)',
-                                    border: '1px solid rgba(255, 255, 255, 0.03)',
-                                    borderRadius: '5px',
-                                    padding: '5px 8px',
+                                    background: '#F8FAFC',
+                                    border: '1px solid #E2E8F0',
+                                    borderRadius: '6px',
+                                    padding: '6px 10px',
                                     fontSize: '11px',
-                                    color: '#c0c2cc',
+                                    color: '#0F172A',
+                                    fontWeight: '600',
                                     textAlign: 'left',
                                     cursor: 'pointer',
                                     transition: 'all 0.15s ease',
@@ -1789,17 +1793,17 @@ export default function AIMentor() {
                                     width: '100%'
                                   }}
                                   onMouseEnter={e => {
-                                    e.currentTarget.style.background = 'rgba(168, 85, 247, 0.06)';
-                                    e.currentTarget.style.color = '#ffffff';
-                                    e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.2)';
+                                    e.currentTarget.style.background = '#F0FDF4';
+                                    e.currentTarget.style.color = '#006C2E';
+                                    e.currentTarget.style.borderColor = '#86EFAC';
                                   }}
                                   onMouseLeave={e => {
-                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
-                                    e.currentTarget.style.color = '#c0c2cc';
-                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.03)';
+                                    e.currentTarget.style.background = '#F8FAFC';
+                                    e.currentTarget.style.color = '#0F172A';
+                                    e.currentTarget.style.borderColor = '#E2E8F0';
                                   }}
                                 >
-                                  <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#a855f7', flexShrink: 0 }} />
+                                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#00D26A', flexShrink: 0 }} />
                                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{topic.title}</span>
                                 </button>
                               ))}

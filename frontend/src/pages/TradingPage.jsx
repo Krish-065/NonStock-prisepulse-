@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTrading } from '../contexts/TradingContext';
 import { 
   Search, RotateCcw, TrendingUp, TrendingDown, ArrowRight, Zap, 
-  Shield, Sparkles, Activity, Check, X, SlidersHorizontal
+  Shield, Sparkles, Activity, Check, X, SlidersHorizontal, Maximize2, Minimize2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ExecutionTicket from '../components/ExecutionTicket';
@@ -53,6 +53,29 @@ export default function TradingPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchContainerRef = useRef(null);
+
+  const [showTradeTicket, setShowTradeTicket] = useState(true);
+  const [isChartFullscreen, setIsChartFullscreen] = useState(false);
+  const chartTerminalRef = useRef(null);
+
+  const toggleChartFullscreen = () => {
+    if (!chartTerminalRef.current) return;
+    if (!document.fullscreenElement) {
+      chartTerminalRef.current.requestFullscreen?.().catch(err => console.error(err));
+      setIsChartFullscreen(true);
+    } else {
+      document.exitFullscreen?.().catch(err => console.error(err));
+      setIsChartFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsChartFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   const [aiInsightText, setAiInsightText] = useState('Institutional order flow indicates key support consolidation. Maintain strict Stop Loss invalidation levels.');
   const [aiInsightLoading, setAiInsightLoading] = useState(false);
@@ -275,18 +298,26 @@ export default function TradingPage() {
       </div>
 
       {/* ─── 2. MAIN TRADING TERMINAL ─── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '24px', alignItems: 'start' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: showTradeTicket ? 'minmax(0, 1fr) 350px' : '1fr', 
+        gap: '24px', 
+        alignItems: 'start' 
+      }}>
         
         {/* Left: Terminal Chart Container */}
-        <div style={{
-          background: '#FFFFFF',
-          borderRadius: '16px',
-          border: '1px solid #E2E8F0',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)'
-        }}>
+        <div 
+          ref={chartTerminalRef}
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid #E2E8F0',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)'
+          }}
+        >
           
           {/* Chart Header Bar: Unified Instant Search */}
           <div style={{
@@ -442,26 +473,77 @@ export default function TradingPage() {
               )}
             </div>
 
-            {/* TradingView Verified Feed Badge */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              background: '#F0FDF4',
-              borderRadius: '8px',
-              border: '1px solid #BBF7D0',
-              fontSize: '12px',
-              fontWeight: 800,
-              color: '#15803D'
-            }}>
-              <Activity size={14} color="#15803D" />
-              <span>Original TradingView Pro Feed</span>
+            {/* Chart Control Actions */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {!showTradeTicket && (
+                <button
+                  onClick={() => setShowTradeTicket(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    background: '#00D26A',
+                    color: '#FFFFFF',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0, 210, 106, 0.3)',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  <Zap size={14} />
+                  <span>Trade {symbol}</span>
+                </button>
+              )}
+
+              {/* Fullscreen Chart Button */}
+              <button
+                onClick={toggleChartFullscreen}
+                title={isChartFullscreen ? 'Exit Full Screen' : 'Full Screen Chart'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  background: '#FFFFFF',
+                  borderRadius: '8px',
+                  border: '1px solid #CBD5E1',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  color: '#0F172A',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  transition: 'all 0.15s'
+                }}
+              >
+                {isChartFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                <span>{isChartFullscreen ? 'Exit Full Screen' : 'Full Screen'}</span>
+              </button>
+
+              {/* TradingView Verified Feed Badge */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                background: '#F0FDF4',
+                borderRadius: '8px',
+                border: '1px solid #BBF7D0',
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#15803D'
+              }}>
+                <Activity size={14} color="#15803D" />
+                <span>Original TradingView Pro Feed</span>
+              </div>
             </div>
           </div>
 
           {/* Chart Canvas Area */}
-          <div style={{ position: 'relative', width: '100%', height: '580px', background: '#FFFFFF' }}>
+          <div style={{ position: 'relative', width: '100%', height: isChartFullscreen ? 'calc(100vh - 120px)' : '580px', background: '#FFFFFF' }}>
             <div 
               id="tv_chart_container" 
               style={{ width: '100%', height: '100%' }}
@@ -525,15 +607,17 @@ export default function TradingPage() {
         </div>
 
         {/* Right: Institutional Order Ticket */}
-        <div style={{ position: 'sticky', top: '80px' }}>
-          <ExecutionTicket 
-            symbol={symbol}
-            currentPrice={currentPrice}
-            balance={balance}
-            onPlaceOrder={placeOrder}
-            onReset={resetAccount}
-          />
-        </div>
+        {showTradeTicket && (
+          <div style={{ position: 'sticky', top: '80px' }}>
+            <ExecutionTicket 
+              symbol={symbol}
+              currentPrice={currentPrice}
+              balance={balance}
+              onPlaceOrder={placeOrder}
+              onClose={() => setShowTradeTicket(false)}
+            />
+          </div>
+        )}
       </div>
 
       {/* ─── 3. ACTIVE WORKING TRADES & OPEN POSITIONS ─── */}

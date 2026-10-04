@@ -77,7 +77,16 @@ const FINANCIAL_MARKET_HUBS = [
   { id: 'new_york', lat: 40.71, lon: -74.00, name: 'New York', flag: '🇺🇸', exchange: 'NYSE / NASDAQ' },
   { id: 'london', lat: 51.50, lon: -0.12, name: 'London', flag: '🇬🇧', exchange: 'LSE' },
   { id: 'tokyo', lat: 35.68, lon: 139.69, name: 'Tokyo', flag: '🇯🇵', exchange: 'TSE / Nikkei' },
-  { id: 'sydney', lat: -33.86, lon: 151.20, name: 'Sydney', flag: '🇦🇺', exchange: 'ASX' }
+  { id: 'sydney', lat: -33.86, lon: 151.20, name: 'Sydney', flag: '🇦🇺', exchange: 'ASX' },
+  { id: 'frankfurt', lat: 50.11, lon: 8.68, name: 'Frankfurt', flag: '🇩🇪', exchange: 'XETRA' },
+  { id: 'hong_kong', lat: 22.31, lon: 114.16, name: 'Hong Kong', flag: '🇭🇰', exchange: 'HKEX' },
+  { id: 'singapore', lat: 1.35, lon: 103.81, name: 'Singapore', flag: '🇸🇬', exchange: 'SGX' },
+  { id: 'mumbai', lat: 19.07, lon: 72.87, name: 'Mumbai', flag: '🇮🇳', exchange: 'NSE / BSE' },
+  { id: 'dubai', lat: 25.20, lon: 55.27, name: 'Dubai', flag: '🇦🇪', exchange: 'DFM' },
+  { id: 'zurich', lat: 47.37, lon: 8.54, name: 'Zurich', flag: '🇨🇭', exchange: 'SIX' },
+  { id: 'toronto', lat: 43.65, lon: -79.38, name: 'Toronto', flag: '🇨🇦', exchange: 'TSX' },
+  { id: 'sao_paulo', lat: -23.55, lon: -46.63, name: 'São Paulo', flag: '🇧🇷', exchange: 'B3' },
+  { id: 'chicago', lat: 41.87, lon: -87.62, name: 'Chicago', flag: '🇺🇸', exchange: 'CME' }
 ];
 
 export default function CelestialEngine({

@@ -2,9 +2,26 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   TrendingUp, TrendingDown, ArrowRight, Zap, RefreshCw, 
-  Search, SlidersHorizontal, Eye, BarChart2, Globe, Shield, Sparkles
+  Search, SlidersHorizontal, Eye, BarChart2, Globe, Shield, Sparkles,
+  Plus, Trash2, X, Layers, CheckCircle2
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { apiClient } from '../services/api';
+
+// Popular catalog of instruments ready to add
+const POPULAR_ADDABLE_ASSETS = [
+  { symbol: 'ETH-USD', name: 'Ethereum', category: 'crypto', categoryLabel: 'Crypto', badge: 'ETH', price: 2748.40, change: 42.10, changePercent: 1.55, dayHigh: 2790.00, dayLow: 2680.00, volume: '18.4B', digits: 2, prefix: '$' },
+  { symbol: 'SOL-USD', name: 'Solana', category: 'crypto', categoryLabel: 'Crypto', badge: 'SOL', price: 154.20, change: 5.60, changePercent: 3.77, dayHigh: 158.00, dayLow: 147.50, volume: '6.2B', digits: 2, prefix: '$' },
+  { symbol: 'SI=F', name: 'Silver Spot / Futures', category: 'commodities', categoryLabel: 'Gold & Metals', badge: 'XAG', price: 31.80, change: 0.45, changePercent: 1.43, dayHigh: 32.20, dayLow: 31.10, volume: '8.1B', digits: 2, prefix: '$' },
+  { symbol: 'CL=F', name: 'Crude Oil WTI', category: 'commodities', categoryLabel: 'Commodities', badge: 'OIL', price: 71.85, change: -0.65, changePercent: -0.90, dayHigh: 73.10, dayLow: 71.20, volume: '12.5B', digits: 2, prefix: '$' },
+  { symbol: '^GSPC', name: 'S&P 500 Index', category: 'indices', categoryLabel: 'Global Index', badge: 'SPX', price: 5751.20, change: 24.50, changePercent: 0.43, dayHigh: 5765.00, dayLow: 5720.00, volume: '45.0B', digits: 2, prefix: '$' },
+  { symbol: '^IXIC', name: 'Nasdaq Composite', category: 'indices', categoryLabel: 'Global Index', badge: 'NDX', price: 18137.85, change: 112.40, changePercent: 0.62, dayHigh: 18210.00, dayLow: 17980.00, volume: '38.2B', digits: 2, prefix: '$' },
+  { symbol: 'USDCHF=X', name: 'US Dollar / Swiss Franc', category: 'forex', categoryLabel: 'Forex Major', badge: 'USD/CHF', price: 0.8650, change: 0.0012, changePercent: 0.14, dayHigh: 0.8680, dayLow: 0.8620, volume: '22.0B', digits: 4, prefix: '$' },
+  { symbol: 'NZDUSD=X', name: 'New Zealand / US Dollar', category: 'forex', categoryLabel: 'Forex Major', badge: 'NZD/USD', price: 0.6095, change: -0.0015, changePercent: -0.25, dayHigh: 0.6120, dayLow: 0.6070, volume: '15.4B', digits: 4, prefix: '$' },
+  { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'equities', categoryLabel: 'US Tech', badge: 'NVDA', price: 124.60, change: 3.80, changePercent: 3.15, dayHigh: 126.50, dayLow: 121.20, volume: '52.0B', digits: 2, prefix: '$' },
+  { symbol: 'AAPL', name: 'Apple Inc.', category: 'equities', categoryLabel: 'US Tech', badge: 'AAPL', price: 228.50, change: 1.80, changePercent: 0.79, dayHigh: 230.10, dayLow: 226.40, volume: '34.0B', digits: 2, prefix: '$' },
+  { symbol: 'TSLA', name: 'Tesla Inc.', category: 'equities', categoryLabel: 'US Tech', badge: 'TSLA', price: 254.20, change: -4.20, changePercent: -1.63, dayHigh: 260.00, dayLow: 251.50, volume: '28.0B', digits: 2, prefix: '$' }
+];
 
 // Initial realistic baseline data for Screener instruments
 const INITIAL_ASSETS = [
@@ -191,19 +208,125 @@ function MiniSparkline({ data, isPositive, height = 54, width = 180, showGlow = 
 
 export default function LiveMarketScreener({ onSelectAsset }) {
   const navigate = useNavigate();
-  const [assets, setAssets] = useState(INITIAL_ASSETS);
-  const [activeTab, setActiveTab] = useState('all'); // all, crypto, commodities, forex
+  const [assets, setAssets] = useState(() => {
+    try {
+      const saved = localStorage.getItem('nonstock_custom_screener_assets');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const existingSymbols = new Set(INITIAL_ASSETS.map(a => a.symbol));
+        const customFiltered = parsed.filter(a => !existingSymbols.has(a.symbol));
+        return [...INITIAL_ASSETS, ...customFiltered];
+      }
+    } catch (e) {
+      console.warn('Failed to parse screener custom assets', e);
+    }
+    return INITIAL_ASSETS;
+  });
+
+  const [activeTab, setActiveTab] = useState('all'); // all, crypto, commodities, forex, indices, equities
   const [viewMode, setViewMode] = useState('grid'); // grid, table
   const [searchFilter, setSearchFilter] = useState('');
   const [flashing, setFlashing] = useState({}); // { [symbol]: 'up' | 'down' }
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Add Asset Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [customTicker, setCustomTicker] = useState('');
+  const [customName, setCustomName] = useState('');
+  const [customCategory, setCustomCategory] = useState('crypto');
+  const [customPrice, setCustomPrice] = useState('');
+
+  const handleAddAsset = (assetToAdd) => {
+    if (assets.some(a => a.symbol.toUpperCase() === assetToAdd.symbol.toUpperCase())) {
+      toast.error(`${assetToAdd.symbol} is already in your Price Radar screener`);
+      return;
+    }
+    const sparkline = assetToAdd.sparkline || Array.from({ length: 20 }, (_, i) => assetToAdd.price * (0.99 + (i * 0.001) + (Math.random() * 0.008)));
+    const newAsset = {
+      ...assetToAdd,
+      sparkline
+    };
+    const updated = [...assets, newAsset];
+    setAssets(updated);
+    try {
+      const customOnly = updated.filter(a => !INITIAL_ASSETS.some(ia => ia.symbol === a.symbol));
+      localStorage.setItem('nonstock_custom_screener_assets', JSON.stringify(customOnly));
+    } catch (e) {
+      console.warn(e);
+    }
+    toast.success(`Added ${newAsset.symbol} to Price Radar`);
+    setIsAddModalOpen(false);
+
+    // Fetch live quote for the newly added asset immediately
+    apiClient.get(`/market/stock/${newAsset.symbol}`).then(res => {
+      if (res.data?.price) {
+        setAssets(prev => prev.map(a => a.symbol === newAsset.symbol ? {
+          ...a,
+          price: parseFloat(res.data.price),
+          change: parseFloat(res.data.change || a.change),
+          changePercent: parseFloat(res.data.changePercent || a.changePercent)
+        } : a));
+      }
+    }).catch(() => {});
+  };
+
+  const handleCreateCustomAsset = (e) => {
+    e.preventDefault();
+    const sym = customTicker.trim().toUpperCase();
+    if (!sym) {
+      toast.error('Please enter a ticker symbol');
+      return;
+    }
+    const nm = customName.trim() || sym;
+    const parsedPrice = parseFloat(customPrice) || 100.0;
+    const isForex = customCategory === 'forex' || sym.includes('=X');
+    const digits = isForex ? 4 : (parsedPrice < 10 ? 4 : 2);
+    const prefix = customCategory === 'crypto' ? '$' : (sym.includes('JPY') ? '¥' : '$');
+
+    const newObj = {
+      symbol: sym,
+      name: nm,
+      category: customCategory,
+      categoryLabel: customCategory === 'crypto' ? 'Crypto' :
+                     customCategory === 'commodities' ? 'Commodities' :
+                     customCategory === 'forex' ? 'Forex' :
+                     customCategory === 'indices' ? 'Global Index' : 'Equities',
+      badge: sym.split(/[-=\.]/)[0],
+      price: parsedPrice,
+      change: 0.00,
+      changePercent: 0.00,
+      dayHigh: parsedPrice * 1.015,
+      dayLow: parsedPrice * 0.985,
+      volume: '10.0M',
+      digits,
+      prefix
+    };
+
+    handleAddAsset(newObj);
+    setCustomTicker('');
+    setCustomName('');
+    setCustomPrice('');
+  };
+
+  const handleRemoveAsset = (symToRemove, e) => {
+    e?.stopPropagation?.();
+    const updated = assets.filter(a => a.symbol !== symToRemove);
+    setAssets(updated);
+    try {
+      const customOnly = updated.filter(a => !INITIAL_ASSETS.some(ia => ia.symbol === a.symbol));
+      localStorage.setItem('nonstock_custom_screener_assets', JSON.stringify(customOnly));
+    } catch (e) {
+      console.warn(e);
+    }
+    toast.success(`Removed ${symToRemove}`);
+  };
+
   // Attempt to sync realistic initial prices from backend if available
   const fetchBackendQuotes = async () => {
     setIsRefreshing(true);
     try {
-      const symbolsToFetch = ['BTC-USD', 'GC=F', 'EURUSD=X', 'GBPUSD=X', 'USDJPY=X', 'AUDUSD=X', 'USDCAD=X'];
+      const symbolsToFetch = assets.map(a => a.symbol);
       const responses = await Promise.allSettled(
         symbolsToFetch.map(sym => apiClient.get(`/market/stock/${sym}`))
       );
@@ -211,7 +334,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
       setAssets(prevAssets => {
         return prevAssets.map((asset, idx) => {
           const res = responses[idx];
-          if (res.status === 'fulfilled' && res.value?.data?.price) {
+          if (res && res.status === 'fulfilled' && res.value?.data?.price) {
             const data = res.value.data;
             const newPrice = parseFloat(data.price);
             const newChange = parseFloat(data.change || 0);
@@ -322,11 +445,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
   // Filtered Assets based on tabs & search input
   const filteredAssets = useMemo(() => {
     return assets.filter(item => {
-      const matchesCategory = 
-        activeTab === 'all' ? true :
-        activeTab === 'crypto' ? item.category === 'crypto' :
-        activeTab === 'commodities' ? item.category === 'commodities' :
-        activeTab === 'forex' ? item.category === 'forex' : true;
+      const matchesCategory = activeTab === 'all' ? true : item.category === activeTab;
 
       const q = searchFilter.trim().toLowerCase();
       const matchesSearch = !q || 
@@ -492,6 +611,31 @@ export default function LiveMarketScreener({ onSelectAsset }) {
             </button>
           </div>
 
+          {/* Add Asset Button */}
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            style={{
+              background: '#00a854',
+              color: '#ffffff',
+              border: 'none',
+              padding: '8px 14px',
+              borderRadius: '10px',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 8px rgba(0, 168, 84, 0.25)',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.background = '#008f47'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = '#00a854'; }}
+          >
+            <Plus size={14} />
+            <span>Add Asset</span>
+          </button>
+
           {/* Manual Re-sync button */}
           <button 
             onClick={fetchBackendQuotes}
@@ -524,10 +668,12 @@ export default function LiveMarketScreener({ onSelectAsset }) {
       <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {[
           { id: 'all', label: 'All Instruments', count: assets.length },
-          { id: 'crypto', label: 'Crypto (BTC)', count: assets.filter(a => a.category === 'crypto').length },
-          { id: 'commodities', label: 'Gold & Metals (XAU)', count: assets.filter(a => a.category === 'commodities').length },
-          { id: 'forex', label: 'Forex Majors', count: assets.filter(a => a.category === 'forex').length }
-        ].map(tab => {
+          { id: 'crypto', label: 'Crypto', count: assets.filter(a => a.category === 'crypto').length },
+          { id: 'commodities', label: 'Gold & Metals', count: assets.filter(a => a.category === 'commodities').length },
+          { id: 'forex', label: 'Forex Majors', count: assets.filter(a => a.category === 'forex').length },
+          { id: 'indices', label: 'Indices', count: assets.filter(a => a.category === 'indices').length },
+          { id: 'equities', label: 'Equities', count: assets.filter(a => a.category === 'equities').length }
+        ].filter(tab => tab.count > 0 || tab.id === 'all').map(tab => {
           const isActive = activeTab === tab.id;
           return (
             <button
@@ -651,21 +797,46 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                       </div>
                     </div>
 
-                    {/* 24h Change Pill */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      background: isPos ? '#f0fdf4' : '#fef2f2',
-                      color: isPos ? '#00a854' : '#ef4444',
-                      border: `1px solid ${isPos ? '#bbf7d0' : '#fecaca'}`,
-                      padding: '4px 8px',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      fontWeight: 800
-                    }}>
-                      {isPos ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                      <span>{isPos ? '+' : ''}{asset.changePercent.toFixed(2)}%</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {/* 24h Change Pill */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: isPos ? '#f0fdf4' : '#fef2f2',
+                        color: isPos ? '#00a854' : '#ef4444',
+                        border: `1px solid ${isPos ? '#bbf7d0' : '#fecaca'}`,
+                        padding: '4px 8px',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 800
+                      }}>
+                        {isPos ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                        <span>{isPos ? '+' : ''}{asset.changePercent.toFixed(2)}%</span>
+                      </div>
+
+                      {!INITIAL_ASSETS.some(ia => ia.symbol === asset.symbol) && (
+                        <button
+                          onClick={(e) => handleRemoveAsset(asset.symbol, e)}
+                          title={`Remove ${asset.symbol} from screener`}
+                          style={{
+                            background: '#fef2f2',
+                            border: '1px solid #fee2e2',
+                            borderRadius: '8px',
+                            padding: '5px',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.15s'
+                          }}
+                          onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#ffffff'; }}
+                          onMouseOut={(e) => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -884,28 +1055,53 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                     </td>
 
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                      <button
-                        onClick={() => handleTradeAsset(asset)}
-                        style={{
-                          background: '#00a854',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          padding: '6px 14px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          transition: 'all 0.15s'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
-                        onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                      >
-                        <span>Trade</span>
-                        <ArrowRight size={12} />
-                      </button>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <button
+                          onClick={() => handleTradeAsset(asset)}
+                          style={{
+                            background: '#00a854',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '6px 14px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'all 0.15s'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                          onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                          <span>Trade</span>
+                          <ArrowRight size={12} />
+                        </button>
+
+                        {!INITIAL_ASSETS.some(ia => ia.symbol === asset.symbol) && (
+                          <button
+                            onClick={(e) => handleRemoveAsset(asset.symbol, e)}
+                            title={`Remove ${asset.symbol}`}
+                            style={{
+                              background: '#fef2f2',
+                              border: '1px solid #fee2e2',
+                              borderRadius: '8px',
+                              padding: '6px',
+                              color: '#ef4444',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s'
+                            }}
+                            onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#ffffff'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#ef4444'; }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -951,6 +1147,285 @@ export default function LiveMarketScreener({ onSelectAsset }) {
           Open Trading Terminal <ArrowRight size={14} />
         </button>
       </div>
+
+      {/* ─── ADD ASSET MODAL ─── */}
+      {isAddModalOpen && (
+        <div 
+          onClick={() => setIsAddModalOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              maxWidth: '680px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border: '1px solid #e2e8f0',
+              padding: '28px'
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div>
+                <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Plus size={20} color="#00a854" /> Add Asset to Live Price Radar
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                  Track additional global instruments with live updates, charts, and 1-click execution.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '10px',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748b'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Popular Catalog Grid */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                ⭐ Popular Global Instruments
+              </div>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: '10px'
+              }}>
+                {POPULAR_ADDABLE_ASSETS.map((item) => {
+                  const alreadyAdded = assets.some(a => a.symbol.toUpperCase() === item.symbol.toUpperCase());
+                  return (
+                    <div 
+                      key={item.symbol}
+                      style={{
+                        background: alreadyAdded ? '#f8fafc' : '#ffffff',
+                        border: `1px solid ${alreadyAdded ? '#e2e8f0' : '#bbf7d0'}`,
+                        borderRadius: '12px',
+                        padding: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                        opacity: alreadyAdded ? 0.6 : 1
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{
+                          padding: '2px 7px',
+                          borderRadius: '6px',
+                          background: '#f0fdf4',
+                          color: '#166534',
+                          fontSize: '11px',
+                          fontWeight: 800
+                        }}>
+                          {item.badge}
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                          {item.categoryLabel}
+                        </span>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{item.name}</div>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#00a854', marginTop: '2px' }}>
+                          {item.prefix}{item.price.toLocaleString(undefined, { minimumFractionDigits: item.digits })}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => !alreadyAdded && handleAddAsset(item)}
+                        disabled={alreadyAdded}
+                        style={{
+                          background: alreadyAdded ? '#e2e8f0' : '#00a854',
+                          color: alreadyAdded ? '#64748b' : '#ffffff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '6px 10px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: alreadyAdded ? 'default' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
+                          width: '100%',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        {alreadyAdded ? (
+                          <>
+                            <CheckCircle2 size={12} />
+                            <span>In Screener</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={12} />
+                            <span>+ Add to Radar</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Custom Asset Form */}
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '14px',
+              padding: '18px'
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+                ✏️ Custom Ticker & Instrument
+              </div>
+              <form onSubmit={handleCreateCustomAsset} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                    Ticker / Symbol *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. MSFT, AVAX"
+                    value={customTicker}
+                    onChange={(e) => setCustomTicker(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                    Instrument Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Microsoft Corp"
+                    value={customName}
+                    onChange={(e) => setCustomName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                    Category
+                  </label>
+                  <select
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      background: '#ffffff',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="crypto">Crypto</option>
+                    <option value="commodities">Commodities</option>
+                    <option value="forex">Forex</option>
+                    <option value="indices">Indices</option>
+                    <option value="equities">Equities</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                    Estimated Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="e.g. 420.50"
+                    value={customPrice}
+                    onChange={(e) => setCustomPrice(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1', marginTop: '6px' }}>
+                  <button
+                    type="submit"
+                    style={{
+                      background: '#00a854',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '10px',
+                      padding: '10px 18px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      boxShadow: '0 4px 12px rgba(0, 168, 84, 0.25)'
+                    }}
+                  >
+                    <Plus size={16} />
+                    <span>Add Custom Instrument to Price Radar</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

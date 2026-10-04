@@ -9,10 +9,12 @@
 :root {
   /* Core Colors */
   --bg-primary: #FFFFFF;
-  --bg-card: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-card-glass: rgba(255, 255, 255, 0.98);
   --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-heading: #1E293B;
+  --text-secondary: #334155;
+  --text-muted: #475569;
+  --text-heading: #0F172A;
   
   /* Brand Accents */
   --accent-bullish: #10B981;

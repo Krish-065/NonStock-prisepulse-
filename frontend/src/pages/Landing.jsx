@@ -100,17 +100,23 @@ export default function Landing() {
       
       {/* ─── 1. TOP GLOBAL NAVIGATION ─── */}
       <header style={{
-        position: 'sticky',
+        position: 'fixed',
         top: 0,
+        left: 0,
+        right: 0,
+        width: '100%',
+        boxSizing: 'border-box',
         zIndex: 1000,
         background: 'rgba(255, 255, 255, 0.96)',
-        backdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         borderBottom: '1px solid #E2E8F0',
         padding: '0 32px',
         height: '70px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
           <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
@@ -179,7 +185,7 @@ export default function Landing() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '50px 24px 0 24px',
+        padding: '90px 24px 0 24px',
         boxSizing: 'border-box',
         background: 'radial-gradient(ellipse at top, #F0FDF4 0%, #FFFFFF 65%)'
       }}>
@@ -361,36 +367,6 @@ export default function Landing() {
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginTop: '2px' }}>
                 Raw Institutional Execution
               </div>
-            </div>
-          </div>
-
-          <div 
-            onClick={() => scrollTo('your-proving-starts-here')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              cursor: 'pointer',
-              color: '#009E47',
-              fontSize: '12px',
-              fontWeight: 800,
-              letterSpacing: '1px',
-              textTransform: 'uppercase'
-            }}
-          >
-            <span>SCROLL DOWN</span>
-            <div style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              background: '#F0FDF4',
-              border: '1.5px solid #00D26A',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0, 210, 106, 0.25)'
-            }}>
-              <ChevronDown size={17} color="#00D26A" />
             </div>
           </div>
         </div>

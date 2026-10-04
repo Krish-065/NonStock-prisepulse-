@@ -7,7 +7,7 @@ import {
   Trophy, Medal, Star, Zap, ArrowRight, ShieldCheck, 
   Lock, Unlock, Target, Coins, Activity, TrendingUp, TrendingDown,
   Search, Plus, X, Crown, Sparkles, Sliders, ExternalLink,
-  Flame, CheckCircle2, AlertCircle, BarChart2, Camera, Image,
+  Flame, CheckCircle2, AlertCircle, BarChart2, Camera, Image, Trash2,
   Bot, FlaskConical, Clock, ShieldAlert, Award, Globe, ArrowUpRight,
   ChevronRight, Filter, Info, Eye, ChevronDown, ChevronUp, Layers, Check,
   Server, Play, Pause, RefreshCw, FileText, Calculator, LayoutDashboard
@@ -673,8 +673,84 @@ export default function Dashboard() {
             borderRadius: '24px',
             border: '1.5px solid #E2E8F0',
             padding: '24px 28px',
-            boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
+            boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
+            overflow: 'hidden'
           }}>
+            {/* Custom Terminal Banner Display */}
+            {bannerUrl ? (
+              <div style={{
+                position: 'relative',
+                width: '100%',
+                height: '170px',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                marginBottom: '20px',
+                border: '1.5px solid #CBD5E1',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)'
+              }}>
+                <img 
+                  src={bannerUrl} 
+                  alt="Trader Terminal Custom Banner" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+                <div style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  display: 'flex',
+                  gap: '8px',
+                  zIndex: 2
+                }}>
+                  <button
+                    onClick={() => bannerInputRef.current?.click()}
+                    style={{
+                      background: 'rgba(15, 23, 42, 0.85)',
+                      backdropFilter: 'blur(8px)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    <Camera size={13} />
+                    <span>Change Banner</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setBannerUrl('');
+                      localStorage.removeItem('nonstock_user_banner');
+                      toast.success('Custom banner removed');
+                    }}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.85)',
+                      backdropFilter: 'blur(8px)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '6px 10px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    }}
+                    title="Remove custom banner"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
         {/* Upper Technical Meta Ribbon */}
         <div style={{
           display: 'flex',

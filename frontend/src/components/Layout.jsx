@@ -97,7 +97,7 @@ export default function Layout({ children }) {
       overflowX: 'hidden'
     }}>
       {/* ─── DYNAMIC CELESTIAL BACKGROUND: ROTATING EARTH & ORBITING SUN ─── */}
-      <CelestialEngine mode="ambient" style={{ opacity: 0.68, zIndex: 0 }} />
+      <CelestialEngine mode="ambient" style={{ opacity: 0.14, zIndex: 0, pointerEvents: 'none' }} />
 
       {/* Crisp White & Emerald Glassmorphic Navbar */}
       <header style={{
@@ -563,6 +563,8 @@ export default function Layout({ children }) {
       {/* Main Content Area */}
       <main style={{ 
         flex: 1, 
+        position: 'relative',
+        zIndex: 1,
         marginTop: '66px', 
         padding: '24px 20px',
         paddingBottom: isMobile ? '88px' : '24px',
