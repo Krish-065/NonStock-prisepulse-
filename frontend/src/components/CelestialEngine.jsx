@@ -1,15 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { getAllMarketSessions } from '../utils/marketHours';
 
 /**
- * CelestialEngine — Real-Time Astronomical Earth & Orbital Sun Component
- * - Projects a 3D orthographic rotating Earth linked to actual UTC time
- * - Features an orbital Sun moving behind the celestial horizon with dynamic solar corona
- * - Renders dynamic vertical trading bar graph pillars rising from the globe
- * - Adapts to Light Mode (crisp white, emerald green, and black text)
- * - Modes: "hero" (landing page centerpiece) and "ambient" (background on all pages)
+ * CelestialEngine — Real-Time Astronomical Geocentric Earth & Revolving Sun
+ * - Earth rotates on its tilted polar axis (~23.4°)
+ * - The Sun revolves around the Earth from East to West over the 24-hour UTC cycle
+ * - The Sun illuminates the morning / daytime hemisphere, lighting up active market sessions
+ * - Renders dynamic vertical trading volume pillars (mirroring the reference design)
+ * - Highlights live market sessions (New York, London, Tokyo, Sydney) with sun/moon indicators
+ * - 100% Light Theme compatible (crisp white, emerald green, and black text)
  */
 
-// Simplified spherical coordinates for Earth's continental landmasses [latitude, longitude]
+// Spherical coordinates for Earth's continental landmasses [latitude, longitude]
 const CONTINENTS = [
   // North America
   [
@@ -39,25 +41,23 @@ const CONTINENTS = [
   ]
 ];
 
-// Major global financial exchange coordinates [lat, lon, name]
-const FINANCIAL_HUBS = [
-  { lat: 40.71, lon: -74.00, name: 'New York (NYSE)' },
-  { lat: 51.50, lon: -0.12, name: 'London (LSE)' },
-  { lat: 35.68, lon: 139.69, name: 'Tokyo (TSE)' },
-  { lat: 1.35, lon: 103.82, name: 'Singapore (SGX)' },
-  { lat: 47.37, lon: 8.54, name: 'Zurich (SIX)' },
-  { lat: 50.11, lon: 8.68, name: 'Frankfurt (FWB)' },
-  { lat: -33.86, lon: 151.20, name: 'Sydney (ASX)' },
-  { lat: 25.20, lon: 55.27, name: 'Dubai (DFM)' }
+// Major global financial exchange coordinates [lat, lon, id, name, flag]
+const FINANCIAL_MARKET_HUBS = [
+  { id: 'new_york', lat: 40.71, lon: -74.00, name: 'New York', flag: '🇺🇸', exchange: 'NYSE' },
+  { id: 'london', lat: 51.50, lon: -0.12, name: 'London', flag: '🇬🇧', exchange: 'LSE' },
+  { id: 'tokyo', lat: 35.68, lon: 139.69, name: 'Tokyo', flag: '🇯🇵', exchange: 'TSE' },
+  { id: 'sydney', lat: -33.86, lon: 151.20, name: 'Sydney', flag: '🇦🇺', exchange: 'ASX' }
 ];
 
 export default function CelestialEngine({ 
   mode = 'hero', // 'hero' | 'ambient'
   className = '',
-  style = {}
+  style = {},
+  showSessionBadges = true
 }) {
   const canvasRef = useRef(null);
   const [timeString, setTimeString] = useState('');
+  const [activeSessions, setActiveSessions] = useState([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -69,7 +69,6 @@ export default function CelestialEngine({
     let width = canvas.offsetWidth;
     let height = canvas.offsetHeight;
 
-    // Handle high DPI displays
     const handleResize = () => {
       if (!canvas) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -84,157 +83,189 @@ export default function CelestialEngine({
     window.addEventListener('resize', handleResize);
 
     // Initial astronomical angle derived from actual UTC milliseconds
-    // Earth completes 1 rotation (2*PI) in 86,400,000 milliseconds
-    const getUtcBaseAngle = () => {
+    const getUtcDayFraction = () => {
       const now = new Date();
       const msToday = (now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds()) * 1000 + now.getUTCMilliseconds();
-      return (msToday / 86400000) * 2 * Math.PI;
+      return msToday / 86400000;
     };
 
-    let continuousAngle = getUtcBaseAngle();
-    let sunOrbitAngle = getUtcBaseAngle() * 0.95; // Orbital transit pace
+    let earthRotAngle = getUtcDayFraction() * 2 * Math.PI;
+    // The Sun revolves from East to West across the globe
+    let sunEastWestOrbit = -getUtcDayFraction() * 2 * Math.PI;
     let lastTime = performance.now();
 
-    // Setup 18 vertical financial bar graph pillars (matching the reference image!)
+    // 22 vertical financial trading volume bar graph pillars (matching the reference image!)
     const numBars = mode === 'hero' ? 22 : 12;
     const barHeights = Array.from({ length: numBars }, (_, i) => ({
-      baseHeight: 0.2 + 0.65 * Math.sin((i / numBars) * Math.PI),
+      baseHeight: 0.22 + 0.62 * Math.sin((i / numBars) * Math.PI),
       phase: Math.random() * Math.PI * 2,
-      speed: 0.0015 + Math.random() * 0.002
+      speed: 0.0016 + Math.random() * 0.0018
     }));
 
-    // Main animation loop
     const render = (currentTime) => {
       const delta = currentTime - lastTime;
       lastTime = currentTime;
 
-      // Rotate smoothly: real UTC baseline + gentle visible revolution
-      // Visible rotation speed for stunning interactive experience
-      const rotationSpeed = mode === 'hero' ? 0.00035 : 0.00015;
-      continuousAngle += rotationSpeed * (delta || 16);
-      sunOrbitAngle += (rotationSpeed * 0.7) * (delta || 16);
+      // Realistic speed scaling
+      const speed = mode === 'hero' ? 0.0003 : 0.00012;
+      earthRotAngle += speed * (delta || 16);
+      sunEastWestOrbit -= (speed * 1.1) * (delta || 16); // Sun moves East-to-West
 
       ctx.clearRect(0, 0, width, height);
 
-      // Sphere geometry configuration
       const isHero = mode === 'hero';
       const radius = isHero 
-        ? Math.min(width * 0.42, height * 0.75, 420)
-        : Math.min(width * 0.35, height * 0.5, 260);
+        ? Math.min(width * 0.44, height * 0.74, 420)
+        : Math.min(width * 0.36, height * 0.52, 260);
 
-      const centerX = isHero ? width * 0.5 : width * 0.78;
-      const centerY = isHero ? height * 0.96 : height * 0.45; // Hero rises from bottom like reference image
+      const centerX = isHero ? width * 0.5 : width * 0.82;
+      const centerY = isHero ? height * 0.95 : height * 0.46;
 
-      // ─── 1. ORBITAL SUN BEHIND THE CELESTIAL HORIZON ───
-      // Sun travels in a wide celestial orbit behind the upper atmosphere of the Earth
+      // ─── 1. ORBITAL REVOLVING SUN (EAST TO WEST ACROSS CELESTIAL HORIZON) ───
+      // The Sun orbits the Earth in a sweeping circular arc from East to West
       const sunDistanceX = radius * 1.35;
-      const sunDistanceY = radius * 0.85;
-      const sunX = centerX + Math.cos(sunOrbitAngle) * sunDistanceX;
-      // Keep Sun in upper hemisphere behind Earth
-      const sunY = centerY - Math.abs(Math.sin(sunOrbitAngle)) * sunDistanceY - radius * 0.35;
+      const sunDistanceY = radius * 0.75;
+      const sunX = centerX + Math.cos(sunEastWestOrbit) * sunDistanceX;
+      const sunY = centerY + Math.sin(sunEastWestOrbit) * sunDistanceY * 0.45 - radius * 0.42;
+
+      // Is the Sun currently behind the Earth?
+      const isSunBehind = Math.sin(sunEastWestOrbit) < 0 || sunY < centerY - radius * 0.15;
 
       // Draw Sun Coronas and Radiant Flares
-      const sunGrad = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, radius * 0.9);
+      ctx.save();
+      const sunGrad = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, radius * 0.95);
       if (isHero) {
-        sunGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-        sunGrad.addColorStop(0.12, 'rgba(254, 240, 138, 0.85)'); // Golden light
-        sunGrad.addColorStop(0.35, 'rgba(245, 158, 11, 0.4)');  // Warm amber
-        sunGrad.addColorStop(0.65, 'rgba(16, 185, 129, 0.15)'); // Emerald corona transition
+        sunGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        sunGrad.addColorStop(0.12, 'rgba(254, 240, 138, 0.9)'); // Bright solar gold
+        sunGrad.addColorStop(0.35, 'rgba(245, 158, 11, 0.45)'); // Warm amber
+        sunGrad.addColorStop(0.65, 'rgba(16, 185, 129, 0.18)'); // Emerald space refraction
         sunGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
       } else {
-        sunGrad.addColorStop(0, 'rgba(254, 240, 138, 0.5)');
-        sunGrad.addColorStop(0.3, 'rgba(245, 158, 11, 0.2)');
+        sunGrad.addColorStop(0, 'rgba(254, 240, 138, 0.55)');
+        sunGrad.addColorStop(0.3, 'rgba(245, 158, 11, 0.22)');
         sunGrad.addColorStop(0.7, 'rgba(16, 185, 129, 0.08)');
         sunGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
       }
 
-      ctx.save();
       ctx.fillStyle = sunGrad;
       ctx.beginPath();
-      ctx.arc(sunX, sunY, radius * 0.9, 0, Math.PI * 2);
+      ctx.arc(sunX, sunY, radius * 0.95, 0, Math.PI * 2);
       ctx.fill();
+
+      // Dynamic Solar Flare Rays radiating from the Sun
+      if (isHero) {
+        ctx.strokeStyle = 'rgba(254, 240, 138, 0.25)';
+        ctx.lineWidth = 1.2;
+        for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+          const rayLen = radius * (0.35 + 0.15 * Math.sin(currentTime * 0.003 + a * 3));
+          ctx.beginPath();
+          ctx.moveTo(sunX + Math.cos(a) * 20, sunY + Math.sin(a) * 20);
+          ctx.lineTo(sunX + Math.cos(a) * rayLen, sunY + Math.sin(a) * rayLen);
+          ctx.stroke();
+        }
+      }
 
       // Sun Core Disc
       ctx.beginPath();
-      ctx.arc(sunX, sunY, isHero ? 32 : 18, 0, Math.PI * 2);
-      ctx.fillStyle = '#FFFBEB';
+      ctx.arc(sunX, sunY, isHero ? 34 : 18, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFDF5';
       ctx.shadowColor = '#F59E0B';
-      ctx.shadowBlur = isHero ? 24 : 12;
+      ctx.shadowBlur = isHero ? 32 : 16;
       ctx.fill();
       ctx.restore();
 
-      // ─── 2. EARTH ATMOSPHERE & RIM LIGHT GLOW ───
+      // ─── 2. EARTH ATMOSPHERE & EMERALD RIM GLOW ───
       ctx.save();
       const atmoGrad = ctx.createRadialGradient(
-        centerX, centerY, radius * 0.85,
-        centerX, centerY, radius * 1.15
+        centerX, centerY, radius * 0.82,
+        centerX, centerY, radius * 1.18
       );
-      atmoGrad.addColorStop(0, 'rgba(16, 185, 129, 0.25)'); // Emerald atmospheric glow
-      atmoGrad.addColorStop(0.5, 'rgba(5, 150, 105, 0.12)');
+      atmoGrad.addColorStop(0, 'rgba(16, 185, 129, 0.28)'); // Emerald atmospheric mantle
+      atmoGrad.addColorStop(0.45, 'rgba(5, 150, 105, 0.14)');
       atmoGrad.addColorStop(0.8, 'rgba(52, 211, 153, 0.04)');
       atmoGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
       ctx.fillStyle = atmoGrad;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, radius * 1.15, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, radius * 1.18, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 
-      // Clip drawing strictly to the 3D Earth sphere
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.clip();
+      // ─── 3. SPHERICAL PROJECTION WITH AXIAL TILT (~23.4°) ───
+      const axisTilt = (23.4 * Math.PI) / 180;
+      const cosTilt = Math.cos(axisTilt);
+      const sinTilt = Math.sin(axisTilt);
 
-      // Earth Globe Body: Ethereal Light Ocean Gradient
-      const oceanGrad = ctx.createRadialGradient(
-        centerX - radius * 0.25, centerY - radius * 0.35, radius * 0.1,
-        centerX, centerY, radius
-      );
-      if (isHero) {
-        oceanGrad.addColorStop(0, '#FFFFFF');
-        oceanGrad.addColorStop(0.4, '#F0FDF4'); // Mint white
-        oceanGrad.addColorStop(0.75, '#DCFCE7'); // Emerald haze
-        oceanGrad.addColorStop(1, '#A7F3D0');    // Deep emerald rim
-      } else {
-        oceanGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-        oceanGrad.addColorStop(0.5, 'rgba(240, 253, 244, 0.7)');
-        oceanGrad.addColorStop(1, 'rgba(167, 243, 208, 0.5)');
-      }
-
-      ctx.fillStyle = oceanGrad;
-      ctx.fill();
-
-      // ─── 3. SPHERICAL PROJECTION HELPER ───
-      // Converts (lat, lon) degrees to 2D (x, y) with z-depth test
+      // Converts (lat, lon) to 3D Cartesian coords rotated by earthRotAngle and tilted on polar axis
       const project = (latDeg, lonDeg, rotAngle) => {
         const phi = (latDeg * Math.PI) / 180;
         const lambda = (lonDeg * Math.PI) / 180;
         const theta = rotAngle;
 
-        // Orthographic projection formulas
-        const x3d = Math.cos(phi) * Math.sin(lambda - theta);
-        const y3d = -Math.sin(phi);
-        const z3d = Math.cos(phi) * Math.cos(lambda - theta);
+        // Raw 3D on unit sphere
+        const x0 = Math.cos(phi) * Math.sin(lambda - theta);
+        const y0 = -Math.sin(phi);
+        const z0 = Math.cos(phi) * Math.cos(lambda - theta);
+
+        // Apply Earth axial tilt
+        const x3d = x0;
+        const y3d = y0 * cosTilt - z0 * sinTilt;
+        const z3d = y0 * sinTilt + z0 * cosTilt;
 
         return {
           x: centerX + x3d * radius,
           y: centerY + y3d * radius,
-          visible: z3d > 0.05, // Only on the front-facing hemisphere
-          depth: z3d
+          visible: z3d > 0.04,
+          depth: z3d,
+          x3d, y3d, z3d
         };
       };
 
-      // ─── 4. LATITUDE & LONGITUDE GEODESIC GRID LINES ───
+      // Calculate directional vector of the revolving Sun relative to Earth
+      const sunVector = {
+        x: (sunX - centerX) / sunDistanceX,
+        y: (sunY - centerY) / sunDistanceY,
+        z: isSunBehind ? -0.7 : 0.7
+      };
+
+      // Clip strictly inside the 3D Earth sphere
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.clip();
+
+      // Earth Globe Ocean: Diurnal Sunlight & Twilight Gradient
+      const oceanGrad = ctx.createRadialGradient(
+        centerX + sunVector.x * radius * 0.45,
+        centerY + sunVector.y * radius * 0.45,
+        radius * 0.1,
+        centerX, centerY, radius
+      );
+
+      if (isHero) {
+        oceanGrad.addColorStop(0, '#FFFFFF');        // Noon / Full daylight
+        oceanGrad.addColorStop(0.35, '#F0FDF4');     // Morning sunlight mist
+        oceanGrad.addColorStop(0.7, '#DCFCE7');      // Emerald dawn
+        oceanGrad.addColorStop(1, '#A7F3D0');        // Deep emerald limb
+      } else {
+        oceanGrad.addColorStop(0, 'rgba(255, 255, 255, 0.96)');
+        oceanGrad.addColorStop(0.45, 'rgba(240, 253, 244, 0.75)');
+        oceanGrad.addColorStop(1, 'rgba(167, 243, 208, 0.55)');
+      }
+
+      ctx.fillStyle = oceanGrad;
+      ctx.fill();
+
+      // ─── 4. LATITUDE & LONGITUDE GEODESIC GRID ───
       ctx.lineWidth = isHero ? 0.9 : 0.6;
       ctx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
 
-      // Parallels (Latitude circles)
+      // Parallels
       [-60, -30, 0, 30, 60].forEach((lat) => {
         ctx.beginPath();
         let started = false;
         for (let lon = -180; lon <= 180; lon += 6) {
-          const pt = project(lat, lon, continuousAngle);
+          const pt = project(lat, lon, earthRotAngle);
           if (pt.visible) {
             if (!started) {
               ctx.moveTo(pt.x, pt.y);
@@ -249,12 +280,12 @@ export default function CelestialEngine({
         ctx.stroke();
       });
 
-      // Meridians (Longitude lines)
+      // Meridians
       for (let lon = -180; lon < 180; lon += 30) {
         ctx.beginPath();
         let started = false;
         for (let lat = -80; lat <= 80; lat += 5) {
-          const pt = project(lat, lon, continuousAngle);
+          const pt = project(lat, lon, earthRotAngle);
           if (pt.visible) {
             if (!started) {
               ctx.moveTo(pt.x, pt.y);
@@ -271,13 +302,12 @@ export default function CelestialEngine({
 
       // ─── 5. CONTINENT LANDMASS POLYGONS ───
       CONTINENTS.forEach((polygon) => {
-        // Draw continent fill
         ctx.beginPath();
         let anyVisible = false;
         let firstPt = null;
 
-        polygon.forEach(([lat, lon], idx) => {
-          const pt = project(lat, lon, continuousAngle);
+        polygon.forEach(([lat, lon]) => {
+          const pt = project(lat, lon, earthRotAngle);
           if (pt.visible) {
             anyVisible = true;
             if (!firstPt) {
@@ -291,72 +321,95 @@ export default function CelestialEngine({
 
         if (anyVisible && firstPt) {
           ctx.closePath();
-          ctx.fillStyle = isHero ? 'rgba(16, 185, 129, 0.35)' : 'rgba(16, 185, 129, 0.2)';
+          ctx.fillStyle = isHero ? 'rgba(16, 185, 129, 0.36)' : 'rgba(16, 185, 129, 0.22)';
           ctx.fill();
-          ctx.strokeStyle = 'rgba(5, 150, 105, 0.6)';
+          ctx.strokeStyle = 'rgba(5, 150, 105, 0.65)';
           ctx.lineWidth = 1.2;
           ctx.stroke();
         }
       });
 
-      // ─── 6. FINANCIAL EXCHANGE HUBS & ORDER FLOW BEACONS ───
-      FINANCIAL_HUBS.forEach((hub) => {
-        const pt = project(hub.lat, hub.lon, continuousAngle);
+      // ─── 6. LIVE FINANCIAL SESSIONS: BEACONS & DAYLIGHT STATUS ───
+      const sessions = getAllMarketSessions();
+
+      FINANCIAL_MARKET_HUBS.forEach((hub) => {
+        const pt = project(hub.lat, hub.lon, earthRotAngle);
         if (pt.visible) {
-          // Beacon pulse dot
-          const pulse = (Math.sin(currentTime * 0.004 + hub.lon) + 1) * 0.5;
+          const sessionState = sessions.find(s => s.id === hub.id);
+          const isOpen = sessionState?.isOpen || false;
+          const isDaylight = sessionState?.isDaylight || false;
+
+          // Beacon pulse
+          const pulse = (Math.sin(currentTime * 0.005 + hub.lon) + 1) * 0.5;
+
           ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 3 + pulse * 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = '#059669';
+          ctx.arc(pt.x, pt.y, isOpen ? 4 + pulse * 2.5 : 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = isOpen ? '#10B981' : (isDaylight ? '#F59E0B' : '#64748B');
           ctx.fill();
 
           ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 6 + pulse * 4, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(16, 185, 129, ${0.7 - pulse * 0.5})`;
-          ctx.lineWidth = 1;
+          ctx.arc(pt.x, pt.y, isOpen ? 8 + pulse * 5 : 5, 0, Math.PI * 2);
+          ctx.strokeStyle = isOpen 
+            ? `rgba(16, 185, 129, ${0.8 - pulse * 0.5})` 
+            : `rgba(100, 116, 139, 0.3)`;
+          ctx.lineWidth = isOpen ? 1.5 : 1;
           ctx.stroke();
 
-          // Hub Label in Hero Mode
-          if (isHero && pt.depth > 0.4) {
-            ctx.fillStyle = '#0F172A';
-            ctx.font = '800 9px system-ui, sans-serif';
-            ctx.fillText(hub.name, pt.x + 8, pt.y + 3);
+          // Session Pin Label in Hero Mode
+          if (isHero && pt.depth > 0.3) {
+            ctx.save();
+            const labelText = `${hub.flag} ${hub.name} • ${isOpen ? 'OPEN' : 'CLOSED'}`;
+            ctx.font = '800 10px system-ui, sans-serif';
+            const metrics = ctx.measureText(labelText);
+            const boxWidth = metrics.width + 12;
+
+            ctx.fillStyle = isOpen ? 'rgba(240, 253, 244, 0.95)' : 'rgba(255, 255, 255, 0.9)';
+            ctx.strokeStyle = isOpen ? '#10B981' : '#CBD5E1';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(pt.x + 8, pt.y - 14, boxWidth, 18, [4, 4, 4, 4]);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = isOpen ? '#047857' : '#475569';
+            ctx.fillText(labelText, pt.x + 14, pt.y - 1);
+            ctx.restore();
           }
         }
       });
 
-      // Curved Inter-Exchange Order Flow Arcs
-      const hubA = project(FINANCIAL_HUBS[0].lat, FINANCIAL_HUBS[0].lon, continuousAngle); // NY
-      const hubB = project(FINANCIAL_HUBS[1].lat, FINANCIAL_HUBS[1].lon, continuousAngle); // London
-      const hubC = project(FINANCIAL_HUBS[2].lat, FINANCIAL_HUBS[2].lon, continuousAngle); // Tokyo
+      // Curved Inter-Exchange Flow Arcs between NY, London, and Tokyo
+      const hubNY = project(FINANCIAL_MARKET_HUBS[0].lat, FINANCIAL_MARKET_HUBS[0].lon, earthRotAngle);
+      const hubLDN = project(FINANCIAL_MARKET_HUBS[1].lat, FINANCIAL_MARKET_HUBS[1].lon, earthRotAngle);
+      const hubTKY = project(FINANCIAL_MARKET_HUBS[2].lat, FINANCIAL_MARKET_HUBS[2].lon, earthRotAngle);
 
-      if (hubA.visible && hubB.visible) {
+      if (hubNY.visible && hubLDN.visible) {
         ctx.beginPath();
-        ctx.moveTo(hubA.x, hubA.y);
-        const midX = (hubA.x + hubB.x) / 2;
-        const midY = (hubA.y + hubB.y) / 2 - 25;
-        ctx.quadraticCurveTo(midX, midY, hubB.x, hubB.y);
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
-        ctx.lineWidth = 1.4;
+        ctx.moveTo(hubNY.x, hubNY.y);
+        const midX = (hubNY.x + hubLDN.x) / 2;
+        const midY = (hubNY.y + hubLDN.y) / 2 - 25;
+        ctx.quadraticCurveTo(midX, midY, hubLDN.x, hubLDN.y);
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.75)';
+        ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 4]);
         ctx.stroke();
         ctx.setLineDash([]);
       }
 
-      if (hubB.visible && hubC.visible) {
+      if (hubLDN.visible && hubTKY.visible) {
         ctx.beginPath();
-        ctx.moveTo(hubB.x, hubB.y);
-        const midX = (hubB.x + hubC.x) / 2;
-        const midY = (hubB.y + hubC.y) / 2 - 25;
-        ctx.quadraticCurveTo(midX, midY, hubC.x, hubC.y);
-        ctx.strokeStyle = 'rgba(5, 150, 105, 0.7)';
-        ctx.lineWidth = 1.4;
+        ctx.moveTo(hubLDN.x, hubLDN.y);
+        const midX = (hubLDN.x + hubTKY.x) / 2;
+        const midY = (hubLDN.y + hubTKY.y) / 2 - 25;
+        ctx.quadraticCurveTo(midX, midY, hubTKY.x, hubTKY.y);
+        ctx.strokeStyle = 'rgba(5, 150, 105, 0.75)';
+        ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 4]);
         ctx.stroke();
         ctx.setLineDash([]);
       }
 
-      // Sphere Edge Rim Shading
+      // Edge Rim Shading
       const rimShade = ctx.createRadialGradient(
         centerX, centerY, radius * 0.75,
         centerX, centerY, radius
@@ -372,8 +425,7 @@ export default function CelestialEngine({
       // End sphere clipping
       ctx.restore();
 
-      // ─── 7. VERTICAL FINANCIAL BAR GRAPH PILLARS (MATCHING JCTRADER IMAGE 1!) ───
-      // In the reference image, vertical green pillars rise up across the lower horizon of the globe!
+      // ─── 7. VERTICAL TRADING VOLUME BAR PILLARS (MATCHING JCTRADER IMAGE 1!) ───
       if (isHero) {
         const pillarWidth = Math.max(16, width / (numBars * 1.5));
         const pillarSpacing = width / numBars;
@@ -394,11 +446,9 @@ export default function CelestialEngine({
 
           ctx.fillStyle = barGrad;
           ctx.beginPath();
-          // Draw pillar with rounded top
           ctx.roundRect(barX - pillarWidth / 2, barY, pillarWidth, dynamicHeight, [6, 6, 0, 0]);
           ctx.fill();
 
-          // Subtle neon crest line at bar top
           ctx.strokeStyle = 'rgba(5, 150, 105, 0.5)';
           ctx.lineWidth = 1;
           ctx.beginPath();
@@ -413,11 +463,14 @@ export default function CelestialEngine({
 
     animationFrameId = requestAnimationFrame(render);
 
-    // Update real UTC string every second
-    const clockInterval = setInterval(() => {
+    const updateClock = () => {
       const d = new Date();
       setTimeString(d.toUTCString().slice(17, 25) + ' UTC');
-    }, 1000);
+      setActiveSessions(getAllMarketSessions(d));
+    };
+
+    updateClock();
+    const clockInterval = setInterval(updateClock, 1000);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
@@ -425,6 +478,8 @@ export default function CelestialEngine({
       window.removeEventListener('resize', handleResize);
     };
   }, [mode]);
+
+  const openCount = activeSessions.filter(s => s.isOpen).length;
 
   return (
     <div 
@@ -457,26 +512,28 @@ export default function CelestialEngine({
           right: '32px',
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: '10px',
           padding: '6px 14px',
-          background: 'rgba(255, 255, 255, 0.9)',
+          background: 'rgba(255, 255, 255, 0.94)',
           backdropFilter: 'blur(8px)',
-          border: '1px solid #BBF7D0',
+          border: '1.5px solid #BBF7D0',
           borderRadius: '999px',
           fontSize: '11px',
           fontWeight: 800,
           color: '#047857',
           letterSpacing: '0.8px',
-          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.12)'
+          boxShadow: '0 4px 14px rgba(16, 185, 129, 0.12)'
         }}>
           <span style={{
-            width: '6px',
-            height: '6px',
+            width: '7px',
+            height: '7px',
             borderRadius: '50%',
-            background: '#10B981',
-            boxShadow: '0 0 8px #10B981'
+            background: openCount > 0 ? '#10B981' : '#F59E0B',
+            boxShadow: `0 0 8px ${openCount > 0 ? '#10B981' : '#F59E0B'}`
           }} />
-          <span>REAL-TIME CELESTIAL ROTATION // {timeString}</span>
+          <span>
+            SUN ORBIT (E→W) // {openCount} SESSION{openCount !== 1 ? 'S' : ''} ACTIVE // {timeString}
+          </span>
         </div>
       )}
     </div>

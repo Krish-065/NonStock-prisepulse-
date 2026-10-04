@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, Sun, Moon, User, Zap, Search, Bot, 
-  FlaskConical, Clock, Coins, LogOut, Globe, Sparkles, X, ChevronRight, ShieldCheck
+  FlaskConical, Clock, Coins, LogOut, Globe, Sparkles, X, ChevronRight, ShieldCheck,
+  Calculator, LayoutDashboard
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -470,6 +471,64 @@ export default function Layout({ children }) {
             );
           })}
 
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748B', fontWeight: 800, marginTop: '8px' }}>
+            Live Market Tools
+          </div>
+
+          <button
+            onClick={() => {
+              navigate('/dashboard?tab=hours');
+              setMobileMenuOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: '10px',
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              color: '#0F172A',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontWeight: 700,
+              fontSize: '14px',
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Clock size={18} color="#059669" />
+              <span>Global Market Hours (NY, LDN, TYO, SYD)</span>
+            </div>
+            <ChevronRight size={16} color="#64748B" />
+          </button>
+
+          <button
+            onClick={() => {
+              navigate('/dashboard?tab=calculator');
+              setMobileMenuOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: '10px',
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              color: '#0F172A',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontWeight: 700,
+              fontSize: '14px',
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Calculator size={18} color="#059669" />
+              <span>Position Size & Risk Calculator</span>
+            </div>
+            <ChevronRight size={16} color="#64748B" />
+          </button>
+
           <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid #E2E8F0' }}>
             <button
               onClick={() => {
@@ -504,6 +563,7 @@ export default function Layout({ children }) {
         flex: 1, 
         marginTop: '66px', 
         padding: '24px 20px',
+        paddingBottom: isMobile ? '88px' : '24px',
         maxWidth: '1600px',
         width: '100%',
         margin: '66px auto 0 auto',
@@ -511,6 +571,116 @@ export default function Layout({ children }) {
       }}>
         {children}
       </main>
+
+      {/* ─── SLEEK MOBILE BOTTOM NAVIGATION BAR (WHITE & GREEN APP FEEL) ─── */}
+      {isMobile && user && (
+        <nav style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '64px',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(12px)',
+          borderTop: '1.5px solid #E2E8F0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-around',
+          zIndex: 1000,
+          boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.04)',
+          padding: '0 8px'
+        }}>
+          {[
+            {
+              label: 'Portfolio',
+              path: '/dashboard',
+              tab: 'overview',
+              icon: LayoutDashboard,
+              active: location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))
+            },
+            {
+              label: 'Hours',
+              path: '/dashboard?tab=hours',
+              tab: 'hours',
+              icon: Clock,
+              active: location.pathname === '/dashboard' && location.search.includes('tab=hours')
+            },
+            {
+              label: 'Arena',
+              path: '/trading',
+              icon: Zap,
+              highlight: true,
+              active: location.pathname === '/trading'
+            },
+            {
+              label: 'Risk Calc',
+              path: '/dashboard?tab=calculator',
+              tab: 'calculator',
+              icon: Calculator,
+              active: location.pathname === '/dashboard' && location.search.includes('tab=calculator')
+            },
+            {
+              label: 'Radar',
+              path: '/global-markets',
+              icon: Globe,
+              active: location.pathname === '/global-markets'
+            }
+          ].map((item, idx) => {
+            const Icon = item.icon;
+            if (item.highlight) {
+              return (
+                <button
+                  key={idx}
+                  onClick={() => navigate(item.path)}
+                  style={{
+                    background: 'linear-gradient(135deg, #10B981, #059669)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '46px',
+                    height: '46px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                    marginTop: '-16px',
+                    transition: 'transform 0.15s ease'
+                  }}
+                  title="Enter Trading Arena"
+                >
+                  <Icon size={22} color="#FFFFFF" />
+                </button>
+              );
+            }
+
+            return (
+              <button
+                key={idx}
+                onClick={() => navigate(item.path)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '3px',
+                  cursor: 'pointer',
+                  color: item.active ? '#059669' : '#64748B',
+                  padding: '6px 8px',
+                  borderRadius: '8px',
+                  transition: 'color 0.15s ease'
+                }}
+              >
+                <Icon size={18} color={item.active ? '#059669' : '#64748B'} />
+                <span style={{ fontSize: '10px', fontWeight: item.active ? 900 : 700 }}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
 
       {selectedTicker && (
         <StockActionModal 

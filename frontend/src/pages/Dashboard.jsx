@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTrading } from '../contexts/TradingContext';
 import { apiClient } from '../services/api';
@@ -10,11 +10,14 @@ import {
   Flame, CheckCircle2, AlertCircle, BarChart2, Camera, Image,
   Bot, FlaskConical, Clock, ShieldAlert, Award, Globe, ArrowUpRight,
   ChevronRight, Filter, Info, Eye, ChevronDown, ChevronUp, Layers, Check,
-  Server, Play, Pause, RefreshCw, FileText
+  Server, Play, Pause, RefreshCw, FileText, Calculator, LayoutDashboard
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import BrokerMirrorModal from '../components/BrokerMirrorModal';
 import GoldCoin1K from '../components/GoldCoin1K';
+import MarketHoursDesk from '../components/MarketHoursDesk';
+import PositionSizeCalculator from '../components/PositionSizeCalculator';
+import MobilePortfolioHub from '../components/MobilePortfolioHub';
 import { BADGES_CATALOG, DISCIPLINE_TASKS } from '../data/badgesData';
 
 // Available assets for the Watchlist search dropdown
@@ -394,6 +397,13 @@ export default function Dashboard() {
       });
   }, [userName, balanceNum, dynamicTierName, dynamicTierColor]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
+
+  const setTab = (tab) => {
+    setSearchParams({ tab });
+  };
+
   return (
     <div style={{ 
       maxWidth: '1540px', 
@@ -420,6 +430,75 @@ export default function Dashboard() {
         accept="image/*" 
         style={{ display: 'none' }} 
       />
+
+      {/* ─── INSTITUTIONAL VIEW SELECTOR (MOBILE & DESKTOP SUITE TABS) ─── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px',
+        background: '#FFFFFF',
+        border: '1.5px solid #E2E8F0',
+        borderRadius: '16px',
+        padding: '10px 14px',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          width: '100%'
+        }}>
+          {[
+            { id: 'overview', label: 'Overview & Bento Dossier', icon: LayoutDashboard },
+            { id: 'hours', label: 'Global Market Hours (NY, LDN, TYO, SYD)', icon: Clock, badge: 'SCREEN 1' },
+            { id: 'curve', label: 'Portfolio Performance Curve', icon: TrendingUp, badge: 'SCREEN 2' },
+            { id: 'calculator', label: 'Position Size & Risk Calculator', icon: Calculator, badge: 'SCREEN 3' }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setTab(tab.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 18px',
+                  borderRadius: '10px',
+                  border: isActive ? '1.5px solid #10B981' : '1px solid transparent',
+                  background: isActive ? '#ECFDF5' : '#F8FAFC',
+                  color: isActive ? '#047857' : '#475569',
+                  fontSize: '13px',
+                  fontWeight: isActive ? 900 : 700,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Icon size={16} color={isActive ? '#059669' : '#64748B'} />
+                <span>{tab.label}</span>
+                {tab.badge && (
+                  <span style={{
+                    fontSize: '9px',
+                    fontWeight: 900,
+                    padding: '1px 5px',
+                    borderRadius: '4px',
+                    background: isActive ? '#10B981' : '#E2E8F0',
+                    color: isActive ? '#FFFFFF' : '#64748B'
+                  }}>
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* ─── 0. SLEEK WELCOME / TRANSITION MODAL ─── */}
       {showWelcomeSplash && (
@@ -531,14 +610,59 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ─── 1. TOP ASYMMETRIC BENTO EXECUTIVE MASTHEAD & HERO DOSSIER ─── */}
-      <div style={{
-        background: '#FFFFFF',
-        borderRadius: '24px',
-        border: '1.5px solid #E2E8F0',
-        padding: '24px 28px',
-        boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
-      }}>
+      {/* ─── DEDICATED TAB VIEW: MARKET HOURS (SCREEN 1) ─── */}
+      {activeTab === 'hours' && (
+        <div style={{ maxWidth: '980px', margin: '0 auto', width: '100%' }}>
+          <MarketHoursDesk />
+        </div>
+      )}
+
+      {/* ─── DEDICATED TAB VIEW: PERFORMANCE CURVE (SCREEN 2) ─── */}
+      {activeTab === 'curve' && (
+        <div style={{ maxWidth: '680px', margin: '0 auto', width: '100%' }}>
+          <MobilePortfolioHub 
+            balance={balanceNum} 
+            netPnL={netPnL} 
+            netRoi={netRoi} 
+            coins={coins} 
+            streakDays={streakDays} 
+            derScore={94} 
+            tierName={dynamicTierName} 
+          />
+        </div>
+      )}
+
+      {/* ─── DEDICATED TAB VIEW: POSITION SIZE CALCULATOR (SCREEN 3) ─── */}
+      {activeTab === 'calculator' && (
+        <div style={{ maxWidth: '980px', margin: '0 auto', width: '100%' }}>
+          <PositionSizeCalculator userBalance={balanceNum} />
+        </div>
+      )}
+
+      {/* ─── OVERVIEW & BENTO DOSSIER TAB ─── */}
+      {activeTab === 'overview' && (
+        <>
+          {/* Mobile Curve Preview when viewport is compact */}
+          <div style={{ display: typeof window !== 'undefined' && window.innerWidth < 800 ? 'block' : 'none' }}>
+            <MobilePortfolioHub 
+              balance={balanceNum} 
+              netPnL={netPnL} 
+              netRoi={netRoi} 
+              coins={coins} 
+              streakDays={streakDays} 
+              derScore={94} 
+              tierName={dynamicTierName} 
+            />
+          </div>
+
+          {/* ─── 1. TOP ASYMMETRIC BENTO EXECUTIVE MASTHEAD & HERO DOSSIER ─── */}
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            border: '1.5px solid #E2E8F0',
+            padding: '24px 28px',
+            boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
+          }}>
         {/* Upper Technical Meta Ribbon */}
         <div style={{
           display: 'flex',
@@ -1658,6 +1782,8 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* ─── BADGE DETAILS MODAL ─── */}
       {selectedBadge && (

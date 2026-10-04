@@ -7,6 +7,7 @@ import {
   Calendar, Flame, Sparkles
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import MarketHoursDesk from '../components/MarketHoursDesk';
 
 export default function GlobalMarkets() {
   const [data, setData] = useState(null);
@@ -186,6 +187,9 @@ export default function GlobalMarkets() {
           </div>
         )}
       </div>
+
+      {/* ─── LIVE GLOBAL MARKET SESSIONS & WORLD HOURS (MATCHING SCREEN 1) ─── */}
+      <MarketHoursDesk />
 
       {/* ─── 2. MACRO BAROMETER CARDS (YIELDS, DOLLAR, VIX, CRUDE, GOLD) ─── */}
       <div>
