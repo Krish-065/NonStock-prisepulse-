@@ -11,6 +11,7 @@ import Logo from './Logo';
 import TickerTape from './TickerTape';
 import StockActionModal from './StockActionModal';
 import WarningModal from './WarningModal';
+import CelestialEngine from './CelestialEngine';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -90,8 +91,13 @@ export default function Layout({ children }) {
       color: '#0F172A',
       display: 'flex',
       flexDirection: 'column',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      position: 'relative',
+      overflowX: 'hidden'
     }}>
+      {/* ─── DYNAMIC CELESTIAL BACKGROUND: ROTATING EARTH & ORBITING SUN ─── */}
+      <CelestialEngine mode="ambient" style={{ opacity: 0.25, zIndex: 0 }} />
+
       {/* Crisp White & Emerald Navbar */}
       <header style={{
         position: 'fixed',

@@ -5,6 +5,7 @@ import Logo from '../components/Logo';
 import { AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';
+import CelestialEngine from '../components/CelestialEngine';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -65,11 +66,36 @@ export default function Register() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', padding: '24px' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      background: '#F8FAFC', 
+      padding: '24px',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Dynamic Celestial Background (Rotating Earth & Orbiting Sun) */}
+      <CelestialEngine mode="ambient" style={{ opacity: 0.28, zIndex: 0 }} />
       
-      <div style={{ background: '#FFFFFF', padding: '48px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ marginBottom: '32px' }}>
-          <Logo size={50} showName={true} showTagline={false} />
+      <div style={{ 
+        background: 'rgba(255, 255, 255, 0.95)', 
+        backdropFilter: 'blur(16px)',
+        border: '1.5px solid #E2E8F0',
+        padding: '44px 40px', 
+        borderRadius: '24px', 
+        boxShadow: '0 20px 45px -10px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)', 
+        width: '100%', 
+        maxWidth: '440px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <div style={{ marginBottom: '28px' }}>
+          <Logo size={46} showName={true} showTagline={false} />
         </div>
 
         <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', marginBottom: '8px', textAlign: 'center' }}>

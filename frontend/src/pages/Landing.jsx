@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Logo from '../components/Logo';
+import CelestialEngine from '../components/CelestialEngine';
+import GoldCoin1K from '../components/GoldCoin1K';
 import { 
   ShieldCheck, Trophy, Medal, Award, Target, Coins, 
   Crown, ArrowRight, CheckCircle2, 
@@ -168,31 +170,34 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* ─── 2. HERO SECTION: MONUMENTAL TYPOGRAPHY & MANIFESTO ─── */}
+      {/* ─── 2. HERO SECTION: CELESTIAL EARTH, ORBITAL SUN & MONUMENTAL MANIFESTO ─── */}
       <section style={{
         position: 'relative',
-        padding: '90px 24px 70px 24px',
-        maxWidth: '1320px',
+        padding: '70px 24px 40px 24px',
+        maxWidth: '1380px',
         margin: '0 auto',
-        textAlign: 'center'
+        textAlign: 'center',
+        overflow: 'hidden'
       }}>
+        {/* Soft Ambient Ethereal Glow behind Header */}
         <div style={{
           position: 'absolute',
-          top: '20px',
+          top: '0px',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '720px',
-          height: '420px',
-          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(255, 255, 255, 0) 70%)',
+          width: '840px',
+          height: '460px',
+          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, rgba(255, 255, 255, 0) 70%)',
           pointerEvents: 'none',
           zIndex: 0
         }} />
 
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          {/* Trustpilot Style Verified Badge */}
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '10px',
             padding: '7px 20px',
             borderRadius: '999px',
             background: '#F0FDF4',
@@ -200,25 +205,30 @@ export default function Landing() {
             color: '#15803D',
             fontSize: '12px',
             fontWeight: 800,
-            letterSpacing: '1.2px',
+            letterSpacing: '1px',
             textTransform: 'uppercase',
-            marginBottom: '30px',
-            boxShadow: '0 2px 10px rgba(16, 185, 129, 0.15)'
+            marginBottom: '24px',
+            boxShadow: '0 2px 10px rgba(16, 185, 129, 0.12)'
           }}>
-            <ShieldCheck size={16} color="#10B981" />
-            <span>NONSTOCK // THE VERIFIABLE GLOBAL PROVING PROTOCOL</span>
+            <div style={{ display: 'flex', gap: '2px' }}>
+              {'★★★★★'.split('').map((star, i) => (
+                <span key={i} style={{ color: '#10B981', fontSize: '13px' }}>{star}</span>
+              ))}
+            </div>
+            <span>NONSTOCK // 100% UNALTERABLE MATHEMATICAL PROVING PROTOCOL</span>
           </div>
 
+          {/* Monumental Headline Inspired by JCTRADER */}
           <h1 style={{
-            fontSize: 'clamp(46px, 6.2vw, 84px)',
+            fontSize: 'clamp(44px, 5.8vw, 82px)',
             fontWeight: 900,
             lineHeight: 1.05,
             letterSpacing: '-2px',
             color: '#0F172A',
-            maxWidth: '1180px',
-            margin: '0 auto 28px auto'
+            maxWidth: '1160px',
+            margin: '0 auto 24px auto'
           }}>
-            Stop Flexing Photoshopped PnL. <br />
+            Redefining the Future of Trading. <br />
             <span style={{
               background: 'linear-gradient(135deg, #059669 0%, #10B981 50%, #0284C7 100%)',
               WebkitBackgroundClip: 'text',
@@ -229,139 +239,148 @@ export default function Landing() {
           </h1>
 
           <p style={{
-            fontSize: 'clamp(18px, 1.4vw, 22px)',
+            fontSize: 'clamp(17px, 1.35vw, 21px)',
             color: '#475569',
-            lineHeight: 1.7,
-            maxWidth: '960px',
-            margin: '0 auto 44px auto',
+            lineHeight: 1.65,
+            maxWidth: '920px',
+            margin: '0 auto 36px auto',
             fontWeight: 500
           }}>
-            The retail trading industry has been hijacked by inspect-element screenshots, demo flips, and anonymous Telegram tipsters who delete losing signals while parading paper gains. <strong>NonStock</strong> is the world’s unalterable proving arena where every tick, order, stop-loss, and drawdown is logged on a tamper-proof ledger. 
-            <strong> Know yourself, settle who is truly better, and forge an untarnished reputation backed by undeniable mathematics.</strong>
+            Every trader starts with an identical <strong>$1,000 verified baseline capital</strong>. 0 Tips, 0 Fake Screenshot PnL. Access Forex, Indices, Commodities, Metals, Equities, and Cryptos backed by undeniable mathematical proof.
           </p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '18px', flexWrap: 'wrap', marginBottom: '44px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '36px' }}>
             <Link
               to="/register"
               style={{
-                padding: '18px 42px',
-                borderRadius: '12px',
+                padding: '16px 38px',
+                borderRadius: '999px',
                 background: '#10B981',
                 color: '#FFFFFF',
-                fontSize: '17px',
+                fontSize: '16px',
                 fontWeight: 900,
                 textDecoration: 'none',
-                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)',
+                boxShadow: '0 8px 25px rgba(16, 185, 129, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                transition: 'transform 0.15s'
+                transition: 'all 0.2s ease'
               }}
-              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(16, 185, 129, 0.5)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.4)'; }}
             >
-              <span>Enter The Proving Arena ($1,000 Free Baseline)</span>
-              <ArrowRight size={18} />
+              <span>Start Proving ($1,000 Baseline)</span>
+              <ArrowRight size={17} />
             </Link>
 
             <button
-              onClick={() => scrollTo('the-crisis')}
+              onClick={() => scrollTo('decagon-protocol')}
               style={{
-                padding: '18px 32px',
-                borderRadius: '12px',
-                background: '#F8FAFC',
+                padding: '16px 28px',
+                borderRadius: '999px',
+                background: '#FFFFFF',
                 border: '1.5px solid #CBD5E1',
-                color: '#334155',
-                fontSize: '17px',
+                color: '#0F172A',
+                fontSize: '15px',
                 fontWeight: 800,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                transition: 'all 0.15s'
+                transition: 'all 0.2s ease'
               }}
-              onMouseOver={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#94A3B8'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.color = '#059669'; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#0F172A'; }}
             >
-              <Trophy size={18} color="#059669" />
-              <span>Read The Proving Manifesto</span>
+              <Trophy size={16} color="#059669" />
+              <span>Explore Decagon Tiers</span>
             </button>
-          </div>
-
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '32px',
-            flexWrap: 'wrap',
-            fontSize: '13px',
-            fontWeight: 800,
-            color: '#64748B'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={16} color="#10B981" />
-              <span>Equal $1,000 Baseline For Everyone</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={16} color="#10B981" />
-              <span>Zero Personal Capital At Risk</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={16} color="#10B981" />
-              <span>Mathematical DER Edge Score</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={16} color="#10B981" />
-              <span>100% Anti-Fake Cryptographic Ledger</span>
-            </div>
           </div>
         </div>
 
-        {/* Hero Aesthetic Visual: Curved Multi-Monitor Institutional Trading Desk */}
+        {/* ─── DYNAMIC ROTATING EARTH & ORBITAL SUN CENTERPIECE ─── */}
         <div style={{
-          marginTop: '64px',
+          position: 'relative',
+          marginTop: '10px',
           borderRadius: '24px',
           overflow: 'hidden',
-          boxShadow: '0 30px 80px -15px rgba(15, 23, 42, 0.3)',
-          border: '2px solid #E2E8F0',
-          background: '#0B0F19',
-          position: 'relative'
+          background: 'radial-gradient(ellipse at bottom, #ECFDF5 0%, #FFFFFF 70%)',
+          border: '1.5px solid #E2E8F0',
+          boxShadow: '0 20px 60px -15px rgba(16, 185, 129, 0.15)'
         }}>
-          <img 
-            src="/trading_terminal_aesthetic.jpg" 
-            alt="NonStock Institutional Multi-Panel Trading Terminal" 
-            style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '680px', objectFit: 'cover' }}
-          />
+          {/* Real-Time Celestial Projection */}
+          <CelestialEngine mode="hero" style={{ height: '520px' }} />
 
+          {/* Bottom Floating Stats Bar (Matching JCTRADER screenshot 1!) */}
           <div style={{
             position: 'absolute',
             bottom: 0,
             left: 0,
             right: 0,
-            padding: '24px 32px',
-            background: 'linear-gradient(180deg, rgba(11, 15, 25, 0) 0%, rgba(11, 15, 25, 0.95) 100%)',
+            padding: '24px 36px',
+            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.95) 45%, #FFFFFF 100%)',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: 'flex-end',
             flexWrap: 'wrap',
-            gap: '16px',
-            color: '#FFFFFF'
+            gap: '20px',
+            borderTop: '1px solid rgba(226, 232, 240, 0.6)'
           }}>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#10B981', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                NONSTOCK PROVING DESK // ORIGINAL TICK INTEGRITY
+            <div style={{ display: 'flex', gap: '36px', flexWrap: 'wrap', textAlign: 'left' }}>
+              <div>
+                <div style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                  $1,000
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginTop: '2px' }}>
+                  Universal Proving Baseline
+                </div>
               </div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#F8FAFC', marginTop: '2px' }}>
-                Direct Exchange Execution Across Crypto, Spot Gold, Forex Majors, and Global Tech Equities.
+
+              <div>
+                <div style={{ fontSize: '28px', fontWeight: 900, color: '#059669', letterSpacing: '-0.5px' }}>
+                  100+
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginTop: '2px' }}>
+                  Live Global Tickers
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                  0.0 SPREAD
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginTop: '2px' }}>
+                  Raw Institutional Execution
+                </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div style={{ padding: '6px 14px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', fontSize: '12px', fontWeight: 800, color: '#10B981' }}>
-                50x Leverage Cap
-              </div>
-              <div style={{ padding: '6px 14px', background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', borderRadius: '8px', fontSize: '12px', fontWeight: 800, color: '#FFFFFF' }}>
-                Instant SL/TP Auditing
+            <div 
+              onClick={() => scrollTo('decagon-protocol')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                color: '#059669',
+                fontSize: '12px',
+                fontWeight: 800,
+                letterSpacing: '1px',
+                textTransform: 'uppercase'
+              }}
+            >
+              <span>SCROLL DOWN</span>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: '#ECFDF5',
+                border: '1.5px solid #10B981',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <ChevronDown size={16} color="#059669" />
               </div>
             </div>
           </div>
@@ -1086,27 +1105,315 @@ export default function Landing() {
             </div>
           </div>
         </div>
-
       </section>
 
-      {/* ─── 7. SECTION: THE 5 DECAGON TIERS & THE GOLD COIN DISCIPLINE ECONOMY ─── */}
+      {/* ─── 6B. SECTION: METATRADER & PROVING ENGINE RELIABILITY WITH 1K GOLD COIN (MATCHING JCTRADER IMAGE 3) ─── */}
+      <section style={{
+        padding: '100px 24px',
+        background: '#FFFFFF',
+        borderTop: '1px solid #E2E8F0',
+        borderBottom: '1px solid #E2E8F0'
+      }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', maxWidth: '840px', margin: '0 auto 60px auto' }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 18px',
+              borderRadius: '999px',
+              background: '#ECFDF5',
+              border: '1.5px solid #10B981',
+              color: '#047857',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '1.2px',
+              textTransform: 'uppercase',
+              marginBottom: '16px'
+            }}>
+              <span>NONSTOCK PROVING PROTOCOL</span>
+            </div>
+
+            <h2 style={{
+              fontSize: 'clamp(34px, 4.2vw, 52px)',
+              fontWeight: 900,
+              letterSpacing: '-1.4px',
+              color: '#0F172A',
+              margin: '0 0 16px 0',
+              lineHeight: 1.15
+            }}>
+              NonStock Engine — Unmatched Mathematical Reliability Across The Industry
+            </h2>
+            <p style={{ fontSize: '17px', color: '#64748B', lineHeight: 1.65 }}>
+              Engineered with sub-second execution latency, strict stop-loss validation, and the universal $1,000 baseline economy.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+            gap: '50px',
+            alignItems: 'center'
+          }}>
+            {/* Left Column: 4 Feature Blocks with Checkmarks (Matching Reference Image 3) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {[
+                {
+                  title: 'Ultra-Fast Order Execution',
+                  desc: 'Leveraging our low-latency websocket infrastructure across crypto, forex, commodities, and equities.'
+                },
+                {
+                  title: 'Universal $1,000 Baseline Capital',
+                  desc: 'Every account is anchored to the exact same baseline. Zero pay-to-win mechanics. Only real trading edge.'
+                },
+                {
+                  title: 'Discipline Execution Rating (DER 0–100)',
+                  desc: 'Continuous algorithmic scoring measuring stop-loss discipline, win consistency, and downside preservation.'
+                },
+                {
+                  title: 'Decoupled 1K Gold Coins Economy',
+                  desc: '15 rare protocol bounties and daily discipline tasks award minted 1K Gold Coins, preserving market integrity.'
+                }
+              ].map((feat, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: '#F8FAFC',
+                    border: '1.5px solid #E2E8F0',
+                    borderRadius: '16px',
+                    padding: '22px 24px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '16px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.background = '#FFFFFF'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#F8FAFC'; }}
+                >
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    background: '#ECFDF5',
+                    border: '1.5px solid #10B981',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#059669',
+                    flexShrink: 0,
+                    marginTop: '2px'
+                  }}>
+                    <CheckCircle2 size={18} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '17px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0' }}>
+                      {feat.title}
+                    </h4>
+                    <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
+                      {feat.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right Column: The Minted "1K" Sovereign Gold Coin with Concentric Emerald HUD Rings */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '40px 20px',
+              background: 'radial-gradient(circle, #F0FDF4 0%, #FFFFFF 70%)',
+              borderRadius: '28px',
+              border: '1.5px solid #BBF7D0',
+              boxShadow: '0 20px 50px -10px rgba(16, 185, 129, 0.12)',
+              position: 'relative'
+            }}>
+              <div style={{ position: 'relative' }}>
+                <GoldCoin1K size={320} showRings={true} animated={true} />
+              </div>
+
+              <div style={{
+                marginTop: '20px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '1.2px', textTransform: 'uppercase' }}>
+                  OFFICIAL NONSTOCK PROTOCOL MINT
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
+                  The 1K Sovereign Gold Coin
+                </div>
+                <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px', maxWidth: '340px' }}>
+                  Representing universal baseline equity and earned through verified daily operational discipline.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 6C. SECTION: HOW IT WORKS / YOUR PROVING JOURNEY STARTS HERE (MATCHING JCTRADER IMAGE 4) ─── */}
+      <section style={{
+        padding: '100px 24px',
+        background: '#F8FAFC',
+        borderBottom: '1px solid #E2E8F0'
+      }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', maxWidth: '840px', margin: '0 auto 60px auto' }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 18px',
+              borderRadius: '999px',
+              background: '#ECFDF5',
+              border: '1.5px solid #10B981',
+              color: '#047857',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '1.2px',
+              textTransform: 'uppercase',
+              marginBottom: '16px'
+            }}>
+              <span>HOW IT WORKS</span>
+            </div>
+
+            <h2 style={{
+              fontSize: 'clamp(34px, 4.2vw, 52px)',
+              fontWeight: 900,
+              letterSpacing: '-1.4px',
+              color: '#0F172A',
+              margin: '0 0 16px 0',
+              lineHeight: 1.15
+            }}>
+              Your Proving Journey Starts Here
+            </h2>
+            <p style={{ fontSize: '17px', color: '#64748B', lineHeight: 1.65 }}>
+              Our streamlined mathematical protocol connects you with tailored financial proofs, guiding you every step of the way.
+            </p>
+          </div>
+
+          {/* 3 Horizontal Pill Cards with Dotted Gradients */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '24px'
+          }}>
+            {[
+              {
+                step: '01',
+                title: 'Sign Up & Claim $1,000 Baseline',
+                desc: 'Quick and easy registration. Receive $1,000 in verified proving capital with zero personal funds required.',
+                icon: ShieldCheck,
+                color: '#10B981',
+                badgeBg: '#ECFDF5'
+              },
+              {
+                step: '02',
+                title: 'Execute with Risk Discipline',
+                desc: 'Place trades across crypto, gold, forex, and equities. Maintain Stop-Loss orders to earn 1K Gold Coins.',
+                icon: Zap,
+                color: '#D97706',
+                badgeBg: '#FFFBEB'
+              },
+              {
+                step: '03',
+                title: 'Prove True Edge & Climb Ranks',
+                desc: 'Ascend Decagon tiers, earn rare protocol bounties, and share your unalterable proof ID with prop firms.',
+                icon: Trophy,
+                color: '#059669',
+                badgeBg: '#F0FDF4'
+              }
+            ].map((step, idx) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1.5px solid #E2E8F0',
+                    borderRadius: '24px',
+                    padding: '36px 30px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: '220px',
+                    boxShadow: '0 10px 30px -5px rgba(0,0,0,0.03)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <div style={{
+                        width: '46px',
+                        height: '46px',
+                        borderRadius: '14px',
+                        background: step.badgeBg,
+                        border: `1.5px solid ${step.color}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: step.color
+                      }}>
+                        <Icon size={24} />
+                      </div>
+                      <span style={{ fontSize: '13px', fontWeight: 900, color: '#94A3B8', letterSpacing: '1px' }}>
+                        STEP {step.step}
+                      </span>
+                    </div>
+
+                    <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: '0 0 10px 0' }}>
+                      {step.title}
+                    </h3>
+                    <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 7. SECTION: THE 5 DECAGON TIERS (MATCHING JCTRADER "CHOOSE YOUR ACCOUNT" IMAGE 2) ─── */}
       <section id="decagon-protocol" style={{
         padding: '110px 24px',
-        background: '#F8FAFC',
-        borderTop: '1px solid #E2E8F0',
+        background: '#FFFFFF',
         borderBottom: '1px solid #E2E8F0'
       }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           
           <div style={{ textAlign: 'center', maxWidth: '880px', margin: '0 auto 64px auto' }}>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
-              THE MERITOCRATIC ARENA
-            </span>
-            <h2 style={{ fontSize: 'clamp(36px, 4.4vw, 56px)', fontWeight: 900, letterSpacing: '-1.4px', color: '#0F172A', margin: '14px 0 20px 0', lineHeight: 1.1 }}>
-              The 5 Decagon Tiers: Ascend From Contender to Apex Operator.
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 18px',
+              borderRadius: '999px',
+              background: '#ECFDF5',
+              border: '1.5px solid #10B981',
+              color: '#047857',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '1.2px',
+              textTransform: 'uppercase',
+              marginBottom: '16px'
+            }}>
+              <span>START YOUR CHALLENGE</span>
+            </div>
+
+            <h2 style={{ fontSize: 'clamp(36px, 4.4vw, 56px)', fontWeight: 900, letterSpacing: '-1.4px', color: '#0F172A', margin: '0 0 16px 0', lineHeight: 1.1 }}>
+              Choose Your Proving Tier
             </h2>
-            <p style={{ fontSize: '18px', color: '#475569', lineHeight: 1.7, fontWeight: 400 }}>
-              Every prover enters the arena on an identical $1,000 baseline. Progression through the 10-sided Decagon ranks is governed purely by mathematics: positive expectancy, risk-to-reward consistency, and tight drawdown containment.
+            <p style={{ fontSize: '17px', color: '#64748B', lineHeight: 1.7, fontWeight: 400 }}>
+              You have five decagon proving tiers to progress through, all governed by mathematical edge and strict drawdown rules.
             </p>
           </div>
 

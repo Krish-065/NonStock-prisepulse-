@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import BrokerMirrorModal from '../components/BrokerMirrorModal';
+import GoldCoin1K from '../components/GoldCoin1K';
 import { BADGES_CATALOG, DISCIPLINE_TASKS } from '../data/badgesData';
 
 // Available assets for the Watchlist search dropdown
@@ -395,17 +396,14 @@ export default function Dashboard() {
 
   return (
     <div style={{ 
-      maxWidth: '1440px', 
+      maxWidth: '1540px', 
       margin: '0 auto', 
       display: 'flex', 
       flexDirection: 'column', 
-      gap: '0px',
+      gap: '24px',
       color: '#0F172A',
-      background: '#FAFBFC',
-      border: '1px solid #E2E8F0',
-      borderRadius: '6px',
-      overflow: 'hidden',
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
+      position: 'relative',
+      zIndex: 1
     }}>
       {/* Hidden file inputs for avatar & banner upload */}
       <input 
@@ -439,8 +437,8 @@ export default function Dashboard() {
           <div style={{
             background: '#FFFFFF',
             border: '2px solid #10B981',
-            borderRadius: '16px',
-            padding: '36px',
+            borderRadius: '24px',
+            padding: '40px',
             maxWidth: '540px',
             width: '100%',
             textAlign: 'center',
@@ -451,8 +449,8 @@ export default function Dashboard() {
               onClick={dismissWelcome}
               style={{
                 position: 'absolute',
-                top: '16px',
-                right: '16px',
+                top: '18px',
+                right: '18px',
                 background: '#F1F5F9',
                 border: 'none',
                 borderRadius: '50%',
@@ -469,9 +467,9 @@ export default function Dashboard() {
             </button>
 
             <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '14px',
+              width: '68px',
+              height: '68px',
+              borderRadius: '18px',
               background: '#ECFDF5',
               border: '2px solid #10B981',
               display: 'flex',
@@ -480,29 +478,29 @@ export default function Dashboard() {
               margin: '0 auto 16px auto',
               boxShadow: '0 4px 16px rgba(16, 185, 129, 0.2)'
             }}>
-              <ShieldCheck size={32} color="#059669" />
+              <ShieldCheck size={36} color="#059669" />
             </div>
 
             <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '1px', textTransform: 'uppercase' }}>
               NONSTOCK VERIFIED PROTOCOL
             </div>
-            <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', margin: '6px 0 10px 0' }}>
-              Entering The Swiss Executive Proving Desk
+            <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', margin: '8px 0 10px 0' }}>
+              Welcome to Your Proving Terminal
             </h2>
             <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: '0 0 24px 0' }}>
-              Welcome back to your disciplined trading terminal. 0 Tips, 0 Fake Screenshot PnL. Only real order flow execution.
+              Your disciplined execution desk. 0 Tips, 0 Fake Screenshot PnL. Only real order flow execution with mathematical proof.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', textAlign: 'left', marginBottom: '24px' }}>
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px' }}>
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px' }}>
                 <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B' }}>BASELINE CAPITAL</div>
-                <div style={{ fontSize: '16px', fontWeight: 900, color: '#10B981' }}>$1,000.00 Equal</div>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: '#10B981', marginTop: '2px' }}>$1,000.00 Equal</div>
                 <div style={{ fontSize: '11px', color: '#94A3B8' }}>Universal proving baseline</div>
               </div>
 
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '12px' }}>
-                <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B' }}>CURRENT PROTOCOL</div>
-                <div style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>60D Free Tools Pass</div>
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B' }}>ACTIVE PASS</div>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>60D Free Tools Pass</div>
                 <div style={{ fontSize: '11px', color: '#94A3B8' }}>All institutional tools free</div>
               </div>
             </div>
@@ -514,15 +512,16 @@ export default function Dashboard() {
                 background: 'linear-gradient(135deg, #10B981, #059669)',
                 color: '#FFFFFF',
                 border: 'none',
-                borderRadius: '8px',
-                padding: '12px',
+                borderRadius: '12px',
+                padding: '14px',
                 fontSize: '14px',
                 fontWeight: 800,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px'
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)'
               }}
             >
               <span>Enter Execution Desk ({welcomeSeconds}s)</span>
@@ -532,12 +531,13 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ─── 1. TOP SWISS MASTHEAD & EXECUTIVE DOSSIER ─── */}
+      {/* ─── 1. TOP ASYMMETRIC BENTO EXECUTIVE MASTHEAD & HERO DOSSIER ─── */}
       <div style={{
         background: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
-        padding: '20px 24px',
-        position: 'relative'
+        borderRadius: '24px',
+        border: '1.5px solid #E2E8F0',
+        padding: '24px 28px',
+        boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
       }}>
         {/* Upper Technical Meta Ribbon */}
         <div style={{
@@ -548,7 +548,7 @@ export default function Dashboard() {
           gap: '12px',
           paddingBottom: '16px',
           borderBottom: '1px solid #F1F5F9',
-          marginBottom: '16px',
+          marginBottom: '20px',
           fontSize: '11px',
           color: '#64748B',
           fontWeight: 700,
@@ -571,18 +571,18 @@ export default function Dashboard() {
               style={{
                 background: '#F8FAFC',
                 border: '1px solid #E2E8F0',
-                borderRadius: '4px',
-                padding: '4px 10px',
-                fontSize: '10px',
+                borderRadius: '8px',
+                padding: '6px 12px',
+                fontSize: '11px',
                 fontWeight: 800,
                 color: '#475569',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px'
+                gap: '6px'
               }}
             >
-              <Image size={11} />
+              <Image size={13} />
               <span>CUSTOM BANNER</span>
             </button>
 
@@ -592,178 +592,262 @@ export default function Dashboard() {
                 background: '#0F172A',
                 border: 'none',
                 color: '#FFFFFF',
-                borderRadius: '4px',
-                padding: '5px 14px',
-                fontSize: '11px',
+                borderRadius: '8px',
+                padding: '7px 16px',
+                fontSize: '12px',
                 fontWeight: 800,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '6px',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
               }}
             >
-              <Zap size={12} color="#10B981" />
+              <Zap size={13} color="#10B981" />
               <span>ENTER ARENA</span>
             </button>
           </div>
         </div>
 
-        {/* 4-Column Continuous High-Density Dossier Grid */}
+        {/* ─── ASYMMETRIC BENTO GRID (UNEVEN HIGHLIGHTS & BOLD TYPOGRAPHY) ─── */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '0px',
-          border: '1px solid #E2E8F0',
-          background: '#FFFFFF'
+          gridTemplateColumns: 'minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr)',
+          gap: '20px'
         }}>
-          {/* Column 1: Trader Identity & Tier Tag */}
+          {/* Card A (Expansive Hero Card): Trader Identity & Portfolio Equity */}
           <div style={{
-            padding: '18px 20px',
-            borderRight: '1px solid #E2E8F0',
+            background: 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
+            border: '1.5px solid #E2E8F0',
+            borderRadius: '20px',
+            padding: '24px',
             display: 'flex',
-            alignItems: 'center',
-            gap: '14px'
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
           }}>
-            <div 
-              onClick={() => avatarInputRef.current?.click()}
-              style={{
-                position: 'relative',
-                width: '54px',
-                height: '54px',
-                borderRadius: '8px',
-                background: '#FFFFFF',
-                border: '1.5px solid #10B981',
-                cursor: 'pointer',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-              title="Click to update avatar"
-            >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <div style={{ fontSize: '22px', fontWeight: 900, color: '#10B981' }}>
-                  {userName.charAt(0).toUpperCase()}
+            {/* Identity Row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div 
+                  onClick={() => avatarInputRef.current?.click()}
+                  style={{
+                    position: 'relative',
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '16px',
+                    background: '#FFFFFF',
+                    border: '2px solid #10B981',
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)'
+                  }}
+                  title="Click to update avatar"
+                >
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ fontSize: '24px', fontWeight: 900, color: '#10B981' }}>
+                      {userName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'rgba(15, 23, 42, 0.75)',
+                    padding: '2px 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Camera size={10} color="#FFFFFF" />
+                  </div>
                 </div>
-              )}
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>
+                      {userName}
+                    </span>
+                    <span style={{
+                      fontSize: '10px',
+                      fontWeight: 900,
+                      letterSpacing: '0.8px',
+                      background: '#ECFDF5',
+                      color: '#059669',
+                      border: '1.5px solid #A7F3D0',
+                      padding: '3px 8px',
+                      borderRadius: '999px',
+                      textTransform: 'uppercase'
+                    }}>
+                      {dynamicTierName}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>Disciplined Prover</span>
+                    <span>•</span>
+                    <span style={{ color: '#059669', fontWeight: 700 }}>Pro Member</span>
+                  </div>
+                </div>
+              </div>
+
               <div style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                background: 'rgba(15, 23, 42, 0.75)',
-                padding: '2px 0',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                gap: '6px',
+                padding: '4px 10px',
+                borderRadius: '999px',
+                background: '#ECFDF5',
+                fontSize: '10px',
+                fontWeight: 800,
+                color: '#047857'
               }}>
-                <Camera size={10} color="#FFFFFF" />
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }} />
+                <span>LIVE FEED AUDIT</span>
               </div>
             </div>
 
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>
-                  {userName}
-                </span>
-                <span style={{
-                  fontSize: '9px',
-                  fontWeight: 900,
-                  letterSpacing: '0.8px',
-                  background: '#0F172A',
-                  color: dynamicTierColor || '#10B981',
-                  border: `1px solid ${dynamicTierColor || '#64748B'}`,
-                  padding: '2px 6px',
-                  borderRadius: '3px',
-                  textTransform: 'uppercase'
-                }}>
-                  {dynamicTierName}
-                </span>
+            {/* Massive Bold Equity Highlight */}
+            <div style={{ marginTop: '20px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                PORTFOLIO CAPITAL
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>Disciplined Execution Desk</span>
-                <span>•</span>
-                <span style={{ color: '#059669', fontWeight: 700 }}>Pro Member</span>
+              <div style={{ fontSize: '46px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1.5px', lineHeight: 1.1, marginTop: '4px' }}>
+                ${balanceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div style={{ fontSize: '13px', color: netPnL >= 0 ? '#059669' : '#DC2626', fontWeight: 800, marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                {netPnL >= 0 ? <TrendingUp size={15} /> : <TrendingDown size={15} />}
+                <span>{netPnL >= 0 ? '+' : ''}${netPnL.toFixed(2)} ({netRoi >= 0 ? '+' : ''}{netRoi.toFixed(1)}% vs $1,000 baseline)</span>
               </div>
             </div>
           </div>
 
-          {/* Column 2: Baseline vs Current Portfolio Capital */}
-          <div style={{
-            padding: '18px 20px',
-            borderRight: '1px solid #E2E8F0'
-          }}>
-            <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-              PORTFOLIO EQUITY
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
-              ${balanceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <div style={{ fontSize: '11px', color: netPnL >= 0 ? '#059669' : '#DC2626', fontWeight: 800, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {netPnL >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-              <span>{netPnL >= 0 ? '+' : ''}${netPnL.toFixed(2)} ({netRoi >= 0 ? '+' : ''}{netRoi.toFixed(1)}% vs $1k baseline)</span>
-            </div>
-          </div>
-
-          {/* Column 3: Gold Coins Vault & Continuous Streak */}
+          {/* Card B (Asymmetric Amber Capsule): 1K Gold Coins Vault & Continuous Streak */}
           <div 
             onClick={() => {
               setShowCoinVaultModal(true);
               fetchCoinVaultLedger();
             }}
             style={{
-              padding: '18px 20px',
-              borderRight: '1px solid #E2E8F0',
+              background: 'linear-gradient(145deg, #FFFDF5 0%, #FEF9C3 100%)',
+              border: '1.5px solid #FDE047',
+              borderRadius: '20px',
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
               cursor: 'pointer',
-              background: '#FFFDF5',
-              transition: 'background 0.15s ease'
+              boxShadow: '0 4px 16px rgba(245, 158, 11, 0.08)',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease'
             }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             title="Click to inspect verified database audit ledger"
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '10px', fontWeight: 800, color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                GOLD COINS VAULT
-              </span>
-              <span style={{ fontSize: '9px', background: '#FEF08A', color: '#713F12', border: '1px solid #FACC15', padding: '1px 5px', borderRadius: '3px', fontWeight: 800 }}>
-                LEDGER ↗
-              </span>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  GOLD COINS VAULT
+                </span>
+                <span style={{ fontSize: '10px', background: '#FEF08A', color: '#713F12', border: '1px solid #FACC15', padding: '2px 7px', borderRadius: '4px', fontWeight: 900 }}>
+                  LEDGER ↗
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '16px' }}>
+                <GoldCoin1K size={52} showRings={false} animated={false} />
+                <div>
+                  <div style={{ fontSize: '34px', fontWeight: 900, color: '#713F12', lineHeight: 1 }}>
+                    {coins}
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#854D0E', marginTop: '2px' }}>
+                    Discipline Coins
+                  </div>
+                </div>
+              </div>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: 900, color: '#713F12', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Coins size={20} color="#D97706" />
-              <span>{coins} <span style={{ fontSize: '12px', fontWeight: 800 }}>Coins</span></span>
-            </div>
-            <div style={{ fontSize: '11px', color: '#A16207', fontWeight: 700, marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Flame size={12} color="#EA580C" />
-              <span>{streakDays}-Day Discipline Streak (+25 daily)</span>
+
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.7)',
+              border: '1px solid #FACC15',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              marginTop: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '12px',
+              fontWeight: 800,
+              color: '#92400E'
+            }}>
+              <Flame size={16} color="#EA580C" />
+              <span>{streakDays}-Day Streak (+25 daily coins)</span>
             </div>
           </div>
 
-          {/* Column 4: Discipline Score & Win Rate */}
-          <div style={{ padding: '18px 20px' }}>
-            <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-              DISCIPLINE EXECUTION RATING (DER)
+          {/* Card C (Asymmetric Emerald Pod): Discipline Execution Rating DER */}
+          <div style={{
+            background: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDF4 100%)',
+            border: '1.5px solid #BBF7D0',
+            borderRadius: '20px',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 4px 16px rgba(16, 185, 129, 0.05)'
+          }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  DISCIPLINE RATING (DER)
+                </span>
+                <span style={{ fontSize: '10px', background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', padding: '2px 7px', borderRadius: '4px', fontWeight: 900 }}>
+                  TOP 5% PRO
+                </span>
+              </div>
+
+              <div style={{ marginTop: '16px' }}>
+                <div style={{ fontSize: '34px', fontWeight: 900, color: '#047857', lineHeight: 1 }}>
+                  88.0 <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 700 }}>/ 100</span>
+                </div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#059669', marginTop: '4px' }}>
+                  Algorithmic Edge Verified
+                </div>
+              </div>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: 900, color: '#059669', marginTop: '2px' }}>
-              88.0 <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 700 }}>/ 100</span>
-            </div>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '2px' }}>
-              Win Rate: <strong style={{ color: '#0F172A' }}>{winRate}%</strong> • {totalTrades} Closed Trades • SL Protected
+
+            <div style={{
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              marginTop: '16px',
+              fontSize: '12px',
+              color: '#334155',
+              fontWeight: 700
+            }}>
+              Win Rate: <strong style={{ color: '#0F172A' }}>{winRate}%</strong> • {totalTrades} Trades • SL Protected
             </div>
           </div>
         </div>
       </div>
 
-      {/* ─── 2. CONTINUOUS DECAGON TIER PROGRESSION RULER ─── */}
+      {/* ─── 2. DETACHED DECAGON TIER PROGRESSION RULER ─── */}
       <div style={{
         background: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
-        padding: '14px 24px'
+        borderRadius: '24px',
+        border: '1.5px solid #E2E8F0',
+        padding: '20px 28px',
+        boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '11px' }}>
-          <div style={{ fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', fontSize: '12px' }}>
+          <div style={{ fontWeight: 900, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             DECAGON CAPITAL PROVING HIERARCHY
           </div>
           <div style={{ color: '#64748B' }}>
@@ -771,12 +855,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 5-Step Continuous Ruler Strip */}
+        {/* 5 Independent Detached Rounded Cards */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(5, 1fr)',
-          border: '1px solid #E2E8F0',
-          background: '#F8FAFC'
+          gap: '12px'
         }}>
           {[
             { name: 'Contender', target: '$1,000', active: balanceNum < 2000, color: '#059669', tag: 'Baseline' },
@@ -784,30 +867,32 @@ export default function Dashboard() {
             { name: 'Gold Sovereign', target: '$4,000', active: balanceNum >= 4000 && balanceNum < 8000, color: '#EAB308', tag: '4x Edge' },
             { name: 'Master Titan', target: '$8,000', active: balanceNum >= 8000 && balanceNum < 15000, color: '#E11D48', tag: '8x Mastery' },
             { name: 'Apex Operator', target: '$15,000', active: balanceNum >= 15000, color: '#A855F7', tag: '15x Sovereign' },
-          ].map((t, idx) => (
+          ].map((t) => (
             <div
               key={t.name}
               style={{
-                padding: '10px 14px',
-                borderRight: idx < 4 ? '1px solid #E2E8F0' : 'none',
-                background: t.active ? '#ECFDF5' : '#FFFFFF',
-                borderTop: t.active ? '2px solid #10B981' : 'none'
+                padding: '14px 16px',
+                borderRadius: '16px',
+                background: t.active ? '#ECFDF5' : '#F8FAFC',
+                border: t.active ? '2px solid #10B981' : '1.5px solid #E2E8F0',
+                boxShadow: t.active ? '0 4px 16px rgba(16, 185, 129, 0.15)' : 'none',
+                transition: 'all 0.15s ease'
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: t.active ? '#059669' : '#475569' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: t.active ? '#059669' : '#475569' }}>
                   {t.name}
                 </span>
                 {t.active && (
-                  <span style={{ fontSize: '8px', background: '#10B981', color: '#FFFFFF', padding: '1px 4px', borderRadius: '2px', fontWeight: 900 }}>
+                  <span style={{ fontSize: '9px', background: '#10B981', color: '#FFFFFF', padding: '2px 5px', borderRadius: '4px', fontWeight: 900 }}>
                     ACTIVE
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', marginTop: '4px' }}>
                 {t.target}
               </div>
-              <div style={{ fontSize: '10px', color: '#94A3B8' }}>
+              <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>
                 {t.tag}
               </div>
             </div>
@@ -819,18 +904,20 @@ export default function Dashboard() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 1fr)',
-        borderBottom: '1px solid #E2E8F0',
-        background: '#FFFFFF'
+        gap: '24px'
       }}>
-        {/* Left Column: Dedicated Discipline Tasks Desk */}
+        {/* Left Column: Dedicated Discipline Tasks Desk (Floating Card) */}
         <div style={{
-          padding: '24px',
-          borderRight: '1px solid #E2E8F0',
+          background: '#FFFFFF',
+          borderRadius: '24px',
+          border: '1.5px solid #E2E8F0',
+          padding: '28px',
+          boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px'
+          gap: '18px'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
@@ -841,33 +928,33 @@ export default function Dashboard() {
                   background: '#ECFDF5',
                   color: '#059669',
                   border: '1px solid #A7F3D0',
-                  padding: '1px 6px',
-                  borderRadius: '3px',
-                  fontWeight: 800
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  fontWeight: 900
                 }}>
                   SEPARATE FROM BADGES
                 </span>
               </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 900, color: '#0F172A', margin: '3px 0 0 0' }}>
+              <h3 style={{ fontSize: '19px', fontWeight: 900, color: '#0F172A', margin: '4px 0 0 0' }}>
                 Daily Trading Discipline Quests
               </h3>
-              <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0 0' }}>
+              <p style={{ fontSize: '13px', color: '#64748B', margin: '3px 0 0 0' }}>
                 Gold Coins are strictly earned through daily operational discipline, not random badge faucets.
               </p>
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A' }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>
                 {completedTasksCount} of 5 Completed Today
               </div>
-              <div style={{ fontSize: '12px', fontWeight: 900, color: '#059669' }}>
+              <div style={{ fontSize: '13px', fontWeight: 900, color: '#059669', marginTop: '2px' }}>
                 +{earnedTasksCoins} / +90 Coins Earned
               </div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div style={{ height: '6px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
+          <div style={{ height: '8px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
             <div style={{
               width: `${(completedTasksCount / 5) * 100}%`,
               height: '100%',
@@ -876,65 +963,64 @@ export default function Dashboard() {
             }} />
           </div>
 
-          {/* Continuous Task Ledger Table */}
-          <div style={{
-            border: '1px solid #E2E8F0',
-            background: '#FFFFFF'
-          }}>
-            {evaluatedDisciplineTasks.map((t, idx) => {
+          {/* Independent Rounded Task Items */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {evaluatedDisciplineTasks.map((t) => {
               const Icon = t.icon;
               return (
                 <div
                   key={t.id}
                   style={{
-                    padding: '12px 16px',
-                    borderBottom: idx < evaluatedDisciplineTasks.length - 1 ? '1px solid #F1F5F9' : 'none',
+                    padding: '14px 18px',
+                    borderRadius: '16px',
+                    border: t.completed ? '1.5px solid #BBF7D0' : '1.5px solid #E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '14px',
-                    background: t.completed ? '#F8FAFC' : '#FFFFFF'
+                    background: t.completed ? '#F8FAFC' : '#FFFFFF',
+                    transition: 'border-color 0.15s ease'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
                     <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '6px',
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
                       background: t.completed ? '#ECFDF5' : '#F8FAFC',
-                      border: t.completed ? '1px solid #A7F3D0' : '1px solid #CBD5E1',
+                      border: t.completed ? '1.5px solid #A7F3D0' : '1.5px solid #CBD5E1',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: t.completed ? '#059669' : '#64748B',
                       flexShrink: 0
                     }}>
-                      <Icon size={16} />
+                      <Icon size={18} />
                     </div>
 
                     <div style={{ minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
                           {t.title}
                         </span>
                         {t.completed ? (
-                          <span style={{ fontSize: '9px', background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', padding: '1px 5px', borderRadius: '3px', fontWeight: 900 }}>
+                          <span style={{ fontSize: '9px', background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0', padding: '1px 6px', borderRadius: '4px', fontWeight: 900 }}>
                             COMPLETED
                           </span>
                         ) : (
-                          <span style={{ fontSize: '9px', background: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0', padding: '1px 5px', borderRadius: '3px', fontWeight: 800 }}>
+                          <span style={{ fontSize: '9px', background: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
                             PENDING
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {t.desc}
                       </div>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
-                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                    <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 700 }}>
                       {t.statusText}
                     </span>
                     <span style={{
@@ -943,8 +1029,8 @@ export default function Dashboard() {
                       background: '#FEF9C3',
                       border: '1px solid #FDE047',
                       color: '#854D0E',
-                      padding: '3px 8px',
-                      borderRadius: '4px'
+                      padding: '4px 10px',
+                      borderRadius: '8px'
                     }}>
                       +{t.coins} Coins
                     </span>
@@ -954,8 +1040,8 @@ export default function Dashboard() {
             })}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
-            <span style={{ fontSize: '11px', color: '#64748B' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '6px' }}>
+            <span style={{ fontSize: '12px', color: '#64748B' }}>
               Tasks refresh every 24 hours at 00:00 UTC.
             </span>
             <button
@@ -969,8 +1055,8 @@ export default function Dashboard() {
                 background: '#0F172A',
                 border: 'none',
                 color: '#FFFFFF',
-                borderRadius: '4px',
-                padding: '7px 14px',
+                borderRadius: '8px',
+                padding: '8px 16px',
                 fontSize: '12px',
                 fontWeight: 800,
                 cursor: 'pointer',
@@ -979,62 +1065,62 @@ export default function Dashboard() {
                 gap: '6px'
               }}
             >
-              <RefreshCw size={12} />
+              <RefreshCw size={13} />
               <span>Sync Protocol Tasks</span>
             </button>
           </div>
         </div>
 
-        {/* Right Column: Platform Voucher & Radar Overview */}
+        {/* Right Column: Platform Voucher & Radar Overview (Detached Floating Cards) */}
         <div style={{
-          padding: '24px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '20px',
-          background: '#FAFBFC'
+          gap: '20px'
         }}>
           {/* 60-Day Free Platform Access Voucher */}
           {isFreeGraceActive && (
             <div style={{
               background: '#FFFFFF',
-              border: '1px solid #A7F3D0',
-              padding: '16px 20px',
+              borderRadius: '20px',
+              border: '1.5px solid #A7F3D0',
+              padding: '24px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px'
+              gap: '12px',
+              boxShadow: '0 8px 30px -5px rgba(16, 185, 129, 0.05)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={16} color="#059669" />
-                  <span style={{ fontSize: '13px', fontWeight: 900, color: '#0F172A' }}>
+                  <Sparkles size={18} color="#059669" />
+                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
                     60-Day Full Platform Access Voucher
                   </span>
                 </div>
-                <span style={{ fontSize: '10px', fontWeight: 900, background: '#10B981', color: '#FFFFFF', padding: '2px 8px', borderRadius: '3px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 900, background: '#10B981', color: '#FFFFFF', padding: '3px 9px', borderRadius: '999px' }}>
                   {trialDaysRemaining}D LEFT
                 </span>
               </div>
-              <p style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.4, margin: 0 }}>
+              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
                 All edge instruments (Technical Screener, Strategy Lab, Global Macro, Replay Simulator) are 100% unlocked for every account holder for 2 months.
               </p>
-              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                 <button
                   onClick={() => navigate('/screener')}
                   style={{
                     background: '#F8FAFC',
                     border: '1px solid #CBD5E1',
                     color: '#0F172A',
-                    borderRadius: '4px',
-                    padding: '6px 12px',
-                    fontSize: '11px',
+                    borderRadius: '8px',
+                    padding: '8px 14px',
+                    fontSize: '12px',
                     fontWeight: 700,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px'
+                    gap: '6px'
                   }}
                 >
-                  <Search size={12} />
+                  <Search size={13} />
                   <span>Screener</span>
                 </button>
                 <button
@@ -1043,17 +1129,18 @@ export default function Dashboard() {
                     background: 'linear-gradient(135deg, #10B981, #059669)',
                     border: 'none',
                     color: '#FFFFFF',
-                    borderRadius: '4px',
-                    padding: '6px 12px',
-                    fontSize: '11px',
+                    borderRadius: '8px',
+                    padding: '8px 14px',
+                    fontSize: '12px',
                     fontWeight: 800,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px'
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
                   }}
                 >
-                  <Globe size={12} />
+                  <Globe size={13} />
                   <span>Global Markets</span>
                 </button>
               </div>
@@ -1063,10 +1150,12 @@ export default function Dashboard() {
           {/* Quick Watchlist Terminal */}
           <div style={{
             background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
-            padding: '16px'
+            borderRadius: '20px',
+            border: '1.5px solid #E2E8F0',
+            padding: '22px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 LIVE WATCHLIST SURVEILLANCE ({watchlist.length})
               </div>
@@ -1076,7 +1165,7 @@ export default function Dashboard() {
                   background: 'none',
                   border: 'none',
                   color: '#059669',
-                  fontSize: '11px',
+                  fontSize: '12px',
                   fontWeight: 800,
                   cursor: 'pointer',
                   display: 'flex',
@@ -1085,11 +1174,11 @@ export default function Dashboard() {
                 }}
               >
                 <span>Arena Ticket</span>
-                <ArrowRight size={11} />
+                <ArrowRight size={13} />
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {watchlist.map(sym => (
                 <div
                   key={sym}
@@ -1097,18 +1186,18 @@ export default function Dashboard() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '4px 8px',
+                    padding: '6px 10px',
                     background: '#F8FAFC',
                     border: '1px solid #E2E8F0',
-                    borderRadius: '4px',
-                    fontSize: '11px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
                     fontWeight: 800,
                     color: '#0F172A'
                   }}
                 >
                   <span>{sym}</span>
                   <X 
-                    size={11} 
+                    size={13} 
                     color="#94A3B8" 
                     style={{ cursor: 'pointer' }}
                     onClick={() => removeFromWatchlist(sym)}
@@ -1123,8 +1212,10 @@ export default function Dashboard() {
       {/* ─── 4. INSTITUTIONAL BADGES VAULT (52 BADGES • 15 PROTOCOL BOUNTIES VS 37 HONOR INSIGNIAS) ─── */}
       <div style={{
         background: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
-        padding: '24px'
+        borderRadius: '24px',
+        border: '1.5px solid #E2E8F0',
+        padding: '32px',
+        boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
       }}>
         {/* Badges Header & Rationale */}
         <div style={{
@@ -1133,23 +1224,23 @@ export default function Dashboard() {
           alignItems: 'flex-start',
           flexWrap: 'wrap',
           gap: '16px',
-          marginBottom: '18px'
+          marginBottom: '20px'
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Trophy size={18} color="#059669" />
-              <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+              <Trophy size={20} color="#059669" />
+              <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
                 Institutional Badges Vault ({totalUnlockedCount} / 52 Unlocked)
               </h3>
             </div>
-            <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
               Pure mathematical track record proofs. Decoupled from generic coin faucets: only <strong>15 elite milestones</strong> distribute rare protocol bounties; <strong>37 badges</strong> represent pure honor insignias.
             </p>
           </div>
 
           {/* Search Box */}
-          <div style={{ position: 'relative', width: '220px' }}>
-            <Search size={14} color="#94A3B8" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+          <div style={{ position: 'relative', width: '240px' }}>
+            <Search size={15} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '11px' }} />
             <input 
               type="text"
               placeholder="Search 52 badges..."
@@ -1157,11 +1248,11 @@ export default function Dashboard() {
               onChange={(e) => setBadgeSearch(e.target.value)}
               style={{
                 width: '100%',
-                padding: '7px 10px 7px 32px',
-                fontSize: '12px',
+                padding: '9px 12px 9px 36px',
+                fontSize: '13px',
                 background: '#F8FAFC',
                 border: '1px solid #CBD5E1',
-                borderRadius: '4px',
+                borderRadius: '10px',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
@@ -1172,11 +1263,11 @@ export default function Dashboard() {
         {/* Filter Navigation Tabs */}
         <div style={{
           display: 'flex',
-          gap: '6px',
+          gap: '8px',
           flexWrap: 'wrap',
           borderBottom: '1px solid #E2E8F0',
-          paddingBottom: '12px',
-          marginBottom: '16px'
+          paddingBottom: '16px',
+          marginBottom: '20px'
         }}>
           {[
             { id: 'all', label: `ALL (52)` },
@@ -1195,12 +1286,12 @@ export default function Dashboard() {
                 background: badgeFilter === f.id ? '#0F172A' : '#F8FAFC',
                 color: badgeFilter === f.id ? '#FFFFFF' : '#475569',
                 border: badgeFilter === f.id ? '1px solid #0F172A' : '1px solid #E2E8F0',
-                borderRadius: '4px',
-                padding: '5px 11px',
-                fontSize: '11px',
+                borderRadius: '8px',
+                padding: '7px 14px',
+                fontSize: '12px',
                 fontWeight: 800,
                 cursor: 'pointer',
-                transition: 'all 0.1s ease'
+                transition: 'all 0.15s ease'
               }}
             >
               {f.label}
@@ -1208,11 +1299,11 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Badges Grid (Continuous Hairline Swiss Layout) */}
+        {/* Badges Grid with Unique Modern Insignias */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '10px'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: '16px'
         }}>
           {visibleBadges.map(b => {
             const Icon = b.icon;
@@ -1222,59 +1313,92 @@ export default function Dashboard() {
                 onClick={() => setSelectedBadge(b)}
                 style={{
                   background: b.unlocked ? '#FFFFFF' : '#FAFBFC',
-                  border: b.unlocked ? '1.5px solid #10B981' : '1px solid #E2E8F0',
-                  borderRadius: '6px',
-                  padding: '14px',
+                  border: b.unlocked 
+                    ? '2px solid #10B981' 
+                    : (b.hasBounty ? '1.5px solid #FDE047' : '1.5px solid #E2E8F0'),
+                  borderRadius: '18px',
+                  padding: '18px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  gap: '10px',
+                  gap: '14px',
                   cursor: 'pointer',
                   position: 'relative',
                   opacity: b.unlocked ? 1 : 0.88,
-                  transition: 'transform 0.15s ease, border-color 0.15s ease'
+                  boxShadow: b.unlocked 
+                    ? '0 6px 20px rgba(16, 185, 129, 0.12)' 
+                    : '0 2px 8px rgba(0,0,0,0.02)',
+                  transition: 'transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = b.unlocked ? '#059669' : '#94A3B8';
+                  e.currentTarget.style.borderColor = b.unlocked ? '#059669' : '#10B981';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = b.unlocked ? '#10B981' : '#E2E8F0';
+                  e.currentTarget.style.borderColor = b.unlocked 
+                    ? '#10B981' 
+                    : (b.hasBounty ? '#FDE047' : '#E2E8F0');
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 {/* Top Badge Status Tag */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Unique Insignia Container */}
                     <div style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '4px',
-                      background: b.unlocked ? '#ECFDF5' : '#F1F5F9',
+                      position: 'relative',
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: b.hasBounty ? '10px' : '10px',
+                      background: b.hasBounty 
+                        ? 'linear-gradient(135deg, #FEF9C3 0%, #FDE047 60%, #D97706 100%)'
+                        : (b.unlocked ? '#ECFDF5' : '#F1F5F9'),
+                      border: b.hasBounty 
+                        ? '1.5px solid #F59E0B'
+                        : (b.unlocked ? '1.5px solid #10B981' : '1.5px solid #CBD5E1'),
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: b.unlocked ? b.color || '#059669' : '#94A3B8'
+                      color: b.hasBounty ? '#78350F' : (b.unlocked ? b.color || '#059669' : '#94A3B8'),
+                      boxShadow: b.hasBounty ? '0 2px 8px rgba(217, 119, 6, 0.3)' : 'none'
                     }}>
-                      <Icon size={16} />
+                      <Icon size={18} />
+                      {b.hasBounty && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-4px',
+                          right: '-4px',
+                          background: '#B45309',
+                          color: '#FEF9C3',
+                          border: '1px solid #FDE047',
+                          borderRadius: '999px',
+                          padding: '0 3px',
+                          fontSize: '7px',
+                          fontWeight: 900
+                        }}>
+                          1K
+                        </div>
+                      )}
                     </div>
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#94A3B8' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>
                       #{b.id}
                     </span>
                   </div>
 
                   {b.hasBounty ? (
                     <span style={{
-                      fontSize: '10px',
-                      fontWeight: 800,
+                      fontSize: '11px',
+                      fontWeight: 900,
                       background: '#FEF9C3',
                       border: '1px solid #FDE047',
                       color: '#854D0E',
-                      padding: '2px 7px',
-                      borderRadius: '3px',
+                      padding: '3px 8px',
+                      borderRadius: '6px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '4px'
                     }}>
-                      <Coins size={11} color="#D97706" />
+                      <Coins size={12} color="#D97706" />
                       <span>+{b.coins} Coins</span>
                     </span>
                   ) : (
@@ -1284,13 +1408,13 @@ export default function Dashboard() {
                       background: '#F1F5F9',
                       border: '1px solid #E2E8F0',
                       color: '#64748B',
-                      padding: '2px 6px',
-                      borderRadius: '3px',
+                      padding: '3px 8px',
+                      borderRadius: '6px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '4px'
                     }}>
-                      <ShieldCheck size={11} color="#64748B" />
+                      <ShieldCheck size={12} color="#64748B" />
                       <span>Honor (0 Coins)</span>
                     </span>
                   )}
@@ -1299,25 +1423,27 @@ export default function Dashboard() {
                 {/* Badge Info */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <h4 style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                    <h4 style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
                       {b.name}
                     </h4>
                     {b.unlocked && (
-                      <CheckCircle2 size={13} color="#059669" />
+                      <CheckCircle2 size={15} color="#059669" />
                     )}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px', lineHeight: 1.3 }}>
+                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', lineHeight: 1.4 }}>
                     {b.tagline}
                   </div>
                 </div>
 
                 {/* Progress Bar & Status */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: 700, color: '#64748B', marginBottom: '3px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
                     <span>{b.progressText}</span>
-                    <span>{b.unlocked ? 'UNLOCKED' : `${b.progressPct}%`}</span>
+                    <span style={{ fontWeight: 800, color: b.unlocked ? '#059669' : '#64748B' }}>
+                      {b.unlocked ? 'UNLOCKED' : `${b.progressPct}%`}
+                    </span>
                   </div>
-                  <div style={{ height: '4px', background: '#E2E8F0', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ height: '6px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
                     <div style={{
                       width: `${b.progressPct}%`,
                       height: '100%',
@@ -1331,50 +1457,56 @@ export default function Dashboard() {
         </div>
 
         {/* Show More / Show Less Toggle Button */}
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <div style={{ textAlign: 'center', marginTop: '24px' }}>
           <button
             onClick={() => setShowAllBadges(prev => !prev)}
             style={{
               background: '#FFFFFF',
-              border: '1px solid #CBD5E1',
-              borderRadius: '4px',
-              padding: '8px 20px',
-              fontSize: '12px',
+              border: '1.5px solid #CBD5E1',
+              borderRadius: '999px',
+              padding: '10px 24px',
+              fontSize: '13px',
               fontWeight: 800,
               color: '#0F172A',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+              boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+              transition: 'all 0.15s ease'
             }}
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.color = '#059669'; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#0F172A'; }}
           >
             <span>{showAllBadges ? 'Show Curated View (Top 6)' : `Show All Badges (${filteredBadges.length})`}</span>
-            {showAllBadges ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {showAllBadges ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
         </div>
       </div>
 
-      {/* ─── 5. LOWER PROVING LEDGER: BROKER MIRROR & REAL LEADERBOARD ─── */}
+      {/* ─── 5. LOWER PROVING LEDGER: BROKER MIRROR & REAL LEADERBOARD (DETACHED FLOATING CARDS) ─── */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
-        background: '#FFFFFF'
+        gap: '24px'
       }}>
-        {/* Left: Broker Mirror & Real Account Sync */}
+        {/* Left Card: Broker Mirror & Real Account Sync */}
         <div style={{
-          padding: '24px',
-          borderRight: '1px solid #E2E8F0',
+          background: '#FFFFFF',
+          borderRadius: '24px',
+          border: '1.5px solid #E2E8F0',
+          padding: '28px',
+          boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '14px'
+          gap: '16px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 BROKER MIRROR PROTOCOL
               </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: '2px 0 0 0' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '3px 0 0 0' }}>
                 Real Account Equity Sync
               </h3>
             </div>
@@ -1383,11 +1515,11 @@ export default function Dashboard() {
                 onClick={handleToggleMirror}
                 style={{
                   background: brokerMirror.isActive ? '#ECFDF5' : '#FFFBEB',
-                  border: '1px solid #A7F3D0',
+                  border: '1.5px solid #A7F3D0',
                   color: '#059669',
-                  borderRadius: '4px',
-                  padding: '5px 12px',
-                  fontSize: '11px',
+                  borderRadius: '8px',
+                  padding: '6px 14px',
+                  fontSize: '12px',
                   fontWeight: 800,
                   cursor: 'pointer'
                 }}
@@ -1401,31 +1533,33 @@ export default function Dashboard() {
                   background: '#059669',
                   color: '#FFFFFF',
                   border: 'none',
-                  borderRadius: '4px',
-                  padding: '6px 14px',
-                  fontSize: '11px',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontSize: '12px',
                   fontWeight: 800,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px'
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)'
                 }}
               >
                 <span>Connect Broker</span>
-                <ArrowRight size={12} />
+                <ArrowRight size={13} />
               </button>
             )}
           </div>
 
-          <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+          <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
             Connect interactive brokers (IBKR, Binance, MT5) to mirror real capital executions proportionally against the $1,000 baseline.
           </p>
 
           <div style={{
             background: '#F8FAFC',
-            border: '1px solid #E2E8F0',
-            padding: '12px 16px',
-            fontSize: '12px',
+            border: '1.5px solid #E2E8F0',
+            borderRadius: '16px',
+            padding: '16px 20px',
+            fontSize: '13px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
@@ -1434,7 +1568,7 @@ export default function Dashboard() {
               <div style={{ fontWeight: 800, color: '#0F172A' }}>
                 {brokerMirror?.connectedBroker ? `Connected: ${brokerMirror.connectedBroker}` : 'No Broker Connected'}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B' }}>
+              <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
                 {brokerMirror?.connectedBroker ? '1:1 Proportional Risk Replicator' : 'Non-custodial API key verification'}
               </div>
             </div>
@@ -1443,9 +1577,9 @@ export default function Dashboard() {
               style={{
                 background: '#FFFFFF',
                 border: '1px solid #CBD5E1',
-                borderRadius: '4px',
-                padding: '4px 10px',
-                fontSize: '11px',
+                borderRadius: '8px',
+                padding: '6px 12px',
+                fontSize: '12px',
                 fontWeight: 700,
                 color: '#475569',
                 cursor: 'pointer'
@@ -1456,61 +1590,65 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right: Real Verified Provers Leaderboard */}
+        {/* Right Card: Real Verified Provers Leaderboard */}
         <div style={{
-          padding: '24px',
+          background: '#FFFFFF',
+          borderRadius: '24px',
+          border: '1.5px solid #E2E8F0',
+          padding: '28px',
+          boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '14px'
+          gap: '16px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 GLOBAL VERIFIED RANKINGS
               </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: '2px 0 0 0' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '3px 0 0 0' }}>
                 NonStock Proving Leaderboard
               </h3>
             </div>
-            <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>
+            <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 800 }}>
               0 Demos • 0 Fakes
             </span>
           </div>
 
-          {/* Table */}
-          <div style={{ border: '1px solid #E2E8F0' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+          {/* Table with Rounded Shell */}
+          <div style={{ border: '1.5px solid #E2E8F0', borderRadius: '16px', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                 <tr>
-                  <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 800, color: '#64748B' }}>Rank</th>
-                  <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 800, color: '#64748B' }}>Trader</th>
-                  <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: '#64748B' }}>DER Rating</th>
-                  <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: '#64748B' }}>Verified Equity</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 800, color: '#64748B' }}>Rank</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 800, color: '#64748B' }}>Trader</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#64748B' }}>DER Rating</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#64748B' }}>Verified Equity</th>
                 </tr>
               </thead>
               <tbody>
                 {realLeaderboard.slice(0, 4).map((trader, i) => (
                   <tr key={trader.rank || i} style={{ borderBottom: '1px solid #F1F5F9', background: trader.isSelf ? '#F0FDF4' : '#FFFFFF' }}>
-                    <td style={{ padding: '8px 12px', fontWeight: 900, color: '#0F172A' }}>
+                    <td style={{ padding: '12px 14px', fontWeight: 900, color: '#0F172A' }}>
                       #{trader.rank || (i + 1)}
                     </td>
-                    <td style={{ padding: '8px 12px', fontWeight: 800, color: '#0F172A' }}>
+                    <td style={{ padding: '12px 14px', fontWeight: 800, color: '#0F172A' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>{trader.name}</span>
                         {trader.isSelf && (
-                          <span style={{ fontSize: '8px', background: '#10B981', color: '#FFFFFF', padding: '1px 4px', borderRadius: '2px', fontWeight: 900 }}>
+                          <span style={{ fontSize: '8px', background: '#10B981', color: '#FFFFFF', padding: '2px 5px', borderRadius: '3px', fontWeight: 900 }}>
                             YOU
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>
+                      <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
                         {trader.tag || 'Contender'}
                       </div>
                     </td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: '#059669' }}>
+                    <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 900, color: '#059669' }}>
                       {trader.der ? Number(trader.der).toFixed(1) : '88.0'}
                     </td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 900, color: '#0F172A' }}>
+                    <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 900, color: '#0F172A' }}>
                       ${Number(trader.balance || 1000).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
@@ -1744,18 +1882,24 @@ export default function Dashboard() {
                 <div style={{
                   background: '#FFFDF5',
                   border: '1.5px solid #FACC15',
-                  borderRadius: '8px',
-                  padding: '14px 16px'
+                  borderRadius: '12px',
+                  padding: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
                 }}>
-                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                    CURRENT BALANCE
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                      CURRENT BALANCE
+                    </div>
+                    <div style={{ fontSize: '26px', fontWeight: 900, color: '#713F12', marginTop: '2px' }}>
+                      {coinVaultData?.goldCoins ?? coins} <span style={{ fontSize: '13px', fontWeight: 700 }}>Coins</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#A16207', marginTop: '2px' }}>
+                      Universal Sovereign Currency
+                    </div>
                   </div>
-                  <div style={{ fontSize: '26px', fontWeight: 900, color: '#713F12', marginTop: '2px' }}>
-                    {coinVaultData?.goldCoins ?? coins} <span style={{ fontSize: '13px', fontWeight: 700 }}>Coins</span>
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#A16207', marginTop: '2px' }}>
-                    Fully usable for edge tools & resets
-                  </div>
+                  <GoldCoin1K size={48} showRings={false} animated={false} />
                 </div>
 
                 <div style={{
