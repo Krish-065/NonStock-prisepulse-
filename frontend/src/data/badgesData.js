@@ -12,14 +12,16 @@ import {
  */
 export const BADGES_CATALOG = [
   // ─── TIER 1: STARTER / INTRODUCTORY (1 - 10) ─── ALL 0 COINS (HONOR INSIGNIA)
+  
   {
     id: 1,
     tier: 1,
     name: 'First Spark',
     tagline: 'Execute your 1st paper trade in the Arena',
     desc: 'Enter the market with conviction and log your first verified order.',
-    coins: 0,
-    hasBounty: false,
+    coins: 25,
+    hasBounty: true,
+    theme: 'bull_candle',
     icon: Zap,
     color: '#10B981',
     check: ({ history, positions }) => {
@@ -30,25 +32,28 @@ export const BADGES_CATALOG = [
   {
     id: 2,
     tier: 1,
+    coins: 25,
+    hasBounty: true,
+    theme: 'bull_candle',
     name: 'Identity Confirmed',
     tagline: 'Customize your profile and avatar',
     desc: 'Establish your institutional trading handle with an avatar photo or banner.',
-    coins: 0,
-    hasBounty: false,
     icon: Award,
     color: '#059669',
     check: ({ hasAvatar }) => {
       return { unlocked: Boolean(hasAvatar), progress: hasAvatar ? 1 : 0, target: 1, text: hasAvatar ? 'Customized' : '0/1 set' };
     }
   },
+  
   {
     id: 3,
     tier: 1,
+    coins: 25,
+    hasBounty: true,
+    theme: 'diamond_hands',
     name: 'Radar Online',
     tagline: 'Add 3+ assets to your live Watchlist',
     desc: 'Organize your trading screens by tracking at least 3 global instruments.',
-    coins: 0,
-    hasBounty: false,
     icon: Target,
     color: '#0D9488',
     check: ({ watchlist }) => {
@@ -59,11 +64,12 @@ export const BADGES_CATALOG = [
   {
     id: 4,
     tier: 1,
+    coins: 25,
+    hasBounty: true,
+    theme: 'sniper_scope',
     name: 'Patience Pays',
     tagline: 'Place your first Limit or Stop order',
     desc: 'Do not chase market prices. Command the price you want by queueing a pending order.',
-    coins: 0,
-    hasBounty: false,
     icon: Clock,
     color: '#0284C7',
     check: ({ history, positions }) => {
@@ -72,14 +78,16 @@ export const BADGES_CATALOG = [
       return { unlocked: hasLimit, progress: hasLimit ? 1 : 0, target: 1, text: hasLimit ? '1/1 Limit' : '0/1 placed' };
     }
   },
+  
   {
     id: 5,
     tier: 1,
+    coins: 25,
+    hasBounty: true,
+    theme: 'lightning_exec',
     name: 'Shields Up',
     tagline: 'Execute an order with Stop-Loss defined',
     desc: 'Professional capital preservation starts with pre-calculated downside limits.',
-    coins: 0,
-    hasBounty: false,
     icon: ShieldCheck,
     color: '#10B981',
     check: ({ history, positions }) => {
@@ -91,11 +99,12 @@ export const BADGES_CATALOG = [
   {
     id: 6,
     tier: 1,
+    coins: 25,
+    hasBounty: true,
+    theme: 'shield_sl',
     name: 'Profit Visionary',
     tagline: 'Set a Take-Profit target on a trade',
     desc: 'Lock in targets before emotion takes over during sudden volatility spikes.',
-    coins: 0,
-    hasBounty: false,
     icon: Star,
     color: '#F59E0B',
     check: ({ history, positions }) => {
@@ -104,14 +113,16 @@ export const BADGES_CATALOG = [
       return { unlocked: hasTP, progress: hasTP ? 1 : 0, target: 1, text: hasTP ? 'Target Set' : '0/1 TP set' };
     }
   },
+  
   {
     id: 7,
     tier: 1,
+    coins: 25,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'First Blood',
     tagline: 'Close your first trade in net profit',
     desc: 'The proving journey begins: take capital off the table into green territory.',
-    coins: 0,
-    hasBounty: false,
     icon: Trophy,
     color: '#10B981',
     check: ({ history }) => {
@@ -122,11 +133,12 @@ export const BADGES_CATALOG = [
   {
     id: 8,
     tier: 1,
+    coins: 25,
+    hasBounty: true,
+    theme: 'bull_candle',
     name: 'Risk Conscious',
     tagline: 'Keep position risk under 5% of equity',
     desc: 'Never risk your sovereign desk on a single thesis. Size with precision.',
-    coins: 0,
-    hasBounty: false,
     icon: AlertCircle,
     color: '#059669',
     check: ({ history, positions }) => {
@@ -135,14 +147,16 @@ export const BADGES_CATALOG = [
       return { unlocked: disciplined, progress: disciplined ? 1 : 0, target: 1, text: disciplined ? 'Disciplined' : '0/1 trade' };
     }
   },
+  
   {
     id: 9,
     tier: 1,
+    coins: 25,
+    hasBounty: true,
+    theme: 'risk_scale',
     name: 'Market Scholar',
     tagline: 'Examine both Long and Short order flows',
     desc: 'Trade bidirectionally: take both bullish and bearish setups when market conditions dictate.',
-    coins: 0,
-    hasBounty: false,
     icon: BarChart2,
     color: '#6366F1',
     check: ({ history, positions }) => {
@@ -156,11 +170,12 @@ export const BADGES_CATALOG = [
   {
     id: 10,
     tier: 1,
+    coins: 25,
+    hasBounty: true,
+    theme: 'order_block',
     name: 'Double Threat',
     tagline: 'Log 2 consecutive profitable exits',
     desc: 'Initial repeatability: back-to-back winners proving edge over randomness.',
-    coins: 0,
-    hasBounty: false,
     icon: Flame,
     color: '#10B981',
     check: ({ history }) => {
@@ -176,14 +191,17 @@ export const BADGES_CATALOG = [
   },
 
   // ─── TIER 2: INTERMEDIATE (11 - 30) ─── EXACTLY 5 BOUNTIES, 15 HONOR INSIGNIA
+  
   {
     id: 11,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'bull_candle',
     name: '5x Velocity',
     tagline: 'Score a trade with +400% (5x) profit return',
     desc: 'Capture asymmetrical convexity with extreme reward-to-risk ratio.',
-    coins: 100,
-    hasBounty: true, // BOUNTY 1
+    // BOUNTY 1
     icon: Zap,
     color: '#10B981',
     check: ({ history }) => {
@@ -197,11 +215,12 @@ export const BADGES_CATALOG = [
   {
     id: 12,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'compound_curve',
     name: 'Triple Threat',
     tagline: 'Score 3 consecutive winning trades',
     desc: 'Three in a row: compounding disciplined gains without emotional overtrading.',
-    coins: 0,
-    hasBounty: false,
     icon: Flame,
     color: '#059669',
     check: ({ history }) => {
@@ -215,14 +234,16 @@ export const BADGES_CATALOG = [
       return { unlocked: maxWinStreak >= 3, progress: Math.min(3, maxWinStreak), target: 3, text: `${Math.min(3, maxWinStreak)}/3 streak` };
     }
   },
+  
   {
     id: 13,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'bull_candle',
     name: 'Iron Grip',
     tagline: 'Hold a winning position for > 4 hours',
     desc: 'Patience in winning trades: letting your mathematical edge play out without cutting winners prematurely.',
-    coins: 0,
-    hasBounty: false,
     icon: ShieldCheck,
     color: '#0284C7',
     check: ({ history }) => {
@@ -237,11 +258,13 @@ export const BADGES_CATALOG = [
   {
     id: 14,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'shield_sl',
     name: 'Equity Prover',
     tagline: 'Reach $2,000 Equity (Silver Prover Tier)',
     desc: 'Double your baseline capital from $1,000 to $2,000 through pure order execution.',
-    coins: 100,
-    hasBounty: true, // BOUNTY 2
+    // BOUNTY 2
     icon: Award,
     color: '#64748B',
     check: ({ balance }) => {
@@ -249,14 +272,16 @@ export const BADGES_CATALOG = [
       return { unlocked: bal >= 2000, progress: Math.min(2000, Math.round(bal)), target: 2000, text: `$${Math.round(bal)} / $2,000` };
     }
   },
+  
   {
     id: 15,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Asset Diversifier',
     tagline: 'Trade across 3 different market asset classes',
     desc: 'Prove adaptability across Equities, Crypto, and Global FX.',
-    coins: 0,
-    hasBounty: false,
     icon: Target,
     color: '#8B5CF6',
     check: ({ history, positions }) => {
@@ -268,11 +293,12 @@ export const BADGES_CATALOG = [
   {
     id: 16,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'risk_scale',
     name: 'Forex Navigator',
     tagline: 'Execute 5 trades on Currency pairs',
     desc: 'Master liquidity, spread management, and macro rates in foreign exchange.',
-    coins: 0,
-    hasBounty: false,
     icon: BarChart2,
     color: '#0D9488',
     check: ({ history, positions }) => {
@@ -281,14 +307,16 @@ export const BADGES_CATALOG = [
       return { unlocked: fx >= 5, progress: Math.min(5, fx), target: 5, text: `${Math.min(5, fx)}/5 FX trades` };
     }
   },
+  
   {
     id: 17,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'order_block',
     name: 'Crypto Nomad',
     tagline: 'Execute 5 trades on BTC, ETH, or SOL',
     desc: 'Navigate high beta and weekend continuous liquidity feeds.',
-    coins: 0,
-    hasBounty: false,
     icon: Zap,
     color: '#F59E0B',
     check: ({ history, positions }) => {
@@ -300,11 +328,12 @@ export const BADGES_CATALOG = [
   {
     id: 18,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'lightning_exec',
     name: 'Equity Analyst',
     tagline: 'Execute 5 trades on AAPL, NVDA, or SPY',
     desc: 'Analyze balance sheets, earnings volatility, and institutional order books.',
-    coins: 0,
-    hasBounty: false,
     icon: TrendingUp,
     color: '#10B981',
     check: ({ history, positions }) => {
@@ -313,14 +342,16 @@ export const BADGES_CATALOG = [
       return { unlocked: eq >= 5, progress: Math.min(5, eq), target: 5, text: `${Math.min(5, eq)}/5 equities` };
     }
   },
+  
   {
     id: 19,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'order_block',
     name: 'Commodity Master',
     tagline: 'Trade Gold (XAUUSD) or Crude Oil (WTI)',
     desc: 'Demonstrate macro awareness trading physical reserve commodities.',
-    coins: 0,
-    hasBounty: false,
     icon: Star,
     color: '#D97706',
     check: ({ history, positions }) => {
@@ -332,11 +363,12 @@ export const BADGES_CATALOG = [
   {
     id: 20,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'bull_candle',
     name: 'Downside Architect',
     tagline: 'Never allow a loss exceeding -10% of portfolio',
     desc: 'Ironclad risk control: cut losers immediately and prevent tail-risk drawdowns.',
-    coins: 0,
-    hasBounty: false,
     icon: ShieldCheck,
     color: '#059669',
     check: ({ history }) => {
@@ -346,14 +378,16 @@ export const BADGES_CATALOG = [
       return { unlocked: !hadBigLoss, progress: hadBigLoss ? 0 : 5, target: 5, text: hadBigLoss ? 'Breached -10%' : 'Flawless Risk' };
     }
   },
+  
   {
     id: 21,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'shield_sl',
     name: 'Sniper Precision',
     tagline: 'Close a trade with Risk-to-Reward ratio >= 1:3',
     desc: 'Pristine setup execution: risk $1 to extract $3+ from the market.',
-    coins: 0,
-    hasBounty: false,
     icon: Target,
     color: '#10B981',
     check: ({ history }) => {
@@ -369,11 +403,13 @@ export const BADGES_CATALOG = [
   {
     id: 22,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'sniper_scope',
     name: 'Risk Invariance',
     tagline: 'Place 10 consecutive trades with verified Stop Loss',
     desc: 'Form the unbreakable institutional habit: never open naked market exposure.',
-    coins: 120,
-    hasBounty: true, // BOUNTY 3
+    // BOUNTY 3
     icon: ShieldCheck,
     color: '#059669',
     check: ({ history }) => {
@@ -382,14 +418,16 @@ export const BADGES_CATALOG = [
       return { unlocked: count >= 10, progress: Math.min(10, count), target: 10, text: `${Math.min(10, count)}/10 SL trades` };
     }
   },
+  
   {
     id: 23,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'shield_sl',
     name: 'Capital Defender',
     tagline: 'Maintain positive equity after 10 closed trades',
     desc: 'Capital preservation verified: your account equity remains above the $1,000 baseline.',
-    coins: 0,
-    hasBounty: false,
     icon: Trophy,
     color: '#0284C7',
     check: ({ history, balance }) => {
@@ -402,11 +440,12 @@ export const BADGES_CATALOG = [
   {
     id: 24,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'shield_sl',
     name: 'Volume Pioneer',
     tagline: 'Transact $10,000 in cumulative trading volume',
     desc: 'Move five figures of liquidity across global order books.',
-    coins: 0,
-    hasBounty: false,
     icon: Activity,
     color: '#0D9488',
     check: ({ history }) => {
@@ -414,14 +453,17 @@ export const BADGES_CATALOG = [
       return { unlocked: vol >= 10000, progress: Math.min(10000, Math.round(vol)), target: 10000, text: `$${Math.round(vol).toLocaleString()} / $10k` };
     }
   },
+  
   {
     id: 25,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'compound_curve',
     name: 'Edge Replicator',
     tagline: 'Achieve win rate >= 60% across 15+ trades',
     desc: 'Statistically significant edge: prove that your methodology is non-random.',
-    coins: 150,
-    hasBounty: true, // BOUNTY 4
+    // BOUNTY 4
     icon: Crown,
     color: '#10B981',
     check: ({ history }) => {
@@ -435,11 +477,12 @@ export const BADGES_CATALOG = [
   {
     id: 26,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'bull_candle',
     name: 'Night Watch',
     tagline: 'Manage an active swing position overnight (> 12 hours)',
     desc: 'Extend your timeframe: withstand overnight gaps and headline volatility with conviction.',
-    coins: 0,
-    hasBounty: false,
     icon: Clock,
     color: '#6366F1',
     check: ({ history }) => {
@@ -450,14 +493,16 @@ export const BADGES_CATALOG = [
       return { unlocked: overnight, progress: overnight ? 1 : 0, target: 1, text: overnight ? 'Swing Logged' : '0/1 overnight' };
     }
   },
+  
   {
     id: 27,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'bull_candle',
     name: 'Disciplined Size',
     tagline: 'Execute 10 trades without exceeding 2x leverage',
     desc: 'Prudent risk management: avoid aggressive leverage traps that liquidate retail accounts.',
-    coins: 0,
-    hasBounty: false,
     icon: ShieldAlert,
     color: '#059669',
     check: ({ history }) => {
@@ -468,11 +513,12 @@ export const BADGES_CATALOG = [
   {
     id: 28,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'risk_scale',
     name: 'Rebound Operator',
     tagline: 'Bounce back from 2 consecutive losses with a winner',
     desc: 'Tilt resistance: retain absolute mental clarity after consecutive adverse outcomes.',
-    coins: 0,
-    hasBounty: false,
     icon: Flame,
     color: '#F59E0B',
     check: ({ history }) => {
@@ -486,14 +532,16 @@ export const BADGES_CATALOG = [
       return { unlocked: bounced, progress: bounced ? 1 : 0, target: 1, text: bounced ? 'Bounced back' : 'Requires 2L -> 1W' };
     }
   },
+  
   {
     id: 29,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'bear_candle',
     name: 'Session Conductor',
     tagline: 'Conduct 5 winning trades across different weekdays',
     desc: 'Consistency across London, New York, and Asian market regimes.',
-    coins: 0,
-    hasBounty: false,
     icon: Target,
     color: '#0284C7',
     check: ({ history }) => {
@@ -509,11 +557,13 @@ export const BADGES_CATALOG = [
   {
     id: 30,
     tier: 2,
+    coins: 50,
+    hasBounty: true,
+    theme: 'compound_curve',
     name: 'Century Volume',
     tagline: 'Transact $50,000 cumulative volume',
     desc: 'Surpass fifty thousand dollars of verified notional volume transacted.',
-    coins: 150,
-    hasBounty: true, // BOUNTY 5
+    // BOUNTY 5
     icon: Activity,
     color: '#0D9488',
     check: ({ history }) => {
@@ -523,14 +573,17 @@ export const BADGES_CATALOG = [
   },
 
   // ─── TIER 3: ADVANCED / ELITE & STREAKS (31 - 52) ─── EXACTLY 10 BOUNTIES, 12 HONOR INSIGNIA
+  
   {
     id: 31,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'compound_curve',
     name: 'Discipline Ignition',
     tagline: '3-day active trading login streak',
     desc: 'Show up to inspect the markets 3 consecutive days in a row.',
-    coins: 50,
-    hasBounty: true, // BOUNTY 6
+    // BOUNTY 6
     icon: Flame,
     color: '#10B981',
     check: ({ streakDays }) => {
@@ -541,11 +594,13 @@ export const BADGES_CATALOG = [
   {
     id: 32,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Weekly Iron Will',
     tagline: '7-day continuous discipline streak',
     desc: 'One full week of relentless market presence and disciplined reviews.',
-    coins: 100,
-    hasBounty: true, // BOUNTY 7
+    // BOUNTY 7
     icon: Flame,
     color: '#059669',
     check: ({ streakDays }) => {
@@ -553,14 +608,16 @@ export const BADGES_CATALOG = [
       return { unlocked: s >= 7, progress: Math.min(7, s), target: 7, text: `${Math.min(7, s)}/7 days` };
     }
   },
+  
   {
     id: 33,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'shield_sl',
     name: 'Fortnight Fortress',
     tagline: '14-day continuous discipline streak',
     desc: 'Two solid weeks of continuous trading and daily bonuses.',
-    coins: 0,
-    hasBounty: false,
     icon: Flame,
     color: '#047857',
     check: ({ streakDays }) => {
@@ -571,11 +628,12 @@ export const BADGES_CATALOG = [
   {
     id: 34,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Habit of Champions',
     tagline: '21-day continuous discipline streak',
     desc: 'Neuroplastic routine: 21 days to permanently solidify trading discipline.',
-    coins: 0,
-    hasBounty: false,
     icon: Flame,
     color: '#065F46',
     check: ({ streakDays }) => {
@@ -583,14 +641,17 @@ export const BADGES_CATALOG = [
       return { unlocked: s >= 21, progress: Math.min(21, s), target: 21, text: `${Math.min(21, s)}/21 days` };
     }
   },
+  
   {
     id: 35,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'diamond_hands',
     name: 'Monthly Titan',
     tagline: '30-day continuous discipline streak',
     desc: 'One uninterrupted calendar month of professional presence.',
-    coins: 250,
-    hasBounty: true, // BOUNTY 8
+    // BOUNTY 8
     icon: Crown,
     color: '#EAB308',
     check: ({ streakDays }) => {
@@ -601,11 +662,12 @@ export const BADGES_CATALOG = [
   {
     id: 36,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'master_titan',
     name: 'Unshakeable Habit',
     tagline: '60-day continuous discipline streak',
     desc: 'Two full months without missing a single day of market study.',
-    coins: 0,
-    hasBounty: false,
     icon: Crown,
     color: '#CA8A04',
     check: ({ streakDays }) => {
@@ -613,14 +675,17 @@ export const BADGES_CATALOG = [
       return { unlocked: s >= 60, progress: Math.min(60, s), target: 60, text: `${Math.min(60, s)}/60 days` };
     }
   },
+  
   {
     id: 37,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'diamond_hands',
     name: 'Centurion Nomad',
     tagline: '100-day daily discipline streak',
     desc: 'Triple-digit milestone: 100 days of ironclad focus and execution.',
-    coins: 500,
-    hasBounty: true, // BOUNTY 9
+    // BOUNTY 9
     icon: Trophy,
     color: '#854D0E',
     check: ({ streakDays }) => {
@@ -631,11 +696,12 @@ export const BADGES_CATALOG = [
   {
     id: 38,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'master_titan',
     name: 'Apex Predator',
     tagline: 'Score 5 consecutive winning trades',
     desc: 'Five consecutive winners without a single drawdown exit.',
-    coins: 0,
-    hasBounty: false,
     icon: Zap,
     color: '#10B981',
     check: ({ history }) => {
@@ -649,14 +715,16 @@ export const BADGES_CATALOG = [
       return { unlocked: maxWinStreak >= 5, progress: Math.min(5, maxWinStreak), target: 5, text: `${Math.min(5, maxWinStreak)}/5 wins` };
     }
   },
+  
   {
     id: 39,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'apex_crown',
     name: 'Septa-Strike',
     tagline: '7 consecutive winning trades',
     desc: 'Seven consecutive green prints across any market environment.',
-    coins: 0,
-    hasBounty: false,
     icon: Flame,
     color: '#059669',
     check: ({ history }) => {
@@ -673,11 +741,13 @@ export const BADGES_CATALOG = [
   {
     id: 40,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'bull_candle',
     name: 'Deca-Strike Legend',
     tagline: '10 consecutive winning trades without a loss',
     desc: 'Ten wins in a row. Elite probability engineering and zero tilt.',
-    coins: 300,
-    hasBounty: true, // BOUNTY 10
+    // BOUNTY 10
     icon: Crown,
     color: '#047857',
     check: ({ history }) => {
@@ -691,14 +761,16 @@ export const BADGES_CATALOG = [
       return { unlocked: maxWinStreak >= 10, progress: Math.min(10, maxWinStreak), target: 10, text: `${Math.min(10, maxWinStreak)}/10 wins` };
     }
   },
+  
   {
     id: 41,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'apex_crown',
     name: 'Battle Tested',
     tagline: 'Execute 50 total lifetime trades',
     desc: 'Solidify your track record across fifty unique market setups.',
-    coins: 0,
-    hasBounty: false,
     icon: ShieldCheck,
     color: '#10B981',
     check: ({ history, positions }) => {
@@ -709,11 +781,12 @@ export const BADGES_CATALOG = [
   {
     id: 42,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Century Operator',
     tagline: 'Execute 100 total lifetime trades',
     desc: 'One hundred trades executed. A statistically significant sample size.',
-    coins: 0,
-    hasBounty: false,
     icon: Award,
     color: '#059669',
     check: ({ history, positions }) => {
@@ -721,14 +794,16 @@ export const BADGES_CATALOG = [
       return { unlocked: total >= 100, progress: Math.min(100, total), target: 100, text: `${Math.min(100, total)}/100 trades` };
     }
   },
+  
   {
     id: 43,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Market Veteran',
     tagline: 'Execute 250 lifetime trades',
     desc: 'Quarter of a thousand trades. Hardened against market noise and whipsaws.',
-    coins: 0,
-    hasBounty: false,
     icon: Medal,
     color: '#047857',
     check: ({ history, positions }) => {
@@ -739,11 +814,12 @@ export const BADGES_CATALOG = [
   {
     id: 44,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'master_titan',
     name: 'Six-Figure Flow',
     tagline: 'Transact $100,000 cumulative volume',
     desc: 'Surpass six figures of trading liquidity managed in the arena.',
-    coins: 0,
-    hasBounty: false,
     icon: Coins,
     color: '#EAB308',
     check: ({ history }) => {
@@ -751,14 +827,16 @@ export const BADGES_CATALOG = [
       return { unlocked: vol >= 100000, progress: Math.min(100000, Math.round(vol)), target: 100000, text: `$${Math.round(vol).toLocaleString()} / $100k` };
     }
   },
+  
   {
     id: 45,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Half-Million Mover',
     tagline: 'Transact $500,000 cumulative volume',
     desc: 'Move half a million dollars of cumulative notional exposure.',
-    coins: 0,
-    hasBounty: false,
     icon: Activity,
     color: '#D97706',
     check: ({ history }) => {
@@ -769,11 +847,13 @@ export const BADGES_CATALOG = [
   {
     id: 46,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Million Dollar Desk',
     tagline: 'Transact $1,000,000 cumulative turnover',
     desc: 'Institutional scale: Seven figures of total trading turnover executed.',
-    coins: 500,
-    hasBounty: true, // BOUNTY 11
+    // BOUNTY 11
     icon: Crown,
     color: '#CA8A04',
     check: ({ history }) => {
@@ -781,14 +861,17 @@ export const BADGES_CATALOG = [
       return { unlocked: vol >= 1000000, progress: Math.min(1000000, Math.round(vol)), target: 1000000, text: `$${Math.round(vol).toLocaleString()} / $1M` };
     }
   },
+  
   {
     id: 47,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Ruby Master',
     tagline: 'Ascend to Master Rank ($8,000 equity)',
     desc: '8x portfolio growth from $1,000. Earn the elite Ruby Master Insignia.',
-    coins: 400,
-    hasBounty: true, // BOUNTY 12
+    // BOUNTY 12
     icon: Trophy,
     color: '#E11D48',
     check: ({ balance }) => {
@@ -799,11 +882,13 @@ export const BADGES_CATALOG = [
   {
     id: 48,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Apex Operator',
     tagline: 'Ascend to Operator Rank ($15,000 equity)',
     desc: '15x your starting capital. Attain the highest sovereign rank on NonStock.',
-    coins: 750,
-    hasBounty: true, // BOUNTY 13
+    // BOUNTY 13
     icon: Crown,
     color: '#A855F7',
     check: ({ balance }) => {
@@ -811,14 +896,17 @@ export const BADGES_CATALOG = [
       return { unlocked: bal >= 15000, progress: Math.min(15000, Math.round(bal)), target: 15000, text: `$${Math.round(bal)} / $15,000` };
     }
   },
+  
   {
     id: 49,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'apex_crown',
     name: 'Triple 10x Titan',
     tagline: 'Score 3 separate 10x (+900%) ROI trades',
     desc: 'Prove that your 10x return was not luck: replicate it three separate times.',
-    coins: 600,
-    hasBounty: true, // BOUNTY 14
+    // BOUNTY 14
     icon: Flame,
     color: '#10B981',
     check: ({ history }) => {
@@ -832,11 +920,12 @@ export const BADGES_CATALOG = [
   {
     id: 50,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'master_titan',
     name: 'Phoenix Resurrection',
     tagline: 'Recover from a -20% drawdown to a new equity high',
     desc: 'Psychological resilience: bounce back from deep red to peak capital.',
-    coins: 0,
-    hasBounty: false,
     icon: ShieldAlert,
     color: '#F59E0B',
     check: ({ history, balance }) => {
@@ -846,14 +935,16 @@ export const BADGES_CATALOG = [
       return { unlocked: isRecovered, progress: isRecovered ? 1 : 0, target: 1, text: isRecovered ? 'Rebounded' : 'Requires DD recovery' };
     }
   },
+  
   {
     id: 51,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'Discipline Paragon',
     tagline: 'Achieve DER Discipline Rating >= 90 over 20+ trades',
     desc: 'Never breach risk rules. High risk-reward, consistent sizing, and flawless stops.',
-    coins: 0,
-    hasBounty: false,
     icon: ShieldCheck,
     color: '#10B981',
     check: ({ history }) => {
@@ -867,11 +958,13 @@ export const BADGES_CATALOG = [
   {
     id: 52,
     tier: 3,
+    coins: 100,
+    hasBounty: true,
+    theme: 'gold_vault',
     name: 'NonStock Grandmaster',
     tagline: 'Complete 50+ trades, win rate >= 75%, and unlock 30+ badges',
     desc: 'The pinnacle of trading prowess. Reserved for the absolute top 0.1% on NonStock.',
-    coins: 1000,
-    hasBounty: true, // BOUNTY 15
+    // BOUNTY 15
     icon: Crown,
     color: '#059669',
     check: ({ history, unlockedBadgeCount }) => {

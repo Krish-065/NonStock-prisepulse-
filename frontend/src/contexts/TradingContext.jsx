@@ -316,13 +316,40 @@ export const TradingProvider = ({ children }) => {
     }
   };
 
+  const claimBadgeBounty = async (badgeId, badgeName, coinsAmount) => {
+    const claimKey = `prisepulse_claimed_badge_${badgeId}`;
+    if (localStorage.getItem(claimKey)) {
+      toast.info(`Coins for ${badgeName} have already been credited to your Vault!`);
+      return false;
+    }
+    const bounty = Number(coinsAmount) || 0;
+    if (bounty <= 0) return false;
+
+    localStorage.setItem(claimKey, 'true');
+    setCoins(prev => prev + bounty);
+    toast.success(`🎉 Protocol Bounty! +${bounty} Gold Coins credited for unlocking ${badgeName}!`);
+
+    try {
+      await apiClient.post('/paper/record-discipline-coins', {
+        amount: bounty,
+        reason: 'BADGE_BOUNTY',
+        description: `Milestone: Unlocked Badge #${badgeId} (${badgeName}) (+${bounty} Gold Coins)`
+      });
+      if (syncVaultAndStreak) syncVaultAndStreak();
+    } catch (err) {
+      console.warn('Could not record badge bounty to database:', err);
+    }
+    return true;
+  };
+
   return (
     <TradingContext.Provider value={{
       balance, coins, positions, history, hasSeenModal, isBusted, badge,
       watchlist, unlockedTools: effectiveUnlockedTools, streakDays,
       isFreeGraceActive, trialDaysRemaining,
       placeOrder, closePosition, updateSLTP, resetAccount, acknowledgeModal,
-      addToWatchlist, removeFromWatchlist, unlockTool, syncVaultAndStreak
+      addToWatchlist, removeFromWatchlist, unlockTool, syncVaultAndStreak,
+      claimBadgeBounty
     }}>
       {children}
     </TradingContext.Provider>

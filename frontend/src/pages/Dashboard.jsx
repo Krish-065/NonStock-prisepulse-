@@ -18,6 +18,7 @@ import GoldCoin1K from '../components/GoldCoin1K';
 import MarketHoursDesk from '../components/MarketHoursDesk';
 import PositionSizeCalculator from '../components/PositionSizeCalculator';
 import MobilePortfolioHub from '../components/MobilePortfolioHub';
+import TradingBadgeImage from '../components/TradingBadgeImage';
 import { BADGES_CATALOG, DISCIPLINE_TASKS } from '../data/badgesData';
 
 // Available assets for the Watchlist search dropdown
@@ -45,7 +46,8 @@ export default function Dashboard() {
     watchlist = [], addToWatchlist, removeFromWatchlist,
     unlockedTools = {}, unlockTool,
     isFreeGraceActive = true, trialDaysRemaining = 60,
-    syncVaultAndStreak
+    syncVaultAndStreak,
+    claimBadgeBounty
   } = useTrading();
 
   // Gold Coins Vault & Audit Ledger Modal state
@@ -77,6 +79,13 @@ export default function Dashboard() {
     return !hasSeen;
   });
   const [welcomeSeconds, setWelcomeSeconds] = useState(3);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 860 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 860);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Auto-countdown to close welcome splash
   useEffect(() => {
@@ -645,7 +654,7 @@ export default function Dashboard() {
       {activeTab === 'overview' && (
         <>
           {/* Mobile Curve Preview when viewport is compact */}
-          <div style={{ display: typeof window !== 'undefined' && window.innerWidth < 800 ? 'block' : 'none' }}>
+          <div style={{ display: isMobile ? 'block' : 'none' }}>
             <MobilePortfolioHub 
               balance={balanceNum} 
               netPnL={netPnL} 
@@ -664,7 +673,7 @@ export default function Dashboard() {
             WebkitBackdropFilter: 'blur(16px)',
             borderRadius: '24px',
             border: '1.5px solid rgba(226, 232, 240, 0.85)',
-            padding: '24px 28px',
+            padding: isMobile ? '18px 16px' : '24px 28px',
             boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
           }}>
         {/* Upper Technical Meta Ribbon */}
@@ -740,7 +749,7 @@ export default function Dashboard() {
         {/* ─── ASYMMETRIC BENTO GRID (UNEVEN HIGHLIGHTS & BOLD TYPOGRAPHY) ─── */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr)',
+          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr)',
           gap: '20px'
         }}>
           {/* Card A (Expansive Hero Card): Trader Identity & Portfolio Equity */}
@@ -994,7 +1003,7 @@ export default function Dashboard() {
         {/* 5 Independent Detached Rounded Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
+          gridTemplateColumns: isMobile ? 'repeat(auto-fit, minmax(130px, 1fr))' : 'repeat(5, 1fr)',
           gap: '12px'
         }}>
           {[
@@ -1039,7 +1048,7 @@ export default function Dashboard() {
       {/* ─── 3. MIDDLE SPLIT OPERATIONAL DESK (DISCIPLINE TASKS DESK VS PLATFORM VOUCHER & RADAR) ─── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 1fr)',
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.35fr) minmax(0, 1fr)',
         gap: '24px'
       }}>
         {/* Left Column: Dedicated Discipline Tasks Desk (Floating Card) */}
@@ -1441,157 +1450,146 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Badges Grid with Unique Modern Insignias */}
+        {/* Badges Grid with Unique Empowered Trading Medallions */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '16px'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+          gap: '18px'
         }}>
           {visibleBadges.map(b => {
-            const Icon = b.icon;
             return (
               <div
                 key={b.id}
                 onClick={() => setSelectedBadge(b)}
                 style={{
-                  background: b.unlocked ? '#FFFFFF' : '#FAFBFC',
+                  background: b.unlocked 
+                    ? 'linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%)' 
+                    : '#FFFFFF',
                   border: b.unlocked 
                     ? '2px solid #10B981' 
-                    : (b.hasBounty ? '1.5px solid #FDE047' : '1.5px solid #E2E8F0'),
-                  borderRadius: '18px',
-                  padding: '18px',
+                    : '1.5px solid #E2E8F0',
+                  borderRadius: '20px',
+                  padding: '16px 14px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  gap: '14px',
+                  alignItems: 'center',
+                  gap: '12px',
                   cursor: 'pointer',
                   position: 'relative',
-                  opacity: b.unlocked ? 1 : 0.88,
+                  opacity: b.unlocked ? 1 : 0.82,
                   boxShadow: b.unlocked 
-                    ? '0 6px 20px rgba(16, 185, 129, 0.12)' 
-                    : '0 2px 8px rgba(0,0,0,0.02)',
-                  transition: 'transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease'
+                    ? '0 8px 24px rgba(16, 185, 129, 0.16)' 
+                    : '0 2px 10px rgba(0, 0, 0, 0.03)',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = b.unlocked ? '#059669' : '#10B981';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = b.unlocked 
+                    ? '0 12px 28px rgba(16, 185, 129, 0.25)' 
+                    : '0 8px 20px rgba(0, 0, 0, 0.08)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = b.unlocked 
-                    ? '#10B981' 
-                    : (b.hasBounty ? '#FDE047' : '#E2E8F0');
+                  e.currentTarget.style.borderColor = b.unlocked ? '#10B981' : '#E2E8F0';
                   e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = b.unlocked 
+                    ? '0 8px 24px rgba(16, 185, 129, 0.16)' 
+                    : '0 2px 10px rgba(0, 0, 0, 0.03)';
                 }}
               >
-                {/* Top Badge Status Tag */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {/* Unique Insignia Container */}
+                {/* Top Badge Card Bar: Tier Pill & Coin Bounty */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span style={{
+                    fontSize: '10.5px',
+                    fontWeight: 900,
+                    color: b.unlocked ? '#059669' : '#64748B',
+                    background: b.unlocked ? '#ECFDF5' : '#F1F5F9',
+                    border: `1px solid ${b.unlocked ? '#A7F3D0' : '#E2E8F0'}`,
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.4px'
+                  }}>
+                    Tier {b.tier} • #{b.id}
+                  </span>
+
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: 900,
+                    color: '#854D0E',
+                    background: 'linear-gradient(135deg, #FEF9C3 0%, #FDE047 100%)',
+                    border: '1px solid #F59E0B',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: '0 2px 6px rgba(245, 158, 11, 0.2)'
+                  }}>
+                    <Coins size={12} color="#B45309" />
+                    <span>+{b.coins} Coins</span>
+                  </span>
+                </div>
+
+                {/* Big Empowered Trading Medallion with Nameplate */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '6px 0',
+                  position: 'relative'
+                }}>
+                  <TradingBadgeImage
+                    name={b.name}
+                    tier={b.tier}
+                    theme={b.theme}
+                    unlocked={b.unlocked}
+                    size={116}
+                  />
+                </div>
+
+                {/* Bottom Status / Progress Indicator (No long text descriptions in grid box) */}
+                <div style={{ width: '100%' }}>
+                  {b.unlocked ? (
                     <div style={{
-                      position: 'relative',
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: b.hasBounty ? '10px' : '10px',
-                      background: b.hasBounty 
-                        ? 'linear-gradient(135deg, #FEF9C3 0%, #FDE047 60%, #D97706 100%)'
-                        : (b.unlocked ? '#ECFDF5' : '#F1F5F9'),
-                      border: b.hasBounty 
-                        ? '1.5px solid #F59E0B'
-                        : (b.unlocked ? '1.5px solid #10B981' : '1.5px solid #CBD5E1'),
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: b.hasBounty ? '#78350F' : (b.unlocked ? b.color || '#059669' : '#94A3B8'),
-                      boxShadow: b.hasBounty ? '0 2px 8px rgba(217, 119, 6, 0.3)' : 'none'
-                    }}>
-                      <Icon size={18} />
-                      {b.hasBounty && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '-4px',
-                          right: '-4px',
-                          background: '#B45309',
-                          color: '#FEF9C3',
-                          border: '1px solid #FDE047',
-                          borderRadius: '999px',
-                          padding: '0 3px',
-                          fontSize: '7px',
-                          fontWeight: 900
-                        }}>
-                          1K
-                        </div>
-                      )}
-                    </div>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>
-                      #{b.id}
-                    </span>
-                  </div>
-
-                  {b.hasBounty ? (
-                    <span style={{
+                      gap: '5px',
+                      background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+                      border: '1px solid #10B981',
+                      borderRadius: '8px',
+                      padding: '6px 10px',
+                      color: '#065F46',
                       fontSize: '11px',
                       fontWeight: 900,
-                      background: '#FEF9C3',
-                      border: '1px solid #FDE047',
-                      color: '#854D0E',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
+                      boxShadow: '0 2px 6px rgba(16, 185, 129, 0.15)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.4px'
                     }}>
-                      <Coins size={12} color="#D97706" />
-                      <span>+{b.coins} Coins</span>
-                    </span>
+                      <CheckCircle2 size={13} color="#059669" />
+                      <span>Unlocked • Verified</span>
+                    </div>
                   ) : (
-                    <span style={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      background: '#F1F5F9',
-                      border: '1px solid #E2E8F0',
-                      color: '#64748B',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      <ShieldCheck size={12} color="#64748B" />
-                      <span>Honor (0 Coins)</span>
-                    </span>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
+                        <span>Progress</span>
+                        <span style={{ fontWeight: 800, color: '#0F172A' }}>{b.progressPct}%</span>
+                      </div>
+                      <div style={{ height: '5px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${b.progressPct}%`,
+                          height: '100%',
+                          background: 'linear-gradient(90deg, #10B981 0%, #05CD77 100%)',
+                          borderRadius: '3px'
+                        }} />
+                      </div>
+                      <div style={{ textAlign: 'center', fontSize: '10px', color: '#94A3B8', marginTop: '3px', fontWeight: 600 }}>
+                        Tap to inspect details
+                      </div>
+                    </div>
                   )}
-                </div>
-
-                {/* Badge Info */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <h4 style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-                      {b.name}
-                    </h4>
-                    {b.unlocked && (
-                      <CheckCircle2 size={15} color="#059669" />
-                    )}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', lineHeight: 1.4 }}>
-                    {b.tagline}
-                  </div>
-                </div>
-
-                {/* Progress Bar & Status */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
-                    <span>{b.progressText}</span>
-                    <span style={{ fontWeight: 800, color: b.unlocked ? '#059669' : '#64748B' }}>
-                      {b.unlocked ? 'UNLOCKED' : `${b.progressPct}%`}
-                    </span>
-                  </div>
-                  <div style={{ height: '6px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{
-                      width: `${b.progressPct}%`,
-                      height: '100%',
-                      background: b.unlocked ? '#059669' : '#94A3B8'
-                    }} />
-                  </div>
                 </div>
               </div>
             );
@@ -1629,7 +1627,7 @@ export default function Dashboard() {
       {/* ─── 5. LOWER PROVING LEDGER: BROKER MIRROR & REAL LEADERBOARD (DETACHED FLOATING CARDS) ─── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)',
         gap: '24px'
       }}>
         {/* Left Card: Broker Mirror & Real Account Sync */}
@@ -1812,23 +1810,25 @@ export default function Dashboard() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(6px)',
+          background: 'rgba(15, 23, 42, 0.72)',
+          backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 3500,
-          padding: '20px'
+          padding: '16px'
         }}>
           <div style={{
             background: '#FFFFFF',
             border: '2px solid #E2E8F0',
-            borderRadius: '12px',
+            borderRadius: '24px',
             padding: '28px',
-            maxWidth: '460px',
+            maxWidth: '480px',
             width: '100%',
             position: 'relative',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)'
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            maxHeight: '90vh',
+            overflowY: 'auto'
           }}>
             <button
               onClick={() => setSelectedBadge(null)}
@@ -1840,60 +1840,67 @@ export default function Dashboard() {
                 border: 'none',
                 color: '#64748B',
                 borderRadius: '50%',
-                width: '30px',
-                height: '30px',
+                width: '32px',
+                height: '32px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                transition: 'background 0.15s ease'
               }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#E2E8F0'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#F1F5F9'}
             >
               <X size={16} />
             </button>
 
+            {/* Medallion Hero Display */}
             <div style={{
-              width: '54px',
-              height: '54px',
-              borderRadius: '8px',
-              background: selectedBadge.unlocked ? '#ECFDF5' : '#F1F5F9',
-              border: `1.5px solid ${selectedBadge.unlocked ? '#10B981' : '#CBD5E1'}`,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              color: selectedBadge.unlocked ? selectedBadge.color : '#94A3B8',
-              marginBottom: '16px'
+              padding: '12px 0 20px',
+              borderBottom: '1px solid #F1F5F9',
+              marginBottom: '18px'
             }}>
-              {React.createElement(selectedBadge.icon, { size: 28 })}
+              <TradingBadgeImage
+                name={selectedBadge.name}
+                tier={selectedBadge.tier}
+                theme={selectedBadge.theme}
+                unlocked={selectedBadge.unlocked}
+                size={140}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 900, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  Badge #{selectedBadge.id} • Tier {selectedBadge.tier}
+                </span>
+                {selectedBadge.unlocked ? (
+                  <span style={{ fontSize: '11px', background: '#ECFDF5', color: '#059669', padding: '2px 8px', borderRadius: '4px', fontWeight: 900, border: '1px solid #A7F3D0' }}>
+                    VERIFIED UNLOCKED
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '11px', background: '#F1F5F9', color: '#64748B', padding: '2px 8px', borderRadius: '4px', fontWeight: 800, border: '1px solid #E2E8F0' }}>
+                    LOCKED
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
-                Badge #{selectedBadge.id} • Tier {selectedBadge.tier}
-              </span>
-              {selectedBadge.unlocked ? (
-                <span style={{ fontSize: '10px', background: '#ECFDF5', color: '#059669', padding: '1px 6px', borderRadius: '3px', fontWeight: 900 }}>
-                  VERIFIED UNLOCKED
-                </span>
-              ) : (
-                <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#64748B', padding: '1px 6px', borderRadius: '3px', fontWeight: 800 }}>
-                  LOCKED
-                </span>
-              )}
-            </div>
-
-            <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0' }}>
+            <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.3px' }}>
               {selectedBadge.name}
             </h3>
-            <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0' }}>
+            <p style={{ fontSize: '13.5px', color: '#64748B', margin: '0 0 16px 0', lineHeight: 1.5 }}>
               {selectedBadge.desc}
             </p>
 
-            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '14px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>
-                <span>CRITERIA REQUIREMENT</span>
+            {/* Criteria Box */}
+            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800, color: '#64748B', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <span>Milestone Requirement</span>
                 <span>{selectedBadge.progressText}</span>
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '10px' }}>
+              <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', marginBottom: '10px' }}>
                 {selectedBadge.tagline}
               </div>
               <div style={{ height: '6px', background: '#E2E8F0', borderRadius: '3px', overflow: 'hidden' }}>
@@ -1905,24 +1912,55 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Protocol Bounty Note */}
+            {/* Gold Coin Bounty & Vault Claim */}
             <div style={{
-              background: selectedBadge.hasBounty ? '#FEF9C3' : '#F1F5F9',
-              border: selectedBadge.hasBounty ? '1px solid #FDE047' : '1px solid #E2E8F0',
-              borderRadius: '6px',
-              padding: '12px',
-              fontSize: '12px',
-              color: selectedBadge.hasBounty ? '#854D0E' : '#475569',
-              marginBottom: '20px'
+              background: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)',
+              border: '1.5px solid #F59E0B',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              marginBottom: '20px',
+              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)'
             }}>
-              {selectedBadge.hasBounty ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Coins size={24} color="#D97706" />
                 <div>
-                  <strong>Rare Protocol Bounty:</strong> Unlocking this elite milestone awards <strong>+{selectedBadge.coins} Gold Coins</strong> to your vault.
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#854D0E', textTransform: 'uppercase' }}>
+                    Milestone Coin Bounty
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: 900, color: '#78350F' }}>
+                    +{selectedBadge.coins} Gold Coins
+                  </div>
                 </div>
-              ) : (
-                <div>
-                  <strong>Honor Insignia:</strong> This badge is a pure mathematical mark of honor and track record proof. It does not distribute Gold Coins, keeping the discipline economy strictly preserved.
-                </div>
+              </div>
+
+              {selectedBadge.unlocked && (
+                <button
+                  onClick={() => claimBadgeBounty(selectedBadge.id, selectedBadge.name, selectedBadge.coins)}
+                  style={{
+                    background: '#059669',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 14px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
+                    transition: 'all 0.15s ease'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = '#047857'}
+                  onMouseOut={(e) => e.currentTarget.style.background = '#059669'}
+                >
+                  <Coins size={13} color="#FFFFFF" />
+                  <span>Claim to Vault</span>
+                </button>
               )}
             </div>
 
@@ -1933,12 +1971,15 @@ export default function Dashboard() {
                 background: '#0F172A',
                 color: '#FFFFFF',
                 border: 'none',
-                borderRadius: '6px',
-                padding: '10px',
+                borderRadius: '10px',
+                padding: '12px',
                 fontSize: '13px',
                 fontWeight: 800,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                transition: 'background 0.15s ease'
               }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#1E293B'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#0F172A'}
             >
               Close Dossier
             </button>

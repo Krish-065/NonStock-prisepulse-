@@ -199,36 +199,40 @@ export default function Landing() {
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '10px',
-            padding: '7px 20px',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            gap: '8px',
+            padding: '6px 18px',
             borderRadius: '999px',
             background: '#F0FDF4',
             border: '1.5px solid #00DF81',
             color: '#047857',
-            fontSize: '12px',
+            fontSize: '11px',
             fontWeight: 900,
-            letterSpacing: '1px',
+            letterSpacing: '0.6px',
             textTransform: 'uppercase',
             marginBottom: '18px',
-            boxShadow: '0 2px 14px rgba(0, 223, 129, 0.2)'
+            boxShadow: '0 2px 14px rgba(0, 223, 129, 0.2)',
+            maxWidth: '100%'
           }}>
-            <div style={{ display: 'flex', gap: '3px' }}>
+            <div style={{ display: 'flex', gap: '2px' }}>
               {'★★★★★'.split('').map((star, i) => (
-                <span key={i} style={{ color: '#00DF81', fontSize: '14px' }}>{star}</span>
+                <span key={i} style={{ color: '#00DF81', fontSize: '13px' }}>{star}</span>
               ))}
             </div>
-            <span>NONSTOCK // 100% UNALTERABLE MATHEMATICAL PROVING PROTOCOL</span>
+            <span>NONSTOCK // MATHEMATICAL PROVING PROTOCOL</span>
           </div>
 
           {/* Monumental Headline Inspired by JCTRADER */}
           <h1 style={{
-            fontSize: 'clamp(46px, 6.2vw, 86px)',
+            fontSize: 'clamp(32px, 5.8vw, 84px)',
             fontWeight: 900,
-            lineHeight: 1.04,
-            letterSpacing: '-2.5px',
+            lineHeight: 1.08,
+            letterSpacing: '-1.5px',
             color: '#0F172A',
             maxWidth: '1180px',
-            margin: '0 auto 18px auto'
+            margin: '0 auto 18px auto',
+            wordBreak: 'break-word'
           }}>
             Redefining the Future of Trading. <br />
             <span style={{

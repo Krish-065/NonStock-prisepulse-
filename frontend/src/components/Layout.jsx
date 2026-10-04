@@ -253,11 +253,11 @@ export default function Layout({ children }) {
                 <span>{coins || 0}</span>
               </div>
 
-              {/* User Rank Tier Badge */}
+              {/* User Rank Tier Badge (Hidden on mobile header to ensure no crowding) */}
               <div 
                 onClick={() => navigate('/dashboard')}
                 style={{
-                  display: 'flex',
+                  display: isMobile ? 'none' : 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   padding: '5px 12px',
