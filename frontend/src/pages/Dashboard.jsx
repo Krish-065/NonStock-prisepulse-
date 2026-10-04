@@ -438,11 +438,13 @@ export default function Dashboard() {
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '12px',
-        background: '#FFFFFF',
-        border: '1.5px solid #E2E8F0',
+        background: 'rgba(255, 255, 255, 0.78)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1.5px solid rgba(226, 232, 240, 0.85)',
         borderRadius: '16px',
         padding: '10px 14px',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)'
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)'
       }}>
         <div style={{
           display: 'flex',
@@ -657,9 +659,11 @@ export default function Dashboard() {
 
           {/* ─── 1. TOP ASYMMETRIC BENTO EXECUTIVE MASTHEAD & HERO DOSSIER ─── */}
           <div style={{
-            background: '#FFFFFF',
+            background: 'rgba(255, 255, 255, 0.78)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             borderRadius: '24px',
-            border: '1.5px solid #E2E8F0',
+            border: '1.5px solid rgba(226, 232, 240, 0.85)',
             padding: '24px 28px',
             boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
           }}>
@@ -741,8 +745,10 @@ export default function Dashboard() {
         }}>
           {/* Card A (Expansive Hero Card): Trader Identity & Portfolio Equity */}
           <div style={{
-            background: 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
-            border: '1.5px solid #E2E8F0',
+            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.82) 0%, rgba(248, 250, 252, 0.72) 100%)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1.5px solid rgba(226, 232, 240, 0.85)',
             borderRadius: '20px',
             padding: '24px',
             display: 'flex',
@@ -859,8 +865,10 @@ export default function Dashboard() {
               fetchCoinVaultLedger();
             }}
             style={{
-              background: 'linear-gradient(145deg, #FFFDF5 0%, #FEF9C3 100%)',
-              border: '1.5px solid #FDE047',
+              background: 'linear-gradient(145deg, rgba(255, 253, 245, 0.88) 0%, rgba(254, 249, 195, 0.78) 100%)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1.5px solid rgba(253, 224, 71, 0.85)',
               borderRadius: '20px',
               padding: '24px',
               display: 'flex',
@@ -917,8 +925,10 @@ export default function Dashboard() {
 
           {/* Card C (Asymmetric Emerald Pod): Discipline Execution Rating DER */}
           <div style={{
-            background: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDF4 100%)',
-            border: '1.5px solid #BBF7D0',
+            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.82) 0%, rgba(240, 253, 244, 0.78) 100%)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1.5px solid rgba(187, 247, 208, 0.85)',
             borderRadius: '20px',
             padding: '24px',
             display: 'flex',
@@ -964,9 +974,11 @@ export default function Dashboard() {
 
       {/* ─── 2. DETACHED DECAGON TIER PROGRESSION RULER ─── */}
       <div style={{
-        background: '#FFFFFF',
+        background: 'rgba(255, 255, 255, 0.78)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         borderRadius: '24px',
-        border: '1.5px solid #E2E8F0',
+        border: '1.5px solid rgba(226, 232, 240, 0.85)',
         padding: '20px 28px',
         boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
       }}>
@@ -1032,9 +1044,11 @@ export default function Dashboard() {
       }}>
         {/* Left Column: Dedicated Discipline Tasks Desk (Floating Card) */}
         <div style={{
-          background: '#FFFFFF',
+          background: 'rgba(255, 255, 255, 0.78)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           borderRadius: '24px',
-          border: '1.5px solid #E2E8F0',
+          border: '1.5px solid rgba(226, 232, 240, 0.85)',
           padding: '28px',
           boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
           display: 'flex',
@@ -1204,9 +1218,11 @@ export default function Dashboard() {
           {/* 60-Day Free Platform Access Voucher */}
           {isFreeGraceActive && (
             <div style={{
-              background: '#FFFFFF',
+              background: 'rgba(255, 255, 255, 0.78)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
               borderRadius: '20px',
-              border: '1.5px solid #A7F3D0',
+              border: '1.5px solid rgba(167, 243, 208, 0.85)',
               padding: '24px',
               display: 'flex',
               flexDirection: 'column',
@@ -1335,9 +1351,11 @@ export default function Dashboard() {
 
       {/* ─── 4. INSTITUTIONAL BADGES VAULT (52 BADGES • 15 PROTOCOL BOUNTIES VS 37 HONOR INSIGNIAS) ─── */}
       <div style={{
-        background: '#FFFFFF',
+        background: 'rgba(255, 255, 255, 0.78)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         borderRadius: '24px',
-        border: '1.5px solid #E2E8F0',
+        border: '1.5px solid rgba(226, 232, 240, 0.85)',
         padding: '32px',
         boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
       }}>
@@ -1616,9 +1634,11 @@ export default function Dashboard() {
       }}>
         {/* Left Card: Broker Mirror & Real Account Sync */}
         <div style={{
-          background: '#FFFFFF',
+          background: 'rgba(255, 255, 255, 0.78)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           borderRadius: '24px',
-          border: '1.5px solid #E2E8F0',
+          border: '1.5px solid rgba(226, 232, 240, 0.85)',
           padding: '28px',
           boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
           display: 'flex',
@@ -1716,9 +1736,11 @@ export default function Dashboard() {
 
         {/* Right Card: Real Verified Provers Leaderboard */}
         <div style={{
-          background: '#FFFFFF',
+          background: 'rgba(255, 255, 255, 0.78)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           borderRadius: '24px',
-          border: '1.5px solid #E2E8F0',
+          border: '1.5px solid rgba(226, 232, 240, 0.85)',
           padding: '28px',
           boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
           display: 'flex',

@@ -88,7 +88,7 @@ export default function Layout({ children }) {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: '#F8FAFC', 
+      background: 'radial-gradient(ellipse at center, #F0FDF4 0%, #FFFFFF 70%)', 
       color: '#0F172A',
       display: 'flex',
       flexDirection: 'column',
@@ -97,7 +97,7 @@ export default function Layout({ children }) {
       overflowX: 'hidden'
     }}>
       {/* ─── DYNAMIC CELESTIAL BACKGROUND: ROTATING EARTH & ORBITING SUN ─── */}
-      <CelestialEngine mode="ambient" style={{ opacity: 0.42, zIndex: 0 }} />
+      <CelestialEngine mode="ambient" style={{ opacity: 0.65, zIndex: 0 }} />
 
       {/* Crisp White & Emerald Navbar */}
       <header style={{
