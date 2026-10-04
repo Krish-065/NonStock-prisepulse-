@@ -5,7 +5,7 @@ import CelestialEngine from '../components/CelestialEngine';
 import GoldCoin1K from '../components/GoldCoin1K';
 import { 
   ShieldCheck, Trophy, Medal, Award, Target, Coins, 
-  Crown, ArrowRight, CheckCircle2, 
+  Crown, ArrowRight, CheckCircle2, Zap,
   ChevronDown, ChevronUp, Lock, Sparkles, TrendingUp,
   BarChart3, Activity, Layers, Compass, Check, AlertCircle, Eye,
   SlidersHorizontal, RefreshCw, FileCheck2, Share2, ExternalLink

@@ -116,10 +116,10 @@ export default function CelestialEngine({
       const isHero = mode === 'hero';
       const radius = isHero 
         ? Math.min(width * 0.44, height * 0.74, 420)
-        : Math.min(width * 0.36, height * 0.52, 260);
+        : Math.min(width * 0.46, height * 0.65, 420);
 
-      const centerX = isHero ? width * 0.5 : width * 0.82;
-      const centerY = isHero ? height * 0.95 : height * 0.46;
+      const centerX = width * 0.5; // Always centered behind the content
+      const centerY = isHero ? height * 0.95 : height * 0.54; // Gracefully centered in ambient background
 
       // ─── 1. ORBITAL REVOLVING SUN (EAST TO WEST ACROSS CELESTIAL HORIZON) ───
       // The Sun orbits the Earth in a sweeping circular arc from East to West
@@ -426,36 +426,35 @@ export default function CelestialEngine({
       ctx.restore();
 
       // ─── 7. VERTICAL TRADING VOLUME BAR PILLARS (MATCHING JCTRADER IMAGE 1!) ───
-      if (isHero) {
-        const pillarWidth = Math.max(16, width / (numBars * 1.5));
-        const pillarSpacing = width / numBars;
+      const pillarAlpha = isHero ? 1 : 0.38;
+      const pillarWidth = Math.max(16, width / (numBars * 1.5));
+      const pillarSpacing = width / numBars;
 
-        for (let i = 0; i < numBars; i++) {
-          const cfg = barHeights[i];
-          const timeOffset = currentTime * cfg.speed + cfg.phase;
-          const dynamicHeight = radius * (0.35 + cfg.baseHeight * 0.65 + 0.12 * Math.sin(timeOffset));
-          
-          const barX = (i + 0.5) * pillarSpacing;
-          const barY = height - dynamicHeight;
+      for (let i = 0; i < numBars; i++) {
+        const cfg = barHeights[i];
+        const timeOffset = currentTime * cfg.speed + cfg.phase;
+        const dynamicHeight = radius * (0.35 + cfg.baseHeight * 0.65 + 0.12 * Math.sin(timeOffset));
+        
+        const barX = (i + 0.5) * pillarSpacing;
+        const barY = height - dynamicHeight;
 
-          // Vertical gradient: solid bright emerald at base, fading softly towards top
-          const barGrad = ctx.createLinearGradient(barX, height, barX, barY);
-          barGrad.addColorStop(0, 'rgba(16, 185, 129, 0.7)');
-          barGrad.addColorStop(0.5, 'rgba(16, 185, 129, 0.35)');
-          barGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+        // Vertical gradient: solid bright emerald at base, fading softly towards top
+        const barGrad = ctx.createLinearGradient(barX, height, barX, barY);
+        barGrad.addColorStop(0, `rgba(16, 185, 129, ${0.7 * pillarAlpha})`);
+        barGrad.addColorStop(0.5, `rgba(16, 185, 129, ${0.35 * pillarAlpha})`);
+        barGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
 
-          ctx.fillStyle = barGrad;
-          ctx.beginPath();
-          ctx.roundRect(barX - pillarWidth / 2, barY, pillarWidth, dynamicHeight, [6, 6, 0, 0]);
-          ctx.fill();
+        ctx.fillStyle = barGrad;
+        ctx.beginPath();
+        ctx.roundRect(barX - pillarWidth / 2, barY, pillarWidth, dynamicHeight, [6, 6, 0, 0]);
+        ctx.fill();
 
-          ctx.strokeStyle = 'rgba(5, 150, 105, 0.5)';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(barX - pillarWidth / 2 + 2, barY);
-          ctx.lineTo(barX + pillarWidth / 2 - 2, barY);
-          ctx.stroke();
-        }
+        ctx.strokeStyle = `rgba(5, 150, 105, ${0.5 * pillarAlpha})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(barX - pillarWidth / 2 + 2, barY);
+        ctx.lineTo(barX + pillarWidth / 2 - 2, barY);
+        ctx.stroke();
       }
 
       animationFrameId = requestAnimationFrame(render);

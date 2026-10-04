@@ -97,7 +97,7 @@ export default function Layout({ children }) {
       overflowX: 'hidden'
     }}>
       {/* ─── DYNAMIC CELESTIAL BACKGROUND: ROTATING EARTH & ORBITING SUN ─── */}
-      <CelestialEngine mode="ambient" style={{ opacity: 0.25, zIndex: 0 }} />
+      <CelestialEngine mode="ambient" style={{ opacity: 0.42, zIndex: 0 }} />
 
       {/* Crisp White & Emerald Navbar */}
       <header style={{
