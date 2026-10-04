@@ -39,47 +39,60 @@ async function awardCoins(userId, amount, reason, description) {
 async function processLoginReward(userId) {
   try {
     const userRes = await query(
-      'SELECT id, gold_coins, login_streak, last_login_date FROM users WHERE id = $1',
+      `SELECT 
+        id, 
+        gold_coins, 
+        login_streak, 
+        last_login_date,
+        to_char(last_login_date, 'YYYY-MM-DD') as last_login_str,
+        to_char(CURRENT_DATE, 'YYYY-MM-DD') as today_str,
+        (CURRENT_DATE - last_login_date) as diff_days 
+      FROM users WHERE id = $1`,
       [userId]
     );
     if (userRes.rows.length === 0) return null;
 
     const user = userRes.rows[0];
-    const today = new Date().toISOString().slice(0, 10);
-    const lastLogin = user.last_login_date ? new Date(user.last_login_date).toISOString().slice(0, 10) : null;
+    const diffDays = user.diff_days !== null && user.diff_days !== undefined ? parseInt(user.diff_days) : null;
+    const currentStreak = parseInt(user.login_streak || 1);
+    const currentCoins = parseInt(user.gold_coins || 100);
 
-    if (lastLogin === today) {
-      // Already rewarded today
+    // If diff_days is 0, user already claimed reward today
+    if (diffDays === 0) {
       return {
         alreadyClaimed: true,
-        streak: parseInt(user.login_streak || 1),
-        currentCoins: parseInt(user.gold_coins || 100),
+        streak: currentStreak,
+        currentCoins: currentCoins,
         message: 'Daily login bonus already claimed for today'
       };
     }
 
     // Determine streak
     let newStreak = 1;
-    if (lastLogin) {
-      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-      if (lastLogin === yesterday) {
-        newStreak = parseInt(user.login_streak || 1) + 1;
-      }
+    if (diffDays === 1) {
+      // Exactly consecutive day
+      newStreak = currentStreak + 1;
+    } else if (diffDays === null || user.last_login_date === null) {
+      // First ever claim
+      newStreak = Math.max(1, currentStreak);
+    } else {
+      // Streak broken (diffDays > 1)
+      newStreak = 1;
     }
 
     // Base daily reward: +25 coins
     let coinsEarned = 25;
-    let bonusNote = 'Daily Login Proving Bonus (+25 Coins)';
+    let bonusNote = `Day ${newStreak} Discipline Login Bonus (+25 Coins)`;
 
     // 7-day milestone bonus: +50 coins
     if (newStreak % 7 === 0) {
       coinsEarned += 50;
-      bonusNote = `7-Day Consecutive Discipline Streak (+${coinsEarned} Coins)!`;
+      bonusNote = `${newStreak}-Day Consecutive Discipline Streak (+${coinsEarned} Coins)!`;
       await awardBadge(userId, 'streak_master', 'Streak Master', `Achieved a ${newStreak}-day continuous trading discipline streak`);
     }
 
     // Update user record
-    const updatedCoins = parseInt(user.gold_coins || 100) + coinsEarned;
+    const updatedCoins = currentCoins + coinsEarned;
     await query(
       'UPDATE users SET gold_coins = $1, login_streak = $2, last_login_date = CURRENT_DATE WHERE id = $3',
       [updatedCoins, newStreak, userId]
@@ -393,6 +406,20 @@ async function getUnlockedTools(userId) {
   }
 }
 
+// 10. Get Coin Transactions / Audit Trail
+async function getCoinTransactions(userId, limit = 50) {
+  try {
+    const res = await query(
+      'SELECT id, amount, reason, description, created_at FROM coin_transactions WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
+      [userId, limit]
+    );
+    return res.rows;
+  } catch (err) {
+    console.error('❌ Gamification getCoinTransactions error:', err);
+    return [];
+  }
+}
+
 module.exports = {
   awardCoins,
   processLoginReward,
@@ -402,5 +429,6 @@ module.exports = {
   getUserBadges,
   getRealLeaderboard,
   unlockToolWithCoins,
-  getUnlockedTools
+  getUnlockedTools,
+  getCoinTransactions
 };

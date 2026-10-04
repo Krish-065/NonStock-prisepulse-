@@ -117,16 +117,30 @@ app.use('/api/broker-mirror', brokerMirrorRoutes);
 // User profile & Password routes
 app.post('/api/auth/change-password', authenticate, authRoutes.changePassword);
 
+const { processLoginReward } = require('./services/gamificationService');
+
 app.get('/api/user/profile', authenticate, async (req, res) => {
   try {
+    // Automatically process daily login reward & streak if not claimed today
+    let dailyReward = null;
+    try {
+      dailyReward = await processLoginReward(req.user.id);
+    } catch (dErr) {
+      console.warn('Daily reward check on profile error:', dErr.message);
+    }
+
     const result = await query(
-      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref, has_completed_tutorial, has_completed_pro_tutorial, created_at FROM users WHERE id = $1`, 
+      `SELECT id, email, name, theme, language, two_factor_enabled, base_currency, refresh_rate, landing_page, broker_code, demat_id, dp_name, pan_id, brokerage_plan, connected_broker, is_admin, is_verified, verification_title, verification_status, virtual_balance, is_pro, pro_plan, pro_expires_at, pro_status, pro_pending_plan, pro_pending_ref, has_completed_tutorial, has_completed_pro_tutorial, gold_coins, login_streak, last_login_date, account_tag, der_score, created_at FROM users WHERE id = $1`, 
       [req.user.id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
     const user = result.rows[0];
+    user.gold_coins = parseInt(user.gold_coins || 100);
+    user.login_streak = parseInt(user.login_streak || 1);
+    user.daily_reward = dailyReward;
+
     if (user.email && user.email.toLowerCase() === 'krishshah8201@gmail.com') {
       user.is_pro = true;
       user.pro_plan = 'lifetime';

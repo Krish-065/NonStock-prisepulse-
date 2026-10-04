@@ -858,8 +858,31 @@ export default function Dashboard() {
     balance = 1000, coins = 100, streakDays = 1, positions = [], history = [], badge, closePosition,
     watchlist = [], addToWatchlist, removeFromWatchlist,
     unlockedTools = {}, unlockTool,
-    isFreeGraceActive = true, trialDaysRemaining = 60
+    isFreeGraceActive = true, trialDaysRemaining = 60,
+    syncVaultAndStreak
   } = useTrading();
+
+  // Gold Coins Vault & Audit Ledger Modal state
+  const [showCoinVaultModal, setShowCoinVaultModal] = useState(false);
+  const [coinVaultData, setCoinVaultData] = useState(null);
+  const [coinVaultLoading, setCoinVaultLoading] = useState(false);
+
+  const fetchCoinVaultLedger = async () => {
+    setCoinVaultLoading(true);
+    try {
+      if (syncVaultAndStreak) {
+        await syncVaultAndStreak();
+      }
+      const res = await apiClient.get('/paper/coin-vault');
+      if (res.data) {
+        setCoinVaultData(res.data);
+      }
+    } catch (e) {
+      console.warn('Failed to load coin vault ledger:', e);
+    } finally {
+      setCoinVaultLoading(false);
+    }
+  };
 
   // Welcome / Transition overlay state
   const [showWelcomeSplash, setShowWelcomeSplash] = useState(() => {
@@ -1564,17 +1587,26 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Right: Gold Coins Vault Widget */}
-          <div style={{
-            background: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)',
-            border: '2px solid #FACC15',
-            borderRadius: '18px',
-            padding: '18px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            boxShadow: '0 4px 16px rgba(234, 179, 8, 0.15)'
-          }}>
+          {/* Right: Gold Coins Vault Widget (Clickable to open Ledger Modal) */}
+          <div 
+            onClick={() => {
+              setShowCoinVaultModal(true);
+              fetchCoinVaultLedger();
+            }}
+            style={{
+              background: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)',
+              border: '2px solid #FACC15',
+              borderRadius: '18px',
+              padding: '16px 22px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              boxShadow: '0 4px 16px rgba(234, 179, 8, 0.15)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            title="Click to view Gold Coins Vault Audit Ledger & History"
+          >
             <div style={{
               width: '52px',
               height: '52px',
@@ -1590,8 +1622,21 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#854D0E', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                GOLD COINS VAULT
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#854D0E', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                  GOLD COINS VAULT
+                </span>
+                <span style={{
+                  fontSize: '9px',
+                  background: '#FDE047',
+                  border: '1px solid #CA8A04',
+                  color: '#713F12',
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  fontWeight: 800
+                }}>
+                  LEDGER ↗
+                </span>
               </div>
               <div style={{ fontSize: '30px', fontWeight: 900, color: '#713F12', lineHeight: 1.1 }}>
                 {coins} <span style={{ fontSize: '14px', fontWeight: 800 }}>Coins</span>
@@ -3059,6 +3104,247 @@ export default function Dashboard() {
         currentBroker={brokerMirror?.connectedBroker}
         isActive={brokerMirror?.isActive}
       />
+
+      {/* ─── GOLD COINS VAULT & AUDIT LEDGER MODAL ─── */}
+      {showCoinVaultModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2500,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: '#FFFFFF',
+            border: '2px solid #E2E8F0',
+            borderRadius: '20px',
+            maxWidth: '640px',
+            width: '100%',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.2)'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#F8FAFC'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
+                  background: '#FEF9C3',
+                  border: '1.5px solid #FDE047',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Coins size={22} color="#D97706" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                    Gold Coins Vault & Audit Ledger
+                  </h3>
+                  <div style={{ fontSize: '12px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <ShieldCheck size={13} color="#059669" />
+                    <span>Cryptographically verified PostgreSQL transaction record</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowCoinVaultModal(false)}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748B'
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Vault Overview Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)',
+                  border: '1.5px solid #FACC15',
+                  borderRadius: '14px',
+                  padding: '16px'
+                }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                    CURRENT BALANCE
+                  </div>
+                  <div style={{ fontSize: '28px', fontWeight: 900, color: '#713F12', marginTop: '4px' }}>
+                    {coinVaultData?.goldCoins ?? coins} <span style={{ fontSize: '14px', fontWeight: 700 }}>Coins</span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#A16207', marginTop: '2px' }}>
+                    Fully usable for edge tools & resets
+                  </div>
+                </div>
+
+                <div style={{
+                  background: '#F0FDF4',
+                  border: '1.5px solid #A7F3D0',
+                  borderRadius: '14px',
+                  padding: '16px'
+                }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                    DISCIPLINE STREAK
+                  </div>
+                  <div style={{ fontSize: '28px', fontWeight: 900, color: '#065F46', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Flame size={24} color="#EA580C" />
+                    <span>{coinVaultData?.loginStreak ?? streakDays} <span style={{ fontSize: '14px', fontWeight: 700 }}>Days</span></span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>
+                    +25 Coins granted every consecutive day
+                  </div>
+                </div>
+              </div>
+
+              {/* Transactions Ledger */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Audit Ledger (Recent Transactions)
+                  </div>
+                  <button
+                    onClick={fetchCoinVaultLedger}
+                    disabled={coinVaultLoading}
+                    style={{
+                      background: 'none',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px',
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#475569',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                  >
+                    <RefreshCw size={12} className={coinVaultLoading ? 'animate-spin' : ''} />
+                    <span>Refresh</span>
+                  </button>
+                </div>
+
+                {coinVaultLoading && !coinVaultData ? (
+                  <div style={{ textAlign: 'center', padding: '30px', color: '#64748B', fontSize: '13px' }}>
+                    Loading verified ledger from database...
+                  </div>
+                ) : (coinVaultData?.transactions?.length || 0) === 0 ? (
+                  <div style={{
+                    padding: '24px',
+                    textAlign: 'center',
+                    background: '#F8FAFC',
+                    borderRadius: '12px',
+                    border: '1px dashed #CBD5E1',
+                    color: '#64748B',
+                    fontSize: '13px'
+                  }}>
+                    No transactions recorded yet. Keep trading or log in daily to earn coins!
+                  </div>
+                ) : (
+                  <div style={{
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    maxHeight: '260px',
+                    overflowY: 'auto'
+                  }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+                      <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                        <tr>
+                          <th style={{ padding: '10px 14px', fontWeight: 800, color: '#475569' }}>Date</th>
+                          <th style={{ padding: '10px 14px', fontWeight: 800, color: '#475569' }}>Description</th>
+                          <th style={{ padding: '10px 14px', fontWeight: 800, color: '#475569', textAlign: 'right' }}>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {coinVaultData.transactions.map((tx, idx) => {
+                          const isPositive = Number(tx.amount) > 0;
+                          const formattedDate = tx.created_at ? new Date(tx.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }) : 'Recent';
+
+                          return (
+                            <tr key={tx.id || idx} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                              <td style={{ padding: '10px 14px', color: '#64748B', whiteSpace: 'nowrap' }}>
+                                {formattedDate}
+                              </td>
+                              <td style={{ padding: '10px 14px', color: '#0F172A', fontWeight: 600 }}>
+                                <div>{tx.description || tx.reason}</div>
+                                <div style={{ fontSize: '10px', color: '#94A3B8' }}>{tx.reason}</div>
+                              </td>
+                              <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: isPositive ? '#059669' : '#DC2626' }}>
+                                {isPositive ? `+${tx.amount}` : tx.amount} Coins
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '16px 24px',
+              borderTop: '1px solid #E2E8F0',
+              background: '#F8FAFC',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>
+                Streak bonus increments strictly once per calendar day
+              </div>
+              <button
+                onClick={() => setShowCoinVaultModal(false)}
+                style={{
+                  background: '#0F172A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '8px 18px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                Close Ledger
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

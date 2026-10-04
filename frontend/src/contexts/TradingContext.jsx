@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from './AuthContext';
+import { apiClient } from '../services/api';
 
 const TradingContext = createContext();
 
@@ -9,7 +10,7 @@ export const useTrading = () => useContext(TradingContext);
 export const TradingProvider = ({ children }) => {
   const { user } = useAuth();
   const [balance, setBalance] = useState(1000);
-  const [coins, setCoins] = useState(100);
+  const [coins, setCoins] = useState(() => (user?.gold_coins !== undefined ? Number(user.gold_coins) : 100));
   const [positions, setPositions] = useState([]);
   const [history, setHistory] = useState([]);
   const [hasSeenModal, setHasSeenModal] = useState(false);
@@ -46,40 +47,63 @@ export const TradingProvider = ({ children }) => {
     if (num >= 8000) return { name: 'Master', color: '#E11D48', glow: '0 0 14px rgba(225, 29, 72, 0.45)' }; // Ruby bright red
     if (num >= 4000) return { name: 'Gold', color: '#EAB308', glow: '0 0 14px rgba(234, 179, 8, 0.45)' }; // Yellow gold bright
     if (num >= 2000) return { name: 'Silver', color: '#94A3B8', glow: '0 0 10px rgba(148, 163, 184, 0.4)' }; // Silver color
-    return { name: 'Contender', color: '#0F172A', glow: 'none' }; // Deep bold navy/slate (NEVER silver)
+    return { name: 'Contender', color: '#0F172A', glow: 'none' }; // Deep bold navy/slate
   };
 
   const badge = getBadge(balance);
-  const [streakDays, setStreakDays] = useState(1);
+  const [streakDays, setStreakDays] = useState(() => (user?.login_streak !== undefined ? Number(user.login_streak) : 1));
 
-  // Daily Streak Claim - strictly once per calendar day (not on repeat logins on same day)
-  useEffect(() => {
+  // Sync Coins and Streak with backend PostgreSQL database
+  const syncVaultAndStreak = async () => {
+    if (!user) return;
     try {
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const savedClaim = localStorage.getItem('nonstock_last_daily_claim');
-      const savedStreak = parseInt(localStorage.getItem('nonstock_streak_count') || '1', 10);
-
-      if (!savedClaim) {
-        localStorage.setItem('nonstock_last_daily_claim', todayStr);
-        localStorage.setItem('nonstock_streak_count', '1');
-        setStreakDays(1);
-        setCoins(prev => prev + 25);
-        toast.success('Daily Discipline Bonus: +25 Gold Coins awarded to your vault!');
-      } else if (savedClaim !== todayStr) {
-        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-        const newStreak = savedClaim === yesterday ? savedStreak + 1 : 1;
-        localStorage.setItem('nonstock_last_daily_claim', todayStr);
-        localStorage.setItem('nonstock_streak_count', newStreak.toString());
-        setStreakDays(newStreak);
-        setCoins(prev => prev + 25);
-        toast.success(`Day ${newStreak} Discipline Streak: +25 Gold Coins awarded!`);
-      } else {
-        setStreakDays(savedStreak || 1);
+      // 1. Process or verify daily login bonus via backend API
+      const res = await apiClient.post('/paper/daily-claim');
+      if (res.data?.success) {
+        const { goldCoins, loginStreak, dailyReward } = res.data;
+        if (typeof goldCoins === 'number') {
+          setCoins(goldCoins);
+        }
+        if (typeof loginStreak === 'number') {
+          setStreakDays(loginStreak);
+          localStorage.setItem('nonstock_streak_count', loginStreak.toString());
+        }
+        if (dailyReward && !dailyReward.alreadyClaimed && dailyReward.coinsAwarded) {
+          toast.success(dailyReward.message || `Day ${loginStreak} Discipline Streak: +${dailyReward.coinsAwarded} Gold Coins awarded!`);
+        }
+        return;
       }
-    } catch (e) {
-      console.warn('Daily streak check note:', e);
+    } catch (claimErr) {
+      // 2. Fallback to portfolio endpoint
+      try {
+        const pRes = await apiClient.get('/paper/portfolio');
+        if (pRes.data) {
+          if (typeof pRes.data.goldCoins === 'number') {
+            setCoins(pRes.data.goldCoins);
+          }
+          if (typeof pRes.data.loginStreak === 'number') {
+            setStreakDays(pRes.data.loginStreak);
+            localStorage.setItem('nonstock_streak_count', pRes.data.loginStreak.toString());
+          }
+        }
+      } catch (pErr) {
+        console.warn('Vault sync notice:', pErr.message);
+      }
     }
-  }, []);
+  };
+
+  // Sync on user change or login
+  useEffect(() => {
+    if (user?.gold_coins !== undefined) {
+      setCoins(prev => Math.max(prev, Number(user.gold_coins)));
+    }
+    if (user?.login_streak !== undefined) {
+      setStreakDays(prev => Math.max(prev, Number(user.login_streak)));
+    }
+    if (user?.id) {
+      syncVaultAndStreak();
+    }
+  }, [user?.id, user?.gold_coins, user?.login_streak]);
 
   // Load from local storage on mount
   useEffect(() => {
@@ -88,7 +112,9 @@ export const TradingProvider = ({ children }) => {
       if (storedData) {
         const parsed = JSON.parse(storedData);
         if (parsed.balance !== undefined) setBalance(Number(parsed.balance) || 1000);
-        if (parsed.coins !== undefined) setCoins(Number(parsed.coins) || 0);
+        if (parsed.coins !== undefined) {
+          setCoins(prev => user?.gold_coins !== undefined ? Math.max(prev, Number(user.gold_coins)) : (Number(parsed.coins) || 100));
+        }
         if (parsed.positions) setPositions(Array.isArray(parsed.positions) ? parsed.positions : []);
         if (parsed.history) setHistory(Array.isArray(parsed.history) ? parsed.history : []);
         if (parsed.hasSeenModal !== undefined) setHasSeenModal(Boolean(parsed.hasSeenModal));
@@ -133,16 +159,30 @@ export const TradingProvider = ({ children }) => {
 
     // Gamification coin rewards
     let earnedCoins = 0;
+    let reason = 'DISCIPLINE_BONUS';
+    let desc = `Disciplined trade opened on ${order.asset}`;
+
     if (history.length === 0 && positions.length === 0) {
       earnedCoins += 25;
+      reason = 'FIRST_TRADE';
+      desc = 'First Blood Milestone: First trade executed';
       toast.success('First Blood Milestone! +25 Gold Coins');
     }
     if (order.sl && parseFloat(order.sl) > 0) {
       earnedCoins += 5;
+      reason = 'DISCIPLINE_SL';
+      desc = `Risk Disciplined: Trade placed on ${order.asset} with active Stop Loss protection`;
       toast.success('Discipline Bonus: SL Protection active! +5 Gold Coins');
     }
+
     if (earnedCoins > 0) {
       setCoins(prev => prev + earnedCoins);
+      // Persist to database audit log
+      apiClient.post('/paper/record-discipline-coins', {
+        amount: earnedCoins,
+        reason,
+        description: desc
+      }).catch(err => console.warn('Could not record discipline coins:', err.message));
     }
 
     toast.success(`Opened ${order.side} on ${order.asset}`);
@@ -174,6 +214,12 @@ export const TradingProvider = ({ children }) => {
     if (pnl > 0) {
       setCoins(prev => prev + 10);
       toast.success(`Profitable Exit! +10 Gold Coins earned`);
+      // Persist to database audit log
+      apiClient.post('/paper/record-discipline-coins', {
+        amount: 10,
+        reason: 'TRADE_PROFIT',
+        description: `Profitable trade exit on ${pos.asset} (+$${pnl.toFixed(2)})`
+      }).catch(err => console.warn('Could not record profit coins:', err.message));
     }
 
     setPositions(prev => prev.filter(p => p.id !== id));
@@ -204,6 +250,11 @@ export const TradingProvider = ({ children }) => {
         setPositions([]);
         setIsBusted(false);
         toast.success("Account reset! 100 coins deducted.");
+        apiClient.post('/paper/record-discipline-coins', {
+          amount: -100,
+          reason: 'ACCOUNT_RESET',
+          description: 'Account balance reset fee (-100 Gold Coins)'
+        }).catch(() => {});
       } else {
         toast.error("Not enough Gold Coins (need 100).");
       }
@@ -224,7 +275,7 @@ export const TradingProvider = ({ children }) => {
       return;
     }
     setWatchlist(prev => [clean, ...prev]);
-    toast.success(`Added ${clean} to Watchlist`, { icon: '⭐' });
+    toast.success(`Added ${clean} to Watchlist`);
   };
 
   const removeFromWatchlist = (sym) => {
@@ -232,7 +283,7 @@ export const TradingProvider = ({ children }) => {
     toast.success(`Removed ${sym} from Watchlist`);
   };
 
-  const unlockTool = (toolKey, cost, toolName) => {
+  const unlockTool = async (toolKey, cost, toolName) => {
     if (effectiveUnlockedTools[toolKey]) {
       toast.success(`${toolName || toolKey} is already unlocked!`);
       return true;
@@ -241,10 +292,28 @@ export const TradingProvider = ({ children }) => {
       toast.error(`Not enough Gold Coins. Required: ${cost}, Current: ${coins}`);
       return false;
     }
-    setCoins(prev => prev - cost);
-    setUnlockedTools(prev => ({ ...prev, [toolKey]: true }));
-    toast.success(`${toolName || toolKey} unlocked! Added directly to your top navbar.`);
-    return true;
+    try {
+      const res = await apiClient.post('/paper/unlock-tool', { toolKey, cost });
+      if (res.data && !res.data.error) {
+        if (typeof res.data.remainingCoins === 'number') {
+          setCoins(res.data.remainingCoins);
+        } else {
+          setCoins(prev => Math.max(0, prev - cost));
+        }
+        setUnlockedTools(prev => ({ ...prev, [toolKey]: true }));
+        toast.success(`${toolName || toolKey} unlocked! Added directly to your top navbar.`);
+        return true;
+      } else {
+        toast.error(res.data?.error || 'Failed to unlock tool');
+        return false;
+      }
+    } catch (e) {
+      console.warn('Unlock tool API fallback:', e);
+      setCoins(prev => Math.max(0, prev - cost));
+      setUnlockedTools(prev => ({ ...prev, [toolKey]: true }));
+      toast.success(`${toolName || toolKey} unlocked! Added directly to your top navbar.`);
+      return true;
+    }
   };
 
   return (
@@ -253,7 +322,7 @@ export const TradingProvider = ({ children }) => {
       watchlist, unlockedTools: effectiveUnlockedTools, streakDays,
       isFreeGraceActive, trialDaysRemaining,
       placeOrder, closePosition, updateSLTP, resetAccount, acknowledgeModal,
-      addToWatchlist, removeFromWatchlist, unlockTool
+      addToWatchlist, removeFromWatchlist, unlockTool, syncVaultAndStreak
     }}>
       {children}
     </TradingContext.Provider>

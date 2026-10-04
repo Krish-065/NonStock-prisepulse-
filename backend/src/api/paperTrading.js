@@ -7,12 +7,14 @@ const crypto = require('crypto');
 const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
 const { 
   awardCoins,
+  processLoginReward,
   processTradeOpenReward,
   processTradeCloseReward,
   getUserBadges,
   getRealLeaderboard,
   unlockToolWithCoins,
-  getUnlockedTools
+  getUnlockedTools,
+  getCoinTransactions
 } = require('../services/gamificationService');
 
 
@@ -32,6 +34,14 @@ async function getUsdInrRate() {
 // GET /api/paper/portfolio - Fetch virtual balance, holdings, value (all values denominated in USD)
 router.get('/portfolio', authenticate, async (req, res) => {
   try {
+    // Automatically process daily login reward & streak if not claimed today
+    let dailyReward = null;
+    try {
+      dailyReward = await processLoginReward(req.user.id);
+    } catch (dErr) {
+      console.warn('Portfolio daily reward check warning:', dErr.message);
+    }
+
     const userRes = await query('SELECT virtual_balance, virtual_refill_count, consecutive_sl_hits, is_pro, gold_coins, login_streak, account_tag, der_score FROM users WHERE id = $1', [req.user.id]);
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
@@ -111,6 +121,7 @@ router.get('/portfolio', authenticate, async (req, res) => {
       consecutiveSlHits,
       goldCoins,
       loginStreak,
+      dailyReward,
       accountTag,
       derScore,
       totalHoldingsValue,
@@ -832,6 +843,85 @@ router.post('/simulate-bankruptcy', authenticate, async (req, res) => {
   } catch (error) {
     console.error('❌ Simulate bankruptcy error:', error);
     res.status(500).json({ error: 'Failed to simulate bankruptcy' });
+  }
+});
+
+// POST /api/paper/daily-claim - Explicitly process daily discipline login bonus
+router.post('/daily-claim', authenticate, async (req, res) => {
+  try {
+    const dailyReward = await processLoginReward(req.user.id);
+    const userRes = await query(
+      "SELECT gold_coins, login_streak, to_char(last_login_date, 'YYYY-MM-DD') as last_login_date FROM users WHERE id = $1",
+      [req.user.id]
+    );
+    const goldCoins = parseInt(userRes.rows[0]?.gold_coins || 100);
+    const loginStreak = parseInt(userRes.rows[0]?.login_streak || 1);
+    const lastLoginDate = userRes.rows[0]?.last_login_date;
+
+    res.json({
+      success: true,
+      dailyReward,
+      goldCoins,
+      loginStreak,
+      lastLoginDate
+    });
+  } catch (error) {
+    console.error('❌ Daily claim error:', error);
+    res.status(500).json({ error: 'Failed to process daily claim' });
+  }
+});
+
+// GET /api/paper/coin-vault - Fetch verified coin balance, streak, and transaction history
+router.get('/coin-vault', authenticate, async (req, res) => {
+  try {
+    const userRes = await query(
+      "SELECT gold_coins, login_streak, to_char(last_login_date, 'YYYY-MM-DD') as last_login_date FROM users WHERE id = $1",
+      [req.user.id]
+    );
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const goldCoins = parseInt(userRes.rows[0].gold_coins || 100);
+    const loginStreak = parseInt(userRes.rows[0].login_streak || 1);
+    const lastLoginDate = userRes.rows[0].last_login_date;
+
+    const transactions = await getCoinTransactions(req.user.id, 50);
+
+    res.json({
+      goldCoins,
+      loginStreak,
+      lastLoginDate,
+      transactions
+    });
+  } catch (error) {
+    console.error('❌ Coin vault error:', error);
+// POST /api/paper/record-discipline-coins - Record coins earned from trading discipline (SL set, win, milestone)
+router.post('/record-discipline-coins', authenticate, async (req, res) => {
+  try {
+    const { amount, reason, description } = req.body;
+    const parsedAmount = parseInt(amount);
+    if (!parsedAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({ error: 'Valid coin amount required' });
+    }
+
+    const awardResult = await awardCoins(
+      req.user.id, 
+      parsedAmount, 
+      reason || 'DISCIPLINE_BONUS', 
+      description || `Trading Discipline Bonus (+${parsedAmount} Coins)`
+    );
+
+    const userRes = await query('SELECT gold_coins FROM users WHERE id = $1', [req.user.id]);
+    const goldCoins = parseInt(userRes.rows[0]?.gold_coins || 100);
+
+    res.json({
+      success: true,
+      goldCoins,
+      awardResult
+    });
+  } catch (error) {
+    console.error('❌ Record discipline coins error:', error);
+    res.status(500).json({ error: 'Failed to record discipline coins' });
   }
 });
 
