@@ -132,8 +132,8 @@ export default function PositionSizeCalculator({
         </div>
       </div>
 
-      {/* Form Fields (Responsive Grid) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '14px' }}>
+      {/* Form Fields (2-Column Grid) */}
+      <div style={{ display: 'grid', gridTemplateColumns: compact ? '1fr' : '1fr 1fr', gap: '14px' }}>
         {/* Asset / Funds */}
         <div>
           <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: '6px' }}>

@@ -52,17 +52,24 @@ export const TradingProvider = ({ children }) => {
 
   const badge = getBadge(balance);
   const [loginStreak, setLoginStreak] = useState(() => (user?.login_streak !== undefined ? Number(user.login_streak) : 1));
-  const [tradeStreakDays, setTradeStreakDays] = useState(() => (user?.trade_streak !== undefined ? Number(user.trade_streak) : 0));
-  const [lastTradeDate, setLastTradeDate] = useState(() => localStorage.getItem('nonstock_last_trade_date') || '');
+  const [tradeStreak, setTradeStreak] = useState(() => {
+    try {
+      const saved = localStorage.getItem('nonstock_trade_streak');
+      return saved ? Number(saved) : 1;
+    } catch {
+      return 1;
+    }
+  });
+  const streakDays = tradeStreak; // Alias for backward compatibility, mapped to trade streak
 
-  // Sync Coins and Streaks with backend PostgreSQL database
+  // Sync Coins and Login Streak with backend PostgreSQL database
   const syncVaultAndStreak = async () => {
     if (!user) return;
     try {
-      // 1. Process daily login bonus (+2 coins strictly, no badges)
+      // 1. Process or verify daily login bonus via backend API
       const res = await apiClient.post('/paper/daily-claim');
       if (res.data?.success) {
-        const { goldCoins, loginStreak: lStreak, tradeStreak: tStreak, lastTradeDate: ltDate, dailyReward } = res.data;
+        const { goldCoins, loginStreak: lStreak, dailyReward } = res.data;
         if (typeof goldCoins === 'number') {
           setCoins(goldCoins);
         }
@@ -70,16 +77,8 @@ export const TradingProvider = ({ children }) => {
           setLoginStreak(lStreak);
           localStorage.setItem('nonstock_login_streak_count', lStreak.toString());
         }
-        if (typeof tStreak === 'number') {
-          setTradeStreakDays(tStreak);
-          localStorage.setItem('nonstock_trade_streak_count', tStreak.toString());
-        }
-        if (ltDate) {
-          setLastTradeDate(ltDate);
-          localStorage.setItem('nonstock_last_trade_date', ltDate);
-        }
         if (dailyReward && !dailyReward.alreadyClaimed && dailyReward.coinsAwarded) {
-          toast.success(dailyReward.message || `Daily Login: +${dailyReward.coinsAwarded} Gold Coins awarded!`);
+          toast.success(dailyReward.message || `Daily Login Streak Day ${lStreak}: +${dailyReward.coinsAwarded} Gold Coins awarded!`);
         }
         return;
       }
@@ -95,13 +94,9 @@ export const TradingProvider = ({ children }) => {
             setLoginStreak(pRes.data.loginStreak);
             localStorage.setItem('nonstock_login_streak_count', pRes.data.loginStreak.toString());
           }
-          if (typeof pRes.data.tradeStreak === 'number') {
-            setTradeStreakDays(pRes.data.tradeStreak);
-            localStorage.setItem('nonstock_trade_streak_count', pRes.data.tradeStreak.toString());
-          }
-          if (pRes.data.lastTradeDate) {
-            setLastTradeDate(pRes.data.lastTradeDate);
-            localStorage.setItem('nonstock_last_trade_date', pRes.data.lastTradeDate);
+          if (typeof pRes.data.tradeStreak === 'number' && pRes.data.tradeStreak > 0) {
+            setTradeStreak(pRes.data.tradeStreak);
+            localStorage.setItem('nonstock_trade_streak', pRes.data.tradeStreak.toString());
           }
         }
       } catch (pErr) {
@@ -118,13 +113,10 @@ export const TradingProvider = ({ children }) => {
     if (user?.login_streak !== undefined) {
       setLoginStreak(prev => Math.max(prev, Number(user.login_streak)));
     }
-    if (user?.trade_streak !== undefined) {
-      setTradeStreakDays(prev => Math.max(prev, Number(user.trade_streak)));
-    }
     if (user?.id) {
       syncVaultAndStreak();
     }
-  }, [user?.id, user?.gold_coins, user?.login_streak, user?.trade_streak]);
+  }, [user?.id, user?.gold_coins, user?.login_streak]);
 
   // Load from local storage on mount
   useEffect(() => {
@@ -137,16 +129,23 @@ export const TradingProvider = ({ children }) => {
           setCoins(prev => user?.gold_coins !== undefined ? Math.max(prev, Number(user.gold_coins)) : (Number(parsed.coins) || 100));
         }
         if (parsed.positions) setPositions(Array.isArray(parsed.positions) ? parsed.positions : []);
-        if (parsed.history) setHistory(Array.isArray(parsed.history) ? parsed.history : []);
+        if (parsed.history) {
+          const hist = Array.isArray(parsed.history) ? parsed.history : [];
+          setHistory(hist);
+          // Calculate historical trading streak if available
+          if (hist.length > 0 && !localStorage.getItem('nonstock_trade_streak')) {
+            const daysSet = new Set(hist.map(h => (h.closeTime || h.openTime || '').slice(0, 10)).filter(Boolean));
+            const calculatedStreak = Math.max(1, daysSet.size);
+            setTradeStreak(calculatedStreak);
+            localStorage.setItem('nonstock_trade_streak', calculatedStreak.toString());
+          }
+        }
         if (parsed.hasSeenModal !== undefined) setHasSeenModal(Boolean(parsed.hasSeenModal));
         if (parsed.isBusted !== undefined) setIsBusted(Boolean(parsed.isBusted));
         if (parsed.watchlist) setWatchlist(Array.isArray(parsed.watchlist) ? parsed.watchlist : ['BTCUSDT', 'XAUUSD', 'EURUSD', 'AAPL', 'NVDA']);
         if (parsed.unlockedTools && typeof parsed.unlockedTools === 'object') {
           setUnlockedTools(prev => ({ ...prev, ...parsed.unlockedTools }));
         }
-        if (parsed.tradeStreakDays !== undefined) setTradeStreakDays(Number(parsed.tradeStreakDays) || 0);
-        if (parsed.loginStreak !== undefined) setLoginStreak(Number(parsed.loginStreak) || 1);
-        if (parsed.lastTradeDate) setLastTradeDate(parsed.lastTradeDate);
       }
     } catch (e) {
       console.error("Failed to parse trading state", e);
@@ -156,10 +155,9 @@ export const TradingProvider = ({ children }) => {
   // Save to local storage on change
   useEffect(() => {
     localStorage.setItem('nonstock_trading_state', JSON.stringify({
-      balance, coins, positions, history, hasSeenModal, isBusted, watchlist, unlockedTools,
-      tradeStreakDays, loginStreak, lastTradeDate
+      balance, coins, positions, history, hasSeenModal, isBusted, watchlist, unlockedTools
     }));
-  }, [balance, coins, positions, history, hasSeenModal, isBusted, watchlist, unlockedTools, tradeStreakDays, loginStreak, lastTradeDate]);
+  }, [balance, coins, positions, history, hasSeenModal, isBusted, watchlist, unlockedTools]);
 
   const acknowledgeModal = () => setHasSeenModal(true);
 
@@ -182,33 +180,40 @@ export const TradingProvider = ({ children }) => {
     };
     setPositions(prev => [...prev, newPosition]);
 
-    // Gamification coin rewards
+    // ─── Gamification & Distinct Trading Streak Engine ───
     let earnedCoins = 0;
     let reason = 'DISCIPLINE_BONUS';
     let desc = `Disciplined trade opened on ${order.asset}`;
 
-    // 1. Daily Trading Streak (+20 Coins once per calendar day)
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const hasTradedTodayAlready = lastTradeDate === todayStr;
+    // 1. Separate Trade Streak Calculation
+    const today = new Date().toISOString().slice(0, 10);
+    const lastTradeDate = localStorage.getItem('nonstock_last_trade_date');
+    let currentStreak = tradeStreak;
 
-    if (!hasTradedTodayAlready) {
-      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-      const isConsecutive = lastTradeDate === yesterday;
-      const nextTradeStreak = isConsecutive ? (tradeStreakDays + 1) : 1;
+    if (lastTradeDate !== today) {
+      if (lastTradeDate) {
+        const lastD = new Date(lastTradeDate);
+        const nowD = new Date(today);
+        const diffDays = Math.round((nowD.getTime() - lastD.getTime()) / (1000 * 3600 * 24));
+        if (diffDays === 1) {
+          currentStreak = tradeStreak + 1;
+        } else {
+          currentStreak = 1;
+        }
+      } else {
+        currentStreak = 1;
+      }
+      setTradeStreak(currentStreak);
+      localStorage.setItem('nonstock_trade_streak', currentStreak.toString());
+      localStorage.setItem('nonstock_last_trade_date', today);
 
-      setTradeStreakDays(nextTradeStreak);
-      setLastTradeDate(todayStr);
-      localStorage.setItem('nonstock_trade_streak_count', nextTradeStreak.toString());
-      localStorage.setItem('nonstock_last_trade_date', todayStr);
+      // User requested: on trade streak give another 10 coins!
+      earnedCoins += 10;
+      toast.success(`Trade Streak Day ${currentStreak}! +10 Gold Coins earned!`);
 
-      earnedCoins += 20;
-      toast.success(`🔥 Daily Trading Streak! +20 Gold Coins earned (Day ${nextTradeStreak})`);
-
-      // Trigger backend trade streak claim
-      apiClient.post('/paper/trade-streak-claim').then(res => {
-        if (typeof res.data?.goldCoins === 'number') setCoins(res.data.goldCoins);
-        if (typeof res.data?.tradeStreak === 'number') setTradeStreakDays(res.data.tradeStreak);
-      }).catch(() => {});
+      if (currentStreak === 7) {
+        toast.success(`🏆 Milestone Unlocked: 1-Week Trading Streak! "Weekly Disciplined Operator" Badge Earned!`);
+      }
     }
 
     if (history.length === 0 && positions.length === 0) {
@@ -365,45 +370,14 @@ export const TradingProvider = ({ children }) => {
     }
   };
 
-  const claimBadgeBounty = async (badgeId, badgeName, coinsAmount) => {
-    const claimKey = `prisepulse_claimed_badge_${badgeId}`;
-    if (localStorage.getItem(claimKey)) {
-      toast.info(`Coins for ${badgeName} have already been credited to your Vault!`);
-      return false;
-    }
-    const bounty = Number(coinsAmount) || 0;
-    if (bounty <= 0) return false;
-
-    localStorage.setItem(claimKey, 'true');
-    setCoins(prev => prev + bounty);
-    toast.success(`🎉 Protocol Bounty! +${bounty} Gold Coins credited for unlocking ${badgeName}!`);
-
-    try {
-      await apiClient.post('/paper/record-discipline-coins', {
-        amount: bounty,
-        reason: 'BADGE_BOUNTY',
-        description: `Milestone: Unlocked Badge #${badgeId} (${badgeName}) (+${bounty} Gold Coins)`
-      });
-      if (syncVaultAndStreak) syncVaultAndStreak();
-    } catch (err) {
-      console.warn('Could not record badge bounty to database:', err);
-    }
-    return true;
-  };
-
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const hasTradedToday = lastTradeDate === todayStr || history.some(h => (h.openTime || h.closeTime || '').slice(0, 10) === todayStr) || positions.some(p => (p.openTime || '').slice(0, 10) === todayStr);
-
   return (
     <TradingContext.Provider value={{
       balance, coins, positions, history, hasSeenModal, isBusted, badge,
-      watchlist, unlockedTools: effectiveUnlockedTools, 
-      streakDays: tradeStreakDays, // Alias streakDays to tradeStreakDays so all streak badges evaluate active trading executions
-      tradeStreakDays, loginStreak, lastTradeDate, hasTradedToday,
+      watchlist, unlockedTools: effectiveUnlockedTools, streakDays,
+      loginStreak, tradeStreak,
       isFreeGraceActive, trialDaysRemaining,
       placeOrder, closePosition, updateSLTP, resetAccount, acknowledgeModal,
-      addToWatchlist, removeFromWatchlist, unlockTool, syncVaultAndStreak,
-      claimBadgeBounty
+      addToWatchlist, removeFromWatchlist, unlockTool, syncVaultAndStreak
     }}>
       {children}
     </TradingContext.Provider>

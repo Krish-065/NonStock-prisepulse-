@@ -8,7 +8,6 @@ const { isIndianSymbol, normalizeSymbol } = require('../utils/symbolUtils');
 const { 
   awardCoins,
   processLoginReward,
-  processTradeStreakReward,
   processTradeOpenReward,
   processTradeCloseReward,
   getUserBadges,
@@ -43,7 +42,7 @@ router.get('/portfolio', authenticate, async (req, res) => {
       console.warn('Portfolio daily reward check warning:', dErr.message);
     }
 
-    const userRes = await query('SELECT virtual_balance, virtual_refill_count, consecutive_sl_hits, is_pro, gold_coins, login_streak, trade_streak, to_char(last_trade_date, \'YYYY-MM-DD\') as last_trade_date, account_tag, der_score FROM users WHERE id = $1', [req.user.id]);
+    const userRes = await query('SELECT virtual_balance, virtual_refill_count, consecutive_sl_hits, is_pro, gold_coins, login_streak, trade_streak, account_tag, der_score FROM users WHERE id = $1', [req.user.id]);
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -52,7 +51,6 @@ router.get('/portfolio', authenticate, async (req, res) => {
     const goldCoins = parseInt(userRes.rows[0].gold_coins || 100);
     const loginStreak = parseInt(userRes.rows[0].login_streak || 1);
     const tradeStreak = parseInt(userRes.rows[0].trade_streak || 0);
-    const lastTradeDate = userRes.rows[0].last_trade_date;
     const accountTag = userRes.rows[0].account_tag || 'Contender';
     const derScore = parseFloat(userRes.rows[0].der_score || 75.00);
     
@@ -125,7 +123,6 @@ router.get('/portfolio', authenticate, async (req, res) => {
       goldCoins,
       loginStreak,
       tradeStreak,
-      lastTradeDate,
       dailyReward,
       accountTag,
       derScore,
@@ -851,28 +848,24 @@ router.post('/simulate-bankruptcy', authenticate, async (req, res) => {
   }
 });
 
-// POST /api/paper/daily-claim - Process daily discipline login bonus (+2 Coins strictly, no badges)
+// POST /api/paper/daily-claim - Explicitly process daily discipline login bonus
 router.post('/daily-claim', authenticate, async (req, res) => {
   try {
     const dailyReward = await processLoginReward(req.user.id);
     const userRes = await query(
-      "SELECT gold_coins, login_streak, trade_streak, to_char(last_login_date, 'YYYY-MM-DD') as last_login_date, to_char(last_trade_date, 'YYYY-MM-DD') as last_trade_date FROM users WHERE id = $1",
+      "SELECT gold_coins, login_streak, to_char(last_login_date, 'YYYY-MM-DD') as last_login_date FROM users WHERE id = $1",
       [req.user.id]
     );
     const goldCoins = parseInt(userRes.rows[0]?.gold_coins || 100);
     const loginStreak = parseInt(userRes.rows[0]?.login_streak || 1);
-    const tradeStreak = parseInt(userRes.rows[0]?.trade_streak || 0);
     const lastLoginDate = userRes.rows[0]?.last_login_date;
-    const lastTradeDate = userRes.rows[0]?.last_trade_date;
 
     res.json({
       success: true,
       dailyReward,
       goldCoins,
       loginStreak,
-      tradeStreak,
-      lastLoginDate,
-      lastTradeDate
+      lastLoginDate
     });
   } catch (error) {
     console.error('❌ Daily claim error:', error);
@@ -880,38 +873,11 @@ router.post('/daily-claim', authenticate, async (req, res) => {
   }
 });
 
-// POST /api/paper/trade-streak-claim - Process daily trading streak bonus (+20 Coins strictly, Badges for Trade Streaks)
-router.post('/trade-streak-claim', authenticate, async (req, res) => {
-  try {
-    const streakReward = await processTradeStreakReward(req.user.id);
-    const userRes = await query(
-      "SELECT gold_coins, login_streak, trade_streak, to_char(last_trade_date, 'YYYY-MM-DD') as last_trade_date FROM users WHERE id = $1",
-      [req.user.id]
-    );
-    const goldCoins = parseInt(userRes.rows[0]?.gold_coins || 100);
-    const loginStreak = parseInt(userRes.rows[0]?.login_streak || 1);
-    const tradeStreak = parseInt(userRes.rows[0]?.trade_streak || 0);
-    const lastTradeDate = userRes.rows[0]?.last_trade_date;
-
-    res.json({
-      success: true,
-      streakReward,
-      goldCoins,
-      loginStreak,
-      tradeStreak,
-      lastTradeDate
-    });
-  } catch (error) {
-    console.error('❌ Trade streak claim error:', error);
-    res.status(500).json({ error: 'Failed to process trade streak claim' });
-  }
-});
-
-// GET /api/paper/coin-vault - Fetch verified coin balance, streaks, and transaction history
+// GET /api/paper/coin-vault - Fetch verified coin balance, streak, and transaction history
 router.get('/coin-vault', authenticate, async (req, res) => {
   try {
     const userRes = await query(
-      "SELECT gold_coins, login_streak, trade_streak, to_char(last_login_date, 'YYYY-MM-DD') as last_login_date, to_char(last_trade_date, 'YYYY-MM-DD') as last_trade_date FROM users WHERE id = $1",
+      "SELECT gold_coins, login_streak, to_char(last_login_date, 'YYYY-MM-DD') as last_login_date FROM users WHERE id = $1",
       [req.user.id]
     );
     if (userRes.rows.length === 0) {
@@ -919,18 +885,14 @@ router.get('/coin-vault', authenticate, async (req, res) => {
     }
     const goldCoins = parseInt(userRes.rows[0].gold_coins || 100);
     const loginStreak = parseInt(userRes.rows[0].login_streak || 1);
-    const tradeStreak = parseInt(userRes.rows[0].trade_streak || 0);
     const lastLoginDate = userRes.rows[0].last_login_date;
-    const lastTradeDate = userRes.rows[0].last_trade_date;
 
     const transactions = await getCoinTransactions(req.user.id, 50);
 
     res.json({
       goldCoins,
       loginStreak,
-      tradeStreak,
       lastLoginDate,
-      lastTradeDate,
       transactions
     });
   } catch (error) {

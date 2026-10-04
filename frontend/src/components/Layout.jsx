@@ -88,7 +88,7 @@ export default function Layout({ children }) {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'radial-gradient(ellipse at center, #F0FDF4 0%, #FFFFFF 70%)', 
+      background: 'radial-gradient(ellipse at top, #F0FDF4 0%, #F8FAFC 50%, #FFFFFF 100%)', 
       color: '#0F172A',
       display: 'flex',
       flexDirection: 'column',
@@ -97,17 +97,19 @@ export default function Layout({ children }) {
       overflowX: 'hidden'
     }}>
       {/* ─── DYNAMIC CELESTIAL BACKGROUND: ROTATING EARTH & ORBITING SUN ─── */}
-      <CelestialEngine mode="ambient" style={{ opacity: 0.65, zIndex: 0 }} />
+      <CelestialEngine mode="ambient" style={{ opacity: 0.68, zIndex: 0 }} />
 
-      {/* Crisp White & Emerald Navbar */}
+      {/* Crisp White & Emerald Glassmorphic Navbar */}
       <header style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         height: '66px',
-        background: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
+        background: 'rgba(255, 255, 255, 0.88)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(226, 232, 240, 0.85)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -253,11 +255,11 @@ export default function Layout({ children }) {
                 <span>{coins || 0}</span>
               </div>
 
-              {/* User Rank Tier Badge (Hidden on mobile header to ensure no crowding) */}
+              {/* User Rank Tier Badge */}
               <div 
                 onClick={() => navigate('/dashboard')}
                 style={{
-                  display: isMobile ? 'none' : 'flex',
+                  display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   padding: '5px 12px',

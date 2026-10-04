@@ -127,6 +127,8 @@ async function createTables() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS virtual_refill_count INT DEFAULT 1`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS consecutive_sl_hits INT DEFAULT 0`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS account_tag VARCHAR(50) DEFAULT 'Contender'`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS trade_streak INT DEFAULT 0`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_trade_date DATE`);
 
   // Normalize old legacy balances down to competitive $1,000 starting proving balance
   try {
@@ -571,8 +573,6 @@ async function createTables() {
 
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS login_streak INT DEFAULT 1`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_date DATE`);
-  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS trade_streak INT DEFAULT 0`);
-  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_trade_date DATE`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS consecutive_wins INT DEFAULT 0`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS total_trades_count INT DEFAULT 0`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS winning_trades_count INT DEFAULT 0`);
