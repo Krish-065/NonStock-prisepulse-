@@ -35,7 +35,7 @@ async function awardCoins(userId, amount, reason, description) {
   }
 }
 
-// 2. Process Daily Login Reward & Streak
+// 2. Process Daily Login Reward (2 Gold Coins strictly, NO badges for login streak)
 async function processLoginReward(userId) {
   try {
     const userRes = await query(
@@ -63,14 +63,14 @@ async function processLoginReward(userId) {
         alreadyClaimed: true,
         streak: currentStreak,
         currentCoins: currentCoins,
-        message: 'Daily login bonus already claimed for today'
+        message: 'Daily login bonus (+2 Coins) already claimed for today'
       };
     }
 
-    // Determine streak
+    // Determine login streak
     let newStreak = 1;
     if (diffDays === 1) {
-      // Exactly consecutive day
+      // Exactly consecutive calendar day
       newStreak = currentStreak + 1;
     } else if (diffDays === null || user.last_login_date === null) {
       // First ever claim
@@ -80,16 +80,9 @@ async function processLoginReward(userId) {
       newStreak = 1;
     }
 
-    // Base daily reward: +25 coins
-    let coinsEarned = 25;
-    let bonusNote = `Day ${newStreak} Discipline Login Bonus (+25 Coins)`;
-
-    // 7-day milestone bonus: +50 coins
-    if (newStreak % 7 === 0) {
-      coinsEarned += 50;
-      bonusNote = `${newStreak}-Day Consecutive Discipline Streak (+${coinsEarned} Coins)!`;
-      await awardBadge(userId, 'streak_master', 'Streak Master', `Achieved a ${newStreak}-day continuous trading discipline streak`);
-    }
+    // Base daily login reward: exactly 2 coins (NO badges for login streak per requirements)
+    const coinsEarned = 2;
+    const bonusNote = `Day ${newStreak} Daily Login Bonus (+2 Coins)`;
 
     // Update user record
     const updatedCoins = currentCoins + coinsEarned;
@@ -108,11 +101,108 @@ async function processLoginReward(userId) {
       alreadyClaimed: false,
       coinsAwarded: coinsEarned,
       streak: newStreak,
+      loginStreak: newStreak,
       newBalance: updatedCoins,
       message: bonusNote
     };
   } catch (err) {
     console.error('❌ Gamification processLoginReward error:', err);
+    return null;
+  }
+}
+
+// 2b. Process Daily Trading Streak Reward (20 Gold Coins per daily trade, Badges strictly for Trade Streaks)
+async function processTradeStreakReward(userId) {
+  try {
+    const userRes = await query(
+      `SELECT 
+        id, 
+        gold_coins, 
+        trade_streak, 
+        last_trade_date,
+        to_char(last_trade_date, 'YYYY-MM-DD') as last_trade_str,
+        to_char(CURRENT_DATE, 'YYYY-MM-DD') as today_str,
+        (CURRENT_DATE - last_trade_date) as diff_days 
+      FROM users WHERE id = $1`,
+      [userId]
+    );
+    if (userRes.rows.length === 0) return null;
+
+    const user = userRes.rows[0];
+    const diffDays = user.diff_days !== null && user.diff_days !== undefined ? parseInt(user.diff_days) : null;
+    const currentTradeStreak = parseInt(user.trade_streak || 0);
+    const currentCoins = parseInt(user.gold_coins || 100);
+
+    // If diffDays is 0, user already claimed daily trading streak bonus today
+    if (diffDays === 0) {
+      return {
+        alreadyClaimedToday: true,
+        tradeStreak: currentTradeStreak,
+        currentCoins: currentCoins,
+        coinsAwarded: 0,
+        message: `Day ${currentTradeStreak} Trading Streak already verified for today`
+      };
+    }
+
+    // Determine trading streak
+    let newTradeStreak = 1;
+    if (diffDays === 1) {
+      // Consecutive trading day
+      newTradeStreak = currentTradeStreak + 1;
+    } else {
+      // First trading day or streak reset
+      newTradeStreak = 1;
+    }
+
+    // Daily trading streak reward: strictly 20 coins
+    const coinsEarned = 20;
+    const bonusNote = `Day ${newTradeStreak} Trading Streak Bonus (+20 Coins)`;
+
+    // Badges are STRICTLY awarded for Trade Streaks (not login streaks)
+    if (newTradeStreak >= 3) {
+      await awardBadge(userId, 'trade_streak_3', 'Discipline Ignition', 'Maintained 3 consecutive days of live market order executions');
+    }
+    if (newTradeStreak >= 7) {
+      await awardBadge(userId, 'streak_master', 'Weekly Iron Will', 'Maintained 7 consecutive days of live market order executions');
+    }
+    if (newTradeStreak >= 14) {
+      await awardBadge(userId, 'fortnight_fortress', 'Fortnight Fortress', 'Maintained 14 consecutive days of live market order executions');
+    }
+    if (newTradeStreak >= 21) {
+      await awardBadge(userId, 'habit_of_champions', 'Habit of Champions', 'Maintained 21 consecutive days of live market order executions');
+    }
+    if (newTradeStreak >= 30) {
+      await awardBadge(userId, 'monthly_titan', 'Monthly Titan', 'Maintained 30 consecutive days of live market order executions');
+    }
+    if (newTradeStreak >= 60) {
+      await awardBadge(userId, 'unshakeable_habit', 'Unshakeable Habit', 'Maintained 60 consecutive days of live market order executions');
+    }
+    if (newTradeStreak >= 100) {
+      await awardBadge(userId, 'centurion_nomad', 'Centurion Nomad', 'Achieved monumental 100 consecutive days of live market order executions');
+    }
+
+    // Update user record with new trading streak and coins
+    const updatedCoins = currentCoins + coinsEarned;
+    await query(
+      'UPDATE users SET gold_coins = $1, trade_streak = $2, last_trade_date = CURRENT_DATE WHERE id = $3',
+      [updatedCoins, newTradeStreak, userId]
+    );
+
+    // Audit log
+    await query(
+      'INSERT INTO coin_transactions (id, user_id, amount, reason, description) VALUES ($1, $2, $3, $4, $5)',
+      [crypto.randomUUID(), userId, coinsEarned, 'DAILY_TRADE_STREAK', bonusNote]
+    );
+
+    return {
+      alreadyClaimedToday: false,
+      coinsAwarded: coinsEarned,
+      tradeStreak: newTradeStreak,
+      newBalance: updatedCoins,
+      message: bonusNote
+    };
+  } catch (err) {
+    console.error('❌ Gamification processTradeStreakReward error:', err);
     return null;
   }
 }
@@ -124,6 +214,16 @@ async function processTradeOpenReward(userId, { stopLoss, symbol }) {
     const totalTrades = parseInt(userRes.rows[0]?.total_trades_count || 0);
 
     const rewards = [];
+
+    // Award Daily Trading Streak (20 Coins) strictly on active trades
+    const streakReward = await processTradeStreakReward(userId);
+    if (streakReward && !streakReward.alreadyClaimedToday && streakReward.coinsAwarded > 0) {
+      rewards.push({ 
+        coins: streakReward.coinsAwarded, 
+        reason: streakReward.message,
+        tradeStreak: streakReward.tradeStreak 
+      });
+    }
 
     // Award First Blood badge if this is trade #1
     if (totalTrades === 0) {
@@ -423,6 +523,7 @@ async function getCoinTransactions(userId, limit = 50) {
 module.exports = {
   awardCoins,
   processLoginReward,
+  processTradeStreakReward,
   processTradeOpenReward,
   processTradeCloseReward,
   awardBadge,

@@ -581,14 +581,14 @@ export const BADGES_CATALOG = [
     hasBounty: true,
     theme: 'compound_curve',
     name: 'Discipline Ignition',
-    tagline: '3-day active trading login streak',
-    desc: 'Show up to inspect the markets 3 consecutive days in a row.',
+    tagline: '3-day continuous trading streak',
+    desc: 'Execute verified paper trades on 3 consecutive market days (badges awarded strictly for trade streaks, not login).',
     // BOUNTY 6
     icon: Flame,
     color: '#10B981',
-    check: ({ streakDays }) => {
-      const s = streakDays || 1;
-      return { unlocked: s >= 3, progress: Math.min(3, s), target: 3, text: `${Math.min(3, s)}/3 days` };
+    check: ({ tradeStreakDays, streakDays }) => {
+      const s = tradeStreakDays !== undefined ? tradeStreakDays : (streakDays || 0);
+      return { unlocked: s >= 3, progress: Math.min(3, s), target: 3, text: `${Math.min(3, s)}/3 trade days` };
     }
   },
   {
@@ -598,14 +598,14 @@ export const BADGES_CATALOG = [
     hasBounty: true,
     theme: 'gold_vault',
     name: 'Weekly Iron Will',
-    tagline: '7-day continuous discipline streak',
-    desc: 'One full week of relentless market presence and disciplined reviews.',
+    tagline: '7-day continuous trading streak',
+    desc: 'One full week of active trading executions on 7 consecutive market days.',
     // BOUNTY 7
     icon: Flame,
     color: '#059669',
-    check: ({ streakDays }) => {
-      const s = streakDays || 1;
-      return { unlocked: s >= 7, progress: Math.min(7, s), target: 7, text: `${Math.min(7, s)}/7 days` };
+    check: ({ tradeStreakDays, streakDays }) => {
+      const s = tradeStreakDays !== undefined ? tradeStreakDays : (streakDays || 0);
+      return { unlocked: s >= 7, progress: Math.min(7, s), target: 7, text: `${Math.min(7, s)}/7 trade days` };
     }
   },
   
@@ -616,13 +616,13 @@ export const BADGES_CATALOG = [
     hasBounty: true,
     theme: 'shield_sl',
     name: 'Fortnight Fortress',
-    tagline: '14-day continuous discipline streak',
-    desc: 'Two solid weeks of continuous trading and daily bonuses.',
+    tagline: '14-day continuous trading streak',
+    desc: 'Two solid weeks of continuous trading order executions.',
     icon: Flame,
     color: '#047857',
-    check: ({ streakDays }) => {
-      const s = streakDays || 1;
-      return { unlocked: s >= 14, progress: Math.min(14, s), target: 14, text: `${Math.min(14, s)}/14 days` };
+    check: ({ tradeStreakDays, streakDays }) => {
+      const s = tradeStreakDays !== undefined ? tradeStreakDays : (streakDays || 0);
+      return { unlocked: s >= 14, progress: Math.min(14, s), target: 14, text: `${Math.min(14, s)}/14 trade days` };
     }
   },
   {
@@ -632,13 +632,13 @@ export const BADGES_CATALOG = [
     hasBounty: true,
     theme: 'gold_vault',
     name: 'Habit of Champions',
-    tagline: '21-day continuous discipline streak',
-    desc: 'Neuroplastic routine: 21 days to permanently solidify trading discipline.',
+    tagline: '21-day continuous trading streak',
+    desc: 'Neuroplastic routine: 21 consecutive days of active executions.',
     icon: Flame,
     color: '#065F46',
-    check: ({ streakDays }) => {
-      const s = streakDays || 1;
-      return { unlocked: s >= 21, progress: Math.min(21, s), target: 21, text: `${Math.min(21, s)}/21 days` };
+    check: ({ tradeStreakDays, streakDays }) => {
+      const s = tradeStreakDays !== undefined ? tradeStreakDays : (streakDays || 0);
+      return { unlocked: s >= 21, progress: Math.min(21, s), target: 21, text: `${Math.min(21, s)}/21 trade days` };
     }
   },
   
@@ -649,14 +649,14 @@ export const BADGES_CATALOG = [
     hasBounty: true,
     theme: 'diamond_hands',
     name: 'Monthly Titan',
-    tagline: '30-day continuous discipline streak',
-    desc: 'One uninterrupted calendar month of professional presence.',
+    tagline: '30-day continuous trading streak',
+    desc: 'One uninterrupted calendar month of active trading executions.',
     // BOUNTY 8
     icon: Crown,
     color: '#EAB308',
-    check: ({ streakDays }) => {
-      const s = streakDays || 1;
-      return { unlocked: s >= 30, progress: Math.min(30, s), target: 30, text: `${Math.min(30, s)}/30 days` };
+    check: ({ tradeStreakDays, streakDays }) => {
+      const s = tradeStreakDays !== undefined ? tradeStreakDays : (streakDays || 0);
+      return { unlocked: s >= 30, progress: Math.min(30, s), target: 30, text: `${Math.min(30, s)}/30 trade days` };
     }
   },
   {
@@ -666,13 +666,13 @@ export const BADGES_CATALOG = [
     hasBounty: true,
     theme: 'master_titan',
     name: 'Unshakeable Habit',
-    tagline: '60-day continuous discipline streak',
-    desc: 'Two full months without missing a single day of market study.',
+    tagline: '60-day continuous trading streak',
+    desc: 'Two full months without missing a single day of active market executions.',
     icon: Crown,
     color: '#CA8A04',
-    check: ({ streakDays }) => {
-      const s = streakDays || 1;
-      return { unlocked: s >= 60, progress: Math.min(60, s), target: 60, text: `${Math.min(60, s)}/60 days` };
+    check: ({ tradeStreakDays, streakDays }) => {
+      const s = tradeStreakDays !== undefined ? tradeStreakDays : (streakDays || 0);
+      return { unlocked: s >= 60, progress: Math.min(60, s), target: 60, text: `${Math.min(60, s)}/60 trade days` };
     }
   },
   
@@ -683,14 +683,14 @@ export const BADGES_CATALOG = [
     hasBounty: true,
     theme: 'diamond_hands',
     name: 'Centurion Nomad',
-    tagline: '100-day daily discipline streak',
-    desc: 'Triple-digit milestone: 100 days of ironclad focus and execution.',
+    tagline: '100-day continuous trading streak',
+    desc: 'Triple-digit milestone: 100 consecutive days of active order executions.',
     // BOUNTY 9
     icon: Trophy,
     color: '#854D0E',
-    check: ({ streakDays }) => {
-      const s = streakDays || 1;
-      return { unlocked: s >= 100, progress: Math.min(100, s), target: 100, text: `${Math.min(100, s)}/100 days` };
+    check: ({ tradeStreakDays, streakDays }) => {
+      const s = tradeStreakDays !== undefined ? tradeStreakDays : (streakDays || 0);
+      return { unlocked: s >= 100, progress: Math.min(100, s), target: 100, text: `${Math.min(100, s)}/100 trade days` };
     }
   },
   {
@@ -988,16 +988,31 @@ export const BADGES_CATALOG = [
  */
 export const DISCIPLINE_TASKS = [
   {
-    id: 'streak_checkin',
-    title: 'Daily Terminal Check-In & Streak Proof',
-    desc: 'Verify consecutive market presence and claim daily discipline bonus.',
-    coins: 25,
-    icon: Flame,
-    check: ({ streakDays }) => ({
-      completed: (streakDays || 1) >= 1,
+    id: 'daily_login',
+    title: 'Daily Terminal Login Grant',
+    desc: 'Sign in daily to claim your baseline presence reward (+2 Gold Coins).',
+    coins: 2,
+    icon: Zap,
+    check: ({ loginStreak }) => ({
+      completed: true,
       progress: 1,
       target: 1,
-      statusText: `${streakDays || 1}-Day Streak Active`
+      statusText: `${loginStreak || 1}-Day Login Active (+2 Coins)`
+    })
+  },
+  {
+    id: 'daily_trade_streak',
+    title: 'Daily Execution Trade Streak',
+    desc: 'Execute at least one live paper trade today to claim your daily trading streak bonus (+20 Gold Coins). Badges unlock exclusively on trade streaks!',
+    coins: 20,
+    icon: Flame,
+    check: ({ tradeStreakDays, hasTradedToday }) => ({
+      completed: Boolean(hasTradedToday),
+      progress: hasTradedToday ? 1 : 0,
+      target: 1,
+      statusText: hasTradedToday 
+        ? `${tradeStreakDays || 1}-Day Trade Streak Active (+20 Coins)` 
+        : 'Awaiting Today\'s Order Execution'
     })
   },
   {

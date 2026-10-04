@@ -415,7 +415,7 @@ async function login(req, res) {
       console.warn('Login reward processing warning:', e.message);
     }
 
-    const updatedUserRes = await query('SELECT gold_coins, login_streak, account_tag, der_score, virtual_balance FROM users WHERE id = $1', [user.id]);
+    const updatedUserRes = await query('SELECT gold_coins, login_streak, trade_streak, account_tag, der_score, virtual_balance FROM users WHERE id = $1', [user.id]);
     const uStats = updatedUserRes.rows[0] || {};
 
     res.json({ 
@@ -433,6 +433,7 @@ async function login(req, res) {
         has_completed_pro_tutorial: user.has_completed_pro_tutorial,
         gold_coins: parseInt(uStats.gold_coins || 100),
         login_streak: parseInt(uStats.login_streak || 1),
+        trade_streak: parseInt(uStats.trade_streak || 0),
         account_tag: uStats.account_tag || 'Contender',
         der_score: parseFloat(uStats.der_score || 75.00),
         virtual_balance: parseFloat(uStats.virtual_balance || 1000.00)

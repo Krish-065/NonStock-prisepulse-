@@ -42,7 +42,8 @@ export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { 
-    balance = 1000, coins = 100, streakDays = 1, positions = [], history = [], badge, closePosition,
+    balance = 1000, coins = 100, streakDays = 0, tradeStreakDays = 0, loginStreak = 1, hasTradedToday = false,
+    positions = [], history = [], badge, closePosition,
     watchlist = [], addToWatchlist, removeFromWatchlist,
     unlockedTools = {}, unlockTool,
     isFreeGraceActive = true, trialDaysRemaining = 60,
@@ -267,7 +268,9 @@ export default function Dashboard() {
       history,
       positions,
       coins,
-      streakDays,
+      streakDays: tradeStreakDays || streakDays || 0,
+      tradeStreakDays: tradeStreakDays || streakDays || 0,
+      loginStreak: loginStreak || 1,
       watchlist,
       hasAvatar: Boolean(avatarUrl)
     };
@@ -294,16 +297,19 @@ export default function Dashboard() {
         progressText: evaluation.text
       };
     });
-  }, [balanceNum, history, positions, coins, streakDays, watchlist, avatarUrl]);
+  }, [balanceNum, history, positions, coins, streakDays, tradeStreakDays, loginStreak, watchlist, avatarUrl]);
 
   const totalUnlockedCount = useMemo(() => {
     return evaluatedBadges.filter(b => b.unlocked).length;
   }, [evaluatedBadges]);
 
-  // Evaluate the 5 Dedicated Discipline Tasks Desk (Completely separate from badges)
+  // Evaluate the Dedicated Discipline Tasks Desk (Daily habits distributing Gold Coins)
   const evaluatedDisciplineTasks = useMemo(() => {
     const taskContext = {
-      streakDays,
+      loginStreak: loginStreak || 1,
+      tradeStreakDays: tradeStreakDays || streakDays || 0,
+      streakDays: tradeStreakDays || streakDays || 0,
+      hasTradedToday,
       watchlist,
       positions,
       history,
@@ -319,7 +325,7 @@ export default function Dashboard() {
         statusText: evaluation.statusText
       };
     });
-  }, [streakDays, watchlist, positions, history, coins]);
+  }, [loginStreak, tradeStreakDays, streakDays, hasTradedToday, watchlist, positions, history, coins]);
 
   const completedTasksCount = useMemo(() => {
     return evaluatedDisciplineTasks.filter(t => t.completed).length;
@@ -915,20 +921,53 @@ export default function Dashboard() {
             </div>
 
             <div style={{
-              background: 'rgba(255, 255, 255, 0.7)',
-              border: '1px solid #FACC15',
-              borderRadius: '12px',
-              padding: '10px 14px',
-              marginTop: '16px',
               display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '12px',
-              fontWeight: 800,
-              color: '#92400E'
+              flexDirection: 'column',
+              gap: '6px',
+              marginTop: '14px'
             }}>
-              <Flame size={16} color="#EA580C" />
-              <span>{streakDays}-Day Streak (+25 daily coins)</span>
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.75)',
+                border: '1px solid #FDE047',
+                borderRadius: '10px',
+                padding: '6px 10px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '11px',
+                fontWeight: 750,
+                color: '#854D0E'
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Zap size={13} color="#EAB308" />
+                  <span>Daily Login ({loginStreak}d)</span>
+                </span>
+                <span style={{ fontWeight: 850, color: '#059669', background: '#ECFDF5', padding: '1px 6px', borderRadius: '4px' }}>
+                  +2 Coins
+                </span>
+              </div>
+
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.9)',
+                border: '1.5px solid #FACC15',
+                borderRadius: '10px',
+                padding: '7px 10px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#713F12',
+                boxShadow: '0 2px 6px rgba(234, 88, 12, 0.08)'
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Flame size={15} color="#EA580C" />
+                  <span>{tradeStreakDays || streakDays || 0}-Day Trade Streak</span>
+                </span>
+                <span style={{ fontWeight: 900, color: '#EA580C', background: '#FFF7ED', border: '1px solid #FDBA74', padding: '1px 7px', borderRadius: '4px' }}>
+                  +20 Coins
+                </span>
+              </div>
             </div>
           </div>
 
@@ -2067,7 +2106,7 @@ export default function Dashboard() {
             {/* Modal Body */}
             <div style={{ padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* Vault Overview Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
                 <div style={{
                   background: '#FFFDF5',
                   border: '1.5px solid #FACC15',
@@ -2081,31 +2120,49 @@ export default function Dashboard() {
                     <div style={{ fontSize: '10px', fontWeight: 800, color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                       CURRENT BALANCE
                     </div>
-                    <div style={{ fontSize: '26px', fontWeight: 900, color: '#713F12', marginTop: '2px' }}>
-                      {coinVaultData?.goldCoins ?? coins} <span style={{ fontSize: '13px', fontWeight: 700 }}>Coins</span>
+                    <div style={{ fontSize: '24px', fontWeight: 900, color: '#713F12', marginTop: '2px' }}>
+                      {coinVaultData?.goldCoins ?? coins} <span style={{ fontSize: '12px', fontWeight: 700 }}>Coins</span>
                     </div>
                     <div style={{ fontSize: '11px', color: '#A16207', marginTop: '2px' }}>
-                      Universal Sovereign Currency
+                      Universal Currency
                     </div>
                   </div>
-                  <GoldCoin1K size={48} showRings={false} animated={false} />
+                  <GoldCoin1K size={42} showRings={false} animated={false} />
                 </div>
 
                 <div style={{
                   background: '#F0FDF4',
-                  border: '1.5px solid #A7F3D0',
-                  borderRadius: '8px',
-                  padding: '14px 16px'
+                  border: '1.5px solid #BBF7D0',
+                  borderRadius: '12px',
+                  padding: '16px'
                 }}>
-                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                    DISCIPLINE STREAK
+                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Zap size={12} color="#059669" />
+                    DAILY LOGIN
                   </div>
-                  <div style={{ fontSize: '26px', fontWeight: 900, color: '#065F46', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Flame size={22} color="#EA580C" />
-                    <span>{coinVaultData?.loginStreak ?? streakDays} <span style={{ fontSize: '13px', fontWeight: 700 }}>Days</span></span>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#065F46', marginTop: '2px' }}>
+                    {coinVaultData?.loginStreak ?? loginStreak} <span style={{ fontSize: '12px', fontWeight: 700 }}>Days</span>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>
-                    +25 Coins granted every consecutive day
+                  <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px', fontWeight: 700 }}>
+                    +2 Coins daily login grant (no badges)
+                  </div>
+                </div>
+
+                <div style={{
+                  background: '#FFF7ED',
+                  border: '1.5px solid #FED7AA',
+                  borderRadius: '12px',
+                  padding: '16px'
+                }}>
+                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Flame size={12} color="#EA580C" />
+                    TRADE STREAK
+                  </div>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#9A3412', marginTop: '2px' }}>
+                    {coinVaultData?.tradeStreak ?? (tradeStreakDays || streakDays || 0)} <span style={{ fontSize: '12px', fontWeight: 700 }}>Days</span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#C2410C', marginTop: '2px', fontWeight: 700 }}>
+                    +20 Coins & Badges for trade streaks
                   </div>
                 </div>
               </div>
@@ -2212,7 +2269,7 @@ export default function Dashboard() {
               alignItems: 'center'
             }}>
               <div style={{ fontSize: '11px', color: '#64748B' }}>
-                Streak bonus increments strictly once per calendar day
+                Daily login: +2 Coins | Daily trading streak: +20 Coins | Badges unlock exclusively on trade streaks
               </div>
               <button
                 onClick={() => setShowCoinVaultModal(false)}
