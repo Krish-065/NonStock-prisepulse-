@@ -26,29 +26,14 @@ async function authenticate(req, res, next) {
 
       const session = sessionResult.rows[0];
 
-      // Check if session was invalidated because another device logged in
+      // Check if session has been invalidated
       if (!session.is_valid) {
-        if (session.current_session_id && session.current_session_id !== decoded.sessionId) {
-          return res.status(401).json({
-            error: 'Your account was logged in from another device. Please log in again.',
-            code: 'DEVICE_LOGGED_OUT'
-          });
-        }
         return res.status(401).json({ error: 'Session has been logged out. Please log in again.', code: 'SESSION_INVALID' });
       }
 
       // Check if session has expired
       if (session.is_expired) {
         return res.status(401).json({ error: 'Session expired. Please log in again.', code: 'SESSION_EXPIRED' });
-      }
-
-      // Check device ID match if provided by client and stored on session
-      const clientDeviceId = req.headers['x-device-id'] || req.headers['x_device_id'];
-      if (session.device_id && clientDeviceId && session.device_id !== clientDeviceId) {
-        return res.status(401).json({
-          error: 'Device mismatch. This session is registered to a different device.',
-          code: 'DEVICE_MISMATCH'
-        });
       }
 
       // Touch session activity & extend expiry for active sessions

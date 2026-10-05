@@ -229,34 +229,28 @@ async function sendPasswordChangeNotificationEmail(email, userName) {
   });
 }
 
-// CREATE PERSISTENT DEVICE SESSION (Enforces Single Active Device)
+// CREATE PERSISTENT DEVICE SESSION (Supports Concurrent Multi-Device Logins)
 async function createDeviceSession({ userId, email, ip, userAgent, deviceId, deviceName }) {
-  // 1. Invalidate any existing active sessions for this user on other devices
-  await query(
-    `UPDATE sessions SET is_valid = false WHERE user_id = $1 AND is_valid = true`,
-    [userId]
-  );
-
-  // 2. Generate new session token and ID
+  // 1. Generate new session token and ID for this device (does NOT invalidate other devices)
   const sessionToken = crypto.randomBytes(32).toString('hex');
   const sessionId = generateUUID();
   const validDeviceId = deviceId || ('dev_' + crypto.randomBytes(12).toString('hex'));
   const validDeviceName = deviceName || 'Device';
 
-  // 3. Insert new active session with 30-day validity
+  // 2. Insert new active session with 30-day validity
   await query(
     `INSERT INTO sessions (id, user_id, token, ip_address, user_agent, device_id, device_name, is_valid, expires_at) 
      VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW() + INTERVAL '30 days')`,
     [sessionId, userId, sessionToken, ip, userAgent, validDeviceId, validDeviceName]
   );
 
-  // 4. Update current active device and session on user record
+  // 3. Update last active device info on user record (informational)
   await query(
     `UPDATE users SET current_session_id = $1, current_device_id = $2, current_device_name = $3 WHERE id = $4`,
     [sessionId, validDeviceId, validDeviceName, userId]
   );
 
-  // 5. Generate long-lived JWT token (30 days) containing sessionId and deviceId
+  // 4. Generate long-lived JWT token (30 days) containing sessionId and deviceId
   const jwtToken = jwt.sign(
     { id: userId, email, sessionId, deviceId: validDeviceId },
     process.env.JWT_SECRET,
@@ -790,6 +784,40 @@ async function googleLogin(req, res) {
   }
 }
 
+// DELETE ACCOUNT (Invalidates user sessions and marks deleted while strictly preserving user record in DB)
+async function deleteAccount(req, res) {
+  try {
+    const userId = req.user?.id || req.body?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'User authentication required' });
+    }
+
+    // Ensure columns exist in users table
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false`).catch(() => {});
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`).catch(() => {});
+
+    // Mark as deleted in DB (preserving all records in database as requested)
+    await query(
+      `UPDATE users SET is_deleted = true, deleted_at = NOW(), current_session_id = NULL WHERE id = $1`,
+      [userId]
+    );
+
+    // Invalidate all active sessions for this user in DB
+    await query(
+      `UPDATE sessions SET is_valid = false WHERE user_id = $1`,
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Account session terminated and permanently removed from device. Database record preserved.'
+    });
+  } catch (error) {
+    console.error('❌ Delete account error:', error);
+    res.status(500).json({ error: 'Failed to process account deletion' });
+  }
+}
+
 module.exports = {
   register,
   verifyEmail,
@@ -806,4 +834,5 @@ module.exports = {
   changePassword,
   googleLogin,
   createDeviceSession,
+  deleteAccount,
 };

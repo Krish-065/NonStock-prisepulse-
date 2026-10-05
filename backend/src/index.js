@@ -70,6 +70,7 @@ app.post('/api/auth/2fa/login-verify', authRoutes.verifyTwoFactorLogin);
 app.post('/api/auth/forgot-password', authRoutes.forgotPassword);
 app.post('/api/auth/reset-password', authRoutes.resetPassword);
 app.post('/api/auth/logout', authenticate, authRoutes.logout);
+app.post('/api/auth/delete-account', authenticate, authRoutes.deleteAccount);
 app.get('/api/auth/sessions', authenticate, authRoutes.getSessions);
 app.delete('/api/auth/sessions/:sessionId', authenticate, authRoutes.logoutSession);
 app.post('/api/auth/2fa/setup', authenticate, authRoutes.setupTwoFactor);

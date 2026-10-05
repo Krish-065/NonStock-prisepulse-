@@ -20,6 +20,7 @@ import PositionSizeCalculator from '../components/PositionSizeCalculator';
 import MobilePortfolioHub from '../components/MobilePortfolioHub';
 import TradingBadgeIcon from '../components/TradingBadgeIcon';
 import DecagonTagBadge from '../components/DecagonTagBadge';
+import DeleteAccountModal from '../components/DeleteAccountModal';
 import { BADGES_CATALOG, DISCIPLINE_TASKS } from '../data/badgesData';
 
 // Available assets for the Watchlist search dropdown & live ticker
@@ -65,6 +66,7 @@ export default function Dashboard() {
 
   // Gold Coins Vault & Audit Ledger Modal state
   const [showCoinVaultModal, setShowCoinVaultModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [coinVaultData, setCoinVaultData] = useState(null);
   const [coinVaultLoading, setCoinVaultLoading] = useState(false);
 
@@ -2017,7 +2019,7 @@ export default function Dashboard() {
         WebkitBackdropFilter: 'blur(16px)',
         borderRadius: '24px',
         border: '1.5px solid rgba(226, 232, 240, 0.85)',
-        padding: '32px',
+        padding: isMobile ? '20px 14px' : '32px',
         boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
       }}>
         {/* Badges Header & Rationale */}
@@ -2042,7 +2044,7 @@ export default function Dashboard() {
           </div>
 
           {/* Search Box */}
-          <div style={{ position: 'relative', width: '240px' }}>
+          <div style={{ position: 'relative', width: isMobile ? '100%' : '240px' }}>
             <Search size={15} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '11px' }} />
             <input 
               type="text"
@@ -2105,7 +2107,7 @@ export default function Dashboard() {
         {/* Badges Grid with Unique Modern Insignias */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))',
           gap: '16px'
         }}>
           {visibleBadges.map(b => {
@@ -2281,21 +2283,21 @@ export default function Dashboard() {
       {/* ─── 5. LOWER PROVING LEDGER: BROKER MIRROR & REAL LEADERBOARD (DETACHED FLOATING CARDS) ─── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
-        gap: '24px'
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)',
+        gap: '20px'
       }}>
         {/* Left Card: Broker Mirror & Real Account Sync */}
         <div style={{
           background: '#FFFFFF',
           borderRadius: '24px',
           border: '1.5px solid #E2E8F0',
-          padding: '28px',
+          padding: isMobile ? '20px 16px' : '28px',
           boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
           display: 'flex',
           flexDirection: 'column',
           gap: '16px'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: '12px' }}>
             <div>
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 BROKER MIRROR PROTOCOL
@@ -2335,7 +2337,8 @@ export default function Dashboard() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 12px rgba(0, 158, 71, 0.25)'
+                  boxShadow: '0 4px 12px rgba(0, 158, 71, 0.25)',
+                  alignSelf: isMobile ? 'flex-start' : 'auto'
                 }}
               >
                 <span>Connect Broker</span>
@@ -2356,7 +2359,9 @@ export default function Dashboard() {
             fontSize: '13px',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: isMobile ? 'flex-start' : 'center',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: '12px'
           }}>
             <div>
               <div style={{ fontWeight: 800, color: '#0F172A' }}>
@@ -2376,7 +2381,8 @@ export default function Dashboard() {
                 fontSize: '12px',
                 fontWeight: 700,
                 color: '#475569',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                alignSelf: isMobile ? 'flex-start' : 'auto'
               }}
             >
               Configure
@@ -2389,13 +2395,14 @@ export default function Dashboard() {
           background: '#FFFFFF',
           borderRadius: '24px',
           border: '1.5px solid #E2E8F0',
-          padding: '28px',
+          padding: isMobile ? '20px 16px' : '28px',
           boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px'
+          gap: '16px',
+          minWidth: 0
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div>
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 GLOBAL VERIFIED RANKINGS
@@ -2409,9 +2416,9 @@ export default function Dashboard() {
             </span>
           </div>
 
-          {/* Table with Rounded Shell */}
-          <div style={{ border: '1.5px solid #E2E8F0', borderRadius: '16px', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+          {/* Table with Rounded Shell & Horizontal Scroll on Mobile */}
+          <div style={{ border: '1.5px solid #E2E8F0', borderRadius: '16px', overflow: 'hidden', width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', minWidth: isMobile ? '460px' : '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                 <tr>
                   <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 800, color: '#64748B' }}>Rank</th>
@@ -2451,6 +2458,57 @@ export default function Dashboard() {
             </table>
           </div>
         </div>
+      </div>
+
+      {/* ─── 6. ACCOUNT SECURITY & DEVICE DATA (DANGER ZONE / DELETE ACCOUNT) ─── */}
+      <div style={{
+        background: '#FFFFFF',
+        borderRadius: '24px',
+        border: '1.5px solid #E2E8F0',
+        padding: isMobile ? '20px 16px' : '24px 28px',
+        boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        justifyContent: 'space-between',
+        gap: '16px'
+      }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#DC2626', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+              ACCOUNT & DEVICE SECURITY
+            </span>
+          </div>
+          <h4 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: '4px 0 2px 0' }}>
+            Device Session & Permanent Removal
+          </h4>
+          <p style={{ fontSize: '12px', color: '#64748B', margin: 0, lineHeight: 1.4, maxWidth: '600px' }}>
+            Need to delete this account from your device? Wipes all saved sessions, cached charts, and local keys permanently while keeping your records archived in the database.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          style={{
+            background: '#FEF2F2',
+            border: '1.5px solid #FCA5A5',
+            color: '#DC2626',
+            borderRadius: '10px',
+            padding: '10px 18px',
+            fontSize: '13px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexShrink: 0,
+            width: isMobile ? '100%' : 'auto',
+            justifyContent: 'center'
+          }}
+        >
+          <Trash2 size={16} />
+          <span>Delete Account</span>
+        </button>
       </div>
       </>
       )}
@@ -2861,6 +2919,12 @@ export default function Dashboard() {
         onSyncSuccess={fetchBrokerMirror}
         currentBroker={brokerMirror?.connectedBroker}
         isActive={brokerMirror?.isActive}
+      />
+
+      {/* ─── DELETE ACCOUNT MODAL ─── */}
+      <DeleteAccountModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
       />
     </div>
   );

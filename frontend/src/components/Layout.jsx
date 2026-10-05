@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, Sun, Moon, User, Zap, Search, Bot, 
   FlaskConical, Clock, Coins, LogOut, Globe, Sparkles, X, ChevronRight, ShieldCheck,
-  Calculator, LayoutDashboard
+  Calculator, LayoutDashboard, Trash2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -13,6 +13,7 @@ import TickerTape from './TickerTape';
 import StockActionModal from './StockActionModal';
 import WarningModal from './WarningModal';
 import CelestialEngine from './CelestialEngine';
+import DeleteAccountModal from './DeleteAccountModal';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -24,6 +25,7 @@ export default function Layout({ children }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1100);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1100);
@@ -571,7 +573,7 @@ export default function Layout({ children }) {
             <ChevronRight size={16} color="#64748B" />
           </button>
 
-          <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid #E2E8F0' }}>
+          <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <button
               onClick={() => {
                 logout();
@@ -579,13 +581,13 @@ export default function Layout({ children }) {
               }}
               style={{
                 width: '100%',
-                padding: '12px',
+                padding: '11px',
                 borderRadius: '10px',
-                background: '#FEF2F2',
-                border: '1px solid #FCA5A5',
-                color: '#DC2626',
+                background: '#F8FAFC',
+                border: '1px solid #CBD5E1',
+                color: '#475569',
                 fontWeight: 800,
-                fontSize: '14px',
+                fontSize: '13px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -596,6 +598,33 @@ export default function Layout({ children }) {
               <LogOut size={16} />
               <span>Log Out</span>
             </button>
+
+            {user && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setShowDeleteModal(true);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '11px',
+                  borderRadius: '10px',
+                  background: '#FEF2F2',
+                  border: '1px solid #FCA5A5',
+                  color: '#DC2626',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Trash2 size={16} />
+                <span>Delete Account</span>
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -734,6 +763,7 @@ export default function Layout({ children }) {
       )}
 
       <WarningModal />
+      <DeleteAccountModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} />
     </div>
   );
 }
