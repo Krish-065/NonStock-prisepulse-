@@ -1410,6 +1410,40 @@ export default function AIMentor() {
                 if (raw.includes(':')) return raw;
                 const s = raw.replace('.NS', '').replace('.BO', '');
 
+                // 1. Commodities & Precious Metals
+                if (['GOLD', 'XAUUSD', 'XAU-USD', 'XAU'].includes(s)) return 'OANDA:XAUUSD';
+                if (['SILVER', 'XAGUSD', 'XAG-USD', 'XAG'].includes(s)) return 'OANDA:XAGUSD';
+                if (['CRUDE', 'OIL', 'WTI', 'CL', 'WTIUSD', 'USOIL'].includes(s)) return 'TVC:USOIL';
+                if (['NATGAS', 'NG'].includes(s)) return 'TVC:NATGAS';
+
+                // 2. Forex Majors & Crosses
+                if (['EURUSD', 'EUR/USD'].includes(s)) return 'FX:EURUSD';
+                if (['GBPUSD', 'GBP/USD'].includes(s)) return 'FX:GBPUSD';
+                if (['USDJPY', 'USD/JPY'].includes(s)) return 'FX:USDJPY';
+                if (['AUDUSD', 'AUD/USD'].includes(s)) return 'FX:AUDUSD';
+                if (['USDCAD', 'USD/CAD'].includes(s)) return 'FX:USDCAD';
+                if (['USDCHF', 'USD/CHF'].includes(s)) return 'FX:USDCHF';
+                if (['NZDUSD', 'NZD/USD'].includes(s)) return 'FX:NZDUSD';
+
+                // 3. Global Major Indices
+                if (['SPX', 'S&P 500', 'S&P500', 'SP500', '^GSPC'].includes(s)) return 'FOREXCOM:SPXUSD';
+                if (['NDX', 'NASDAQ', 'NASDAQ100', '^IXIC'].includes(s)) return 'FOREXCOM:NAS100USD';
+                if (['DJI', 'DOW'].includes(s)) return 'FOREXCOM:DJI';
+                if (s === 'SPY') return 'AMEX:SPY';
+                if (s === 'QQQ') return 'NASDAQ:QQQ';
+
+                // 4. Indian Indices & Equities
+                if (s === 'NIFTY' || s === '^NSEI') return 'NSE:NIFTY';
+                if (s === 'SENSEX' || s === '^BSESN') return 'BSE:SENSEX';
+                if (s === 'NIFTYBANK' || s === 'BANKNIFTY') return 'NSE:BANKNIFTY';
+                if (['RELIANCE', 'TCS', 'INFY', 'SBIN', 'HDFCBANK', 'ICICIBANK'].includes(s) || raw.endsWith('.NS')) return `NSE:${s}`;
+                if (raw.endsWith('.BO')) return `BSE:${s}`;
+
+                // 5. Crypto with USD vs USDT distinction
+                if (s === 'BTCUSD' || s === 'BTC/USD') return 'COINBASE:BTCUSD';
+                if (s === 'ETHUSD' || s === 'ETH/USD') return 'COINBASE:ETHUSD';
+                if (s === 'SOLUSD' || s === 'SOL/USD') return 'COINBASE:SOLUSD';
+
                 const cryptoAliases = {
                   'BITCOIN': 'BTC',
                   'ETHEREUM': 'ETH',
@@ -1423,24 +1457,10 @@ export default function AIMentor() {
                 const mappedCrypto = cryptoAliases[s];
                 if (mappedCrypto) return `BINANCE:${mappedCrypto}USDT`;
 
-                if (['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX', 'DOT', 'LINK'].includes(s) || s.includes('-USD') || s.includes('/USD') || s.endsWith('USDT') || (s.endsWith('USD') && s.length <= 7)) {
-                  const base = s.replace('-USD', '').replace('/USD', '').replace('USDT', '').replace('USD', '');
+                if (['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX', 'DOT', 'LINK'].includes(s) || s.endsWith('USDT')) {
+                  const base = s.replace('USDT', '');
                   return `BINANCE:${base}USDT`;
                 }
-
-                if (['SPX', 'S&P 500', 'S&P500', 'SP500', '^GSPC'].includes(s)) return 'FOREXCOM:SPXUSD';
-                if (['NDX', 'NASDAQ', 'NASDAQ100', '^IXIC'].includes(s)) return 'FOREXCOM:NAS100USD';
-                if (['DJI', 'DOW'].includes(s)) return 'FOREXCOM:DJI';
-                if (['GOLD', 'XAUUSD', 'XAU-USD'].includes(s)) return 'OANDA:XAUUSD';
-                if (['CRUDE', 'OIL', 'WTI', 'CL'].includes(s)) return 'NYMEX:CL1!';
-                if (['EURUSD', 'EUR/USD'].includes(s)) return 'FX:EURUSD';
-                if (['GBPUSD', 'GBP/USD'].includes(s)) return 'FX:GBPUSD';
-
-                if (s === 'NIFTY' || s === '^NSEI') return 'NSE:NIFTY';
-                if (s === 'SENSEX' || s === '^BSESN') return 'BSE:SENSEX';
-                if (s === 'NIFTYBANK' || s === 'BANKNIFTY') return 'NSE:BANKNIFTY';
-                if (['RELIANCE', 'TCS', 'INFY', 'SBIN', 'HDFCBANK', 'ICICIBANK'].includes(s) || raw.endsWith('.NS')) return `NSE:${s}`;
-                if (raw.endsWith('.BO')) return `BSE:${s}`;
 
                 if (['BABA', 'DIS', 'BA', 'JPM', 'NKE', 'KO', 'WMT', 'V', 'MA'].includes(s)) return `NYSE:${s}`;
                 return `NASDAQ:${s}`;

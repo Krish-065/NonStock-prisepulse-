@@ -102,41 +102,52 @@ Guidelines:
       });
     }
 
-    // Call Groq API
+    // Call Groq API with robust model fallback
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: message }
-          ],
-          temperature: 0.3,
-          max_tokens: 800
-        })
-      });
+      const candidateModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+      let aiResponse = null;
+      let usedModel = null;
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Groq API returned status ${response.status}: ${errorText}`);
+      for (const modelName of candidateModels) {
+        try {
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${GROQ_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: message }
+              ],
+              temperature: 0.35,
+              max_tokens: 1000
+            })
+          });
+
+          if (response.ok) {
+            const responseData = await response.json();
+            aiResponse = responseData?.choices?.[0]?.message?.content;
+            if (aiResponse) {
+              usedModel = modelName;
+              break;
+            }
+          }
+        } catch (mErr) {
+          console.warn(`[AI Controller] Groq ${modelName} error:`, mErr.message);
+        }
       }
 
-      const responseData = await response.json();
-      const aiResponse = responseData?.choices?.[0]?.message?.content;
-
       if (!aiResponse) {
-        throw new Error('Groq returned an empty response.');
+        throw new Error('Groq returned empty response across candidate models.');
       }
 
       return res.json({
         success: true,
         response: aiResponse,
-        model: 'llama-3.3-70b-versatile'
+        model: usedModel || 'openai/gpt-oss-120b'
       });
 
     } catch (apiError) {

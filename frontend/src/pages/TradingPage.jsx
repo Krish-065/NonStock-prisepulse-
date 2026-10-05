@@ -9,29 +9,143 @@ import toast from 'react-hot-toast';
 import ExecutionTicket from '../components/ExecutionTicket';
 import LiveMarketScreener from '../components/LiveMarketScreener';
 
+// Helper to dynamically resolve TradingView symbol for any user-entered ticker
+export function resolveTradingViewSymbol(rawSym) {
+  if (!rawSym) return 'BINANCE:BTCUSDT';
+  const s = rawSym.toUpperCase().trim();
+  if (s.includes(':')) return s;
+  
+  const map = {
+    'BTCUSD': 'COINBASE:BTCUSD',
+    'BTCUSDT': 'BINANCE:BTCUSDT',
+    'ETHUSD': 'COINBASE:ETHUSD',
+    'ETHUSDT': 'BINANCE:ETHUSDT',
+    'SOLUSD': 'COINBASE:SOLUSD',
+    'SOLUSDT': 'BINANCE:SOLUSDT',
+    'BNBUSD': 'BINANCE:BNBUSD',
+    'BNBUSDT': 'BINANCE:BNBUSDT',
+    'XRPUSD': 'BITSTAMP:XRPUSD',
+    'XRPUSDT': 'BINANCE:XRPUSDT',
+    'DOGEUSD': 'COINBASE:DOGEUSD',
+    'DOGEUSDT': 'BINANCE:DOGEUSDT',
+    'ADAUSD': 'COINBASE:ADAUSD',
+    'ADAUSDT': 'BINANCE:ADAUSDT',
+    'AVAXUSD': 'COINBASE:AVAXUSD',
+    'AVAXUSDT': 'BINANCE:AVAXUSDT',
+    'LINKUSD': 'COINBASE:LINKUSD',
+    'LINKUSDT': 'BINANCE:LINKUSDT',
+    'SUIUSDT': 'BINANCE:SUIUSDT',
+    'PEPEUSDT': 'BINANCE:PEPEUSDT',
+    'NEARUSDT': 'BINANCE:NEARUSDT',
+    'XAUUSD': 'OANDA:XAUUSD',
+    'GOLD': 'OANDA:XAUUSD',
+    'XAGUSD': 'OANDA:XAGUSD',
+    'SILVER': 'OANDA:XAGUSD',
+    'WTIUSD': 'TVC:USOIL',
+    'USOIL': 'TVC:USOIL',
+    'CRUDE': 'TVC:USOIL',
+    'BRENT': 'TVC:UKOIL',
+    'UKOIL': 'TVC:UKOIL',
+    'NATGAS': 'TVC:NATGAS',
+    'COPPER': 'COMEX:HG1!',
+    'PLATINUM': 'TVC:PLATINUM',
+    'EURUSD': 'FX:EURUSD',
+    'GBPUSD': 'FX:GBPUSD',
+    'USDJPY': 'FX:USDJPY',
+    'AUDUSD': 'FX:AUDUSD',
+    'USDCAD': 'FX:USDCAD',
+    'USDCHF': 'FX:USDCHF',
+    'NZDUSD': 'FX:NZDUSD',
+    'EURGBP': 'FX:EURGBP',
+    'EURJPY': 'FX:EURJPY',
+    'GBPJPY': 'FX:GBPJPY',
+    'SPX': 'FOREXCOM:SPXUSD',
+    'US500': 'FOREXCOM:SPXUSD',
+    'SPY': 'AMEX:SPY',
+    'NDX': 'FOREXCOM:NSXUSD',
+    'US100': 'FOREXCOM:NSXUSD',
+    'QQQ': 'NASDAQ:QQQ',
+    'DJI': 'FOREXCOM:DJI',
+    'US30': 'FOREXCOM:DJI',
+    'DIA': 'AMEX:DIA',
+    'AAPL': 'NASDAQ:AAPL',
+    'NVDA': 'NASDAQ:NVDA',
+    'TSLA': 'NASDAQ:TSLA',
+    'MSFT': 'NASDAQ:MSFT',
+    'GOOGL': 'NASDAQ:GOOGL',
+    'AMZN': 'NASDAQ:AMZN',
+    'META': 'NASDAQ:META',
+    'AMD': 'NASDAQ:AMD',
+    'MSTR': 'NASDAQ:MSTR',
+    'COIN': 'NASDAQ:COIN'
+  };
+  
+  if (map[s]) return map[s];
+  if (s.endsWith('USDT') || s.endsWith('PERP')) return `BINANCE:${s}`;
+  if (s.endsWith('USD')) return `COINBASE:${s}`;
+  if (s.length === 6 && (s.endsWith('JPY') || s.endsWith('CHF') || s.endsWith('CAD') || s.endsWith('GBP') || s.endsWith('AUD'))) return `FX:${s}`;
+  return `BINANCE:${s}USDT`;
+}
+
 // Full Master Tradable Assets Catalog
 const ALL_ASSETS = [
-  // Crypto
-  { symbol: 'BTCUSDT', name: 'Bitcoin', category: 'Crypto', tvSymbol: 'BINANCE:BTCUSDT', defaultPrice: 86502.00 },
-  { symbol: 'ETHUSDT', name: 'Ethereum', category: 'Crypto', tvSymbol: 'BINANCE:ETHUSDT', defaultPrice: 2748.41 },
-  { symbol: 'SOLUSDT', name: 'Solana', category: 'Crypto', tvSymbol: 'BINANCE:SOLUSDT', defaultPrice: 154.20 },
-  { symbol: 'BNBUSDT', name: 'BNB', category: 'Crypto', tvSymbol: 'BINANCE:BNBUSDT', defaultPrice: 585.50 },
-  { symbol: 'XRPUSDT', name: 'Ripple', category: 'Crypto', tvSymbol: 'BINANCE:XRPUSDT', defaultPrice: 0.585 },
-  // Commodities
-  { symbol: 'XAUUSD', name: 'Gold Spot / USD', category: 'Commodities', tvSymbol: 'OANDA:XAUUSD', defaultPrice: 2518.40 },
-  { symbol: 'WTIUSD', name: 'Crude Oil WTI', category: 'Commodities', tvSymbol: 'TVC:USOIL', defaultPrice: 71.85 },
+  // Crypto Spot USD (Coinbase / Bitstamp) & Crypto Futures USDT (Binance)
+  { symbol: 'BTCUSD', name: 'Bitcoin Spot USD', category: 'Crypto', tvSymbol: 'COINBASE:BTCUSD', defaultPrice: 86502.00 },
+  { symbol: 'BTCUSDT', name: 'Bitcoin / TetherUS', category: 'Crypto', tvSymbol: 'BINANCE:BTCUSDT', defaultPrice: 86502.00 },
+  { symbol: 'ETHUSD', name: 'Ethereum Spot USD', category: 'Crypto', tvSymbol: 'COINBASE:ETHUSD', defaultPrice: 2748.41 },
+  { symbol: 'ETHUSDT', name: 'Ethereum / TetherUS', category: 'Crypto', tvSymbol: 'BINANCE:ETHUSDT', defaultPrice: 2748.41 },
+  { symbol: 'SOLUSD', name: 'Solana Spot USD', category: 'Crypto', tvSymbol: 'COINBASE:SOLUSD', defaultPrice: 154.20 },
+  { symbol: 'SOLUSDT', name: 'Solana / TetherUS', category: 'Crypto', tvSymbol: 'BINANCE:SOLUSDT', defaultPrice: 154.20 },
+  { symbol: 'BNBUSDT', name: 'BNB / TetherUS', category: 'Crypto', tvSymbol: 'BINANCE:BNBUSDT', defaultPrice: 585.50 },
+  { symbol: 'XRPUSD', name: 'Ripple Spot USD', category: 'Crypto', tvSymbol: 'BITSTAMP:XRPUSD', defaultPrice: 0.585 },
+  { symbol: 'XRPUSDT', name: 'Ripple / TetherUS', category: 'Crypto', tvSymbol: 'BINANCE:XRPUSDT', defaultPrice: 0.585 },
+  { symbol: 'DOGEUSD', name: 'Dogecoin Spot USD', category: 'Crypto', tvSymbol: 'COINBASE:DOGEUSD', defaultPrice: 0.125 },
+  { symbol: 'ADAUSD', name: 'Cardano Spot USD', category: 'Crypto', tvSymbol: 'COINBASE:ADAUSD', defaultPrice: 0.354 },
+  { symbol: 'AVAXUSD', name: 'Avalanche Spot USD', category: 'Crypto', tvSymbol: 'COINBASE:AVAXUSD', defaultPrice: 28.40 },
+  { symbol: 'LINKUSD', name: 'Chainlink Spot USD', category: 'Crypto', tvSymbol: 'COINBASE:LINKUSD', defaultPrice: 12.10 },
+  { symbol: 'SUIUSDT', name: 'Sui / TetherUS', category: 'Crypto', tvSymbol: 'BINANCE:SUIUSDT', defaultPrice: 1.82 },
+  { symbol: 'PEPEUSDT', name: 'Pepe / TetherUS', category: 'Crypto', tvSymbol: 'BINANCE:PEPEUSDT', defaultPrice: 0.000010 },
+
+  // Commodities (Spot & Futures)
+  { symbol: 'XAUUSD', name: 'Gold Spot / USD', category: 'Commodities', tvSymbol: 'OANDA:XAUUSD', defaultPrice: 2654.40 },
+  { symbol: 'GOLD', name: 'Gold Continuous Contract', category: 'Commodities', tvSymbol: 'OANDA:XAUUSD', defaultPrice: 2654.40 },
   { symbol: 'XAGUSD', name: 'Silver Spot / USD', category: 'Commodities', tvSymbol: 'OANDA:XAGUSD', defaultPrice: 31.80 },
-  // Forex
-  { symbol: 'EURUSD', name: 'EUR / USD Forex Major', category: 'Forex', tvSymbol: 'FX:EURUSD', defaultPrice: 1.0848 },
-  { symbol: 'GBPUSD', name: 'GBP / USD Forex Major', category: 'Forex', tvSymbol: 'FX:GBPUSD', defaultPrice: 1.3032 },
-  { symbol: 'USDJPY', name: 'USD / JPY Forex Major', category: 'Forex', tvSymbol: 'FX:USDJPY', defaultPrice: 148.82 },
-  { symbol: 'AUDUSD', name: 'AUD / USD Forex Major', category: 'Forex', tvSymbol: 'FX:AUDUSD', defaultPrice: 0.6724 },
-  { symbol: 'USDCAD', name: 'USD / CAD Forex Cross', category: 'Forex', tvSymbol: 'FX:USDCAD', defaultPrice: 1.3540 },
-  // Equities
-  { symbol: 'AAPL', name: 'Apple Inc.', category: 'Equities', tvSymbol: 'NASDAQ:AAPL', defaultPrice: 228.50 },
+  { symbol: 'SILVER', name: 'Silver Continuous', category: 'Commodities', tvSymbol: 'OANDA:XAGUSD', defaultPrice: 31.80 },
+  { symbol: 'WTIUSD', name: 'Crude Oil WTI Spot', category: 'Commodities', tvSymbol: 'TVC:USOIL', defaultPrice: 71.85 },
+  { symbol: 'BRENT', name: 'Brent Crude Oil Spot', category: 'Commodities', tvSymbol: 'TVC:UKOIL', defaultPrice: 75.40 },
+  { symbol: 'NATGAS', name: 'Natural Gas Spot', category: 'Commodities', tvSymbol: 'TVC:NATGAS', defaultPrice: 2.85 },
+  { symbol: 'COPPER', name: 'High Grade Copper', category: 'Commodities', tvSymbol: 'COMEX:HG1!', defaultPrice: 4.52 },
+  { symbol: 'PLATINUM', name: 'Platinum Spot / USD', category: 'Commodities', tvSymbol: 'TVC:PLATINUM', defaultPrice: 980.50 },
+
+  // Forex Major & Crosses
+  { symbol: 'EURUSD', name: 'Euro / US Dollar', category: 'Forex', tvSymbol: 'FX:EURUSD', defaultPrice: 1.0848 },
+  { symbol: 'GBPUSD', name: 'British Pound / USD', category: 'Forex', tvSymbol: 'FX:GBPUSD', defaultPrice: 1.3032 },
+  { symbol: 'USDJPY', name: 'US Dollar / Japanese Yen', category: 'Forex', tvSymbol: 'FX:USDJPY', defaultPrice: 148.82 },
+  { symbol: 'AUDUSD', name: 'Australian Dollar / USD', category: 'Forex', tvSymbol: 'FX:AUDUSD', defaultPrice: 0.6724 },
+  { symbol: 'USDCAD', name: 'US Dollar / Canadian Dollar', category: 'Forex', tvSymbol: 'FX:USDCAD', defaultPrice: 1.3540 },
+  { symbol: 'USDCHF', name: 'US Dollar / Swiss Franc', category: 'Forex', tvSymbol: 'FX:USDCHF', defaultPrice: 0.8650 },
+  { symbol: 'NZDUSD', name: 'New Zealand Dollar / USD', category: 'Forex', tvSymbol: 'FX:NZDUSD', defaultPrice: 0.6080 },
+  { symbol: 'EURJPY', name: 'Euro / Japanese Yen', category: 'Forex', tvSymbol: 'FX:EURJPY', defaultPrice: 161.40 },
+  { symbol: 'GBPJPY', name: 'British Pound / Japanese Yen', category: 'Forex', tvSymbol: 'FX:GBPJPY', defaultPrice: 194.10 },
+
+  // Global Indices & Benchmark ETFs
+  { symbol: 'SPX', name: 'S&P 500 Index', category: 'Indices', tvSymbol: 'FOREXCOM:SPXUSD', defaultPrice: 5750.20 },
+  { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', category: 'Indices', tvSymbol: 'AMEX:SPY', defaultPrice: 574.80 },
+  { symbol: 'NDX', name: 'Nasdaq 100 Index', category: 'Indices', tvSymbol: 'FOREXCOM:NSXUSD', defaultPrice: 20050.40 },
+  { symbol: 'QQQ', name: 'Invesco QQQ Trust (Nasdaq 100)', category: 'Indices', tvSymbol: 'NASDAQ:QQQ', defaultPrice: 488.60 },
+  { symbol: 'DJI', name: 'Dow Jones Industrial Average', category: 'Indices', tvSymbol: 'FOREXCOM:DJI', defaultPrice: 42350.00 },
+
+  // Equities & Tech Megacaps
   { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'Equities', tvSymbol: 'NASDAQ:NVDA', defaultPrice: 124.60 },
+  { symbol: 'AAPL', name: 'Apple Inc.', category: 'Equities', tvSymbol: 'NASDAQ:AAPL', defaultPrice: 228.50 },
   { symbol: 'TSLA', name: 'Tesla Inc.', category: 'Equities', tvSymbol: 'NASDAQ:TSLA', defaultPrice: 254.20 },
-  { symbol: 'SPY', name: 'S&P 500 ETF Trust', category: 'Equities', tvSymbol: 'AMEX:SPY', defaultPrice: 574.80 }
+  { symbol: 'MSFT', name: 'Microsoft Corporation', category: 'Equities', tvSymbol: 'NASDAQ:MSFT', defaultPrice: 418.00 },
+  { symbol: 'GOOGL', name: 'Alphabet Inc. Class A', category: 'Equities', tvSymbol: 'NASDAQ:GOOGL', defaultPrice: 168.40 },
+  { symbol: 'AMZN', name: 'Amazon.com Inc.', category: 'Equities', tvSymbol: 'NASDAQ:AMZN', defaultPrice: 186.50 },
+  { symbol: 'META', name: 'Meta Platforms Inc.', category: 'Equities', tvSymbol: 'NASDAQ:META', defaultPrice: 585.00 },
+  { symbol: 'AMD', name: 'Advanced Micro Devices', category: 'Equities', tvSymbol: 'NASDAQ:AMD', defaultPrice: 156.20 },
+  { symbol: 'MSTR', name: 'MicroStrategy Inc.', category: 'Equities', tvSymbol: 'NASDAQ:MSTR', defaultPrice: 190.50 },
+  { symbol: 'COIN', name: 'Coinbase Global Inc.', category: 'Equities', tvSymbol: 'NASDAQ:COIN', defaultPrice: 182.40 }
 ];
 
 export default function TradingPage() {
@@ -80,10 +194,18 @@ export default function TradingPage() {
   const [aiInsightText, setAiInsightText] = useState('Institutional order flow indicates key support consolidation. Maintain strict Stop Loss invalidation levels.');
   const [aiInsightLoading, setAiInsightLoading] = useState(false);
 
-  // Active asset match
+  // Active asset match (falls back to dynamic asset so any symbol e.g. BTCUSD, custom tickers work)
   const activeAsset = useMemo(() => {
-    return ALL_ASSETS.find(a => a.symbol === symbol) || ALL_ASSETS[0];
-  }, [symbol]);
+    const found = ALL_ASSETS.find(a => a.symbol === symbol);
+    if (found) return found;
+    return {
+      symbol: symbol,
+      name: `${symbol} Spot/Perp`,
+      category: ['EURUSD','GBPUSD','USDJPY','AUDUSD','USDCAD','USDCHF','NZDUSD'].includes(symbol) ? 'Forex' : (symbol.startsWith('XAU') || symbol.startsWith('XAG') || symbol.startsWith('WTI') ? 'Commodities' : 'Crypto'),
+      tvSymbol: resolveTradingViewSymbol(symbol),
+      defaultPrice: currentPrice || 100.00
+    };
+  }, [symbol, currentPrice]);
 
   // Persist symbol selection
   useEffect(() => {
@@ -143,7 +265,10 @@ export default function TradingPage() {
             symbol,
             currentPrice: activeAsset?.defaultPrice || currentPrice,
             timeframe: '15m'
-          }
+          },
+          isBackground: true,
+          isTickerInsight: true,
+          skipHistory: true
         })
       })
         .then(res => res.json())
@@ -415,10 +540,54 @@ export default function TradingPage() {
                   borderRadius: '12px',
                   boxShadow: '0 12px 30px rgba(0,0,0,0.12)',
                   zIndex: 200,
-                  maxHeight: '300px',
+                  maxHeight: '320px',
                   overflowY: 'auto'
                 }}>
-                  {filteredAssets.length === 0 ? (
+                  {/* Dynamic Custom Ticker Option */}
+                  {searchQuery.trim() && !filteredAssets.some(a => a.symbol.toLowerCase() === searchQuery.trim().toLowerCase()) && (
+                    <div
+                      onClick={() => {
+                        const clean = searchQuery.trim().toUpperCase();
+                        const customAsset = {
+                          symbol: clean,
+                          name: `${clean} (TradingView Asset)`,
+                          category: 'Custom Asset',
+                          tvSymbol: resolveTradingViewSymbol(clean),
+                          defaultPrice: currentPrice || 100.00
+                        };
+                        handleSelectAsset(customAsset);
+                      }}
+                      style={{
+                        padding: '12px 14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                        background: '#ECFDF5',
+                        borderBottom: '1.5px solid #A7F3D0',
+                        transition: 'background 0.15s'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = '#D1FAE5'}
+                      onMouseOut={(e) => e.currentTarget.style.background = '#ECFDF5'}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Zap size={16} color="#059669" />
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#065F46' }}>
+                            Open "{searchQuery.trim().toUpperCase()}" in Arena & Chart
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#047857' }}>
+                            Live institutional TradingView feed ({resolveTradingViewSymbol(searchQuery.trim().toUpperCase())})
+                          </div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '11px', fontWeight: 800, background: '#10B981', color: '#fff', padding: '4px 10px', borderRadius: '6px' }}>
+                        TRADE
+                      </span>
+                    </div>
+                  )}
+
+                  {filteredAssets.length === 0 && !searchQuery.trim() ? (
                     <div style={{ padding: '16px', textAlign: 'center', fontSize: '13px', color: '#64748B' }}>
                       No matching tradable instruments found.
                     </div>

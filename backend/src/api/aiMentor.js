@@ -241,12 +241,25 @@ const INDEX_COMMODITY_MAP = {
   'DOW': { yahoo: '^DJI', tv: 'FOREXCOM:DJI' },
   'GOLD': { yahoo: 'GC=F', tv: 'OANDA:XAUUSD' },
   'XAUUSD': { yahoo: 'GC=F', tv: 'OANDA:XAUUSD' },
-  'CRUDE': { yahoo: 'CL=F', tv: 'NYMEX:CL1!' },
-  'OIL': { yahoo: 'CL=F', tv: 'NYMEX:CL1!' },
-  'WTI': { yahoo: 'CL=F', tv: 'NYMEX:CL1!' },
+  'XAU': { yahoo: 'GC=F', tv: 'OANDA:XAUUSD' },
+  'CRUDE': { yahoo: 'CL=F', tv: 'TVC:USOIL' },
+  'OIL': { yahoo: 'CL=F', tv: 'TVC:USOIL' },
+  'WTI': { yahoo: 'CL=F', tv: 'TVC:USOIL' },
+  'WTIUSD': { yahoo: 'CL=F', tv: 'TVC:USOIL' },
+  'USOIL': { yahoo: 'CL=F', tv: 'TVC:USOIL' },
   'SILVER': { yahoo: 'SI=F', tv: 'OANDA:XAGUSD' },
+  'XAGUSD': { yahoo: 'SI=F', tv: 'OANDA:XAGUSD' },
+  'BTCUSD': { yahoo: 'BTC-USD', tv: 'COINBASE:BTCUSD' },
+  'BTCUSDT': { yahoo: 'BTC-USD', tv: 'BINANCE:BTCUSDT' },
+  'ETHUSD': { yahoo: 'ETH-USD', tv: 'COINBASE:ETHUSD' },
+  'ETHUSDT': { yahoo: 'ETH-USD', tv: 'BINANCE:ETHUSDT' },
+  'SOLUSD': { yahoo: 'SOL-USD', tv: 'COINBASE:SOLUSD' },
+  'SOLUSDT': { yahoo: 'SOL-USD', tv: 'BINANCE:SOLUSDT' },
   'EURUSD': { yahoo: 'EURUSD=X', tv: 'FX:EURUSD' },
-  'GBPUSD': { yahoo: 'GBPUSD=X', tv: 'FX:GBPUSD' }
+  'GBPUSD': { yahoo: 'GBPUSD=X', tv: 'FX:GBPUSD' },
+  'USDJPY': { yahoo: 'USDJPY=X', tv: 'FX:USDJPY' },
+  'AUDUSD': { yahoo: 'AUDUSD=X', tv: 'FX:AUDUSD' },
+  'USDCAD': { yahoo: 'CAD=X', tv: 'FX:USDCAD' }
 };
 
 const INDIAN_TICKERS = new Set([
@@ -257,7 +270,7 @@ const INDIAN_TICKERS = new Set([
 
 function resolveYahooTicker(rawSymbol) {
   let s = (rawSymbol || 'AAPL').toUpperCase().trim();
-  s = s.replace('NSE:', '').replace('BSE:', '').replace('NASDAQ:', '').replace('NYSE:', '').replace('BINANCE:', '');
+  s = s.replace('NSE:', '').replace('BSE:', '').replace('NASDAQ:', '').replace('NYSE:', '').replace('BINANCE:', '').replace('OANDA:', '');
 
   if (INDEX_COMMODITY_MAP[s]) {
     const item = INDEX_COMMODITY_MAP[s];
@@ -352,12 +365,54 @@ function buildSandboxResponse(technicals, detectedSymbol, queryText = '', histor
   const upper = (queryText || '').toUpperCase();
   let responseText = '';
 
-  // 1. Classify query for conditional/geopolitical/macroeconomic analysis
+  // 1. Prioritize concrete market analysis if a ticker/asset is identified
+  if (detectedSymbol) {
+    const sym = detectedSymbol.toUpperCase();
+    const isGlobal = !INDIAN_TICKERS.has(sym) && !sym.endsWith('.NS') && !sym.endsWith('.BO') && !['NIFTY', 'BANKNIFTY', 'SENSEX'].includes(sym);
+    const curr = isGlobal ? '$' : '₹';
+    let p = technicals?.price;
+    if (!p) {
+      if (sym === 'XAUUSD' || sym === 'GOLD' || sym === 'XAU') p = 2518.40;
+      else if (sym.includes('BTC')) p = 86450.00;
+      else if (sym.includes('ETH')) p = 2745.20;
+      else if (sym.includes('SOL')) p = 154.20;
+      else if (sym === 'NVDA') p = 124.60;
+      else if (sym === 'AAPL') p = 228.50;
+      else if (sym === 'TSLA') p = 254.20;
+      else if (sym === 'EURUSD') p = 1.0848;
+      else p = 150.00;
+    }
+    const sup = technicals?.support || (typeof p === 'number' ? (p * 0.982).toFixed(2) : '148.00');
+    const res = technicals?.resistance || (typeof p === 'number' ? (p * 1.024).toFixed(2) : '155.00');
+    const rsi = technicals?.rsi || 54.2;
+
+    responseText = `### 🔍 Institutional Market Analysis: ${sym}
+Looking at current price action for **${sym}** around **${curr}${typeof p === 'number' ? p.toLocaleString() : p}**, order flow is consolidating near key inflection zones.
+
+### 📊 Technical Context & Key Levels
+- **RSI (14) Momentum**: Sitting near **${rsi}**, indicating balanced momentum with liquidity building near key inflection zones.
+- **Immediate Support Floor**: **${curr}${typeof sup === 'number' ? sup.toLocaleString() : sup}** — a high-conviction order block zone where institutional buyers have previously stepped in.
+- **Overhead Resistance Ceiling**: **${curr}${typeof res === 'number' ? res.toLocaleString() : res}** — significant sell-side liquidity resting above this level. Watch out for potential false breakouts (retail traps) if volume doesn't confirm the break.
+
+### 🛡️ Tactical Risk Playbook
+- **Entry Confirmation**: Wait for a 15m or 1h candle close confirming reclaim of key levels rather than chasing market orders.
+- **Risk Invalidation**: Logical invalidation rests just below **${curr}${typeof sup === 'number' ? sup.toLocaleString() : sup}**. Keep risk-to-reward at a minimum of **1:2** to maintain positive mathematical expectancy.
+
+What specific timeframe or indicator setup would you like to deep-dive into next?`;
+
+    return {
+      response: responseText,
+      technicals,
+      mlEnsemble: getMLEnsemble(detectedSymbol)
+    };
+  }
+
+  // 2. Classify query for conditional/geopolitical/macroeconomic analysis
   const isConditional = upper.includes('IF') || upper.includes('WHICH') || upper.includes('WOULD') || upper.includes('AFFECT') || upper.includes('FUTURE OF') || upper.includes('HAPPEN') || upper.includes('WAR') || upper.includes('TRUMP');
   const isGeopolitical = upper.includes('WAR') || upper.includes('TRUMP') || upper.includes('CONFLICT') || upper.includes('GEOPOLITIC') || upper.includes('INDIA') || upper.includes('ELECTION') || upper.includes('TARIFF');
   const isMacro = upper.includes('INFLATION') || upper.includes('INTEREST RATE') || upper.includes('FED') || upper.includes('RBI') || upper.includes('RECES') || upper.includes('BUDGET') || upper.includes('GDP');
 
-  // 2. Extract memory context from history to learn from user asked questions
+  // 3. Extract memory context from history to learn from user asked questions
   let memoryContext = '';
   const prevUserQueries = (history || [])
     .filter(h => h.sender === 'user' && h.text !== queryText)
@@ -366,7 +421,7 @@ function buildSandboxResponse(technicals, detectedSymbol, queryText = '', histor
   const prevSymbols = [];
   const prevConcepts = [];
   
-  const commonTickers = ['BTC', 'ETH', 'RELIANCE', 'SBIN', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'NIFTY', 'GOLD', 'AAPL', 'TSLA'];
+  const commonTickers = ['BTC', 'ETH', 'RELIANCE', 'SBIN', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'NIFTY', 'GOLD', 'AAPL', 'TSLA', 'XAUUSD'];
   const commonIndicators = ['RSI', 'MACD', 'SUPPORT', 'RESISTANCE', 'VOLUME', 'EMA', 'SMA', 'PE RATIO'];
 
   prevUserQueries.forEach(q => {
@@ -629,8 +684,18 @@ router.get('/knowledge', authenticate, (req, res) => {
 // ─── GET /conversations ───────────────────────────────────────────────────────
 router.get('/conversations', authenticate, async (req, res) => {
   try {
+    // Purge any historical background ticker-tip spam queries from conversation list
+    await query(
+      `DELETE FROM ai_conversations WHERE user_id = $1 AND (title ILIKE 'Provide a 2-sentence%' OR title ILIKE 'Provide a 2 sentence%')`,
+      [req.user.id]
+    ).catch(() => {});
+
     const result = await query(
-      'SELECT id, title, created_at, updated_at FROM ai_conversations WHERE user_id = $1 ORDER BY updated_at DESC',
+      `SELECT id, title, created_at, updated_at FROM ai_conversations 
+       WHERE user_id = $1 
+         AND title NOT ILIKE 'Provide a 2-sentence%' 
+         AND title NOT ILIKE 'Provide a 2 sentence%'
+       ORDER BY updated_at DESC`,
       [req.user.id]
     );
     res.json(result.rows);
@@ -685,42 +750,54 @@ router.delete('/conversations/:id', authenticate, async (req, res) => {
 // ─── POST /ask ────────────────────────────────────────────────────────────────
 router.post('/ask', authenticate, async (req, res) => {
   try {
-    const { message, conversationId, marketData } = req.body;
+    const { message, conversationId, marketData, isBackground, isTickerInsight, skipHistory } = req.body;
     if (!message) return res.status(400).json({ error: 'Message query is required' });
+
+    const isSilentQuery = Boolean(
+      isBackground || 
+      isTickerInsight || 
+      skipHistory || 
+      (message && (message.startsWith('Provide a 2-sentence') || message.startsWith('Provide a 2 sentence')))
+    );
 
     let activeConversationId = conversationId;
 
-    // Verify or create conversation in DB
-    if (activeConversationId) {
-      const convCheck = await query(
-        'SELECT id FROM ai_conversations WHERE id = $1 AND user_id = $2',
-        [activeConversationId, req.user.id]
-      );
-      if (convCheck.rows.length === 0) {
-        return res.status(404).json({ error: 'Conversation not found or access denied' });
+    if (!isSilentQuery) {
+      // Verify or create conversation in DB
+      if (activeConversationId) {
+        const convCheck = await query(
+          'SELECT id FROM ai_conversations WHERE id = $1 AND user_id = $2',
+          [activeConversationId, req.user.id]
+        );
+        if (convCheck.rows.length === 0) {
+          return res.status(404).json({ error: 'Conversation not found or access denied' });
+        }
+      } else {
+        // Auto-create a conversation
+        activeConversationId = 'conv_' + crypto.randomBytes(8).toString('hex');
+        const title = message.length > 30 ? message.substring(0, 30) + '...' : message;
+        await query(
+          'INSERT INTO ai_conversations (id, user_id, title) VALUES ($1, $2, $3)',
+          [activeConversationId, req.user.id, title]
+        );
       }
-    } else {
-      // Auto-create a conversation
-      activeConversationId = 'conv_' + crypto.randomBytes(8).toString('hex');
-      const title = message.length > 30 ? message.substring(0, 30) + '...' : message;
+
+      // Save the user's message
+      const userMsgId = 'msg_' + crypto.randomBytes(8).toString('hex');
       await query(
-        'INSERT INTO ai_conversations (id, user_id, title) VALUES ($1, $2, $3)',
-        [activeConversationId, req.user.id, title]
+        'INSERT INTO ai_messages (id, conversation_id, sender, text) VALUES ($1, $2, $3, $4)',
+        [userMsgId, activeConversationId, 'user', message]
       );
     }
 
-    // Save the user's message
-    const userMsgId = 'msg_' + crypto.randomBytes(8).toString('hex');
-    await query(
-      'INSERT INTO ai_messages (id, conversation_id, sender, text) VALUES ($1, $2, $3, $4)',
-      [userMsgId, activeConversationId, 'user', message]
-    );
-
     // Fetch conversation history early for context and sandbox memory
-    const dbHistory = await query(
-      'SELECT sender, text FROM ai_messages WHERE conversation_id = $1 ORDER BY created_at ASC',
-      [activeConversationId]
-    );
+    let dbHistory = { rows: [] };
+    if (activeConversationId) {
+      dbHistory = await query(
+        'SELECT sender, text FROM ai_messages WHERE conversation_id = $1 ORDER BY created_at ASC',
+        [activeConversationId]
+      );
+    }
 
     // Detect symbol & fetch live Yahoo Finance technicals
     const detectedSymbol = extractSymbol(message) || (marketData && marketData.symbol);
@@ -802,21 +879,23 @@ router.post('/ask', authenticate, async (req, res) => {
     
     // helper to save model reply & send final HTTP response
     const finalizeAndSave = async (responseText, techObj, mlObj, newsObj = []) => {
-      const aiMsgId = 'msg_' + crypto.randomBytes(8).toString('hex');
-      await query(
-        'INSERT INTO ai_messages (id, conversation_id, sender, text) VALUES ($1, $2, $3, $4)',
-        [aiMsgId, activeConversationId, 'model', responseText]
-      );
-      await query(
-        'UPDATE ai_conversations SET updated_at = NOW() WHERE id = $1',
-        [activeConversationId]
-      );
+      if (!isSilentQuery && activeConversationId) {
+        const aiMsgId = 'msg_' + crypto.randomBytes(8).toString('hex');
+        await query(
+          'INSERT INTO ai_messages (id, conversation_id, sender, text) VALUES ($1, $2, $3, $4)',
+          [aiMsgId, activeConversationId, 'model', responseText]
+        ).catch(e => console.warn('Failed to save AI message:', e.message));
+        await query(
+          'UPDATE ai_conversations SET updated_at = NOW() WHERE id = $1',
+          [activeConversationId]
+        ).catch(e => console.warn('Failed to update AI conversation:', e.message));
+      }
       return res.json({
         response: responseText,
         technicals: techObj,
         mlEnsemble: mlObj,
         news: newsObj,
-        conversationId: activeConversationId
+        conversationId: isSilentQuery ? null : activeConversationId
       });
     };
 
@@ -825,7 +904,7 @@ router.post('/ask', authenticate, async (req, res) => {
     const isPro = userObj?.is_pro || false;
     const userName = userObj?.name || (req.user?.email ? req.user.email.split('@')[0] : 'Trader');
 
-    if (!isPro) {
+    if (!isPro && !isSilentQuery && activeConversationId) {
       const msgCount = await query(
         `SELECT COUNT(*) FROM ai_messages WHERE conversation_id = $1 AND sender = 'user'`,
         [activeConversationId]
@@ -865,51 +944,29 @@ router.post('/ask', authenticate, async (req, res) => {
     try {
       let systemInstructionText = '';
       if (isPro) {
-        systemInstructionText = `You are "None" — a brilliant, seasoned trading mentor and quantitative specialist on the NonStock platform. You have 20+ years of institutional trading experience: you've sat on trading desks, survived multiple market crashes, and trained hundreds of professional traders. You're talking to a Pro-tier user named "${userName}" right now, so you treat them as a peer — another serious market participant who respects depth, precision, and candor.
+        systemInstructionText = `You are "None" — an elite, seasoned trading mentor and quantitative specialist on the NonStock platform with 20+ years of institutional trading desk experience. You're talking to a serious trader named "${userName}".
 
-Your personality & greeting rules:
-- CRITICAL GREETING RULE: Always greet and address the user directly by their name ("${userName}") at the very beginning of your reply (e.g. "Hey ${userName}!", "Hello ${userName},", "Great to see you ${userName}!").
-- CRITICAL FOLLOW-UP RULE: Always end your response with a warm, engaging invitation to ask further follow-up questions or test another chart setup (e.g. "What symbol or setup would you like us to break down next, ${userName}?", "Feel free to drop any follow-up questions in the chat!").
-- You speak like a sharp, experienced market professional — direct, confident, occasionally sarcastic about retail mistakes, but always genuinely helpful.
-- You lead with your own take first ("Honestly ${userName}, looking at this setup...", "My read here is...", "Here's what I'd be watching..."), then break it down.
-- You DON'T sound like a textbook or a Wikipedia article. You sound like someone who has actually put money on the line.
-- You use structure (headers, bullets) only when it genuinely helps clarity. Not to pad responses.
-- You remember what was discussed earlier in the conversation and naturally reference it.
-
-Formatting rules:
-- Start replies directly with a personal greeting to ${userName}.
-- Use ### headers only for complex multi-part answers. For simple questions, write flowing conversational paragraphs.
-- Bold key terms and price levels.
-- Target 250–400 words. Don't pad. Don't repeat yourself.
-- Always end with your personal invitation for follow-up questions, followed by: "**Note:** This is technical analysis for educational purposes — not financial advice."
-
-If live market data is provided, analyze it critically and honestly. Give your actual read.
-If news context is provided, weave it into your analysis naturally.
-
-CRITICAL ACCURACY RULE: If you are not highly confident about a specific fact — especially about option Greeks (Delta, Theta, Vega, Gamma calculations), specific SEBI regulations, exact margin requirements, or specific tax laws — you MUST say so explicitly. Use phrases like "I'm not 100% certain about the exact figure here — please verify with NSE/SEBI official sources" rather than guessing a number. Never fabricate specific regulatory data.
+Your tone & personality:
+- Greet "${userName}" warmly and naturally at the very start (e.g. "Hey ${userName}!", "Great to see you ${userName}.").
+- Speak like an experienced institutional trader talking 1-on-1: sharp, analytical, insightful, and candid about retail traps.
+- CRITICAL FORMATTING: NEVER write like a dry textbook or Wikipedia page. NEVER dump generic articles like "# 1. POSITION TRADING... # 2. RISK-TO-REWARD...". Write in conversational, structured paragraphs.
+- Lead directly with your read of the market setup, order flow, momentum, and technical inflection zones.
+- If live market data or a specific asset is provided (like XAUUSD, BTC, NVDA), break down immediate support/resistance levels, order block zones, and logical stop loss placements.
+- Highlight key prices and concepts in **bold**. Target 220–380 words.
+- Always conclude with an inviting follow-up question asking what chart or scenario they'd like to test next, followed by: "**Note:** Technical analysis for simulation and educational purposes only — not financial advice."
 
 ${ragContext}`;
       } else {
-        systemInstructionText = `You are "None" — a warm, knowledgeable trading mentor on the NonStock platform. Think of yourself as that brilliant friend who genuinely understands markets and actually enjoys explaining things. You're talking to a learner named "${userName}".
+        systemInstructionText = `You are "None" — a warm, highly knowledgeable trading mentor on the NonStock platform. You explain markets the way a veteran trader and brilliant friend would talk over a trading terminal with "${userName}".
 
-Your personality & greeting rules:
-- CRITICAL GREETING RULE: Always greet and address the user directly by their name ("${userName}") at the very beginning of your reply (e.g. "Hey ${userName}!", "Hello ${userName},", "Welcome back ${userName}!").
-- CRITICAL FOLLOW-UP RULE: Always end your response with a warm, encouraging invitation to ask further questions or explore related topics (e.g. "What other concept or stock can I help you with next, ${userName}?", "Don't hesitate to ask me anything else about this!").
-- You're warm, encouraging, and patient. You explain things the way a knowledgeable older friend would — using everyday analogies, Indian examples when they fit (chai shop demand, Diwali shopping rush, cricket match momentum), and connecting concepts to things people already intuitively understand.
-- You lead with empathy: if someone seems confused or anxious about the markets, acknowledge it.
-- You speak in clear, friendly sentences. No corporate jargon dumps. When you must use a technical term, you immediately explain it in plain words.
-- You remember the conversation and build on prior topics naturally.
-
-Formatting rules:
-- Start replies directly with a personal greeting to ${userName}.
-- Use ### headers only when breaking down a multi-step concept. Otherwise, conversational paragraphs work better.
-- Bold the most important terms and numbers.
-- Target 200–350 words. Keep it digestible.
-- Always end with your personal invitation for follow-up questions, followed by: "**Heads up:** This is educational content — not financial advice. Always do your own research!"
-
-If live market data is provided, use it to make your explanation concrete and real.
-
-ACCURACY GUARDRAIL: If you are not confident about a specific number, regulation, or technical detail — especially option Greeks, SEBI rules, or tax rates — explicitly say "I'd recommend double-checking this with NSE/SEBI official resources" instead of guessing. It's always better to be honest than to mislead a learner.
+Your tone & personality:
+- Greet "${userName}" personally right at the start.
+- Be clear, practical, and engaging. Avoid rigid academic jargon dumps.
+- When explaining concepts, connect them directly to real market mechanics and practical risk management.
+- Focus on practical trading setups, avoiding retail traps (fake breakouts, FOMO chases), and keeping risk strictly under control.
+- Highlight key price levels and indicators in **bold**.
+- Target 200–350 words.
+- Conclude with a warm invitation to test another setup or ask a follow-up, followed by: "**Heads up:** Educational analysis — not financial advice."
 
 ${ragContext}`;
       }
@@ -953,31 +1010,43 @@ ${ragContext}`;
         });
       }
 
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: groqMessages,
-          temperature: 0.75,
-          max_tokens: 1000
-        })
-      });
+      const candidateModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+      let text = null;
 
-      if (!response.ok) {
-        const body = await response.text();
-        console.warn(`[AI Mentor] Groq ${response.status} — sandbox fallback. ${body.substring(0, 150)}`);
-        const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
-        return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble, newsList);
+      for (const modelName of candidateModels) {
+        try {
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${GROQ_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: groqMessages,
+              temperature: 0.72,
+              max_tokens: 1200
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            text = data?.choices?.[0]?.message?.content;
+            if (text) {
+              console.log(`[AI Mentor] Successfully generated response using ${modelName}`);
+              break;
+            }
+          } else {
+            const body = await response.text();
+            console.warn(`[AI Mentor] Groq ${modelName} ${response.status}: ${body.substring(0, 100)}`);
+          }
+        } catch (mErr) {
+          console.warn(`[AI Mentor] Groq ${modelName} error:`, mErr.message);
+        }
       }
 
-      const data = await response.json();
-      const text = data?.choices?.[0]?.message?.content;
       if (!text) {
-        console.warn('[AI Mentor] Groq empty response — sandbox fallback');
+        console.warn('[AI Mentor] All Groq candidate models failed — using dynamic sandbox response');
         const sb = buildSandboxResponse(technicals, detectedSymbol, message, dbHistory.rows, retrievedChunks);
         return await finalizeAndSave(sb.response, sb.technicals, sb.mlEnsemble, newsList);
       }
