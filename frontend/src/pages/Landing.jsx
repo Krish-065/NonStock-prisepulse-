@@ -1691,14 +1691,14 @@ export default function Landing() {
                 Unlike casual demo platforms where traders recklessly click 'Reset Account' after blowing their balance, NonStock treats capital preservation with utmost seriousness through the <strong>Gold Coins Economy</strong>.
               </p>
               <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.7, margin: 0 }}>
-                Every participant starts with 100 Gold Coins. You earn +25 coins strictly once per calendar day by maintaining your daily check-in streak, and +5 coins on every trade placed with an active Stop Loss. If you blow your $1,000 baseline, resetting requires a mandatory 100 Gold Coins fee. If your coin vault hits zero, you face an un-bypassable 24-hour lockout to reflect on your risk errors.
+                Every participant starts with 100 Gold Coins. You earn +10 coins strictly once per calendar day by maintaining your daily check-in streak, and +5 coins on every trade placed with an active Stop Loss. If you blow your $1,000 baseline, resetting requires a mandatory 100 Gold Coins fee. If your coin vault hits zero, you face an un-bypassable 24-hour lockout to reflect on your risk errors.
               </p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div style={{ background: '#F8FAFC', padding: '22px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
                 <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 800 }}>DAILY STREAK BONUS</div>
-                <div style={{ fontSize: '26px', fontWeight: 900, color: '#009E47', marginTop: '4px' }}>+25 Coins</div>
+                <div style={{ fontSize: '26px', fontWeight: 900, color: '#009E47', marginTop: '4px' }}>+10 Coins</div>
                 <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>Once per calendar day</div>
               </div>
 
@@ -2035,7 +2035,7 @@ export default function Landing() {
             },
             {
               q: "How do Gold Coins work and how are they earned?",
-              a: "Gold Coins are your Second Life and edge tool sink. You start with 100 coins. You earn +25 coins strictly once per calendar day by logging in and keeping your streak alive, and +5 coins on every trade placed with an active Stop Loss. You can spend coins to unlock the Real-Time Screener, Strategy Lab, AI Mentor, and Replay Simulator."
+              a: "Gold Coins are your Second Life and edge tool sink. You start with 100 coins. You earn +10 coins strictly once per calendar day by logging in and keeping your streak alive, and +5 coins on every trade placed with an active Stop Loss. You can spend coins to unlock the Real-Time Screener, Strategy Lab, AI Mentor, and Replay Simulator."
             }
           ].map((item, idx) => {
             const isOpen = openFaq === idx;

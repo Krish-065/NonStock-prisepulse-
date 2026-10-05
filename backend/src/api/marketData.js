@@ -118,6 +118,72 @@ const FALLBACK_INDICES = {
   'EURUSD=X': { price: 1.1052, change: 0.0022, changePercent: 0.20 }
 };
 
+// GET /api/market/quote/:symbol - Real-time institutional price quote for Trading Arena & Replay
+router.get('/quote/:symbol', async (req, res) => {
+  try {
+    const rawSym = req.params.symbol.toUpperCase().trim();
+    let resolved = rawSym;
+
+    if (rawSym === 'BTCUSD' || rawSym === 'BTCUSDT') resolved = 'BTC-USD';
+    else if (rawSym === 'ETHUSD' || rawSym === 'ETHUSDT') resolved = 'ETH-USD';
+    else if (rawSym === 'SOLUSD' || rawSym === 'SOLUSDT') resolved = 'SOL-USD';
+    else if (rawSym === 'BNBUSD' || rawSym === 'BNBUSDT') resolved = 'BNB-USD';
+    else if (rawSym === 'XRPUSD' || rawSym === 'XRPUSDT') resolved = 'XRP-USD';
+    else if (rawSym === 'DOGEUSD' || rawSym === 'DOGEUSDT') resolved = 'DOGE-USD';
+    else if (rawSym === 'ADAUSD' || rawSym === 'ADAUSDT') resolved = 'ADA-USD';
+    else if (rawSym === 'AVAXUSD' || rawSym === 'AVAXUSDT') resolved = 'AVAX-USD';
+    else if (rawSym === 'LINKUSD' || rawSym === 'LINKUSDT') resolved = 'LINK-USD';
+    else if (rawSym === 'XAUUSD' || rawSym === 'GOLD') resolved = 'GC=F';
+    else if (rawSym === 'XAGUSD' || rawSym === 'SILVER') resolved = 'SI=F';
+    else if (rawSym === 'WTIUSD' || rawSym === 'USOIL' || rawSym === 'CRUDE') resolved = 'CL=F';
+    else if (rawSym === 'BRENT' || rawSym === 'UKOIL') resolved = 'BZ=F';
+    else if (rawSym === 'NATGAS') resolved = 'NG=F';
+    else if (rawSym === 'EURUSD') resolved = 'EURUSD=X';
+    else if (rawSym === 'GBPUSD') resolved = 'GBPUSD=X';
+    else if (rawSym === 'USDJPY') resolved = 'JPY=X';
+    else if (rawSym === 'AUDUSD') resolved = 'AUDUSD=X';
+    else if (rawSym === 'USDCAD') resolved = 'CAD=X';
+    else if (rawSym === 'USDCHF') resolved = 'CHF=X';
+    else if (rawSym === 'NZDUSD') resolved = 'NZDUSD=X';
+    else if (rawSym === 'SPX' || rawSym === 'US500') resolved = '^GSPC';
+    else if (rawSym === 'NDX' || rawSym === 'US100') resolved = '^IXIC';
+    else if (rawSym === 'DJI' || rawSym === 'US30') resolved = '^DJI';
+
+    const quote = await fetchYahooQuote(resolved);
+    if (quote && quote.price) {
+      return res.json({
+        symbol: rawSym,
+        resolvedSymbol: resolved,
+        price: quote.price,
+        change: quote.change,
+        changePercent: quote.changePercent,
+        dayHigh: quote.dayHigh,
+        dayLow: quote.dayLow,
+        volume: quote.volume,
+        timestamp: Date.now()
+      });
+    }
+
+    // Fallback if Yahoo temporarily unavailable
+    const fallback = FALLBACK_INDICES[resolved];
+    if (fallback) {
+      return res.json({
+        symbol: rawSym,
+        resolvedSymbol: resolved,
+        price: fallback.price,
+        change: fallback.change,
+        changePercent: fallback.changePercent,
+        isFallback: true
+      });
+    }
+
+    res.status(404).json({ error: `Quote not found for ${rawSym}` });
+  } catch (err) {
+    console.error('Quote fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch quote' });
+  }
+});
+
 router.get('/indices', async (req, res) => {
   const symbols = [
     '^NSEI', '^BSESN', '^NSEBANK', '^CNXIT',

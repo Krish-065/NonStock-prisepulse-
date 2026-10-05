@@ -172,6 +172,15 @@ export default function TradingPage() {
   const [isChartFullscreen, setIsChartFullscreen] = useState(false);
   const chartTerminalRef = useRef(null);
 
+  // References for TradingView widget and symbol change tracking
+  const widgetRef = useRef(null);
+  const skipNextWidgetReloadRef = useRef(false);
+  const symbolRef = useRef(symbol);
+
+  useEffect(() => {
+    symbolRef.current = symbol;
+  }, [symbol]);
+
   const toggleChartFullscreen = () => {
     if (!chartTerminalRef.current) return;
     if (!document.fullscreenElement) {
@@ -206,6 +215,31 @@ export default function TradingPage() {
       defaultPrice: currentPrice || 100.00
     };
   }, [symbol, currentPrice]);
+
+  // Clean raw TradingView symbol string (e.g. "BINANCE:BTCUSDT", "COINBASE:BTCUSD", "OANDA:XAUUSD", "BTCUSD1") into standard app symbol
+  function cleanTVSymbolToAppSymbol(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+    let s = raw.trim();
+    if (s.includes(':')) {
+      s = s.split(':')[1];
+    }
+    s = s.replace(/\s+/g, '').toUpperCase();
+    
+    // Specific mappings
+    if (s === 'USOIL' || s === 'CRUDE') return 'WTIUSD';
+    if (s === 'UKOIL') return 'BRENT';
+    if (s === 'GC=F' || s === 'XAU' || s === 'GOLD') return 'XAUUSD';
+    if (s === 'SI=F' || s === 'XAG' || s === 'SILVER') return 'XAGUSD';
+    if (s === 'BTCUSD1' || s === 'BTCUSD') return 'BTCUSD';
+    if (s === 'BTCUSDT' || s === 'BTCUSDT.P') return 'BTCUSDT';
+    if (s === 'ETHUSD1' || s === 'ETHUSD') return 'ETHUSD';
+
+    // Exact match from master asset catalog
+    const found = ALL_ASSETS.find(a => a.symbol.toUpperCase() === s);
+    if (found) return found.symbol;
+
+    return s;
+  }
 
   // Persist symbol selection
   useEffect(() => {
@@ -244,12 +278,73 @@ export default function TradingPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Update default price & query AI insight when symbol changes
+  // ─── 1. REAL-TIME ONGOING PRICE ENGINE (Every 1.5s for Active Asset) ───
   useEffect(() => {
-    if (activeAsset) {
-      setCurrentPrice(activeAsset.defaultPrice);
+    let isMounted = true;
+
+    async function fetchLiveOngoingPrice() {
+      try {
+        const clean = symbol.toUpperCase().trim();
+
+        // 1. If Crypto, query Binance public ticker for instant sub-second real-time quotes matching chart
+        const isCrypto = clean.endsWith('USDT') || clean.endsWith('USD') || 
+          ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX', 'LINK', 'SUI', 'PEPE'].some(c => clean.startsWith(c));
+        
+        if (isCrypto && !clean.startsWith('XAU') && !clean.startsWith('XAG') && !clean.startsWith('WTI')) {
+          let binanceSym = clean;
+          if (binanceSym.endsWith('USD') && !binanceSym.endsWith('USDT')) {
+            binanceSym = `${binanceSym}T`; // e.g. BTCUSD -> BTCUSDT
+          }
+          if (!binanceSym.endsWith('USDT')) {
+            binanceSym = `${binanceSym}USDT`;
+          }
+
+          try {
+            const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSym}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.price && isMounted) {
+                const parsed = parseFloat(data.price);
+                if (!isNaN(parsed) && parsed > 0) {
+                  setCurrentPrice(parsed);
+                  return;
+                }
+              }
+            }
+          } catch (bErr) {
+            // fallback to backend
+          }
+        }
+
+        // 2. Query backend live quote endpoint for commodities (Gold, Silver, Oil), forex & equities
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const res = await fetch(`${apiUrl}/api/market/quote/${clean}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.price && isMounted) {
+            const parsed = parseFloat(data.price);
+            if (!isNaN(parsed) && parsed > 0) {
+              setCurrentPrice(parsed);
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        // preserve current price
+      }
     }
 
+    fetchLiveOngoingPrice();
+    const priceInterval = setInterval(fetchLiveOngoingPrice, 1500);
+
+    return () => {
+      isMounted = false;
+      clearInterval(priceInterval);
+    };
+  }, [symbol]);
+
+  // Query AI insight when symbol changes
+  useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       setAiInsightLoading(true);
@@ -283,10 +378,79 @@ export default function TradingPage() {
         })
         .finally(() => setAiInsightLoading(false));
     }
-  }, [symbol, activeAsset]);
+  }, [symbol]);
+
+  // ─── 2. BI-DIRECTIONAL TRADINGVIEW CHART SYNC ───
+  // Detects when user changes asset from inside TradingView chart search modal
+  useEffect(() => {
+    // A. Listen for window postMessages from TradingView iframe
+    const handleTVMessage = (e) => {
+      try {
+        let data = e.data;
+        if (typeof data === 'string') {
+          try { data = JSON.parse(data); } catch (err) {}
+        }
+        if (!data) return;
+
+        // Quote update from TV
+        if (data.name === 'quoteUpdate' && data.data) {
+          const q = data.data;
+          const p = parseFloat(q.last_price || q.price || q.bid || q.ask);
+          if (!isNaN(p) && p > 0) {
+            setCurrentPrice(p);
+          }
+        }
+
+        // Symbol change event
+        if (data.name === 'symbolChange' || data.name === 'onSymbolChange' || data.name === 'headerSymbolChange' || data.event === 'symbolChange' || data.type === 'symbol_change') {
+          const raw = data.data?.symbol || data.data?.ticker || data.symbol || data.ticker;
+          if (raw && typeof raw === 'string') {
+            const clean = cleanTVSymbolToAppSymbol(raw);
+            if (clean && clean !== symbolRef.current) {
+              skipNextWidgetReloadRef.current = true;
+              setSymbol(clean);
+              toast.success(`Chart Synced: ${clean}`);
+            }
+          }
+        }
+      } catch (err) {}
+    };
+
+    window.addEventListener('message', handleTVMessage);
+
+    // B. Poll widget.getSymbolInfo every 1.5 seconds
+    const symInterval = setInterval(() => {
+      if (widgetRef.current && widgetRef.current.getSymbolInfo) {
+        try {
+          widgetRef.current.getSymbolInfo((info) => {
+            if (info && (info.ticker || info.name || info.symbol)) {
+              const raw = info.ticker || info.name || info.symbol;
+              const clean = cleanTVSymbolToAppSymbol(raw);
+              if (clean && clean !== symbolRef.current) {
+                skipNextWidgetReloadRef.current = true;
+                setSymbol(clean);
+                toast.success(`Chart Synced: ${clean}`);
+              }
+            }
+          });
+        } catch (e) {}
+      }
+    }, 1500);
+
+    return () => {
+      window.removeEventListener('message', handleTVMessage);
+      clearInterval(symInterval);
+    };
+  }, []);
 
   // Official TradingView Widget Integration (Self-Fetching Live Feed & Saved Tools/Drawings)
   useEffect(() => {
+    // If the symbol change was initiated from inside TradingView chart, skip re-instantiating the widget!
+    if (skipNextWidgetReloadRef.current) {
+      skipNextWidgetReloadRef.current = false;
+      return;
+    }
+
     const containerId = 'tv_chart_container';
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -298,7 +462,7 @@ export default function TradingPage() {
     script.async = true;
     script.onload = () => {
       if (window.TradingView) {
-        new window.TradingView.widget({
+        const tvWidget = new window.TradingView.widget({
           autosize: true,
           symbol: activeAsset.tvSymbol,
           interval: '15',
@@ -317,6 +481,19 @@ export default function TradingPage() {
             'RSI@tv-basicstudies'
           ]
         });
+
+        widgetRef.current = tvWidget;
+
+        if (tvWidget.subscribeToQuote) {
+          try {
+            tvWidget.subscribeToQuote((quote) => {
+              if (quote && (quote.last_price || quote.price || quote.bid)) {
+                const p = parseFloat(quote.last_price || quote.price || quote.bid);
+                if (!isNaN(p) && p > 0) setCurrentPrice(p);
+              }
+            });
+          } catch(e) {}
+        }
       }
     };
     document.head.appendChild(script);
