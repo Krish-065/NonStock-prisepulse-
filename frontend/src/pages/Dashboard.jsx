@@ -811,139 +811,67 @@ export default function Dashboard() {
             background: '#FFFFFF',
             borderRadius: '24px',
             border: '1.5px solid #E2E8F0',
-            padding: '24px 28px',
             boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
-            overflow: 'hidden'
-          }}>
-
-        {/* Upper Technical Meta Ribbon */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          paddingBottom: '16px',
-          borderBottom: '1px solid #F1F5F9',
-          marginBottom: '20px',
-          fontSize: '11px',
-          color: '#64748B',
-          fontWeight: 700,
-          letterSpacing: '0.6px',
-          textTransform: 'uppercase'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <span style={{ color: '#0F172A', fontWeight: 900 }}>NONSTOCK PROTOCOL</span>
-            <span>•</span>
-            <span>ACCOUNT: NS-{user?.id?.substring(0, 8) || 'c141ad16'}</span>
-            <span>•</span>
-            <span>UNIVERSAL BASELINE: <strong style={{ color: '#009E47' }}>$1,000.00</strong></span>
-            <span>•</span>
-            <span>REGIME: CONTINUOUS AUDIT</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button
-              onClick={() => bannerInputRef.current?.click()}
-              style={{
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                padding: '6px 12px',
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#475569',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <Image size={13} />
-              <span>CUSTOM BANNER</span>
-            </button>
-
-            <button
-              onClick={() => navigate('/trading')}
-              style={{
-                background: '#0F172A',
-                border: 'none',
-                color: '#FFFFFF',
-                borderRadius: '8px',
-                padding: '7px 16px',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
-              }}
-            >
-              <Zap size={13} color="#00D26A" />
-              <span>ENTER ARENA</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ─── ASYMMETRIC BENTO GRID (UNEVEN HIGHLIGHTS & BOLD TYPOGRAPHY) ─── */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr)',
-          gap: isMobile ? '16px' : '20px'
-        }}>
-          {/* Card A (Expansive Hero Card): Trader Identity & Portfolio Equity with Custom Profile Cover Background */}
-          <div style={{
-            position: 'relative',
-            background: '#FFFFFF',
-            border: '1.5px solid #CBD5E1',
-            borderRadius: '20px',
             overflow: 'hidden',
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.03)'
+            flexDirection: 'column'
           }}>
-            {/* Profile Banner Background Header */}
+            {/* ─── FULL-WIDTH PANORAMIC COVER BANNER (PERFECT ON WEBSITE & MOBILE) ─── */}
             <div style={{
               position: 'relative',
               width: '100%',
-              height: bannerUrl ? (isMobile ? '90px' : '105px') : (isMobile ? '45px' : '55px'),
+              height: isMobile ? '125px' : '185px',
               background: bannerUrl 
                 ? `url(${bannerUrl}) center/cover no-repeat` 
-                : 'linear-gradient(135deg, #00D26A 0%, #009E47 100%)',
-              transition: 'height 0.25s ease'
+                : 'linear-gradient(135deg, #059669 0%, #00D26A 50%, #10B981 100%)',
+              transition: 'height 0.25s ease',
+              overflow: 'hidden'
             }}>
+              {/* Subtle top/bottom overlay for contrast */}
               <div style={{
                 position: 'absolute',
-                top: '10px',
-                right: '12px',
+                inset: 0,
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, transparent 60%, rgba(0,0,0,0.35) 100%)',
+                pointerEvents: 'none'
+              }} />
+
+              {/* Banner Controls (Top Right: Change & Remove) */}
+              <div style={{
+                position: 'absolute',
+                top: isMobile ? '10px' : '14px',
+                right: isMobile ? '12px' : '16px',
                 display: 'flex',
-                gap: '6px',
-                zIndex: 3
+                alignItems: 'center',
+                gap: '8px',
+                zIndex: 5
               }}>
                 <button
                   onClick={() => bannerInputRef.current?.click()}
-                  title="Change custom banner"
+                  title="Upload / Change Custom Banner"
                   style={{
-                    background: 'rgba(15, 23, 42, 0.82)',
-                    backdropFilter: 'blur(6px)',
+                    background: 'rgba(15, 23, 42, 0.78)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
                     color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '4px 9px',
-                    fontSize: '10px',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    borderRadius: '8px',
+                    padding: isMobile ? '5px 10px' : '6px 14px',
+                    fontSize: isMobile ? '10px' : '12px',
                     fontWeight: 800,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                    transition: 'all 0.15s ease'
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(15, 23, 42, 0.95)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(15, 23, 42, 0.78)'}
                 >
-                  <Camera size={11} />
-                  <span>{bannerUrl ? 'Change Banner' : '+ Custom Banner'}</span>
+                  <Camera size={13} />
+                  <span>{bannerUrl ? 'Change Banner' : '+ Add Cover Banner'}</span>
                 </button>
+
                 {bannerUrl && (
                   <button
                     onClick={() => {
@@ -951,56 +879,77 @@ export default function Dashboard() {
                       localStorage.removeItem('nonstock_user_banner');
                       toast.success('Custom banner removed');
                     }}
-                    title="Remove banner"
+                    title="Remove custom banner"
                     style={{
-                      background: 'rgba(239, 68, 68, 0.85)',
-                      backdropFilter: 'blur(6px)',
+                      background: 'rgba(220, 38, 38, 0.85)',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
                       color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '4px 6px',
-                      fontSize: '10px',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      borderRadius: '8px',
+                      padding: isMobile ? '5px 8px' : '6px 10px',
+                      fontSize: '11px',
                       fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
+                      transition: 'all 0.15s ease'
                     }}
                   >
-                    <Trash2 size={11} />
+                    <Trash2 size={13} />
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Profile Details Container */}
-            <div style={{ padding: isMobile ? '0 16px 18px 16px' : '0 24px 22px 24px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
-              {/* Identity Row with Avatar overlapping banner */}
-              <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'flex-end', justifyContent: 'space-between', marginTop: '-24px', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+            {/* ─── MASTHEAD CONTENT BODY ─── */}
+            <div style={{
+              padding: isMobile ? '0 16px 20px 16px' : '0 28px 26px 28px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px'
+            }}>
+              {/* Profile Identity Row with Avatar overlapping banner */}
+              <div style={{
+                display: 'flex',
+                alignItems: isMobile ? 'flex-start' : 'center',
+                justifyContent: 'space-between',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: '16px',
+                marginTop: isMobile ? '-34px' : '-44px',
+                position: 'relative',
+                zIndex: 4
+              }}>
+                {/* Left: Avatar & Identity */}
+                <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: isMobile ? '12px' : '18px', flexWrap: 'wrap' }}>
+                  {/* Interactive Avatar */}
                   <div 
                     onClick={() => avatarInputRef.current?.click()}
                     style={{
                       position: 'relative',
-                      width: isMobile ? '50px' : '58px',
-                      height: isMobile ? '50px' : '58px',
-                      borderRadius: '16px',
+                      width: isMobile ? '68px' : '88px',
+                      height: isMobile ? '68px' : '88px',
+                      borderRadius: '22px',
                       background: '#FFFFFF',
-                      border: '3px solid #FFFFFF',
+                      border: '4px solid #FFFFFF',
                       cursor: 'pointer',
                       overflow: 'hidden',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)'
+                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+                      transition: 'transform 0.15s ease'
                     }}
                     title="Click to update avatar"
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                   >
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#00D26A' }}>
+                      <div style={{ fontSize: isMobile ? '26px' : '34px', fontWeight: 900, color: '#00D26A' }}>
                         {userName.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -1010,61 +959,167 @@ export default function Dashboard() {
                       left: 0,
                       right: 0,
                       background: 'rgba(15, 23, 42, 0.75)',
-                      padding: '2px 0',
+                      padding: '3px 0',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Camera size={10} color="#FFFFFF" />
+                      <Camera size={11} color="#FFFFFF" />
                     </div>
                   </div>
 
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 900, color: '#0F172A' }}>
+                  {/* Name, Tier & Status */}
+                  <div style={{ paddingTop: isMobile ? '6px' : '0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.3px' }}>
                         {userName}
                       </span>
                       <DecagonTagBadge tier={dynamicTierName} size={isMobile ? "sm" : "md"} />
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>Disciplined Prover</span>
                       <span>•</span>
-                      <span style={{ color: '#009E47', fontWeight: 700 }}>Pro Member</span>
+                      <span style={{ color: '#009E47', fontWeight: 800 }}>Pro Member</span>
+                      <span>•</span>
+                      <span style={{ color: '#64748B' }}>Baseline $1,000.00</span>
                     </div>
                   </div>
                 </div>
 
+                {/* Right: Live Audit & Arena Action */}
                 <div style={{
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 10px',
-                  borderRadius: '999px',
-                  background: 'rgba(240, 253, 244, 0.88)',
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  color: '#006C2E'
+                  gap: '12px',
+                  width: isMobile ? '100%' : 'auto',
+                  justifyContent: isMobile ? 'space-between' : 'flex-end',
+                  flexWrap: 'wrap'
                 }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00D26A' }} />
-                  <span>LIVE FEED AUDIT</span>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    background: 'rgba(240, 253, 244, 0.88)',
+                    border: '1px solid #86EFAC',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#006C2E'
+                  }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#00D26A' }} />
+                    <span>LIVE FEED AUDIT</span>
+                  </div>
+
+                  <button
+                    onClick={() => navigate('/trading')}
+                    style={{
+                      background: '#0F172A',
+                      border: 'none',
+                      color: '#FFFFFF',
+                      borderRadius: '10px',
+                      padding: '9px 18px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 14px rgba(15, 23, 42, 0.18)'
+                    }}
+                  >
+                    <Zap size={15} color="#00D26A" />
+                    <span>ENTER ARENA</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Massive Bold Equity Highlight */}
-              <div style={{ marginTop: '12px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                  PORTFOLIO CAPITAL
+              {/* Upper Technical Meta Ribbon */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '10px',
+                padding: '10px 16px',
+                background: '#F8FAFC',
+                borderRadius: '12px',
+                border: '1px solid #E2E8F0',
+                fontSize: '11px',
+                color: '#64748B',
+                fontWeight: 700,
+                letterSpacing: '0.6px',
+                textTransform: 'uppercase'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <span style={{ color: '#0F172A', fontWeight: 900 }}>NONSTOCK PROTOCOL</span>
+                  <span>•</span>
+                  <span>ACCOUNT: NS-{user?.id?.substring(0, 8) || 'c141ad16'}</span>
+                  <span>•</span>
+                  <span>UNIVERSAL BASELINE: <strong style={{ color: '#009E47' }}>$1,000.00</strong></span>
+                  <span>•</span>
+                  <span>REGIME: CONTINUOUS AUDIT</span>
                 </div>
-                <div style={{ fontSize: isMobile ? '34px' : '44px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px', lineHeight: 1.1, marginTop: '4px' }}>
-                  ${balanceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div style={{ fontSize: '13px', color: netPnL >= 0 ? '#009E47' : '#DC2626', fontWeight: 800, marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  {netPnL >= 0 ? <TrendingUp size={15} /> : <TrendingDown size={15} />}
-                  <span>{netPnL >= 0 ? '+' : ''}${netPnL.toFixed(2)} ({netRoi >= 0 ? '+' : ''}{netRoi.toFixed(1)}% vs $1,000 baseline)</span>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#009E47', fontWeight: 800 }}>
+                  <ShieldCheck size={14} color="#00D26A" />
+                  <span>VERIFIED PROVING GROUND</span>
                 </div>
               </div>
-            </div>
-          </div>
+
+              {/* ─── ASYMMETRIC BENTO GRID (EQUAL HEIGHT, 3 STAT CARDS) ─── */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr)',
+                gap: isMobile ? '16px' : '20px'
+              }}>
+                {/* Card A: Portfolio Capital Highlight */}
+                <div style={{
+                  background: '#FFFFFF',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '20px',
+                  padding: isMobile ? '18px 16px' : '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.03)'
+                }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                        PORTFOLIO CAPITAL
+                      </span>
+                      <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1', padding: '2px 7px', borderRadius: '4px', fontWeight: 800 }}>
+                        UNIVERSAL BASELINE
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: isMobile ? '34px' : '44px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px', lineHeight: 1.1, marginTop: '10px' }}>
+                      ${balanceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+
+                    <div style={{ fontSize: '13px', color: netPnL >= 0 ? '#009E47' : '#DC2626', fontWeight: 800, marginTop: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      {netPnL >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                      <span>{netPnL >= 0 ? '+' : ''}${netPnL.toFixed(2)} ({netRoi >= 0 ? '+' : ''}{netRoi.toFixed(1)}% vs $1,000 baseline)</span>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    padding: '10px 14px',
+                    fontSize: '12px',
+                    color: '#64748B',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <span>Equal Baseline Capital:</span>
+                    <strong style={{ color: '#0F172A' }}>$1,000.00 USD</strong>
+                  </div>
+                </div>
 
           {/* Card B (Asymmetric Amber Capsule): 1K Gold Coins Vault & Continuous Streak */}
           <div 
@@ -1219,6 +1274,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* ─── 2. DETACHED DECAGON TIER PROGRESSION RULER ─── */}
       <div style={{
