@@ -1333,61 +1333,91 @@ export default function StrategyBuilder() {
 
         </div>
 
-        {/* TradingView Container */}
-        <div style={{ position: 'relative', height: '540px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div ref={tvContainerRef} style={{ width: '100%', height: '100%' }} />
+        {/* Dedicated Strategy & Backtest Status Band (Placed cleanly outside chart canvas in white & emerald theme) */}
+        <div style={{
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '12px',
+          padding: '10px 18px',
+          marginBottom: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '14px',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <span style={{
+              background: '#F0FDF4',
+              border: '1px solid #BBF7D0',
+              color: '#15803D',
+              fontSize: '11px',
+              fontWeight: 800,
+              padding: '4px 8px',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#00D26A', display: 'inline-block' }} />
+              ACTIVE STRATEGY
+            </span>
+            <span style={{ fontSize: '13px', fontWeight: 900, color: '#0F172A' }}>
+              {activeStrategyTitle}
+            </span>
+          </div>
 
-          {/* On-Chart Live Execution Badge Overlay */}
-          <div style={{
-            position: 'absolute',
-            top: '14px',
-            left: '14px',
-            background: 'rgba(10, 14, 39, 0.90)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(0, 255, 136, 0.3)',
-            borderRadius: '10px',
-            padding: '8px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            zIndex: 10,
-            fontSize: '11px'
-          }}>
-            <div>
-              <span style={{ color: '#64748b', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase' }}>Active Strategy</span>
-              <div style={{ fontWeight: '800', color: '#00ff88' }}>{activeStrategyTitle}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Interval:</span>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', background: '#F1F5F9', padding: '2px 8px', borderRadius: '6px' }}>
+                {chartInterval.toUpperCase()}
+              </span>
             </div>
 
-            <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '12px' }}>
-              <span style={{ color: '#64748b', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase' }}>Timestamp</span>
-              <div style={{ fontWeight: '800', color: '#ffd700' }}>{chartInterval.toUpperCase()}</div>
-            </div>
-
-            {backtestResult && (
+            {backtestResult ? (
               <>
-                <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '12px' }}>
-                  <span style={{ color: '#64748b', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase' }}>Return</span>
-                  <div style={{ fontWeight: '900', color: backtestResult.profit >= 0 ? '#00ff88' : '#ff4444' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Net Return:</span>
+                  <span style={{
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    color: backtestResult.profit >= 0 ? '#15803D' : '#DC2626',
+                    background: backtestResult.profit >= 0 ? '#F0FDF4' : '#FEF2F2',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    border: `1px solid ${backtestResult.profit >= 0 ? '#BBF7D0' : '#FECACA'}`
+                  }}>
                     {backtestResult.profit >= 0 ? '+' : ''}{backtestResult.profit}%
-                  </div>
+                  </span>
                 </div>
 
-                <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '12px' }}>
-                  <span style={{ color: '#64748b', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase' }}>Win Rate</span>
-                  <div style={{ fontWeight: '900', color: '#00bcd4' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Win Rate:</span>
+                  <span style={{ fontSize: '12px', fontWeight: 900, color: '#0284C7', background: '#F0F9FF', padding: '2px 8px', borderRadius: '6px', border: '1px solid #BAE6FD' }}>
                     {backtestResult.winRate}%
-                  </div>
+                  </span>
                 </div>
 
-                <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '12px' }}>
-                  <span style={{ color: '#64748b', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase' }}>Trades</span>
-                  <div style={{ fontWeight: '800', color: '#ffffff' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Trades Executed:</span>
+                  <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', background: '#F8FAFC', padding: '2px 8px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
                     {backtestResult.trades?.length || 0}
-                  </div>
+                  </span>
                 </div>
               </>
+            ) : (
+              <span style={{ fontSize: '11px', color: '#64748B', fontStyle: 'italic' }}>
+                Click "Run Backtest" to generate execution metrics
+              </span>
             )}
           </div>
+        </div>
+
+        {/* TradingView Container - Completely Clean & Unobstructed */}
+        <div style={{ position: 'relative', height: '540px', borderRadius: '14px', overflow: 'hidden', border: '1.5px solid #E2E8F0', background: '#FFFFFF' }}>
+          <div ref={tvContainerRef} style={{ width: '100%', height: '100%' }} />
         </div>
       </div>
 

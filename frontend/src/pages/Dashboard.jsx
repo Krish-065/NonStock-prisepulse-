@@ -22,21 +22,25 @@ import TradingBadgeIcon from '../components/TradingBadgeIcon';
 import DecagonTagBadge from '../components/DecagonTagBadge';
 import { BADGES_CATALOG, DISCIPLINE_TASKS } from '../data/badgesData';
 
-// Available assets for the Watchlist search dropdown
+// Available assets for the Watchlist search dropdown & live ticker
 const WATCHLIST_DATABASE = [
-  { symbol: 'BTCUSDT', name: 'Bitcoin / USDT', category: 'Crypto', price: '$86,280.00', change: '+2.45%' },
-  { symbol: 'ETHUSDT', name: 'Ethereum / USDT', category: 'Crypto', price: '$3,420.50', change: '+1.80%' },
-  { symbol: 'SOLUSDT', name: 'Solana / USDT', category: 'Crypto', price: '$158.20', change: '+4.12%' },
-  { symbol: 'XAUUSD', name: 'Gold Spot / USD', category: 'Commodities', price: '$2,518.40', change: '+0.74%' },
-  { symbol: 'WTIUSD', name: 'Crude Oil WTI', category: 'Commodities', price: '$78.50', change: '-0.65%' },
-  { symbol: 'XAGUSD', name: 'Silver Spot / USD', category: 'Commodities', price: '$29.40', change: '+1.15%' },
-  { symbol: 'EURUSD', name: 'EUR / USD Forex', category: 'Forex', price: '1.0848', change: '+0.22%' },
-  { symbol: 'GBPUSD', name: 'GBP / USD Forex', category: 'Forex', price: '1.3032', change: '-0.12%' },
-  { symbol: 'USDJPY', name: 'USD / JPY Forex', category: 'Forex', price: '148.82', change: '+0.36%' },
-  { symbol: 'AAPL', name: 'Apple Inc.', category: 'Equities', price: '$226.40', change: '+0.85%' },
-  { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'Equities', price: '$124.50', change: '+3.10%' },
-  { symbol: 'TSLA', name: 'Tesla Inc.', category: 'Equities', price: '$248.60', change: '-1.40%' },
-  { symbol: 'SPY', name: 'S&P 500 ETF Trust', category: 'Equities', price: '$572.30', change: '+0.45%' }
+  { symbol: 'BTCUSDT', name: 'Bitcoin', category: 'Crypto', price: 86280.00, change: 2.45, digits: 2, prefix: '$' },
+  { symbol: 'ETHUSDT', name: 'Ethereum', category: 'Crypto', price: 3420.50, change: 1.80, digits: 2, prefix: '$' },
+  { symbol: 'SOLUSDT', name: 'Solana', category: 'Crypto', price: 158.20, change: 4.12, digits: 2, prefix: '$' },
+  { symbol: 'XAUUSD', name: 'Gold Spot (Ounce)', category: 'Commodities', price: 2518.40, change: 0.74, digits: 2, prefix: '$' },
+  { symbol: 'WTIUSD', name: 'Crude Oil WTI', category: 'Commodities', price: 78.50, change: -0.65, digits: 2, prefix: '$' },
+  { symbol: 'XAGUSD', name: 'Silver Spot', category: 'Commodities', price: 29.40, change: 1.15, digits: 2, prefix: '$' },
+  { symbol: 'EURUSD', name: 'Euro / US Dollar', category: 'Forex', price: 1.0848, change: 0.22, digits: 4, prefix: '$' },
+  { symbol: 'GBPUSD', name: 'British Pound / USD', category: 'Forex', price: 1.3032, change: -0.12, digits: 4, prefix: '$' },
+  { symbol: 'USDJPY', name: 'USD / Japanese Yen', category: 'Forex', price: 148.82, change: 0.36, digits: 2, prefix: '¥' },
+  { symbol: 'AUDUSD', name: 'Australian Dollar / USD', category: 'Forex', price: 0.6720, change: 0.18, digits: 4, prefix: '$' },
+  { symbol: 'USDCAD', name: 'USD / Canadian Dollar', category: 'Forex', price: 1.3540, change: -0.08, digits: 4, prefix: '$' },
+  { symbol: 'AAPL', name: 'Apple Inc.', category: 'Equities', price: 226.40, change: 0.85, digits: 2, prefix: '$' },
+  { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'Equities', price: 124.50, change: 3.10, digits: 2, prefix: '$' },
+  { symbol: 'TSLA', name: 'Tesla Inc.', category: 'Equities', price: 248.60, change: -1.40, digits: 2, prefix: '$' },
+  { symbol: 'MSFT', name: 'Microsoft Corporation', category: 'Equities', price: 420.80, change: 0.60, digits: 2, prefix: '$' },
+  { symbol: 'SPY', name: 'S&P 500 ETF Trust', category: 'Indices', price: 572.30, change: 0.45, digits: 2, prefix: '$' },
+  { symbol: 'QQQ', name: 'Invesco QQQ (Nasdaq 100)', category: 'Indices', price: 488.20, change: 0.78, digits: 2, prefix: '$' }
 ];
 
 export default function Dashboard() {
@@ -253,6 +257,130 @@ export default function Dashboard() {
   const netPnL = balanceNum - 1000;
   const netRoi = ((balanceNum - 1000) / 1000) * 100;
 
+  // ─── MATHEMATICALLY RIGOROUS DISCIPLINE EXECUTION RATING (DER) ENGINE ───
+  // Total Score Scale: 0 to 100 Points.
+  // 1. Win Rate Edge (0 - 35 pts): (winRate / 100) * 35 (or 24.5 default if 0 trades)
+  // 2. Capital Growth & Preservation (0 - 25 pts): Math.min(25, (balanceNum / 1000) * 18 + (netPnL >= 0 ? 4 : 0))
+  // 3. Mandatory Stop-Loss Protection (0 - 20 pts): 19.5 pts if protected
+  // 4. Streak Discipline (0 - 10 pts): Math.min(10, Math.max(2, (loginStreak + tradeStreak) * 1.5))
+  // 5. Anti-Overtrading & Tilt Control (0 - 10 pts): 10.0 pts for <= 5 trades/day
+  const derScore = useMemo(() => {
+    const winRatePts = totalTrades > 0 ? (winRate / 100) * 35 : 24.5;
+    const growthFactor = Math.max(0.5, Math.min(2.0, balanceNum / 1000));
+    const capitalPts = Math.min(25, growthFactor * 18 + (netPnL >= 0 ? 4 : 0));
+    const slCompliant = positions.every(p => Boolean(p.sl)) && (history.length === 0 || history.some(h => Boolean(h.sl) || Boolean(h.stopLoss)));
+    const riskPts = slCompliant || positions.length === 0 ? 19.5 : 12.0;
+    const combinedStreak = (loginStreak || 1) + (tradeStreak || 0);
+    const streakPts = Math.min(10, Math.max(2, combinedStreak * 1.5));
+    const todayTrades = history.filter(h => (h.closeTime || h.openTime || '').slice(0, 10) === new Date().toISOString().slice(0, 10)).length + positions.length;
+    const tiltControlPts = todayTrades <= 5 ? 10.0 : Math.max(2.0, 10.0 - (todayTrades - 5) * 1.5);
+
+    const raw = winRatePts + capitalPts + riskPts + streakPts + tiltControlPts;
+    return parseFloat(Math.min(99.4, Math.max(50.0, raw)).toFixed(1));
+  }, [totalTrades, winRate, balanceNum, netPnL, positions, history, loginStreak, tradeStreak]);
+
+  // ─── WATCHLIST RADAR & SEARCH BAR ENGINE ───
+  const [watchlistSearch, setWatchlistSearch] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [showAllWatchlist, setShowAllWatchlist] = useState(false);
+  const [liveWatchlistPrices, setLiveWatchlistPrices] = useState(() => {
+    const initial = {};
+    WATCHLIST_DATABASE.forEach(item => {
+      initial[item.symbol] = {
+        price: item.price,
+        change: item.change,
+        digits: item.digits,
+        prefix: item.prefix,
+        name: item.name,
+        category: item.category,
+        flash: null
+      };
+    });
+    return initial;
+  });
+
+  // Micro-tick live engine for Watchlist items
+  useEffect(() => {
+    const tickInterval = setInterval(() => {
+      setLiveWatchlistPrices(prev => {
+        const next = { ...prev };
+        const symbols = Object.keys(next);
+        if (symbols.length === 0) return prev;
+        
+        const count = Math.min(symbols.length, Math.floor(Math.random() * 2) + 1);
+        for (let i = 0; i < count; i++) {
+          const sym = symbols[Math.floor(Math.random() * symbols.length)];
+          const item = next[sym];
+          if (!item) continue;
+          
+          let delta = 0;
+          if (item.category === 'Crypto') {
+            delta = (Math.random() - 0.49) * (item.price > 1000 ? 22 : 0.4);
+          } else if (item.category === 'Commodities') {
+            delta = (Math.random() - 0.49) * 0.65;
+          } else if (item.category === 'Forex') {
+            delta = (Math.random() - 0.49) * 0.00025;
+          } else {
+            delta = (Math.random() - 0.49) * 0.45;
+          }
+
+          const newPrice = parseFloat((item.price + delta).toFixed(item.digits || 2));
+          const flash = delta >= 0 ? 'up' : 'down';
+          next[sym] = {
+            ...item,
+            price: newPrice,
+            flash
+          };
+        }
+        return next;
+      });
+    }, 2400);
+
+    return () => clearInterval(tickInterval);
+  }, []);
+
+  const getWatchlistMeta = (sym) => {
+    const clean = (sym || '').toUpperCase();
+    if (liveWatchlistPrices[clean]) return liveWatchlistPrices[clean];
+    const match = WATCHLIST_DATABASE.find(w => w.symbol === clean);
+    if (match) {
+      return {
+        price: match.price,
+        change: match.change,
+        digits: match.digits,
+        prefix: match.prefix,
+        name: match.name,
+        category: match.category,
+        flash: null
+      };
+    }
+    return {
+      price: 100.0,
+      change: 0.0,
+      digits: 2,
+      prefix: '$',
+      name: clean,
+      category: 'Market',
+      flash: null
+    };
+  };
+
+  const filteredCatalogForSearch = useMemo(() => {
+    const q = watchlistSearch.trim().toLowerCase();
+    if (!q) return [];
+    return WATCHLIST_DATABASE.filter(item => {
+      const alreadyIn = watchlist.includes(item.symbol);
+      if (alreadyIn) return false;
+      return item.symbol.toLowerCase().includes(q) || item.name.toLowerCase().includes(q) || item.category.toLowerCase().includes(q);
+    }).slice(0, 6);
+  }, [watchlistSearch, watchlist]);
+
+  const handleAddSymbolToWatchlist = (sym) => {
+    addToWatchlist(sym);
+    setWatchlistSearch('');
+    setIsSearchFocused(false);
+  };
+
   // Evaluate All 52 Badges
   const evaluatedBadges = useMemo(() => {
     const stateContext = {
@@ -385,7 +513,7 @@ export default function Dashboard() {
               name: userName,
               tag: dynamicTierName,
               color: dynamicTierColor,
-              der: 88.0,
+              der: derScore,
               balance: balanceNum,
               isSelf: true
             }
@@ -399,13 +527,13 @@ export default function Dashboard() {
             name: userName,
             tag: dynamicTierName,
             color: dynamicTierColor,
-            der: 88.0,
+            der: derScore,
             balance: balanceNum,
             isSelf: true
           }
         ]);
       });
-  }, [userName, balanceNum, dynamicTierName, dynamicTierColor]);
+  }, [userName, balanceNum, dynamicTierName, dynamicTierColor, derScore]);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'overview';
@@ -638,7 +766,7 @@ export default function Dashboard() {
             netRoi={netRoi} 
             coins={coins} 
             streakDays={streakDays} 
-            derScore={94} 
+            derScore={Math.round(derScore)} 
             tierName={dynamicTierName} 
           />
         </div>
@@ -662,7 +790,7 @@ export default function Dashboard() {
               netRoi={netRoi} 
               coins={coins} 
               streakDays={streakDays} 
-              derScore={94} 
+              derScore={Math.round(derScore)} 
               tierName={dynamicTierName} 
             />
           </div>
@@ -676,80 +804,6 @@ export default function Dashboard() {
             boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
             overflow: 'hidden'
           }}>
-            {/* Custom Terminal Banner Display */}
-            {bannerUrl ? (
-              <div style={{
-                position: 'relative',
-                width: '100%',
-                height: '170px',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                marginBottom: '20px',
-                border: '1.5px solid #CBD5E1',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)'
-              }}>
-                <img 
-                  src={bannerUrl} 
-                  alt="Trader Terminal Custom Banner" 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                />
-                <div style={{
-                  position: 'absolute',
-                  top: '12px',
-                  right: '12px',
-                  display: 'flex',
-                  gap: '8px',
-                  zIndex: 2
-                }}>
-                  <button
-                    onClick={() => bannerInputRef.current?.click()}
-                    style={{
-                      background: 'rgba(15, 23, 42, 0.85)',
-                      backdropFilter: 'blur(8px)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '6px 12px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                    }}
-                  >
-                    <Camera size={13} />
-                    <span>Change Banner</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setBannerUrl('');
-                      localStorage.removeItem('nonstock_user_banner');
-                      toast.success('Custom banner removed');
-                    }}
-                    style={{
-                      background: 'rgba(239, 68, 68, 0.85)',
-                      backdropFilter: 'blur(8px)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '6px 10px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                    }}
-                    title="Remove custom banner"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
-            ) : null}
 
         {/* Upper Technical Meta Ribbon */}
         <div style={{
@@ -827,103 +881,176 @@ export default function Dashboard() {
           gridTemplateColumns: 'minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr)',
           gap: '20px'
         }}>
-          {/* Card A (Expansive Hero Card): Trader Identity & Portfolio Equity */}
+          {/* Card A (Expansive Hero Card): Trader Identity & Portfolio Equity with Custom Profile Cover Background */}
           <div style={{
-            background: 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
-            border: '1.5px solid #E2E8F0',
+            position: 'relative',
+            background: '#FFFFFF',
+            border: '1.5px solid #CBD5E1',
             borderRadius: '20px',
-            padding: '24px',
+            overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
+            boxShadow: '0 4px 16px rgba(0,0,0,0.03)'
           }}>
-            {/* Identity Row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div 
-                  onClick={() => avatarInputRef.current?.click()}
-                  style={{
-                    position: 'relative',
-                    width: '56px',
-                    height: '56px',
-                    borderRadius: '16px',
-                    background: '#FFFFFF',
-                    border: '2px solid #00D26A',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: '0 4px 12px rgba(0, 210, 106, 0.15)'
-                  }}
-                  title="Click to update avatar"
-                >
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ fontSize: '24px', fontWeight: 900, color: '#00D26A' }}>
-                      {userName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    background: 'rgba(15, 23, 42, 0.75)',
-                    padding: '2px 0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Camera size={10} color="#FFFFFF" />
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>
-                      {userName}
-                    </span>
-                    <DecagonTagBadge tier={dynamicTierName} size="md" />
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>Disciplined Prover</span>
-                    <span>•</span>
-                    <span style={{ color: '#009E47', fontWeight: 700 }}>Pro Member</span>
-                  </div>
-                </div>
-              </div>
-
+            {/* Profile Banner Background Header */}
+            <div style={{
+              position: 'relative',
+              width: '100%',
+              height: bannerUrl ? '105px' : '55px',
+              background: bannerUrl 
+                ? `url(${bannerUrl}) center/cover no-repeat` 
+                : 'linear-gradient(135deg, #00D26A 0%, #009E47 100%)',
+              transition: 'height 0.25s ease'
+            }}>
               <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
+                position: 'absolute',
+                top: '10px',
+                right: '12px',
+                display: 'flex',
                 gap: '6px',
-                padding: '4px 10px',
-                borderRadius: '999px',
-                background: 'rgba(240, 253, 244, 0.88)',
-                fontSize: '10px',
-                fontWeight: 800,
-                color: '#006C2E'
+                zIndex: 3
               }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00D26A' }} />
-                <span>LIVE FEED AUDIT</span>
+                <button
+                  onClick={() => bannerInputRef.current?.click()}
+                  title="Change custom banner"
+                  style={{
+                    background: 'rgba(15, 23, 42, 0.82)',
+                    backdropFilter: 'blur(6px)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '4px 9px',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  <Camera size={11} />
+                  <span>{bannerUrl ? 'Change Banner' : '+ Custom Banner'}</span>
+                </button>
+                {bannerUrl && (
+                  <button
+                    onClick={() => {
+                      setBannerUrl('');
+                      localStorage.removeItem('nonstock_user_banner');
+                      toast.success('Custom banner removed');
+                    }}
+                    title="Remove banner"
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.85)',
+                      backdropFilter: 'blur(6px)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '4px 6px',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Massive Bold Equity Highlight */}
-            <div style={{ marginTop: '20px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                PORTFOLIO CAPITAL
+            {/* Profile Details Container */}
+            <div style={{ padding: '0 24px 22px 24px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+              {/* Identity Row with Avatar overlapping banner */}
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: '-28px', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px' }}>
+                  <div 
+                    onClick={() => avatarInputRef.current?.click()}
+                    style={{
+                      position: 'relative',
+                      width: '58px',
+                      height: '58px',
+                      borderRadius: '16px',
+                      background: '#FFFFFF',
+                      border: '3px solid #FFFFFF',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)'
+                    }}
+                    title="Click to update avatar"
+                  >
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ fontSize: '24px', fontWeight: 900, color: '#00D26A' }}>
+                        {userName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background: 'rgba(15, 23, 42, 0.75)',
+                      padding: '2px 0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Camera size={10} color="#FFFFFF" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>
+                        {userName}
+                      </span>
+                      <DecagonTagBadge tier={dynamicTierName} size="md" />
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>Disciplined Prover</span>
+                      <span>•</span>
+                      <span style={{ color: '#009E47', fontWeight: 700 }}>Pro Member</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 10px',
+                  borderRadius: '999px',
+                  background: 'rgba(240, 253, 244, 0.88)',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  color: '#006C2E'
+                }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00D26A' }} />
+                  <span>LIVE FEED AUDIT</span>
+                </div>
               </div>
-              <div style={{ fontSize: '46px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1.5px', lineHeight: 1.1, marginTop: '4px' }}>
-                ${balanceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <div style={{ fontSize: '13px', color: netPnL >= 0 ? '#009E47' : '#DC2626', fontWeight: 800, marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                {netPnL >= 0 ? <TrendingUp size={15} /> : <TrendingDown size={15} />}
-                <span>{netPnL >= 0 ? '+' : ''}${netPnL.toFixed(2)} ({netRoi >= 0 ? '+' : ''}{netRoi.toFixed(1)}% vs $1,000 baseline)</span>
+
+              {/* Massive Bold Equity Highlight */}
+              <div style={{ marginTop: '12px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  PORTFOLIO CAPITAL
+                </div>
+                <div style={{ fontSize: '44px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1.5px', lineHeight: 1.1, marginTop: '4px' }}>
+                  ${balanceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div style={{ fontSize: '13px', color: netPnL >= 0 ? '#009E47' : '#DC2626', fontWeight: 800, marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  {netPnL >= 0 ? <TrendingUp size={15} /> : <TrendingDown size={15} />}
+                  <span>{netPnL >= 0 ? '+' : ''}${netPnL.toFixed(2)} ({netRoi >= 0 ? '+' : ''}{netRoi.toFixed(1)}% vs $1,000 baseline)</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1058,7 +1185,7 @@ export default function Dashboard() {
 
               <div style={{ marginTop: '16px' }}>
                 <div style={{ fontSize: '34px', fontWeight: 900, color: '#006C2E', lineHeight: 1 }}>
-                  88.0 <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 700 }}>/ 100</span>
+                  {derScore.toFixed(1)} <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 700 }}>/ 100</span>
                 </div>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: '#009E47', marginTop: '4px' }}>
                   Algorithmic Edge Verified
@@ -1320,28 +1447,29 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right Column: Platform Voucher & Radar Overview (Detached Floating Cards) */}
+        {/* Right Column: Platform Voucher & Radar Surveillance Desk */}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '20px'
+          gap: '20px',
+          height: '100%'
         }}>
-          {/* 60-Day Free Platform Access Voucher */}
+          {/* 60-Day Free Platform Access Voucher (if active) */}
           {isFreeGraceActive && (
             <div style={{
               background: '#FFFFFF',
               borderRadius: '20px',
               border: '1.5px solid #86EFAC',
-              padding: '24px',
+              padding: '20px 24px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px',
+              gap: '10px',
               boxShadow: '0 8px 30px -5px rgba(0, 210, 106, 0.05)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={18} color="#009E47" />
-                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
+                  <Sparkles size={16} color="#009E47" />
+                  <span style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A' }}>
                     60-Day Full Platform Access Voucher
                   </span>
                 </div>
@@ -1349,10 +1477,10 @@ export default function Dashboard() {
                   {trialDaysRemaining}D LEFT
                 </span>
               </div>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                All edge instruments (Technical Screener, Strategy Lab, Global Macro, Replay Simulator) are 100% unlocked for every account holder for 2 months.
+              <p style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.4, margin: 0 }}>
+                All edge instruments (Technical Screener, Strategy Lab, Global Macro, Replay Simulator) are 100% unlocked for your account.
               </p>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
                 <button
                   onClick={() => navigate('/screener')}
                   style={{
@@ -1360,16 +1488,16 @@ export default function Dashboard() {
                     border: '1px solid #CBD5E1',
                     color: '#0F172A',
                     borderRadius: '8px',
-                    padding: '8px 14px',
-                    fontSize: '12px',
+                    padding: '6px 12px',
+                    fontSize: '11px',
                     fontWeight: 700,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '5px'
                   }}
                 >
-                  <Search size={13} />
+                  <Search size={12} />
                   <span>Screener</span>
                 </button>
                 <button
@@ -1379,81 +1507,482 @@ export default function Dashboard() {
                     border: 'none',
                     color: '#FFFFFF',
                     borderRadius: '8px',
-                    padding: '8px 14px',
-                    fontSize: '12px',
+                    padding: '6px 12px',
+                    fontSize: '11px',
                     fontWeight: 800,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: '0 4px 12px rgba(0, 210, 106, 0.25)'
+                    gap: '5px',
+                    boxShadow: '0 4px 10px rgba(0, 210, 106, 0.25)'
                   }}
                 >
-                  <Globe size={13} />
+                  <Globe size={12} />
                   <span>Global Markets</span>
                 </button>
               </div>
             </div>
           )}
 
-          {/* Quick Watchlist Terminal */}
+          {/* Full-Height Vertical Live Watchlist Surveillance Card */}
           <div style={{
             background: '#FFFFFF',
-            borderRadius: '20px',
+            borderRadius: '24px',
             border: '1.5px solid #E2E8F0',
-            padding: '22px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
+            padding: '24px',
+            boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: isFreeGraceActive ? '440px' : '560px',
+            position: 'relative'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                LIVE WATCHLIST SURVEILLANCE ({watchlist.length})
+            {/* Header: Title, Live indicator, Arena Ticket link */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: '12px',
+              marginBottom: '16px'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                    LIVE WATCHLIST SURVEILLANCE
+                  </span>
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: 'rgba(240, 253, 244, 0.88)',
+                    color: '#009E47',
+                    border: '1px solid #86EFAC',
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    fontSize: '9px',
+                    fontWeight: 900
+                  }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00D26A', boxShadow: '0 0 6px #00D26A' }} />
+                    2.4S TICK ENGINE
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '19px', fontWeight: 900, color: '#0F172A', margin: '4px 0 0 0' }}>
+                  Live Multi-Asset Radar ({watchlist.length})
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748B', margin: '3px 0 0 0' }}>
+                  Live price feed, micro-tick flashes, 24h change & direct arena ticket routing.
+                </p>
               </div>
+
               <button
                 onClick={() => navigate('/trading')}
                 style={{
-                  background: 'none',
-                  border: 'none',
+                  background: 'rgba(0, 210, 106, 0.08)',
+                  border: '1px solid rgba(0, 210, 106, 0.3)',
                   color: '#009E47',
+                  borderRadius: '10px',
+                  padding: '7px 14px',
                   fontSize: '12px',
                   fontWeight: 800,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px'
+                  gap: '5px',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 210, 106, 0.16)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 210, 106, 0.08)'}
               >
                 <span>Arena Ticket</span>
                 <ArrowRight size={13} />
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {watchlist.map(sym => (
-                <div
-                  key={sym}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '6px 10px',
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    color: '#0F172A'
+            {/* Search & Add Asset Bar */}
+            <div style={{ position: 'relative', marginBottom: '16px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: '#F8FAFC',
+                border: isSearchFocused ? '1.5px solid #00D26A' : '1.5px solid #E2E8F0',
+                borderRadius: '12px',
+                padding: '0 12px',
+                transition: 'border-color 0.2s ease',
+                boxShadow: isSearchFocused ? '0 0 0 3px rgba(0, 210, 106, 0.12)' : 'none'
+              }}>
+                <Search size={15} color="#94A3B8" />
+                <input
+                  type="text"
+                  placeholder="Search ticker or asset to add (e.g. BTC, Gold, NVDA, SOL)..."
+                  value={watchlistSearch}
+                  onChange={(e) => {
+                    setWatchlistSearch(e.target.value);
+                    setIsSearchFocused(true);
                   }}
-                >
-                  <span>{sym}</span>
-                  <X 
-                    size={13} 
-                    color="#94A3B8" 
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => removeFromWatchlist(sym)}
-                  />
+                  onFocus={() => setIsSearchFocused(true)}
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    background: 'transparent',
+                    padding: '10px 10px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#0F172A',
+                    outline: 'none'
+                  }}
+                />
+                {watchlistSearch && (
+                  <button
+                    onClick={() => {
+                      setWatchlistSearch('');
+                      setIsSearchFocused(false);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#94A3B8',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Floating Autocomplete Search Results */}
+              {isSearchFocused && watchlistSearch.trim().length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: 0,
+                  right: 0,
+                  background: '#FFFFFF',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '14px',
+                  boxShadow: '0 14px 38px rgba(15, 23, 42, 0.14)',
+                  zIndex: 80,
+                  maxHeight: '260px',
+                  overflowY: 'auto',
+                  padding: '6px'
+                }}>
+                  {filteredCatalogForSearch.length > 0 ? (
+                    filteredCatalogForSearch.map(item => (
+                      <div
+                        key={item.symbol}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 12px',
+                          borderRadius: '10px',
+                          transition: 'background 0.15s ease',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#F8FAFC'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{
+                            fontSize: '9px',
+                            fontWeight: 900,
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: '#F1F5F9',
+                            color: '#475569',
+                            textTransform: 'uppercase'
+                          }}>
+                            {item.category}
+                          </span>
+                          <div>
+                            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                              {item.symbol}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748B' }}>
+                              {item.name}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                              {item.prefix || '$'}{Number(item.price).toLocaleString('en-US', { minimumFractionDigits: item.digits ?? 2, maximumFractionDigits: item.digits ?? 2 })}
+                            </div>
+                            <div style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              color: item.change >= 0 ? '#15803D' : '#DC2626'
+                            }}>
+                              {item.change >= 0 ? `+${item.change.toFixed(2)}%` : `${item.change.toFixed(2)}%`}
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddSymbolToWatchlist(item.symbol);
+                            }}
+                            style={{
+                              background: '#00D26A',
+                              border: 'none',
+                              color: '#FFFFFF',
+                              borderRadius: '8px',
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              boxShadow: '0 2px 8px rgba(0, 210, 106, 0.3)'
+                            }}
+                          >
+                            <Plus size={13} />
+                            <span>Add</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: '#64748B' }}>
+                      No unmonitored assets found matching &quot;<strong>{watchlistSearch}</strong>&quot;
+                    </div>
+                  )}
                 </div>
-              ))}
+              )}
             </div>
+
+            {/* Vertical Watchlist List */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              flex: 1
+            }}>
+              {watchlist.length > 0 ? (
+                (showAllWatchlist ? watchlist : watchlist.slice(0, 5)).map(sym => {
+                  const meta = getWatchlistMeta(sym);
+                  const isPositive = meta.change >= 0;
+                  const flashBg = meta.flash === 'up' 
+                    ? 'rgba(240, 253, 244, 0.95)' 
+                    : meta.flash === 'down' 
+                      ? 'rgba(254, 242, 242, 0.95)' 
+                      : '#FFFFFF';
+                  const flashBorder = meta.flash === 'up'
+                    ? '#86EFAC'
+                    : meta.flash === 'down'
+                      ? '#FCA5A5'
+                      : '#E2E8F0';
+
+                  return (
+                    <div
+                      key={sym}
+                      style={{
+                        padding: '12px 16px',
+                        borderRadius: '16px',
+                        border: `1.5px solid ${flashBorder}`,
+                        background: flashBg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        transition: 'all 0.25s ease',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.01)'
+                      }}
+                    >
+                      {/* Left: Ticker & Category */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '120px' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A' }}>
+                              {sym}
+                            </span>
+                            <span style={{
+                              fontSize: '9px',
+                              fontWeight: 800,
+                              padding: '1px 5px',
+                              borderRadius: '4px',
+                              background: '#F1F5F9',
+                              color: '#64748B',
+                              textTransform: 'uppercase'
+                            }}>
+                              {meta.category}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>
+                            {meta.name}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Center: Live Price & 24h Change */}
+                      <div style={{ textAlign: 'right', flex: 1, paddingRight: '8px' }}>
+                        <div style={{
+                          fontSize: '14px',
+                          fontWeight: 900,
+                          color: '#0F172A',
+                          fontVariantNumeric: 'tabular-nums'
+                        }}>
+                          {meta.prefix || '$'}{Number(meta.price).toLocaleString('en-US', {
+                            minimumFractionDigits: meta.digits ?? 2,
+                            maximumFractionDigits: meta.digits ?? 2
+                          })}
+                        </div>
+                        <div style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: isPositive ? '#15803D' : '#DC2626'
+                        }}>
+                          {isPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                          <span>{isPositive ? `+${meta.change.toFixed(2)}%` : `${meta.change.toFixed(2)}%`}</span>
+                        </div>
+                      </div>
+
+                      {/* Right: Actions (Trade & Remove) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <button
+                          onClick={() => {
+                            localStorage.setItem('nonstock_active_symbol', sym);
+                            navigate(`/trading?symbol=${sym}`);
+                          }}
+                          title={`Launch trade ticket for ${sym}`}
+                          style={{
+                            background: '#F8FAFC',
+                            border: '1px solid #CBD5E1',
+                            color: '#0F172A',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#0F172A';
+                            e.currentTarget.style.color = '#FFFFFF';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#F8FAFC';
+                            e.currentTarget.style.color = '#0F172A';
+                          }}
+                        >
+                          <Zap size={12} color="#00D26A" />
+                          <span>Trade</span>
+                        </button>
+
+                        <button
+                          onClick={() => removeFromWatchlist(sym)}
+                          title={`Remove ${sym} from watchlist`}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#94A3B8',
+                            cursor: 'pointer',
+                            padding: '6px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'color 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = '#EF4444'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{
+                  padding: '36px 20px',
+                  textAlign: 'center',
+                  background: '#F8FAFC',
+                  borderRadius: '16px',
+                  border: '1.5px dashed #CBD5E1'
+                }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
+                    No instruments in your watchlist
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '14px' }}>
+                    Use the search bar above or click a popular ticker below:
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px' }}>
+                    {['BTCUSDT', 'ETHUSDT', 'XAUUSD', 'EURUSD', 'NVDA', 'AAPL'].map(quickSym => (
+                      <button
+                        key={quickSym}
+                        onClick={() => handleAddSymbolToWatchlist(quickSym)}
+                        style={{
+                          background: '#FFFFFF',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '8px',
+                          padding: '5px 10px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: '#0F172A',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <Plus size={11} color="#009E47" />
+                        <span>{quickSym}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer / Show More & Show Less Toggle */}
+            {watchlist.length > 5 && (
+              <button
+                onClick={() => setShowAllWatchlist(prev => !prev)}
+                style={{
+                  marginTop: '14px',
+                  width: '100%',
+                  padding: '10px 14px',
+                  background: '#F8FAFC',
+                  border: '1px dashed #CBD5E1',
+                  borderRadius: '12px',
+                  color: '#0F172A',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'background 0.15s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#F1F5F9'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#F8FAFC'}
+              >
+                {showAllWatchlist ? (
+                  <>
+                    <span>Show Less</span>
+                    <ChevronUp size={14} color="#009E47" />
+                  </>
+                ) : (
+                  <>
+                    <span>Show More (+{watchlist.length - 5} More Assets)</span>
+                    <ChevronDown size={14} color="#009E47" />
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
