@@ -54,6 +54,15 @@ export default function Dashboard() {
     syncVaultAndStreak
   } = useTrading();
 
+  // Responsive mobile state for optimal vertical stacked layout on mobile
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 900 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 900);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Gold Coins Vault & Audit Ledger Modal state
   const [showCoinVaultModal, setShowCoinVaultModal] = useState(false);
   const [coinVaultData, setCoinVaultData] = useState(null);
@@ -878,8 +887,8 @@ export default function Dashboard() {
         {/* ─── ASYMMETRIC BENTO GRID (UNEVEN HIGHLIGHTS & BOLD TYPOGRAPHY) ─── */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr)',
-          gap: '20px'
+          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr)',
+          gap: isMobile ? '16px' : '20px'
         }}>
           {/* Card A (Expansive Hero Card): Trader Identity & Portfolio Equity with Custom Profile Cover Background */}
           <div style={{
@@ -897,7 +906,7 @@ export default function Dashboard() {
             <div style={{
               position: 'relative',
               width: '100%',
-              height: bannerUrl ? '105px' : '55px',
+              height: bannerUrl ? (isMobile ? '90px' : '105px') : (isMobile ? '45px' : '55px'),
               background: bannerUrl 
                 ? `url(${bannerUrl}) center/cover no-repeat` 
                 : 'linear-gradient(135deg, #00D26A 0%, #009E47 100%)',
@@ -963,16 +972,16 @@ export default function Dashboard() {
             </div>
 
             {/* Profile Details Container */}
-            <div style={{ padding: '0 24px 22px 24px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+            <div style={{ padding: isMobile ? '0 16px 18px 16px' : '0 24px 22px 24px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
               {/* Identity Row with Avatar overlapping banner */}
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: '-28px', marginBottom: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'flex-end', justifyContent: 'space-between', marginTop: '-24px', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
                   <div 
                     onClick={() => avatarInputRef.current?.click()}
                     style={{
                       position: 'relative',
-                      width: '58px',
-                      height: '58px',
+                      width: isMobile ? '50px' : '58px',
+                      height: isMobile ? '50px' : '58px',
                       borderRadius: '16px',
                       background: '#FFFFFF',
                       border: '3px solid #FFFFFF',
@@ -989,7 +998,7 @@ export default function Dashboard() {
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ fontSize: '24px', fontWeight: 900, color: '#00D26A' }}>
+                      <div style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#00D26A' }}>
                         {userName.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -1010,10 +1019,10 @@ export default function Dashboard() {
 
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>
+                      <span style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 900, color: '#0F172A' }}>
                         {userName}
                       </span>
-                      <DecagonTagBadge tier={dynamicTierName} size="md" />
+                      <DecagonTagBadge tier={dynamicTierName} size={isMobile ? "sm" : "md"} />
                     </div>
                     <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span>Disciplined Prover</span>
@@ -1044,7 +1053,7 @@ export default function Dashboard() {
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                   PORTFOLIO CAPITAL
                 </div>
-                <div style={{ fontSize: '44px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1.5px', lineHeight: 1.1, marginTop: '4px' }}>
+                <div style={{ fontSize: isMobile ? '34px' : '44px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px', lineHeight: 1.1, marginTop: '4px' }}>
                   ${balanceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
                 <div style={{ fontSize: '13px', color: netPnL >= 0 ? '#009E47' : '#DC2626', fontWeight: 800, marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -1065,7 +1074,7 @@ export default function Dashboard() {
               background: 'linear-gradient(145deg, #FFFDF5 0%, #FEF9C3 100%)',
               border: '1.5px solid #FDE047',
               borderRadius: '20px',
-              padding: '24px',
+              padding: isMobile ? '18px 16px' : '24px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
@@ -1088,9 +1097,9 @@ export default function Dashboard() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '16px' }}>
-                <GoldCoin1K size={52} showRings={false} animated={false} />
+                <GoldCoin1K size={isMobile ? 44 : 52} showRings={false} animated={false} />
                 <div>
-                  <div style={{ fontSize: '34px', fontWeight: 900, color: '#713F12', lineHeight: 1 }}>
+                  <div style={{ fontSize: isMobile ? '30px' : '34px', fontWeight: 900, color: '#713F12', lineHeight: 1 }}>
                     {coins}
                   </div>
                   <div style={{ fontSize: '12px', fontWeight: 800, color: '#854D0E', marginTop: '2px' }}>
@@ -1167,7 +1176,7 @@ export default function Dashboard() {
             background: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDF4 100%)',
             border: '1.5px solid #86EFAC',
             borderRadius: '20px',
-            padding: '24px',
+            padding: isMobile ? '18px 16px' : '24px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -1184,7 +1193,7 @@ export default function Dashboard() {
               </div>
 
               <div style={{ marginTop: '16px' }}>
-                <div style={{ fontSize: '34px', fontWeight: 900, color: '#006C2E', lineHeight: 1 }}>
+                <div style={{ fontSize: isMobile ? '30px' : '34px', fontWeight: 900, color: '#006C2E', lineHeight: 1 }}>
                   {derScore.toFixed(1)} <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 700 }}>/ 100</span>
                 </div>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: '#009E47', marginTop: '4px' }}>
@@ -1216,10 +1225,10 @@ export default function Dashboard() {
         WebkitBackdropFilter: 'blur(16px)',
         borderRadius: '24px',
         border: '1.5px solid rgba(226, 232, 240, 0.85)',
-        padding: '20px 28px',
+        padding: isMobile ? '16px' : '20px 28px',
         boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', fontSize: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: '8px', marginBottom: '14px', fontSize: '12px' }}>
           <div style={{ fontWeight: 900, color: '#009E47', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             DECAGON CAPITAL PROVING HIERARCHY
           </div>
@@ -1228,10 +1237,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 5 Independent Detached Rounded Cards */}
+        {/* 5 Independent Detached Rounded Cards (Vertical list on Mobile, 5 cols on Desktop) */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(5, 1fr)',
           gap: '12px'
         }}>
           {[
@@ -1244,32 +1253,37 @@ export default function Dashboard() {
             <div
               key={t.name}
               style={{
-                padding: '14px 16px',
+                padding: '12px 16px',
                 borderRadius: '16px',
                 background: t.active ? 'rgba(240, 253, 244, 0.88)' : '#F8FAFC',
                 border: t.active ? '2px solid #00D26A' : '1.5px solid #E2E8F0',
                 boxShadow: t.active ? '0 4px 16px rgba(0, 210, 106, 0.15)' : 'none',
-                transition: 'all 0.15s ease'
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <TradingBadgeIcon theme={`decagon_${t.name.toLowerCase().split(' ')[0]}`} size={26} />
-                  <span style={{ fontSize: '12px', fontWeight: 800, color: t.active ? '#009E47' : '#475569' }}>
-                    {t.name}
-                  </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <TradingBadgeIcon theme={`decagon_${t.name.toLowerCase().split(' ')[0]}`} size={26} />
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: t.active ? '#009E47' : '#0F172A' }}>
+                      {t.name}
+                    </span>
+                    {t.active && (
+                      <span style={{ fontSize: '9px', background: '#00D26A', color: '#FFFFFF', padding: '1px 5px', borderRadius: '4px', fontWeight: 900 }}>
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>
+                    {t.tag}
+                  </div>
                 </div>
-                {t.active && (
-                  <span style={{ fontSize: '9px', background: '#00D26A', color: '#FFFFFF', padding: '2px 5px', borderRadius: '4px', fontWeight: 900 }}>
-                    ACTIVE
-                  </span>
-                )}
               </div>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', marginTop: '4px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>
                 {t.target}
-              </div>
-              <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>
-                {t.tag}
               </div>
             </div>
           ))}
@@ -1279,7 +1293,7 @@ export default function Dashboard() {
       {/* ─── 3. MIDDLE SPLIT OPERATIONAL DESK (DISCIPLINE TASKS DESK VS PLATFORM VOUCHER & RADAR) ─── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 1fr)',
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.35fr) minmax(0, 1fr)',
         gap: '24px'
       }}>
         {/* Left Column: Dedicated Discipline Tasks Desk (Floating Card) */}
@@ -1287,13 +1301,13 @@ export default function Dashboard() {
           background: '#FFFFFF',
           borderRadius: '24px',
           border: '1.5px solid #E2E8F0',
-          padding: '28px',
+          padding: isMobile ? '18px 16px' : '28px',
           boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
           display: 'flex',
           flexDirection: 'column',
           gap: '18px'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-start', flexDirection: isMobile ? 'column' : 'row', gap: '12px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
@@ -1311,7 +1325,7 @@ export default function Dashboard() {
                   SEPARATE FROM BADGES
                 </span>
               </div>
-              <h3 style={{ fontSize: '19px', fontWeight: 900, color: '#0F172A', margin: '4px 0 0 0' }}>
+              <h3 style={{ fontSize: isMobile ? '17px' : '19px', fontWeight: 900, color: '#0F172A', margin: '4px 0 0 0' }}>
                 Daily Trading Discipline Quests
               </h3>
               <p style={{ fontSize: '13px', color: '#64748B', margin: '3px 0 0 0' }}>
@@ -1319,7 +1333,7 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div style={{ textAlign: 'right' }}>
+            <div style={{ textAlign: isMobile ? 'left' : 'right', borderTop: isMobile ? '1px dashed #E2E8F0' : 'none', paddingTop: isMobile ? '8px' : '0' }}>
               <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>
                 {completedTasksCount} of 5 Completed Today
               </div>
@@ -1339,29 +1353,30 @@ export default function Dashboard() {
             }} />
           </div>
 
-          {/* Independent Rounded Task Items */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Independent Rounded Task Items (Vertical form on Mobile with NO text overlapping) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {evaluatedDisciplineTasks.map((t) => {
               const Icon = t.icon;
               return (
                 <div
                   key={t.id}
                   style={{
-                    padding: '14px 18px',
+                    padding: isMobile ? '14px 16px' : '14px 18px',
                     borderRadius: '16px',
                     border: t.completed ? '1.5px solid #86EFAC' : '1.5px solid #E2E8F0',
                     display: 'flex',
-                    alignItems: 'center',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    alignItems: isMobile ? 'stretch' : 'center',
                     justifyContent: 'space-between',
-                    gap: '14px',
+                    gap: isMobile ? '10px' : '14px',
                     background: t.completed ? '#F8FAFC' : '#FFFFFF',
                     transition: 'border-color 0.15s ease'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', minWidth: 0, flex: 1 }}>
                     <div style={{
-                      width: '36px',
-                      height: '36px',
+                      width: '38px',
+                      height: '38px',
                       borderRadius: '10px',
                       background: t.completed ? 'rgba(240, 253, 244, 0.88)' : '#F8FAFC',
                       border: t.completed ? '1.5px solid #86EFAC' : '1.5px solid #CBD5E1',
@@ -1374,8 +1389,8 @@ export default function Dashboard() {
                       <Icon size={18} />
                     </div>
 
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
                           {t.title}
                         </span>
@@ -1389,13 +1404,21 @@ export default function Dashboard() {
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', lineHeight: 1.4 }}>
                         {t.desc}
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: isMobile ? 'space-between' : 'flex-end', 
+                    gap: '12px',
+                    flexShrink: 0,
+                    paddingTop: isMobile ? '10px' : '0',
+                    borderTop: isMobile ? '1px dashed #E2E8F0' : 'none'
+                  }}>
                     <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 700 }}>
                       {t.statusText}
                     </span>
@@ -1529,12 +1552,12 @@ export default function Dashboard() {
             background: '#FFFFFF',
             borderRadius: '24px',
             border: '1.5px solid #E2E8F0',
-            padding: '24px',
+            padding: isMobile ? '18px 16px' : '24px',
             boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)',
             display: 'flex',
             flexDirection: 'column',
             flex: 1,
-            minHeight: isFreeGraceActive ? '440px' : '560px',
+            minHeight: isMobile ? 'auto' : (isFreeGraceActive ? '440px' : '560px'),
             position: 'relative'
           }}>
             {/* Header: Title, Live indicator, Arena Ticket link */}
@@ -1795,7 +1818,7 @@ export default function Dashboard() {
                       }}
                     >
                       {/* Left: Ticker & Category */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '120px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: isMobile ? 'auto' : '120px' }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A' }}>

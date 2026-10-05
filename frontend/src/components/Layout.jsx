@@ -113,12 +113,12 @@ export default function Layout({ children }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 24px',
+        padding: isMobile ? '0 12px' : '0 24px',
         zIndex: 1000,
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
       }}>
         {/* Left: Brand Logo (Navigates directly to /dashboard - No Dashboard word needed) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '24px', flexShrink: 0 }}>
           <div 
             onClick={() => navigate('/dashboard')} 
             style={{ 
@@ -129,7 +129,7 @@ export default function Layout({ children }) {
             }}
             title="NonStock Dashboard (Verified Proving Ground)"
           >
-            <Logo size={36} showName={true} showTagline={false} nameSize="21px" color="#0F172A" />
+            <Logo size={isMobile ? 28 : 36} showName={true} showTagline={false} nameSize={isMobile ? "17px" : "21px"} color="#0F172A" />
           </div>
 
           {/* Desktop Navigation Links */}
@@ -203,10 +203,10 @@ export default function Layout({ children }) {
         </div>
 
         {/* Right: Actions, Badges & Profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '10px' }}>
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {/* 60-Day Free All-Tools Grace Period Banner Badge */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '5px' : '8px' }}>
+              {/* 60-Day Free All-Tools Grace Period Banner Badge (Desktop Only) */}
               {isFreeGraceActive && (
                 <div 
                   onClick={() => navigate('/dashboard')}
@@ -238,28 +238,29 @@ export default function Layout({ children }) {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '5px 12px',
+                  gap: isMobile ? '4px' : '6px',
+                  padding: isMobile ? '4px 8px' : '5px 12px',
                   borderRadius: '999px',
                   background: '#FEF9C3',
                   border: '1.5px solid #FDE047',
                   color: '#854D0E',
                   fontWeight: 800,
-                  fontSize: '12px',
+                  fontSize: isMobile ? '11px' : '12px',
                   cursor: 'pointer',
-                  transition: 'transform 0.15s ease'
+                  transition: 'transform 0.15s ease',
+                  flexShrink: 0
                 }}
                 title="Your Gold Coins Vault (Click to view Badges & Tools)"
               >
-                <Coins size={14} color="#D97706" />
+                <Coins size={isMobile ? 12 : 14} color="#D97706" />
                 <span>{coins || 0}</span>
               </div>
 
-              {/* User Rank Tier Badge */}
+              {/* User Rank Tier Badge (Hidden on Mobile to save space for Menu) */}
               <div 
                 onClick={() => navigate('/dashboard')}
                 style={{
-                  display: 'flex',
+                  display: isMobile ? 'none' : 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   padding: '5px 12px',
@@ -285,19 +286,20 @@ export default function Layout({ children }) {
                 <span>{badge?.name || 'CONTENDER'}</span>
               </div>
 
-              {/* Profile Pill with User Name in Black Text */}
+              {/* Profile Pill: Compact Avatar on Mobile, Full Name on Desktop */}
               <div 
                 onClick={() => navigate('/dashboard')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '5px 12px',
-                  borderRadius: '8px',
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
+                  gap: isMobile ? '0px' : '8px',
+                  padding: isMobile ? '4px' : '5px 12px',
+                  borderRadius: isMobile ? '50%' : '8px',
+                  background: isMobile ? 'transparent' : '#F8FAFC',
+                  border: isMobile ? 'none' : '1px solid #E2E8F0',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0
                 }}
                 title="Account & Badges Dashboard"
               >
@@ -305,35 +307,37 @@ export default function Layout({ children }) {
                   <img 
                     src={savedAvatar} 
                     alt="Profile" 
-                    style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }} 
+                    style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover' }} 
                   />
                 ) : (
                   <div style={{
-                    width: '22px',
-                    height: '22px',
+                    width: '26px',
+                    height: '26px',
                     borderRadius: '50%',
                     background: 'linear-gradient(135deg, #10B981, #059669)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#FFFFFF',
-                    fontSize: '11px',
+                    fontSize: '12px',
                     fontWeight: 800
                   }}>
                     {(user.name || user.email || 'U')[0].toUpperCase()}
                   </div>
                 )}
-                <span style={{ 
-                  fontSize: '13px', 
-                  fontWeight: 800, 
-                  color: '#0F172A',
-                  maxWidth: '120px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {user.name || user.email?.split('@')[0]}
-                </span>
+                {!isMobile && (
+                  <span style={{ 
+                    fontSize: '13px', 
+                    fontWeight: 800, 
+                    color: '#0F172A',
+                    maxWidth: '120px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {user.name || user.email?.split('@')[0]}
+                  </span>
+                )}
               </div>
             </div>
           ) : (
@@ -354,7 +358,7 @@ export default function Layout({ children }) {
             </button>
           )}
 
-          {/* Logout */}
+          {/* Desktop Logout Button */}
           <button
             onClick={() => {
               logout();
@@ -379,23 +383,26 @@ export default function Layout({ children }) {
             <span>Logout</span>
           </button>
 
-          {/* Mobile Menu Burger */}
+          {/* Mobile Menu Burger - ALWAYS Visible & Positioned Prominently on Right */}
           {isMobile && (
             <button
               onClick={() => setMobileMenuOpen(prev => !prev)}
               style={{
-                background: 'transparent',
-                border: '1px solid #E2E8F0',
+                background: mobileMenuOpen ? '#F1F5F9' : '#FFFFFF',
+                border: '1.5px solid #CBD5E1',
                 borderRadius: '8px',
-                padding: '7px',
+                padding: '7px 9px',
                 color: '#0F172A',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
               }}
+              title="Open Navigation Menu"
             >
-              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              {mobileMenuOpen ? <X size={20} color="#0F172A" /> : <Menu size={20} color="#0F172A" />}
             </button>
           )}
         </div>
@@ -416,7 +423,8 @@ export default function Layout({ children }) {
           flexDirection: 'column',
           gap: '12px',
           borderBottom: '1px solid #E2E8F0',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.08)'
+          boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+          overflowY: 'auto'
         }}>
           {isFreeGraceActive && (
             <div style={{
@@ -435,6 +443,38 @@ export default function Layout({ children }) {
               <span>60-Day Free Tool Access Active ({trialDaysRemaining} days remaining)</span>
             </div>
           )}
+
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748B', fontWeight: 800, marginTop: '4px' }}>
+            Navigation
+          </div>
+
+          {/* Primary Dashboard Link */}
+          <button
+            onClick={() => {
+              navigate('/dashboard');
+              setMobileMenuOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: '10px',
+              background: (location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))) ? '#F0FDF4' : '#F8FAFC',
+              border: (location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))) ? '1px solid #10B981' : '1px solid #E2E8F0',
+              color: (location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))) ? '#059669' : '#0F172A',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontWeight: 700,
+              fontSize: '14px',
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <LayoutDashboard size={18} color="#059669" />
+              <span>Dashboard & Proving Ground</span>
+            </div>
+            <ChevronRight size={16} color="#64748B" />
+          </button>
 
           <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748B', fontWeight: 800, marginTop: '8px' }}>
             Platform Tools

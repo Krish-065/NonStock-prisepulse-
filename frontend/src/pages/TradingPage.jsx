@@ -172,6 +172,15 @@ export default function TradingPage() {
   const [isChartFullscreen, setIsChartFullscreen] = useState(false);
   const chartTerminalRef = useRef(null);
 
+  // Responsive mobile detection
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 900 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 900);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // References for TradingView widget and symbol change tracking
   const widgetRef = useRef(null);
   const skipNextWidgetReloadRef = useRef(false);
@@ -182,23 +191,26 @@ export default function TradingPage() {
   }, [symbol]);
 
   const toggleChartFullscreen = () => {
-    if (!chartTerminalRef.current) return;
-    if (!document.fullscreenElement) {
-      chartTerminalRef.current.requestFullscreen?.().catch(err => console.error(err));
-      setIsChartFullscreen(true);
-    } else {
-      document.exitFullscreen?.().catch(err => console.error(err));
-      setIsChartFullscreen(false);
-    }
+    setIsChartFullscreen(prev => {
+      const next = !prev;
+      if (next && !isMobile && chartTerminalRef.current?.requestFullscreen) {
+        chartTerminalRef.current.requestFullscreen().catch(() => {});
+      } else if (!next && document.fullscreenElement) {
+        document.exitFullscreen?.().catch(() => {});
+      }
+      return next;
+    });
   };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsChartFullscreen(!!document.fullscreenElement);
+      if (!document.fullscreenElement && !isMobile) {
+        setIsChartFullscreen(false);
+      }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
+  }, [isMobile]);
 
   const [aiInsightText, setAiInsightText] = useState('Institutional order flow indicates key support consolidation. Maintain strict Stop Loss invalidation levels.');
   const [aiInsightLoading, setAiInsightLoading] = useState(false);
@@ -537,41 +549,49 @@ export default function TradingPage() {
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1440px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '28px', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ 
+      padding: isMobile ? '12px 8px' : '24px', 
+      maxWidth: '1440px', 
+      margin: '0 auto', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: isMobile ? '16px' : '28px', 
+      fontFamily: 'Inter, sans-serif' 
+    }}>
       
       {/* ─── 1. TOP ACCOUNT BAR ─── */}
       <div style={{
         background: '#FFFFFF',
-        padding: '18px 28px',
+        padding: isMobile ? '14px 16px' : '18px 28px',
         borderRadius: '16px',
         border: '1px solid #E2E8F0',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: '20px',
+        gap: isMobile ? '12px' : '20px',
         boxShadow: '0 4px 15px rgba(0,0,0,0.03)'
       }}>
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: isMobile ? '14px 20px' : '32px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', letterSpacing: '0.8px' }}>PROVING CAPITAL</div>
-            <div style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: '900', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
               ${Number(balance || 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', letterSpacing: '0.8px' }}>MAX LEVERAGE</div>
-            <div style={{ fontSize: '20px', fontWeight: '800', color: '#10B981' }}>50x Unlocked</div>
+            <div style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: '800', color: '#10B981' }}>50x Unlocked</div>
           </div>
           <div>
             <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', letterSpacing: '0.8px' }}>FREE MARGIN</div>
-            <div style={{ fontSize: '20px', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
               ${Number(balance || 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div>
             <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', letterSpacing: '0.8px' }}>OPEN POSITIONS</div>
-            <div style={{ fontSize: '20px', fontWeight: '800', color: '#0F172A' }}>{positions.length}</div>
+            <div style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: '800', color: '#0F172A' }}>{positions.length}</div>
           </div>
         </div>
 
@@ -581,12 +601,12 @@ export default function TradingPage() {
               if (window.confirm('Reset virtual portfolio back to $1,000 proving baseline?')) resetAccount(false);
             }}
             style={{
-              padding: '9px 18px',
+              padding: '8px 14px',
               background: '#F1F5F9',
               border: '1px solid #CBD5E1',
               borderRadius: '10px',
               fontWeight: '800',
-              fontSize: '13px',
+              fontSize: '12px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -594,7 +614,7 @@ export default function TradingPage() {
               color: '#334155'
             }}
           >
-            <RotateCcw size={14} /> Reset Capital
+            <RotateCcw size={13} /> Reset Capital
           </button>
         </div>
       </div>
@@ -602,34 +622,42 @@ export default function TradingPage() {
       {/* ─── 2. MAIN TRADING TERMINAL ─── */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: showTradeTicket ? 'minmax(0, 1fr) 350px' : '1fr', 
-        gap: '24px', 
+        gridTemplateColumns: isMobile ? '1fr' : (showTradeTicket ? 'minmax(0, 1fr) 350px' : '1fr'), 
+        gap: isMobile ? '16px' : '24px', 
         alignItems: 'start' 
       }}>
         
-        {/* Left: Terminal Chart Container */}
+        {/* Left: Terminal Chart Container (Vertical Full Screen Mobile Support) */}
         <div 
           ref={chartTerminalRef}
           style={{
+            position: isChartFullscreen ? 'fixed' : 'relative',
+            top: isChartFullscreen ? 0 : 'auto',
+            left: isChartFullscreen ? 0 : 'auto',
+            right: isChartFullscreen ? 0 : 'auto',
+            bottom: isChartFullscreen ? 0 : 'auto',
+            width: isChartFullscreen ? '100vw' : '100%',
+            height: isChartFullscreen ? '100vh' : 'auto',
+            zIndex: isChartFullscreen ? 99999 : 1,
             background: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
+            borderRadius: isChartFullscreen ? 0 : '16px',
+            border: isChartFullscreen ? 'none' : '1px solid #E2E8F0',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)'
+            boxShadow: isChartFullscreen ? 'none' : '0 4px 20px -2px rgba(0, 0, 0, 0.05)'
           }}
         >
           
           {/* Chart Header Bar: Unified Instant Search */}
           <div style={{
-            padding: '14px 20px',
+            padding: isMobile ? '10px 12px' : '14px 20px',
             borderBottom: '1px solid #E2E8F0',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
-            gap: '14px',
+            gap: isMobile ? '10px' : '14px',
             background: '#FAFAFA'
           }}>
             
@@ -821,45 +849,43 @@ export default function TradingPage() {
 
             {/* Chart Control Actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              {!showTradeTicket && (
-                <button
-                  onClick={() => setShowTradeTicket(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '6px 14px',
-                    background: '#00D26A',
-                    color: '#FFFFFF',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0, 210, 106, 0.3)',
-                    transition: 'all 0.15s'
-                  }}
-                >
-                  <Zap size={14} />
-                  <span>Trade {symbol}</span>
-                </button>
-              )}
+              <button
+                onClick={() => setShowTradeTicket(prev => !prev)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 14px',
+                  background: '#00D26A',
+                  color: '#FFFFFF',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0, 210, 106, 0.3)',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <Zap size={14} />
+                <span>{showTradeTicket ? 'Hide Ticket' : `Trade ${symbol}`}</span>
+              </button>
 
-              {/* Fullscreen Chart Button */}
+              {/* Fullscreen Chart Button (TradingView Mobile App Vertical Fullscreen Mode) */}
               <button
                 onClick={toggleChartFullscreen}
-                title={isChartFullscreen ? 'Exit Full Screen' : 'Full Screen Chart'}
+                title={isChartFullscreen ? 'Exit Full Screen' : 'Full Screen Chart (TradingView App Mode)'}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   padding: '6px 12px',
-                  background: '#FFFFFF',
+                  background: isChartFullscreen ? '#0F172A' : '#FFFFFF',
+                  color: isChartFullscreen ? '#FFFFFF' : '#0F172A',
                   borderRadius: '8px',
-                  border: '1px solid #CBD5E1',
+                  border: isChartFullscreen ? '1px solid #0F172A' : '1px solid #CBD5E1',
                   fontSize: '12px',
                   fontWeight: 800,
-                  color: '#0F172A',
                   cursor: 'pointer',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                   transition: 'all 0.15s'
@@ -871,7 +897,7 @@ export default function TradingPage() {
 
               {/* TradingView Verified Feed Badge */}
               <div style={{
-                display: 'flex',
+                display: isMobile && isChartFullscreen ? 'none' : 'flex',
                 alignItems: 'center',
                 gap: '6px',
                 padding: '6px 12px',
@@ -883,22 +909,53 @@ export default function TradingPage() {
                 color: '#15803D'
               }}>
                 <Activity size={14} color="#15803D" />
-                <span>Original TradingView Pro Feed</span>
+                <span>TradingView Pro Feed</span>
               </div>
             </div>
           </div>
 
-          {/* Chart Canvas Area */}
-          <div style={{ position: 'relative', width: '100%', height: isChartFullscreen ? 'calc(100vh - 120px)' : '580px', background: '#FFFFFF' }}>
+          {/* Chart Canvas Area - Expands vertically like TradingView Mobile App */}
+          <div style={{ 
+            position: 'relative', 
+            width: '100%', 
+            height: isChartFullscreen 
+              ? (isMobile ? 'calc(100vh - 64px)' : 'calc(100vh - 120px)') 
+              : (isMobile ? '500px' : '580px'), 
+            background: '#FFFFFF' 
+          }}>
             <div 
               id="tv_chart_container" 
               style={{ width: '100%', height: '100%' }}
             />
+
+            {/* In-Chart Floating Trade Modal for Fullscreen View */}
+            {isChartFullscreen && showTradeTicket && (
+              <div style={{
+                position: 'absolute',
+                bottom: isMobile ? '10px' : '20px',
+                right: isMobile ? '10px' : '20px',
+                left: isMobile ? '10px' : 'auto',
+                width: isMobile ? 'auto' : '360px',
+                maxHeight: isMobile ? '75vh' : '85vh',
+                overflowY: 'auto',
+                zIndex: 1000,
+                boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+                borderRadius: '16px'
+              }}>
+                <ExecutionTicket 
+                  symbol={symbol}
+                  currentPrice={currentPrice}
+                  balance={balance}
+                  onPlaceOrder={placeOrder}
+                  onClose={() => setShowTradeTicket(false)}
+                />
+              </div>
+            )}
           </div>
 
           {/* AI Mentor Trade Insight Bar */}
           <div style={{
-            padding: '16px 20px',
+            padding: isMobile ? '12px 14px' : '16px 20px',
             borderTop: '1px solid #E2E8F0',
             background: '#F8FAFC',
             display: 'flex',
@@ -952,9 +1009,14 @@ export default function TradingPage() {
           </div>
         </div>
 
-        {/* Right: Institutional Order Ticket */}
-        {showTradeTicket && (
-          <div style={{ position: 'sticky', top: '80px' }}>
+        {/* Right / Below on Mobile: Institutional Order Ticket */}
+        {showTradeTicket && !isChartFullscreen && (
+          <div style={{ 
+            position: isMobile ? 'relative' : 'sticky', 
+            top: isMobile ? 'auto' : '80px',
+            width: '100%',
+            maxWidth: isMobile ? '100%' : '350px'
+          }}>
             <ExecutionTicket 
               symbol={symbol}
               currentPrice={currentPrice}
