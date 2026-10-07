@@ -123,7 +123,7 @@ export default function MobilePortfolioHub({
           <GoldCoin1K size={22} showRings={false} animated={false} />
           <div>
             <div style={{ fontSize: '10px', fontWeight: 800, color: '#854D0E', textTransform: 'uppercase' }}>
-              1K Coins
+              Gold Coins
             </div>
             <div style={{ fontSize: '14px', fontWeight: 900, color: '#713F12' }}>
               {coins}

@@ -26,6 +26,13 @@ export default function Landing() {
     };
   }, []);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Interactive Edge & Tier Calculator State
   const [winRate, setWinRate] = useState(58); // 58%
   const [riskReward, setRiskReward] = useState(2.2); // 1:2.2 R:R
@@ -111,7 +118,7 @@ export default function Landing() {
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         borderBottom: '1px solid #E2E8F0',
-        padding: '0 32px',
+        padding: isMobile ? '0 16px' : '0 32px',
         height: '70px',
         display: 'flex',
         alignItems: 'center',
@@ -119,23 +126,25 @@ export default function Landing() {
         boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
-          <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
+          <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer', zoom: isMobile ? 0.9 : 1 }}>
             <Logo size={36} showName={true} showTagline={false} nameSize="22px" />
           </div>
 
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
-            <button onClick={() => scrollTo('the-crisis')} style={navLinkStyle}>The Problem</button>
-            <button onClick={() => scrollTo('philosophy')} style={navLinkStyle}>The Philosophy</button>
-            <button onClick={() => scrollTo('tipsters-educators')} style={navLinkStyle}>For Tipsters & Mentors</button>
-            <button onClick={() => scrollTo('execution-engine')} style={navLinkStyle}>Execution Engine</button>
-            <button onClick={() => scrollTo('decagon-protocol')} style={navLinkStyle}>Decagon Tiers</button>
-            <button onClick={() => scrollTo('calculator')} style={navLinkStyle}>Edge Simulator</button>
-            <button onClick={() => scrollTo('hall-of-fame')} style={navLinkStyle}>Leaderboard</button>
-            <button onClick={() => scrollTo('faq')} style={navLinkStyle}>FAQ</button>
-          </nav>
+          {!isMobile && (
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
+              <button onClick={() => scrollTo('the-crisis')} style={navLinkStyle}>The Problem</button>
+              <button onClick={() => scrollTo('philosophy')} style={navLinkStyle}>The Philosophy</button>
+              <button onClick={() => scrollTo('tipsters-educators')} style={navLinkStyle}>For Tipsters & Mentors</button>
+              <button onClick={() => scrollTo('execution-engine')} style={navLinkStyle}>Execution Engine</button>
+              <button onClick={() => scrollTo('decagon-protocol')} style={navLinkStyle}>Decagon Tiers</button>
+              <button onClick={() => scrollTo('calculator')} style={navLinkStyle}>Edge Simulator</button>
+              <button onClick={() => scrollTo('hall-of-fame')} style={navLinkStyle}>Leaderboard</button>
+              <button onClick={() => scrollTo('faq')} style={navLinkStyle}>FAQ</button>
+            </nav>
+          )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '14px' }}>
           <Link 
             to="/login"
             style={{
@@ -1299,8 +1308,8 @@ export default function Landing() {
                   desc: 'Continuous algorithmic scoring measuring stop-loss discipline, win consistency, and downside preservation.'
                 },
                 {
-                  title: 'Decoupled 1K Gold Coins Economy',
-                  desc: '15 rare protocol bounties and daily discipline tasks award minted 1K Gold Coins, preserving market integrity.'
+                  title: 'Decoupled Gold Coins Economy',
+                  desc: '15 rare protocol bounties and daily discipline tasks award minted Gold Coins, preserving market integrity.'
                 }
               ].map((feat, idx) => (
                 <div
@@ -1441,7 +1450,7 @@ export default function Landing() {
               {
                 step: '02',
                 title: 'Execute with Risk Discipline',
-                desc: 'Place trades across crypto, gold, forex, and equities. Maintain Stop-Loss orders to earn 1K Gold Coins.',
+                desc: 'Place trades across crypto, gold, forex, and equities. Maintain Stop-Loss orders to earn Gold Coins.',
                 icon: Zap,
                 color: '#D97706',
                 badgeBg: '#FFFBEB'
