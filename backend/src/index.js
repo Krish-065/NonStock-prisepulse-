@@ -1120,7 +1120,8 @@ function startBotSimulator() {
 }
 
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
+const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
+httpServer.listen(PORT, BIND_HOST, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
   startBotSimulator();
 

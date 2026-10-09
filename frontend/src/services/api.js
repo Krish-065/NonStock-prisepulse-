@@ -1,10 +1,12 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-if (API_URL && !API_URL.endsWith('/api')) {
-  API_URL = `${API_URL}/api`;
-}
+const API_URL = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV
+    ? 'http://localhost:3000'
+    : window.location.origin)
+).replace(/\/$/, '').replace(/\/api$/, '') + '/api';
 
 // Generate or retrieve persistent device ID for this device/browser
 export function getDeviceId() {

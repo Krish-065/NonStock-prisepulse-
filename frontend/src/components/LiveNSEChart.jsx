@@ -205,7 +205,12 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
 
   // 3. Connect Socket.io Live Streaming Engine
   useEffect(() => {
-    const socketUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
+    const socketUrl = (
+      import.meta.env.VITE_API_URL ||
+      (import.meta.env.DEV
+        ? 'http://localhost:3000'
+        : window.location.origin)
+    ).replace(/\/$/, '').replace(/\/api$/, '');
     const token = localStorage.getItem('token');
 
     const socket = io(socketUrl, {

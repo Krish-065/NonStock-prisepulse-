@@ -6,3 +6,6 @@ backend/*.log
 *.env
 *.env.*
 /generated/prisma
+
+# Allow the safe environment template to be committed
+!.env.example

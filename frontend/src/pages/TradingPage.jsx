@@ -329,7 +329,12 @@ export default function TradingPage() {
         }
 
         // 2. Query backend live quote endpoint for commodities (Gold, Silver, Oil), forex & equities
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = (
+          import.meta.env.VITE_API_URL ||
+          (import.meta.env.DEV
+            ? 'http://localhost:3000'
+            : window.location.origin)
+        ).replace(/\/$/, '').replace(/\/api$/, '');
         const res = await fetch(`${apiUrl}/api/market/quote/${clean}`);
         if (res.ok) {
           const data = await res.json();
@@ -360,7 +365,14 @@ export default function TradingPage() {
     const token = localStorage.getItem('token');
     if (token) {
       setAiInsightLoading(true);
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/ai/ask`, {
+      const apiOrigin = (
+        import.meta.env.VITE_API_URL ||
+        (import.meta.env.DEV
+          ? 'http://localhost:3000'
+          : window.location.origin)
+      ).replace(/\/$/, '').replace(/\/api$/, '');
+
+      fetch(`${apiOrigin}/api/ai/ask`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,0 +1,18 @@
+# Environment secrets
+backend/.env
+frontend/.env
+.env
+
+# Local backups
+backend/.env.backup*
+backend/*.before-docker
+frontend/.env.before-docker
+frontend/.env.production.before-docker
+
+# Dependencies/builds
+backend/node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Runtime
+*.log
