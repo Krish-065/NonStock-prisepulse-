@@ -131,7 +131,7 @@ export default function Layout({ children }) {
             }}
             title="Stocks Operator Dashboard (Verified Proving Ground)"
           >
-            <Logo size={isMobile ? 32 : 42} showName={true} showTagline={false} nameSize={isMobile ? "19px" : "24px"} color="#0F172A" />
+            <Logo size={isMobile ? 34 : 44} />
           </div>
 
           {/* Desktop Navigation Links */}
@@ -157,9 +157,9 @@ export default function Layout({ children }) {
                         ? '1px solid #FFEDD5'
                         : '1px solid transparent',
                       borderRadius: '10px',
-                      padding: item.highlight ? '8px 18px' : '8px 14px',
-                      fontSize: '15px',
-                      fontWeight: 700,
+                      padding: item.highlight ? '9px 20px' : '9px 16px',
+                      fontSize: '16px',
+                      fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -182,7 +182,7 @@ export default function Layout({ children }) {
                       }
                     }}
                   >
-                    <Icon size={15} color={item.active ? (item.highlight ? '#FFFFFF' : '#EA580C') : '#64748B'} />
+                    <Icon size={17} color={item.active ? (item.highlight ? '#FFFFFF' : '#EA580C') : '#64748B'} />
                     <span>{item.name}</span>
                     {item.tag && (
                       <span style={{

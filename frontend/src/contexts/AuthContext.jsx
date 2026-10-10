@@ -181,7 +181,7 @@ export function AuthProvider({ children }) {
     delete apiClient.defaults.headers.common['Authorization'];
     setUser(null);
     toast.success('Logged out');
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
   const updateProfile = async (profileData) => {

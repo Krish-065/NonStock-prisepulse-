@@ -105,11 +105,11 @@ export default function Landing() {
   const navLinkStyle = {
     background: 'none',
     border: 'none',
-    fontSize: '15px',
-    fontWeight: 700,
+    fontSize: '16px',
+    fontWeight: 800,
     color: '#334155',
     cursor: 'pointer',
-    padding: '6px 10px',
+    padding: '8px 14px',
     borderRadius: '8px',
     transition: 'all 0.15s ease'
   };
@@ -131,7 +131,7 @@ export default function Landing() {
         WebkitBackdropFilter: 'blur(16px)',
         borderBottom: '1px solid #E2E8F0',
         padding: isMobile ? '0 16px' : '0 32px',
-        height: '74px',
+        height: '76px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -139,11 +139,11 @@ export default function Landing() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
           <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer', zoom: isMobile ? 0.9 : 1 }}>
-            <Logo size={38} showName={true} showTagline={false} nameSize="24px" />
+            <Logo size={isMobile ? 36 : 46} />
           </div>
 
           {!isMobile && (
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
               <button onClick={() => scrollTo('the-crisis')} style={navLinkStyle}>The Problem</button>
               <button onClick={() => scrollTo('philosophy')} style={navLinkStyle}>The Philosophy</button>
               <button onClick={() => scrollTo('tipsters-educators')} style={navLinkStyle}>For Tipsters & Mentors</button>
@@ -151,6 +151,7 @@ export default function Landing() {
               <button onClick={() => scrollTo('decagon-protocol')} style={navLinkStyle}>Decagon Tiers</button>
               <button onClick={() => scrollTo('calculator')} style={navLinkStyle}>Edge Simulator</button>
               <button onClick={() => scrollTo('hall-of-fame')} style={navLinkStyle}>Leaderboard</button>
+              <button onClick={() => scrollTo('about-us')} style={navLinkStyle}>About Us</button>
               <button onClick={() => scrollTo('faq')} style={navLinkStyle}>FAQ</button>
             </nav>
           )}
@@ -162,8 +163,8 @@ export default function Landing() {
             style={{
               padding: '10px 20px',
               borderRadius: '10px',
-              fontSize: '14.5px',
-              fontWeight: 700,
+              fontSize: '15px',
+              fontWeight: 800,
               color: '#334155',
               textDecoration: 'none',
               background: '#F8FAFC',
@@ -179,8 +180,8 @@ export default function Landing() {
             style={{
               padding: '11px 24px',
               borderRadius: '10px',
-              fontSize: '14.5px',
-              fontWeight: 800,
+              fontSize: '15px',
+              fontWeight: 900,
               color: '#FFFFFF',
               textDecoration: 'none',
               background: '#EA580C',
@@ -236,50 +237,44 @@ export default function Landing() {
           paddingTop: '20px',
           pointerEvents: 'auto'
         }}>
-          {/* Trustpilot Style Verified Badge */}
+          {/* Hyped Official Logo Showcase */}
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '10px',
-            padding: '8px 22px',
-            borderRadius: '999px',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(12px)',
-            border: '1.5px solid #FDBA74',
-            color: '#B45309',
-            fontSize: '12px',
-            fontWeight: 800,
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            marginBottom: '22px',
-            boxShadow: '0 4px 18px rgba(234, 88, 12, 0.22)'
+            justifyContent: 'center',
+            padding: isMobile ? '10px 20px' : '14px 32px',
+            borderRadius: '22px',
+            background: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(16px)',
+            border: '2px solid #EA580C',
+            boxShadow: '0 8px 32px rgba(234, 88, 12, 0.28), 0 0 25px rgba(234, 88, 12, 0.15)',
+            marginBottom: '26px'
           }}>
-            <div style={{ display: 'flex', gap: '2px' }}>
-              {'★★★★★'.split('').map((star, i) => (
-                <span key={i} style={{ color: '#EA580C', fontSize: '13px' }}>{star}</span>
-              ))}
-            </div>
-            <span>GLOBAL VERIFIED // 100% UNALTERABLE MATHEMATICAL PROVING PROTOCOL</span>
+            <img 
+              src="/assets/stocks_operator_logo.png" 
+              alt="Stocks Operator - The Trader's Proving Ground" 
+              style={{ height: isMobile ? '46px' : '64px', width: 'auto', objectFit: 'contain' }}
+            />
           </div>
 
-          {/* Monumental Headline Centered Over The Earth Dome */}
+          {/* Monumental Hyped Headline Centered Over Proving Ground */}
           <h1 style={{
-            fontSize: 'clamp(44px, 5.8vw, 84px)',
+            fontSize: 'clamp(36px, 5.4vw, 78px)',
             fontWeight: 900,
-            lineHeight: 1.05,
-            letterSpacing: '-2px',
+            lineHeight: 1.06,
+            letterSpacing: '-1.8px',
             color: '#0F172A',
-            maxWidth: '1160px',
-            margin: '0 auto 20px auto'
+            maxWidth: '1180px',
+            margin: '0 auto 22px auto'
           }}>
-            Redefining the Future of Trading. <br />
+            DO YOU THINK YOU ARE A GOOD TRADER? <br />
             <span style={{
               background: 'linear-gradient(135deg, #C2410C 0%, #EA580C 50%, #EA580C 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               textShadow: '0 2px 24px rgba(234, 88, 12, 0.28)'
             }}>
-              Prove Your True Market Edge.
+              KNOW WHERE YOU REALLY STAND.
             </span>
           </h1>
 
@@ -287,12 +282,14 @@ export default function Landing() {
             fontSize: 'clamp(17px, 1.35vw, 21px)',
             color: '#0F172A',
             lineHeight: 1.65,
-            maxWidth: '920px',
-            margin: '0 auto 36px auto',
+            maxWidth: '960px',
+            margin: '0 auto 38px auto',
             fontWeight: 600,
             textShadow: '0 1px 8px rgba(255, 255, 255, 0.95), 0 2px 18px #FFFFFF'
           }}>
-            Every trader starts with an identical <strong style={{ color: '#B45309' }}>$1,000 verified baseline capital</strong>. 0 Tips, 0 Fake Screenshot PnL. Access Forex, Indices, Commodities, Metals, Equities, and Cryptos backed by undeniable mathematical proof.
+            No fake MT5 screenshots. No deleting losing trades. No casino demo resets. 
+            Every trader starts on the exact same <strong style={{ color: '#EA580C' }}>$1,000 verified baseline capital</strong> backed by real-time live exchange tick data. 
+            Trade under strict risk limits, survive real drawdowns, and prove your true mathematical standing to the world.
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '40px' }}>
@@ -315,7 +312,7 @@ export default function Landing() {
               onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 35px rgba(234, 88, 12, 0.6)'; }}
               onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(234, 88, 12, 0.45)'; }}
             >
-              <span>Start Proving ($1,000 Baseline)</span>
+              <span>Prove Your Edge ($1,000 Baseline)</span>
               <ArrowRight size={17} />
             </Link>
 
@@ -2225,6 +2222,229 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ─── 11A. SECTION: THIS IS NOT A GAME (SERIOUS DISCIPLINE MANIFESTO) ─── */}
+      <section style={{
+        background: '#0B0F19',
+        padding: '90px 24px',
+        color: '#FFFFFF',
+        borderTop: '2px solid #EA580C',
+        borderBottom: '1px solid #1E293B',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Subtle orange ambient glow */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '800px',
+          height: '400px',
+          background: 'radial-gradient(circle, rgba(234, 88, 12, 0.12) 0%, transparent 70%)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{ maxWidth: '1140px', margin: '0 auto', position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '6px 18px',
+            borderRadius: '999px',
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1.5px solid #EF4444',
+            color: '#F87171',
+            fontSize: '12px',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '1.2px',
+            marginBottom: '20px'
+          }}>
+            <AlertCircle size={16} />
+            <span>CRITICAL DECLARATION // FOR REAL TRADERS ONLY</span>
+          </div>
+
+          <h2 style={{
+            fontSize: 'clamp(32px, 4.4vw, 56px)',
+            fontWeight: 900,
+            letterSpacing: '-1.5px',
+            lineHeight: 1.12,
+            marginBottom: '22px'
+          }}>
+            THIS IS NOT A GAME. <br />
+            <span style={{ color: '#EA580C' }}>THIS IS AN UNCOMPROMISING RISK PROVING GROUND.</span>
+          </h2>
+
+          <p style={{
+            fontSize: '18px',
+            color: '#CBD5E1',
+            maxWidth: '900px',
+            margin: '0 auto 48px auto',
+            lineHeight: 1.7,
+            fontWeight: 500
+          }}>
+            If you are looking for an arcade game, emotional gambling, or a demo platform where you recklessly blow up an account and click "Reset Balance", <strong style={{ color: '#FFFFFF' }}>Stocks Operator is NOT for you</strong>. 
+            We built this platform for the serious 5% of operators who treat market risk as a discipline of survival and mathematical expectancy. Here, every trade permanently impacts your public ledger, your DER Score, and your Discipline Gold Coins. There are no shortcuts, no second chances, and no fake prestige.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', textAlign: 'left' }}>
+            <div style={{ background: '#111827', border: '1.5px solid #1F2937', borderRadius: '18px', padding: '28px' }}>
+              <div style={{ color: '#EA580C', fontWeight: 900, fontSize: '13px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.8px' }}>
+                ZERO RESET CHEATS
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 10px 0' }}>
+                Real Emotional Accountability
+              </h3>
+              <p style={{ fontSize: '14px', color: '#94A3B8', margin: 0, lineHeight: 1.6 }}>
+                Drawdowns hurt. Reckless overleveraging drains your Gold Coins. If you hit liquidation, you must complete discipline tasks to rebuild baseline capital — forcing real emotional conditioning before risking personal life savings.
+              </p>
+            </div>
+
+            <div style={{ background: '#111827', border: '1.5px solid #1F2937', borderRadius: '18px', padding: '28px' }}>
+              <div style={{ color: '#EA580C', fontWeight: 900, fontSize: '13px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.8px' }}>
+                MATHEMATICAL DER PROTOCOL
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 10px 0' }}>
+                Exposing Luck vs. Edge
+              </h3>
+              <p style={{ fontSize: '14px', color: '#94A3B8', margin: 0, lineHeight: 1.6 }}>
+                A gambler can double an account in one lucky trade. But our proprietary DER Score measures stop-loss compliance, risk-to-reward consistency, and downside variance. Lucky gamblers stay with low ratings; true risk managers rise.
+              </p>
+            </div>
+
+            <div style={{ background: '#111827', border: '1.5px solid #1F2937', borderRadius: '18px', padding: '28px' }}>
+              <div style={{ color: '#EA580C', fontWeight: 900, fontSize: '13px', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.8px' }}>
+                UNALTERABLE PUBLIC LEDGER
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 10px 0' }}>
+                The End of Fake PnL Screenshots
+              </h3>
+              <p style={{ fontSize: '14px', color: '#94A3B8', margin: 0, lineHeight: 1.6 }}>
+                Every execution ticket is time-stamped with live interbank exchange ticks. You cannot delete losing trades, edit entry prices, or hide margin calls. Your record is pure, indisputable mathematical truth.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 11B. SECTION: ABOUT US (WHAT WE DO & PROVING GROUND FOR TIPSTERS & MENTORS) ─── */}
+      <section id="about-us" style={{
+        background: '#FFFFFF',
+        padding: '100px 24px',
+        borderTop: '1px solid #E2E8F0',
+        borderBottom: '1px solid #E2E8F0'
+      }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '50px', alignItems: 'center', marginBottom: '60px' }}>
+            <div>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 16px',
+                borderRadius: '999px',
+                background: '#FFF7ED',
+                border: '1.5px solid #FDBA74',
+                color: '#C2410C',
+                fontSize: '12px',
+                fontWeight: 900,
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                marginBottom: '16px'
+              }}>
+                <ShieldCheck size={16} />
+                <span>ABOUT STOCKS OPERATOR PROTOCOL</span>
+              </div>
+
+              <h2 style={{
+                fontSize: 'clamp(32px, 3.8vw, 48px)',
+                fontWeight: 900,
+                letterSpacing: '-1.3px',
+                color: '#0F172A',
+                lineHeight: 1.15,
+                margin: '0 0 20px 0'
+              }}>
+                Restoring Absolute Truth & Credibility to Global Financial Markets.
+              </h2>
+
+              <p style={{ fontSize: '16.5px', color: '#475569', lineHeight: 1.7, margin: '0 0 18px 0' }}>
+                <strong style={{ color: '#0F172A' }}>Stocks Operator</strong> is the world's premier institutional proving arena. We eliminate the noise of photoshopped broker statements, fake MT5 screenshots, and toxic signal groups by providing a single, standardized proving ground where every participant begins on an equal <strong style={{ color: '#EA580C' }}>$1,000 baseline</strong>.
+              </p>
+
+              <p style={{ fontSize: '16.5px', color: '#475569', lineHeight: 1.7, margin: '0 0 28px 0' }}>
+                Whether you trade Crypto majors, Forex, Spot Gold & Commodities, US Tech giants, or Indian NSE Equities, Stocks Operator isolates your pure execution skill and ranks your performance strictly on capital compounded and risk preserved.
+              </p>
+
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                <Link
+                  to="/register"
+                  style={{
+                    padding: '14px 32px',
+                    borderRadius: '12px',
+                    background: '#EA580C',
+                    color: '#FFFFFF',
+                    fontWeight: 900,
+                    fontSize: '15px',
+                    textDecoration: 'none',
+                    boxShadow: '0 4px 16px rgba(234, 88, 12, 0.35)'
+                  }}
+                >
+                  Join The Proving Arena Free
+                </Link>
+                <button
+                  onClick={() => scrollTo('hall-of-fame')}
+                  style={{
+                    padding: '14px 28px',
+                    borderRadius: '12px',
+                    background: '#F8FAFC',
+                    border: '1.5px solid #CBD5E1',
+                    color: '#0F172A',
+                    fontWeight: 800,
+                    fontSize: '15px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  View Public Standings
+                </button>
+              </div>
+            </div>
+
+            {/* Official Logo Display with Proving Credentials Showcase */}
+            <div style={{
+              background: 'linear-gradient(145deg, #0F172A 0%, #1E293B 100%)',
+              borderRadius: '28px',
+              padding: '40px',
+              border: '2px solid #EA580C',
+              boxShadow: '0 16px 45px rgba(234, 88, 12, 0.2)',
+              textAlign: 'center'
+            }}>
+              <div style={{ marginBottom: '24px' }}>
+                <img 
+                  src="/assets/stocks_operator_logo.png" 
+                  alt="Stocks Operator Official Banner" 
+                  style={{ height: '70px', width: 'auto', maxWidth: '100%', objectFit: 'contain' }}
+                />
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '24px', textAlign: 'left' }}>
+                <div style={{ fontSize: '13px', fontWeight: 900, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+                  THE ULTIMATE TEST FOR TIPSTERS & MENTORS
+                </div>
+                <h4 style={{ fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 10px 0' }}>
+                  No More Excuses. Prove Your Strategy Live.
+                </h4>
+                <p style={{ fontSize: '14px', color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
+                  Are you tired of educators selling expensive signal subscriptions with unverified track records? 
+                  Smart students demand their mentors trade live on Stocks Operator. When a mentor links their public Prover Profile showing an audited $1,000 baseline scaled to Silver, Gold, or Apex rank with an 85+ DER Score, their credibility becomes untouchable.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       {/* ─── 12. HIGH-PROFILE INSTITUTIONAL FOOTER ─── */}
       <footer style={{
         background: '#0B0F19',
@@ -2235,7 +2455,7 @@ export default function Landing() {
       }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '32px', marginBottom: '40px' }}>
           <div>
-            <Logo size={32} showName={true} showTagline={false} nameSize="20px" />
+            <Logo size={36} />
             <p style={{ marginTop: '12px', maxWidth: '340px', lineHeight: 1.6 }}>
               The global verifiable proving protocol. Transforming trading discipline into certified, mathematically auditable credentials without real monetary risk.
             </p>
@@ -2294,13 +2514,3 @@ export default function Landing() {
     </div>
   );
 }
-
-const navLinkStyle = {
-  background: 'transparent',
-  border: 'none',
-  fontSize: '13px',
-  fontWeight: 700,
-  color: '#475569',
-  cursor: 'pointer',
-  transition: 'color 0.15s'
-};
