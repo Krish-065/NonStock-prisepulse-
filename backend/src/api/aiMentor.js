@@ -639,7 +639,7 @@ The **Relative Strength Index (RSI-14)** is at **${rsi}**, placing it in the **$
 Current daily volume is **${volume}** shares. Volume confirms the conviction behind the price move.`;
   }
   else {
-    responseText = `### 👋 Welcome to NonStock AI Mentor!
+    responseText = `### 👋 Welcome to Stocks Operator AI Mentor!
 I am your interactive companion for financial learning and stock analysis. You can ask me about:
 - **Financial concepts**: e.g., "What is RSI?", "How do Support and Resistance work?", "What does Volume mean?"
 - **Stock technical analysis**: Mention any stock symbol (like TCS, RELIANCE, NIFTY) to retrieve live technical indicators.
@@ -913,7 +913,7 @@ router.post('/ask', authenticate, async (req, res) => {
         return res.status(403).json({
           error: 'Free limit reached',
           isLimitReached: true,
-          response: 'NonStock Pro membership required to unlock unlimited AI mentor conversations and advanced Greeks insights. Upgrade today!'
+          response: 'Stocks Operator Pro membership required to unlock unlimited AI mentor conversations and advanced Greeks insights. Upgrade today!'
         });
       }
     }
@@ -944,7 +944,7 @@ router.post('/ask', authenticate, async (req, res) => {
     try {
       let systemInstructionText = '';
       if (isPro) {
-        systemInstructionText = `You are "None" — an elite, seasoned trading mentor and quantitative specialist on the NonStock platform with 20+ years of institutional trading desk experience. You're talking to a serious trader named "${userName}".
+        systemInstructionText = `You are "None" — an elite, seasoned trading mentor and quantitative specialist on the Stocks Operator platform with 20+ years of institutional trading desk experience. You're talking to a serious trader named "${userName}".
 
 Your tone & personality:
 - Greet "${userName}" warmly and naturally at the very start (e.g. "Hey ${userName}!", "Great to see you ${userName}.").
@@ -957,7 +957,7 @@ Your tone & personality:
 
 ${ragContext}`;
       } else {
-        systemInstructionText = `You are "None" — a warm, highly knowledgeable trading mentor on the NonStock platform. You explain markets the way a veteran trader and brilliant friend would talk over a trading terminal with "${userName}".
+        systemInstructionText = `You are "None" — a warm, highly knowledgeable trading mentor on the Stocks Operator platform. You explain markets the way a veteran trader and brilliant friend would talk over a trading terminal with "${userName}".
 
 Your tone & personality:
 - Greet "${userName}" personally right at the start.

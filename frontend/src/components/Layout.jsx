@@ -38,7 +38,7 @@ export default function Layout({ children }) {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const savedAvatar = typeof window !== 'undefined' ? localStorage.getItem('nonstock_user_avatar') : null;
+  const savedAvatar = typeof window !== 'undefined' ? localStorage.getItem('stocksoperator_user_avatar') : null;
 
   const navItems = [
     {
@@ -129,7 +129,7 @@ export default function Layout({ children }) {
               alignItems: 'center',
               transition: 'transform 0.15s ease'
             }}
-            title="NonStock Dashboard (Verified Proving Ground)"
+            title="Stocks Operator Dashboard (Verified Proving Ground)"
           >
             <Logo size={isMobile ? 28 : 36} showName={true} showTagline={false} nameSize={isMobile ? "17px" : "21px"} color="#0F172A" />
           </div>
@@ -147,14 +147,14 @@ export default function Layout({ children }) {
                       position: 'relative',
                       background: item.active
                         ? (item.highlight 
-                            ? 'linear-gradient(135deg, #10B981, #059669)'
-                            : '#F0FDF4')
+                            ? 'linear-gradient(135deg, #EA580C, #C2410C)'
+                            : '#FFF7ED')
                         : 'transparent',
                       color: item.active
-                        ? (item.highlight ? '#FFFFFF' : '#059669')
+                        ? (item.highlight ? '#FFFFFF' : '#EA580C')
                         : '#475569',
                       border: item.active && !item.highlight
-                        ? '1px solid #A7F3D0'
+                        ? '1px solid #FFEDD5'
                         : '1px solid transparent',
                       borderRadius: '8px',
                       padding: item.highlight ? '7px 15px' : '7px 13px',
@@ -166,7 +166,7 @@ export default function Layout({ children }) {
                       gap: '7px',
                       transition: 'all 0.15s ease',
                       boxShadow: item.active && item.highlight 
-                        ? '0 2px 10px rgba(16, 185, 129, 0.25)' 
+                        ? '0 2px 10px rgba(234, 88, 12, 0.25)' 
                         : 'none'
                     }}
                     onMouseEnter={(e) => {
@@ -182,14 +182,14 @@ export default function Layout({ children }) {
                       }
                     }}
                   >
-                    <Icon size={15} color={item.active ? (item.highlight ? '#FFFFFF' : '#059669') : '#64748B'} />
+                    <Icon size={15} color={item.active ? (item.highlight ? '#FFFFFF' : '#EA580C') : '#64748B'} />
                     <span>{item.name}</span>
                     {item.tag && (
                       <span style={{
                         fontSize: '9px',
                         padding: '1px 5px',
                         borderRadius: '4px',
-                        background: '#10B981',
+                        background: '#EA580C',
                         color: '#FFFFFF',
                         fontWeight: 900,
                         letterSpacing: '0.5px'
@@ -218,9 +218,9 @@ export default function Layout({ children }) {
                     gap: '5px',
                     padding: '5px 12px',
                     borderRadius: '20px',
-                    background: '#ECFDF5',
-                    border: '1px solid #A7F3D0',
-                    color: '#047857',
+                    background: '#FFF7ED',
+                    border: '1px solid #FFEDD5',
+                    color: '#C2410C',
                     fontSize: '11px',
                     fontWeight: 800,
                     cursor: 'pointer',
@@ -229,7 +229,7 @@ export default function Layout({ children }) {
                   }}
                   title="2-Month Free Introductory Access: All tools are 100% unlocked for your account!"
                 >
-                  <Sparkles size={13} color="#10B981" />
+                  <Sparkles size={13} color="#EA580C" />
                   <span>60D Free Pass ({trialDaysRemaining}d)</span>
                 </div>
               )}
@@ -379,7 +379,7 @@ export default function Layout({ children }) {
               alignItems: 'center',
               gap: '6px'
             }}
-            title="Log out from NonStock"
+            title="Log out from Stocks Operator"
           >
             <LogOut size={13} />
             <span>Logout</span>
@@ -432,16 +432,16 @@ export default function Layout({ children }) {
             <div style={{
               padding: '10px 14px',
               borderRadius: '10px',
-              background: '#ECFDF5',
-              border: '1px solid #A7F3D0',
-              color: '#047857',
+              background: '#FFF7ED',
+              border: '1px solid #FFEDD5',
+              color: '#C2410C',
               fontSize: '12px',
               fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
             }}>
-              <Sparkles size={16} color="#10B981" />
+              <Sparkles size={16} color="#EA580C" />
               <span>60-Day Free Tool Access Active ({trialDaysRemaining} days remaining)</span>
             </div>
           )}
@@ -706,7 +706,7 @@ export default function Layout({ children }) {
                   key={idx}
                   onClick={() => navigate(item.path)}
                   style={{
-                    background: 'linear-gradient(135deg, #10B981, #059669)',
+                    background: 'linear-gradient(135deg, #EA580C, #C2410C)',
                     color: '#FFFFFF',
                     border: 'none',
                     borderRadius: '50%',
@@ -716,7 +716,7 @@ export default function Layout({ children }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                    boxShadow: '0 4px 14px rgba(234, 88, 12, 0.4)',
                     marginTop: '-16px',
                     transition: 'transform 0.15s ease'
                   }}
@@ -739,13 +739,13 @@ export default function Layout({ children }) {
                   alignItems: 'center',
                   gap: '3px',
                   cursor: 'pointer',
-                  color: item.active ? '#059669' : '#64748B',
+                  color: item.active ? '#EA580C' : '#64748B',
                   padding: '6px 8px',
                   borderRadius: '8px',
                   transition: 'color 0.15s ease'
                 }}
               >
-                <Icon size={18} color={item.active ? '#059669' : '#64748B'} />
+                <Icon size={18} color={item.active ? '#EA580C' : '#64748B'} />
                 <span style={{ fontSize: '10px', fontWeight: item.active ? 900 : 700 }}>
                   {item.label}
                 </span>

@@ -14,7 +14,7 @@ router.get('/posts', async (req, res) => {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'Nonstock-super-secret-key-2025');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'Stocks Operator-super-secret-key-2025');
         currentUserId = decoded.id;
       } catch (e) {
         // Ignore invalid token
@@ -362,7 +362,7 @@ router.post('/contests', authenticate, async (req, res) => {
     // Get host details
     const userRes = await query('SELECT name, email FROM users WHERE id = $1', [req.user.id]);
     const hostUser = userRes.rows[0];
-    const hostName = hostUser?.name || 'NonStock User';
+    const hostName = hostUser?.name || 'Stocks Operator User';
     const hostEmail = hostUser?.email || 'N/A';
 
     const contestId = 'ct_' + crypto.randomBytes(8).toString('hex');
@@ -382,7 +382,7 @@ router.post('/contests', authenticate, async (req, res) => {
         <h2 style="color: #00ff88; margin-top: 0; font-size: 22px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; text-align: center;">🏆 New Contest Hosting Request</h2>
         
         <p style="font-size: 15px; color: #e1e3e6; line-height: 1.5;">
-          A user has requested to host a paper trading contest on the NonStock platform. Please review the details below:
+          A user has requested to host a paper trading contest on the Stocks Operator platform. Please review the details below:
         </p>
 
         <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin: 20px 0;">
@@ -415,7 +415,7 @@ router.post('/contests', authenticate, async (req, res) => {
     // Asynchronously send email
     sendEmail({
       to: adminEmail,
-      subject: `[NonStock Admin] New Contest Request: ${title}`,
+      subject: `[Stocks Operator Admin] New Contest Request: ${title}`,
       html: htmlContent
     }).catch(mailErr => {
       console.error('❌ Failed to send contest request email:', mailErr.message);
@@ -618,9 +618,9 @@ router.get('/chat/:groupId', authenticate, async (req, res) => {
           { author: 'ThetaDecay', msg: 'Extremely! Stick to paper trading here until you master risk management.' }
         ],
         basics: [
-          { author: 'NonStockMentor', msg: 'Welcome to Investing Basics! Ask anything about indicators or stock terminologies.' },
+          { author: 'Stocks OperatorMentor', msg: 'Welcome to Investing Basics! Ask anything about indicators or stock terminologies.' },
           { author: 'Newbie99', msg: 'What does "Spread" mean in bid-ask quotes?' },
-          { author: 'NonStockMentor', msg: 'It is the difference between the highest price a buyer is willing to pay (bid) and the lowest price a seller is willing to accept (ask).' }
+          { author: 'Stocks OperatorMentor', msg: 'It is the difference between the highest price a buyer is willing to pay (bid) and the lowest price a seller is willing to accept (ask).' }
         ],
         crypto: [
           { author: 'CryptoWhale', msg: 'BTC holding strong above key support of $60K.' },

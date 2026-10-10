@@ -17,15 +17,15 @@ export default function PublicRoute({ children }) {
         fontFamily: "'Inter', sans-serif"
       }}>
         <div style={{
-          border: '4px solid rgba(0, 255, 136, 0.1)',
-          borderLeftColor: '#00ff88',
+          border: '4px solid rgba(234, 88, 12, 0.2)',
+          borderLeftColor: '#EA580C',
           borderRadius: '50%',
           width: '45px',
           height: '45px',
           animation: 'spin 1s linear infinite',
           marginBottom: '16px'
         }} />
-        <div style={{ fontSize: '15px', fontWeight: '600', letterSpacing: '0.5px' }}>Loading NonStock...</div>
+        <div style={{ fontSize: '15px', fontWeight: '600', letterSpacing: '0.5px', color: '#0F172A' }}>Loading Stocks Operator...</div>
         <style>{`
           @keyframes spin {
             to { transform: rotate(360deg); }

@@ -58,7 +58,7 @@ createTables().catch(console.error);
 
 // Health check endpoints for Render self-ping (prevents cold starts)
 app.get(['/', '/health', '/api/health'], (req, res) => {
-  res.status(200).json({ status: 'OK', service: 'NonStock API', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'OK', service: 'Stocks Operator API', timestamp: new Date().toISOString() });
 });
 
 // Auth routes
@@ -329,7 +329,7 @@ app.post('/api/user/upgrade-pro', authenticate, async (req, res) => {
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #0b0803; border: 1px solid #ffb300; border-radius: 12px; color: #ffffff;">
         <div style="text-align: center; border-bottom: 2px solid rgba(255, 179, 0, 0.2); padding-bottom: 20px; margin-bottom: 20px;">
-          <h2 style="color: #ffb300; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">NonStock Pro Upgrade Request</h2>
+          <h2 style="color: #ffb300; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">Stocks Operator Pro Upgrade Request</h2>
           <p style="color: #d1c9b8; font-size: 13px; margin: 5px 0 0 0;">Pending payment verification</p>
         </div>
 
@@ -380,7 +380,7 @@ app.post('/api/user/upgrade-pro', authenticate, async (req, res) => {
 
     await sendEmail({
       to: adminEmail,
-      subject: `NonStock Pro Subscription Request - UTR: ${referenceId}`,
+      subject: `Stocks Operator Pro Subscription Request - UTR: ${referenceId}`,
       html: emailHtml
     });
 
@@ -485,7 +485,7 @@ app.get('/api/admin/verify-upgrade', async (req, res) => {
       const userHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #0b0803; border: 1px solid #ffb300; border-radius: 12px; color: #ffffff;">
           <div style="text-align: center; border-bottom: 2px solid rgba(255, 179, 0, 0.2); padding-bottom: 20px; margin-bottom: 20px;">
-            <h2 style="color: #ffb300; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">Welcome to NonStock Pro!</h2>
+            <h2 style="color: #ffb300; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">Welcome to Stocks Operator Pro!</h2>
             <p style="color: #d1c9b8; font-size: 13px; margin: 5px 0 0 0;">Subscription Activated</p>
           </div>
 
@@ -501,7 +501,7 @@ app.get('/api/admin/verify-upgrade', async (req, res) => {
             <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
               <tr>
                 <td style="padding: 6px 0; color: #9b9eac; font-weight: 600; width: 40%;">Membership Tier:</td>
-                <td style="padding: 6px 0; color: #ffb300; font-weight: 700;">NonStock Pro</td>
+                <td style="padding: 6px 0; color: #ffb300; font-weight: 700;">Stocks Operator Pro</td>
               </tr>
               <tr>
                 <td style="padding: 6px 0; color: #9b9eac; font-weight: 600;">Plan Duration:</td>
@@ -532,7 +532,7 @@ app.get('/api/admin/verify-upgrade', async (req, res) => {
 
       await sendEmail({
         to: user.email,
-        subject: `NonStock Pro Subscription Activated!`,
+        subject: `Stocks Operator Pro Subscription Activated!`,
         html: userHtml
       });
 
@@ -591,7 +591,7 @@ app.get('/api/admin/verify-upgrade', async (req, res) => {
 
       await sendEmail({
         to: user.email,
-        subject: `Payment Verification Declined - NonStock Pro`,
+        subject: `Payment Verification Declined - Stocks Operator Pro`,
         html: userHtml
       });
 

@@ -247,7 +247,7 @@ export default function Landing() {
                 <span key={i} style={{ color: '#00D26A', fontSize: '13px' }}>{star}</span>
               ))}
             </div>
-            <span>NONSTOCK // 100% UNALTERABLE MATHEMATICAL PROVING PROTOCOL</span>
+            <span>STOCKS OPERATOR // 100% UNALTERABLE MATHEMATICAL PROVING PROTOCOL</span>
           </div>
 
           {/* Monumental Headline Centered Over The Earth Dome */}
@@ -642,7 +642,7 @@ export default function Landing() {
           }}>
             <div>
               <div style={{ fontSize: '12px', fontWeight: 800, color: '#009E47', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                THE NONSTOCK VERIFICATION STANDARD
+                THE STOCKS OPERATOR VERIFICATION STANDARD
               </div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginTop: '4px' }}>
                 An un-fakeable proving ledger where every order, stop-loss, and drawdown is mathematically locked against live exchange feeds.
@@ -697,7 +697,7 @@ export default function Landing() {
             </p>
 
             <p style={{ fontSize: '17px', color: '#475569', lineHeight: 1.8, marginBottom: '24px' }}>
-              <strong>NonStock is your psychological diagnostic mirror.</strong> Every participant begins with an identical $1,000 baseline. NonStock calculates your real-time Discipline and Edge Rating (DER Score), measuring your positive mathematical expectancy, your risk-to-reward ratio, and your drawdown velocity.
+              <strong>Stocks Operator is your psychological diagnostic mirror.</strong> Every participant begins with an identical $1,000 baseline. Stocks Operator calculates your real-time Discipline and Edge Rating (DER Score), measuring your positive mathematical expectancy, your risk-to-reward ratio, and your drawdown velocity.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
@@ -747,7 +747,7 @@ export default function Landing() {
           }}>
             <img 
               src="/assets/performance_analysis.jpg" 
-              alt="NonStock Quantitative Performance and Equity Telemetry Analysis" 
+              alt="Stocks Operator Quantitative Performance and Equity Telemetry Analysis" 
               style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
             />
             <div style={{ padding: '20px 24px', background: '#0F172A', color: '#FFFFFF' }}>
@@ -778,7 +778,7 @@ export default function Landing() {
           }}>
             <img 
               src="/decagon_crest_aesthetic.jpg" 
-              alt="NonStock Institutional Discipline Decagon Crest" 
+              alt="Stocks Operator Institutional Discipline Decagon Crest" 
               style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
             />
             <div style={{ padding: '20px 24px', background: '#0F172A', color: '#FFFFFF', textAlign: 'center' }}>
@@ -804,7 +804,7 @@ export default function Landing() {
             </p>
 
             <p style={{ fontSize: '17px', color: '#475569', lineHeight: 1.8, marginBottom: '24px' }}>
-              <strong>NonStock levels the playing field completely.</strong> Everyone starts on the exact same $1,000 capital baseline. There are no billionaire account advantages, no paid boost perks, and no shortcuts. The only metric that matters is how skillfully you compound capital and protect downside risk.
+              <strong>Stocks Operator levels the playing field completely.</strong> Everyone starts on the exact same $1,000 capital baseline. There are no billionaire account advantages, no paid boost perks, and no shortcuts. The only metric that matters is how skillfully you compound capital and protect downside risk.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
@@ -876,7 +876,7 @@ export default function Landing() {
               </p>
 
               <p style={{ fontSize: '17px', color: '#475569', lineHeight: 1.8, marginBottom: '28px' }}>
-                <strong>NonStock is your most powerful credibility engine.</strong> Instead of posting MT4/MT5 screenshots that smart followers distrust, you link your verified NonStock Prover ID in your bio. Show your audience that you execute your own setups on live exchange feeds with strict stop losses on an equal $1,000 baseline.
+                <strong>Stocks Operator is your most powerful credibility engine.</strong> Instead of posting MT4/MT5 screenshots that smart followers distrust, you link your verified Stocks Operator Prover ID in your bio. Show your audience that you execute your own setups on live exchange feeds with strict stop losses on an equal $1,000 baseline.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
@@ -885,7 +885,7 @@ export default function Landing() {
                     1. Silence Cynics With Cryptographic Proof
                   </strong>
                   <span style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, display: 'block' }}>
-                    Every setup you execute on NonStock is permanently time-stamped. No retroactive editing, no deleted losing trades. When doubters question your record, point them to your live NonStock ledger.
+                    Every setup you execute on Stocks Operator is permanently time-stamped. No retroactive editing, no deleted losing trades. When doubters question your record, point them to your live Stocks Operator ledger.
                   </span>
                 </div>
 
@@ -903,7 +903,7 @@ export default function Landing() {
                     3. Student Replication Benchmark
                   </strong>
                   <span style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, display: 'block' }}>
-                    Have your students trade your methodology on identical $1,000 NonStock accounts. When your students earn Decagon Silver and Gold badges, you possess indisputable proof that your mentorship actually produces winners.
+                    Have your students trade your methodology on identical $1,000 Stocks Operator accounts. When your students earn Decagon Silver and Gold badges, you possess indisputable proof that your mentorship actually produces winners.
                   </span>
                 </div>
               </div>
@@ -929,7 +929,7 @@ export default function Landing() {
               </Link>
             </div>
 
-            {/* BESPOKE NONSTOCK VERIFIED PROVER CREDENTIAL CARD (REPLACED GENERIC DASHBOARD) */}
+            {/* BESPOKE STOCKS OPERATOR VERIFIED PROVER CREDENTIAL CARD (REPLACED GENERIC DASHBOARD) */}
             <div style={{
               background: 'linear-gradient(145deg, #0F172A 0%, #1E293B 100%)',
               borderRadius: '24px',
@@ -968,10 +968,10 @@ export default function Landing() {
                   </div>
                   <div>
                     <div style={{ fontSize: '11px', color: '#00D26A', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>
-                      OFFICIAL NONSTOCK CREDENTIAL
+                      OFFICIAL STOCKS OPERATOR CREDENTIAL
                     </div>
                     <div style={{ fontSize: '17px', fontWeight: 900, color: '#FFFFFF' }}>
-                      NonStock Verified Prover
+                      Stocks Operator Verified Prover
                     </div>
                   </div>
                 </div>
@@ -1055,7 +1055,7 @@ export default function Landing() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#CBD5E1' }}>
                   <FileCheck2 size={16} color="#00D26A" />
-                  <span>Public Proof Link: <strong>nonstock.io/p/NS-7429</strong></span>
+                  <span>Public Proof Link: <strong>stocksoperator.io/p/NS-7429</strong></span>
                 </div>
                 <div style={{ color: '#00D26A', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>Verified On-Chain</span>
@@ -1094,7 +1094,7 @@ export default function Landing() {
           }}>
             <img 
               src="/assets/pro_screener.jpg" 
-              alt="NonStock Institutional Real-Time Multi-Asset Screener" 
+              alt="Stocks Operator Institutional Real-Time Multi-Asset Screener" 
               style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
             />
             <div style={{ padding: '20px 24px', background: '#0F172A', color: '#FFFFFF' }}>
@@ -1116,11 +1116,11 @@ export default function Landing() {
             </h2>
             
             <p style={{ fontSize: '17px', color: '#475569', lineHeight: 1.8, marginBottom: '20px' }}>
-              True market operators do not blindly guess which chart to trade. NonStock equips you with a real-time institutional screener that monitors over 50 global pairs across crypto majors, foreign exchange, spot gold/silver, and premier tech equities.
+              True market operators do not blindly guess which chart to trade. Stocks Operator equips you with a real-time institutional screener that monitors over 50 global pairs across crypto majors, foreign exchange, spot gold/silver, and premier tech equities.
             </p>
 
             <p style={{ fontSize: '17px', color: '#475569', lineHeight: 1.8, marginBottom: '24px' }}>
-              Filter by 24h percentage delta, high/low ranges, and momentum triggers. One click transitions you directly into the NonStock trading arena with the selected asset loaded and ready for precision execution.
+              Filter by 24h percentage delta, high/low ranges, and momentum triggers. One click transitions you directly into the Stocks Operator trading arena with the selected asset loaded and ready for precision execution.
             </p>
 
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '28px' }}>
@@ -1179,7 +1179,7 @@ export default function Landing() {
             </p>
 
             <p style={{ fontSize: '17px', color: '#475569', lineHeight: 1.8, marginBottom: '28px' }}>
-              The NonStock Replay Engine enables you to travel back to historic market conditions, pause time, and replay candle-by-candle price action at variable speeds. Test your stop-loss placement, validate breakout confirmations, and master emotional discipline.
+              The Stocks Operator Replay Engine enables you to travel back to historic market conditions, pause time, and replay candle-by-candle price action at variable speeds. Test your stop-loss placement, validate breakout confirmations, and master emotional discipline.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
@@ -1229,7 +1229,7 @@ export default function Landing() {
           }}>
             <img 
               src="/assets/trade_replay.jpg" 
-              alt="NonStock Forensic Candle Replay Simulator Engine" 
+              alt="Stocks Operator Forensic Candle Replay Simulator Engine" 
               style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
             />
             <div style={{ padding: '20px 24px', background: '#0F172A', color: '#FFFFFF' }}>
@@ -1268,7 +1268,7 @@ export default function Landing() {
               textTransform: 'uppercase',
               marginBottom: '16px'
             }}>
-              <span>NONSTOCK PROVING PROTOCOL</span>
+              <span>STOCKS OPERATOR PROVING PROTOCOL</span>
             </div>
 
             <h2 style={{
@@ -1279,7 +1279,7 @@ export default function Landing() {
               margin: '0 0 16px 0',
               lineHeight: 1.15
             }}>
-              NonStock Engine — Unmatched Mathematical Reliability Across The Industry
+              Stocks Operator Engine — Unmatched Mathematical Reliability Across The Industry
             </h2>
             <p style={{ fontSize: '17px', color: '#64748B', lineHeight: 1.65 }}>
               Engineered with sub-second execution latency, strict stop-loss validation, and the universal $1,000 baseline economy.
@@ -1377,7 +1377,7 @@ export default function Landing() {
                 textAlign: 'center'
               }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#006C2E', letterSpacing: '1.2px', textTransform: 'uppercase' }}>
-                  OFFICIAL NONSTOCK PROTOCOL MINT
+                  OFFICIAL STOCKS OPERATOR PROTOCOL MINT
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
                   The 1K Sovereign Gold Coin
@@ -1697,7 +1697,7 @@ export default function Landing() {
                 How Discipline Is Quantified And Enforced: Second Chances Must Be Earned.
               </h3>
               <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.7, marginBottom: '16px' }}>
-                Unlike casual demo platforms where traders recklessly click 'Reset Account' after blowing their balance, NonStock treats capital preservation with utmost seriousness through the <strong>Gold Coins Economy</strong>.
+                Unlike casual demo platforms where traders recklessly click 'Reset Account' after blowing their balance, Stocks Operator treats capital preservation with utmost seriousness through the <strong>Gold Coins Economy</strong>.
               </p>
               <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.7, margin: 0 }}>
                 Every participant starts with 100 Gold Coins. You earn +10 coins strictly once per calendar day by maintaining your daily check-in streak, and +5 coins on every trade placed with an active Stop Loss. If you blow your $1,000 baseline, resetting requires a mandatory 100 Gold Coins fee. If your coin vault hits zero, you face an un-bypassable 24-hour lockout to reflect on your risk errors.
@@ -1895,7 +1895,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ─── 9. SECTION: VERIFIED GLOBAL NONSTOCK LEADERBOARD PREVIEW (NO USER NAMES) ─── */}
+      {/* ─── 9. SECTION: VERIFIED GLOBAL STOCKS OPERATOR LEADERBOARD PREVIEW (NO USER NAMES) ─── */}
       <section id="hall-of-fame" style={{
         padding: '110px 24px',
         background: '#FFFFFF',
@@ -1909,7 +1909,7 @@ export default function Landing() {
               PUBLIC AUDITABLE LEDGER
             </span>
             <h2 style={{ fontSize: 'clamp(34px, 4vw, 48px)', fontWeight: 900, letterSpacing: '-1.2px', color: '#0F172A', margin: '12px 0 18px 0' }}>
-              The Global Hall of Fame: NonStock Provers.
+              The Global Hall of Fame: Stocks Operator Provers.
             </h2>
             <p style={{ fontSize: '17px', color: '#64748B', fontWeight: 500 }}>
               All records are verified mathematically with zero manual overrides. The public ledger sorts provers strictly by DER Score and capital compounded from the $1,000 baseline.
@@ -1929,11 +1929,11 @@ export default function Landing() {
               </thead>
               <tbody>
                 {[
-                  { rank: 1, desk: 'NonStock', tag: 'Apex Operator', color: '#A855F7', der: '94.2', balance: '$15,820.00', status: 'VERIFIED PRO' },
-                  { rank: 2, desk: 'NonStock', tag: 'Master Titan', color: '#E11D48', der: '91.8', balance: '$8,450.50', status: 'VERIFIED PRO' },
-                  { rank: 3, desk: 'NonStock', tag: 'Gold Sovereign', color: '#EAB308', der: '88.5', balance: '$4,120.00', status: 'VERIFIED PRO' },
-                  { rank: 4, desk: 'NonStock', tag: 'Silver Prover', color: '#94A3B8', der: '84.0', balance: '$2,380.00', status: 'ACTIVE' },
-                  { rank: 5, desk: 'NonStock', tag: 'Contender', color: '#0F172A', der: '75.0', balance: '$1,000.00', status: 'ACTIVE' }
+                  { rank: 1, desk: 'Stocks Operator', tag: 'Apex Operator', color: '#A855F7', der: '94.2', balance: '$15,820.00', status: 'VERIFIED PRO' },
+                  { rank: 2, desk: 'Stocks Operator', tag: 'Master Titan', color: '#E11D48', der: '91.8', balance: '$8,450.50', status: 'VERIFIED PRO' },
+                  { rank: 3, desk: 'Stocks Operator', tag: 'Gold Sovereign', color: '#EAB308', der: '88.5', balance: '$4,120.00', status: 'VERIFIED PRO' },
+                  { rank: 4, desk: 'Stocks Operator', tag: 'Silver Prover', color: '#94A3B8', der: '84.0', balance: '$2,380.00', status: 'ACTIVE' },
+                  { rank: 5, desk: 'Stocks Operator', tag: 'Contender', color: '#0F172A', der: '75.0', balance: '$1,000.00', status: 'ACTIVE' }
                 ].map((item, idx) => (
                   <tr key={item.rank} style={{ borderBottom: '1px solid #F1F5F9', background: idx === 0 ? '#FAF5FF' : '#FFFFFF' }}>
                     <td style={{ padding: '18px 24px', fontWeight: 900, color: item.rank === 1 ? '#A855F7' : '#0F172A' }}>
@@ -2027,8 +2027,8 @@ export default function Landing() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {[
             {
-              q: "Is real money deposited or risked on NonStock?",
-              a: "No. NonStock is 100% simulated capital powered by real live exchange tick data. Every trader starts with $1,000 in virtual proving capital. You never risk your personal life savings, but you are held accountable to institutional execution, margin rules, and drawdown penalties."
+              q: "Is real money deposited or risked on Stocks Operator?",
+              a: "No. Stocks Operator is 100% simulated capital powered by real live exchange tick data. Every trader starts with $1,000 in virtual proving capital. You never risk your personal life savings, but you are held accountable to institutional execution, margin rules, and drawdown penalties."
             },
             {
               q: "How do tipsters and educators verify their track record to followers?",
@@ -2040,7 +2040,7 @@ export default function Landing() {
             },
             {
               q: "What is the Discipline & Edge Rating (DER Score)?",
-              a: "DER Score is NonStock's proprietary mathematical rating (0 to 100). It measures positive expectancy, risk-to-reward consistency (requiring active Stop-Loss orders), and maximum drawdown suppression. It is designed to expose lucky gamblers and highlight real risk managers."
+              a: "DER Score is Stocks Operator's proprietary mathematical rating (0 to 100). It measures positive expectancy, risk-to-reward consistency (requiring active Stop-Loss orders), and maximum drawdown suppression. It is designed to expose lucky gamblers and highlight real risk managers."
             },
             {
               q: "How do Gold Coins work and how are they earned?",
@@ -2118,7 +2118,7 @@ export default function Landing() {
             marginBottom: '24px'
           }}>
             <ShieldCheck size={16} />
-            <span>JOIN THE UNTOUCHABLE NONSTOCK PROVING ARENA</span>
+            <span>JOIN THE UNTOUCHABLE STOCKS OPERATOR PROVING ARENA</span>
           </div>
 
           <h2 style={{
@@ -2217,7 +2217,7 @@ export default function Landing() {
 
         <div style={{ maxWidth: '1280px', margin: '0 auto', paddingTop: '24px', borderTop: '1px solid #1E293B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            © {new Date().getFullYear()} NonStock Protocol. Built for true market discipline.
+            © {new Date().getFullYear()} Stocks Operator Protocol. Built for true market discipline.
           </div>
           <div style={{ fontSize: '12px', color: '#475569' }}>
             Educational and skill verification simulator. No real money deposits or investments accepted.

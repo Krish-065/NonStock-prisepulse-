@@ -15,7 +15,7 @@ export default function Logo({
       gap: '12px',
       userSelect: 'none'
     }}>
-      {/* Modern Sharp SVG Icon: Geometric N intersecting a candlestick */}
+      {/* Bespoke Stocks Operator Emblem: Institutional Reticle, Candlesticks & Bullish Impulse Vector */}
       <svg 
         width={size} 
         height={size} 
@@ -24,29 +24,58 @@ export default function Logo({
         xmlns="http://www.w3.org/2000/svg"
         style={{ flexShrink: 0 }}
       >
-        <rect width="100" height="100" rx="20" fill="#0F172A"/>
-        
-        {/* Pulse Line */}
-        <path d="M15 55 L35 55 L50 25 L65 75 L85 55" stroke="#10B981" strokeWidth="6" strokeLinejoin="miter" />
-        
-        {/* Geometric 'N' overlay */}
-        <path d="M25 80 L25 20 L75 80 L75 20" stroke="#FFFFFF" strokeWidth="8" strokeLinejoin="miter" strokeLinecap="square" opacity="0.9" />
+        <defs>
+          <linearGradient id="logoOrangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#EA580C" />
+            <stop offset="100%" stopColor="#C2410C" />
+          </linearGradient>
+        </defs>
 
-        {/* Candlestick Wicks */}
-        <line x1="50" y1="15" x2="50" y2="25" stroke="#10B981" strokeWidth="3" />
-        <line x1="65" y1="75" x2="65" y2="85" stroke="#10B981" strokeWidth="3" />
+        {/* Sleek rounded foundation */}
+        <rect width="100" height="100" rx="22" fill="#0F172A"/>
+
+        {/* Outer Operator border accent */}
+        <rect x="2" y="2" width="96" height="96" rx="20" stroke="#EA580C" strokeWidth="2" strokeOpacity="0.45" fill="none" />
+
+        {/* Operator Targeting Radar Arc */}
+        <circle cx="50" cy="50" r="34" stroke="#EA580C" strokeWidth="2" strokeDasharray="6 4" strokeOpacity="0.6" />
+
+        {/* Candlestick 1 - Base (Deep Orange) */}
+        <line x1="32" y1="36" x2="32" y2="66" stroke="#EA580C" strokeWidth="2" />
+        <rect x="28" y="44" width="8" height="16" rx="2" fill="url(#logoOrangeGrad)" />
+
+        {/* Candlestick 2 - Ascent (Deep Orange) */}
+        <line x1="50" y1="26" x2="50" y2="58" stroke="#EA580C" strokeWidth="2" />
+        <rect x="46" y="32" width="8" height="20" rx="2" fill="url(#logoOrangeGrad)" />
+
+        {/* Candlestick 3 - Apex Signal (Crisp White contrast) */}
+        <line x1="68" y1="20" x2="68" y2="52" stroke="#FFFFFF" strokeWidth="2" strokeOpacity="0.95" />
+        <rect x="64" y="24" width="8" height="16" rx="2" fill="#FFFFFF" />
+
+        {/* Operator Trend Dynamic Beam */}
+        <path d="M22 66 L42 50 L52 56 L76 28" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        <polygon points="76,28 66,29 73,37" fill="#FFFFFF" />
+
+        {/* Target Reticle Crosshair Markers */}
+        <line x1="50" y1="12" x2="50" y2="18" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" />
+        <line x1="50" y1="82" x2="50" y2="88" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" />
       </svg>
 
       {showName && (
-        <span style={{ 
-          fontSize: nameSize, 
-          fontWeight: 800, 
-          color: color || 'var(--text-primary, #0F172A)',
-          letterSpacing: '-0.5px',
-          lineHeight: '1.1'
-        }}>
-          NonStock
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+          <span style={{ 
+            fontSize: nameSize, 
+            fontWeight: 800, 
+            color: color || '#0F172A',
+            letterSpacing: '-0.5px',
+            display: 'inline-flex',
+            alignItems: 'baseline',
+            gap: '5px'
+          }}>
+            <span>Stocks</span>
+            <span style={{ color: '#EA580C' }}>Operator</span>
+          </span>
+        </div>
       )}
     </div>
   );

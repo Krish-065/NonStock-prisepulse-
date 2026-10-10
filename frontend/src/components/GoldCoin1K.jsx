@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * GoldCoin1K — Institutional Minted Sovereign Coin Component
  * Displays "1K" minted on a gleaming gold coin with concentric emerald HUD rings,
- * directly representing NonStock's universal $1,000 baseline capital.
+ * directly representing Stocks Operator's universal $1,000 baseline capital.
  */
 export default function GoldCoin1K({ size = 180, showRings = true, animated = true, style = {} }) {
   const s = size;
@@ -171,7 +171,7 @@ export default function GoldCoin1K({ size = 180, showRings = true, animated = tr
         <path id="curveTop" d="M 60,82 A 44,44 0 0,1 140,82" fill="none" />
         <text fontSize="6" fontWeight="900" fill="#78350F" letterSpacing="1.2">
           <textPath href="#curveTop" startOffset="50%" textAnchor="middle">
-            NONSTOCK PROTOCOL
+            STOCKS OPERATOR PROTOCOL
           </textPath>
         </text>
 

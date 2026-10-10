@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 
 /**
- * NonStock 52 Institutional Badges Catalog
+ * Stocks Operator 52 Institutional Badges Catalog
  * Decoupled from generic coin faucets:
  * - Exactly 15 elite/mastery badges have Rare Protocol Bounties (5 Intermediate, 10 Difficult/Elite)
  * - 37 badges are pure Honor Insignia & Mathematical Reputation Proofs (0 Coins)
@@ -887,7 +887,7 @@ export const BADGES_CATALOG = [
     theme: 'gold_vault',
     name: 'Apex Operator',
     tagline: 'Ascend to Operator Rank ($15,000 equity)',
-    desc: '15x your starting capital. Attain the highest sovereign rank on NonStock.',
+    desc: '15x your starting capital. Attain the highest sovereign rank on Stocks Operator.',
     // BOUNTY 13
     icon: Crown,
     color: '#A855F7',
@@ -961,9 +961,9 @@ export const BADGES_CATALOG = [
     coins: 100,
     hasBounty: true,
     theme: 'gold_vault',
-    name: 'NonStock Grandmaster',
+    name: 'Stocks Operator Grandmaster',
     tagline: 'Complete 50+ trades, win rate >= 75%, and unlock 30+ badges',
-    desc: 'The pinnacle of trading prowess. Reserved for the absolute top 0.1% on NonStock.',
+    desc: 'The pinnacle of trading prowess. Reserved for the absolute top 0.1% on Stocks Operator.',
     // BOUNTY 15
     icon: Crown,
     color: '#059669',

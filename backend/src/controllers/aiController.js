@@ -49,7 +49,7 @@ Candlestick/Market Pattern Detected: ${patternDetected}
 `;
     }
 
-    const systemPrompt = `You are "None", an elite, institutional-grade AI Trading Mentor and Quantitative Specialist on the NonStock trading platform.
+    const systemPrompt = `You are "None", an elite, institutional-grade AI Trading Mentor and Quantitative Specialist on the Stocks Operator trading platform.
 Your purpose is to analyze the user's trading query or action in the context of live market conditions, indicators, patterns, and traps, and provide a deep, educational, and structured breakdown.
 
 User Account Mode: ${accountMode === 'pro' ? 'Professional' : 'Learner / Novice'}

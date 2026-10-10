@@ -74,7 +74,7 @@ export default function MarketReplay() {
 
   // Twelve Data API Key Configuration
   const [twelveApiKey, setTwelveApiKey] = useState(() => {
-    return localStorage.getItem('nonstock_twelvedata_key') || '';
+    return localStorage.getItem('stocksoperator_twelvedata_key') || '';
   });
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [tempApiKey, setTempApiKey] = useState(twelveApiKey);
@@ -562,7 +562,7 @@ export default function MarketReplay() {
   };
 
   const handleSaveApiKey = () => {
-    localStorage.setItem('nonstock_twelvedata_key', tempApiKey.trim());
+    localStorage.setItem('stocksoperator_twelvedata_key', tempApiKey.trim());
     setTwelveApiKey(tempApiKey.trim());
     setShowKeyModal(false);
     toast.success('Twelve Data API Key saved! Loading institutional data feeds.');
@@ -1500,14 +1500,14 @@ export default function MarketReplay() {
             </div>
 
             <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '20px', fontSize: '12px', color: '#475569' }}>
-              💡 <strong>No key yet?</strong> Leave this empty to use NonStock's high-fidelity built-in institutional engine that supports Oct 2026 backtesting seamlessly! Or obtain a free API key at <a href="https://twelvedata.com" target="_blank" rel="noreferrer" style={{ color: '#059669', fontWeight: '700' }}>twelvedata.com</a>.
+              💡 <strong>No key yet?</strong> Leave this empty to use Stocks Operator's high-fidelity built-in institutional engine that supports Oct 2026 backtesting seamlessly! Or obtain a free API key at <a href="https://twelvedata.com" target="_blank" rel="noreferrer" style={{ color: '#059669', fontWeight: '700' }}>twelvedata.com</a>.
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button
                 onClick={() => {
                   setTempApiKey('');
-                  localStorage.removeItem('nonstock_twelvedata_key');
+                  localStorage.removeItem('stocksoperator_twelvedata_key');
                   setTwelveApiKey('');
                   setShowKeyModal(false);
                   toast.success('Switched back to built-in high-fidelity historical engine.');

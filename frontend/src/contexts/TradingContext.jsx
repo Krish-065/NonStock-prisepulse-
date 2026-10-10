@@ -54,7 +54,7 @@ export const TradingProvider = ({ children }) => {
   const [loginStreak, setLoginStreak] = useState(() => (user?.login_streak !== undefined ? Number(user.login_streak) : 1));
   const [tradeStreak, setTradeStreak] = useState(() => {
     try {
-      const saved = localStorage.getItem('nonstock_trade_streak');
+      const saved = localStorage.getItem('stocksoperator_trade_streak');
       return saved ? Number(saved) : 1;
     } catch {
       return 1;
@@ -75,7 +75,7 @@ export const TradingProvider = ({ children }) => {
         }
         if (typeof lStreak === 'number') {
           setLoginStreak(lStreak);
-          localStorage.setItem('nonstock_login_streak_count', lStreak.toString());
+          localStorage.setItem('stocksoperator_login_streak_count', lStreak.toString());
         }
         if (dailyReward && !dailyReward.alreadyClaimed && dailyReward.coinsAwarded) {
           toast.success(dailyReward.message || `Daily Login Streak Day ${lStreak}: +${dailyReward.coinsAwarded} Gold Coins awarded!`);
@@ -92,11 +92,11 @@ export const TradingProvider = ({ children }) => {
           }
           if (typeof pRes.data.loginStreak === 'number') {
             setLoginStreak(pRes.data.loginStreak);
-            localStorage.setItem('nonstock_login_streak_count', pRes.data.loginStreak.toString());
+            localStorage.setItem('stocksoperator_login_streak_count', pRes.data.loginStreak.toString());
           }
           if (typeof pRes.data.tradeStreak === 'number' && pRes.data.tradeStreak > 0) {
             setTradeStreak(pRes.data.tradeStreak);
-            localStorage.setItem('nonstock_trade_streak', pRes.data.tradeStreak.toString());
+            localStorage.setItem('stocksoperator_trade_streak', pRes.data.tradeStreak.toString());
           }
         }
       } catch (pErr) {
@@ -121,7 +121,7 @@ export const TradingProvider = ({ children }) => {
   // Load from local storage on mount
   useEffect(() => {
     try {
-      const storedData = localStorage.getItem('nonstock_trading_state');
+      const storedData = localStorage.getItem('stocksoperator_trading_state');
       if (storedData) {
         const parsed = JSON.parse(storedData);
         if (parsed.balance !== undefined) setBalance(Number(parsed.balance) || 1000);
@@ -133,11 +133,11 @@ export const TradingProvider = ({ children }) => {
           const hist = Array.isArray(parsed.history) ? parsed.history : [];
           setHistory(hist);
           // Calculate historical trading streak if available
-          if (hist.length > 0 && !localStorage.getItem('nonstock_trade_streak')) {
+          if (hist.length > 0 && !localStorage.getItem('stocksoperator_trade_streak')) {
             const daysSet = new Set(hist.map(h => (h.closeTime || h.openTime || '').slice(0, 10)).filter(Boolean));
             const calculatedStreak = Math.max(1, daysSet.size);
             setTradeStreak(calculatedStreak);
-            localStorage.setItem('nonstock_trade_streak', calculatedStreak.toString());
+            localStorage.setItem('stocksoperator_trade_streak', calculatedStreak.toString());
           }
         }
         if (parsed.hasSeenModal !== undefined) setHasSeenModal(Boolean(parsed.hasSeenModal));
@@ -154,7 +154,7 @@ export const TradingProvider = ({ children }) => {
 
   // Save to local storage on change
   useEffect(() => {
-    localStorage.setItem('nonstock_trading_state', JSON.stringify({
+    localStorage.setItem('stocksoperator_trading_state', JSON.stringify({
       balance, coins, positions, history, hasSeenModal, isBusted, watchlist, unlockedTools
     }));
   }, [balance, coins, positions, history, hasSeenModal, isBusted, watchlist, unlockedTools]);
@@ -187,7 +187,7 @@ export const TradingProvider = ({ children }) => {
 
     // 1. Separate Trade Streak Calculation
     const today = new Date().toISOString().slice(0, 10);
-    const lastTradeDate = localStorage.getItem('nonstock_last_trade_date');
+    const lastTradeDate = localStorage.getItem('stocksoperator_last_trade_date');
     let currentStreak = tradeStreak;
 
     if (lastTradeDate !== today) {
@@ -204,8 +204,8 @@ export const TradingProvider = ({ children }) => {
         currentStreak = 1;
       }
       setTradeStreak(currentStreak);
-      localStorage.setItem('nonstock_trade_streak', currentStreak.toString());
-      localStorage.setItem('nonstock_last_trade_date', today);
+      localStorage.setItem('stocksoperator_trade_streak', currentStreak.toString());
+      localStorage.setItem('stocksoperator_last_trade_date', today);
 
       // User requested: on trade streak give another 10 coins!
       earnedCoins += 10;

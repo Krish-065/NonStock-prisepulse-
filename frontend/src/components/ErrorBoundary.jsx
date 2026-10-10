@@ -12,7 +12,7 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('NonStock Component Error Caught by Boundary:', error, errorInfo);
+    console.error('Stocks Operator Component Error Caught by Boundary:', error, errorInfo);
   }
 
   handleReload = () => {

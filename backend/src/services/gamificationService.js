@@ -2,7 +2,7 @@ const { query } = require('../db/index');
 const crypto = require('crypto');
 
 /**
- * NonStock Dynamic Gamification Service
+ * Stocks Operator Dynamic Gamification Service
  * Handles real-time Gold Coins, Streaks, Discipline Tasks, Badges, and Verified Leaderboard
  */
 
@@ -298,11 +298,11 @@ async function getUserBadges(userId) {
 
     // If user has no badges yet, grant initial 'contender_verified'
     if (res.rows.length === 0) {
-      await awardBadge(userId, 'contender_verified', 'Contender Verified', 'Officially verified participant in NonStock Proving Arena');
+      await awardBadge(userId, 'contender_verified', 'Contender Verified', 'Officially verified participant in Stocks Operator Proving Arena');
       return [{
         badgeId: 'contender_verified',
         title: 'Contender Verified',
-        description: 'Officially verified participant in NonStock Proving Arena',
+        description: 'Officially verified participant in Stocks Operator Proving Arena',
         earnedAt: new Date().toISOString(),
         earnedYear: new Date().getFullYear()
       }];

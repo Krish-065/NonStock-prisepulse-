@@ -158,7 +158,7 @@ export default function TradingPage() {
     const urlSym = searchParams.get('symbol');
     if (urlSym) return urlSym.toUpperCase();
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('nonstock_active_symbol') || 'BTCUSDT';
+      return localStorage.getItem('stocksoperator_active_symbol') || 'BTCUSDT';
     }
     return 'BTCUSDT';
   });
@@ -256,7 +256,7 @@ export default function TradingPage() {
   // Persist symbol selection
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('nonstock_active_symbol', symbol);
+      localStorage.setItem('stocksoperator_active_symbol', symbol);
     }
   }, [symbol]);
 

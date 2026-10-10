@@ -42,8 +42,8 @@ function PageLoader() {
       <div style={{
         width: '48px',
         height: '48px',
-        border: '3px solid rgba(16, 185, 129, 0.15)',
-        borderTop: '3px solid #10B981',
+        border: '3.5px solid rgba(234, 88, 12, 0.18)',
+        borderTop: '3.5px solid #EA580C',
         borderRadius: '50%',
         animation: 'spin 0.8s linear infinite',
       }} />
@@ -52,9 +52,9 @@ function PageLoader() {
         color: '#0F172A',
         fontSize: '14px',
         fontWeight: '700',
-        letterSpacing: '1px',
+        letterSpacing: '0.8px',
       }}>
-        Loading NonStock...
+        Loading Stocks Operator...
       </div>
     </div>
   );

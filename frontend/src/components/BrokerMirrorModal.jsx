@@ -62,7 +62,7 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
   const realBalanceNum = parseFloat(realBalance) || 1000;
   const riskPctNum = parseFloat(riskPct) || 2;
   const realRiskAmount = (realBalanceNum * (riskPctNum / 100)).toFixed(2);
-  const nonstockRiskAmount = (1000 * (riskPctNum / 100)).toFixed(2);
+  const stocksoperatorRiskAmount = (1000 * (riskPctNum / 100)).toFixed(2);
   const ratio = (realBalanceNum / 1000).toFixed(2);
 
   const handleConnect = async (e) => {
@@ -336,12 +336,12 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
               </div>
 
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>NonStock Proving Baseline</div>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Stocks Operator Proving Baseline</div>
                 <div style={{ fontSize: '14px', fontWeight: 900, color: '#059669' }}>
                   $1,000.00
                 </div>
                 <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
-                  {riskPctNum}% Risk = ${nonstockRiskAmount}
+                  {riskPctNum}% Risk = ${stocksoperatorRiskAmount}
                 </div>
               </div>
             </div>

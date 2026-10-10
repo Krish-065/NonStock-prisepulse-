@@ -101,7 +101,7 @@ export default function AIMentor() {
   const [messages, setMessages] = useState([
     {
       sender: 'ai',
-      text: '### NonStock AI Core Initialized\nHello! I am **NonStock AI**, your AI Trading Mentor. Powered by LLaMA 3.3 (70B) via Groq API.\n\nUse the **Simulation Hub** on the right side of the screen to customize simulated chart conditions. Toggle between **Learner Mode** and **Pro Mode** to change how I explain concepts. Ask me to identify retail traps, plan risk invalidation zones, or evaluate candlestick patterns! You can also query general trading theories (like *"What is RSI?"* or *"Explain Support and Resistance"*).'
+      text: '### Stocks Operator AI Core Initialized\nHello! I am **Stocks Operator AI**, your AI Trading Mentor. Powered by LLaMA 3.3 (70B) via Groq API.\n\nUse the **Simulation Hub** on the right side of the screen to customize simulated chart conditions. Toggle between **Learner Mode** and **Pro Mode** to change how I explain concepts. Ask me to identify retail traps, plan risk invalidation zones, or evaluate candlestick patterns! You can also query general trading theories (like *"What is RSI?"* or *"Explain Support and Resistance"*).'
     }
   ]);
 
@@ -288,7 +288,7 @@ export default function AIMentor() {
               {
                 id: 'welcome_' + Date.now(),
                 sender: 'ai',
-                text: `### Live Chart Ingested for **${data.symbol}**\nNonStock AI has successfully scanned the live charts and indicators for **${data.symbol}**.\n\n* **Last Price**: ₹${data.price}\n* **RSI (14)**: ${data.rsi} (${data.rsi > 70 ? 'Overbought' : data.rsi < 30 ? 'Oversold' : 'Neutral'})\n* **Calculated Support**: ₹${data.support}\n* **Calculated Resistance**: ₹${data.resistance}\n* **Primary Trend**: ${data.trend}\n\nAsk me any questions about this setup (e.g. "Is this a trap?" or "Should I enter a buy/sell trade?"). I am ready to guide you.`
+                text: `### Live Chart Ingested for **${data.symbol}**\nStocks Operator AI has successfully scanned the live charts and indicators for **${data.symbol}**.\n\n* **Last Price**: ₹${data.price}\n* **RSI (14)**: ${data.rsi} (${data.rsi > 70 ? 'Overbought' : data.rsi < 30 ? 'Oversold' : 'Neutral'})\n* **Calculated Support**: ₹${data.support}\n* **Calculated Resistance**: ₹${data.resistance}\n* **Primary Trend**: ${data.trend}\n\nAsk me any questions about this setup (e.g. "Is this a trap?" or "Should I enter a buy/sell trade?"). I am ready to guide you.`
               }
             ];
           });
@@ -314,7 +314,7 @@ export default function AIMentor() {
     setMessages([
       {
         sender: 'ai',
-        text: '### NonStock AI Core Initialized\nHello! I am **NonStock AI**, your AI Trading Mentor. Powered by LLaMA 3.3 (70B) via Groq API.\n\nUse the **Simulation Hub** on the right side of the screen to customize simulated chart conditions. Toggle between **Learner Mode** and **Pro Mode** to change how I explain concepts. Ask me to identify retail traps, plan risk invalidation zones, or evaluate candlestick patterns! You can also query general trading theories (like *"What is RSI?"* or *"Explain Support and Resistance"*).'
+        text: '### Stocks Operator AI Core Initialized\nHello! I am **Stocks Operator AI**, your AI Trading Mentor. Powered by LLaMA 3.3 (70B) via Groq API.\n\nUse the **Simulation Hub** on the right side of the screen to customize simulated chart conditions. Toggle between **Learner Mode** and **Pro Mode** to change how I explain concepts. Ask me to identify retail traps, plan risk invalidation zones, or evaluate candlestick patterns! You can also query general trading theories (like *"What is RSI?"* or *"Explain Support and Resistance"*).'
       }
     ]);
     setActiveTechnicals(null);
@@ -473,7 +473,7 @@ export default function AIMentor() {
           sender: 'ai',
           replyTo: text,
           timestamp: timeNow,
-          text: '### Pro Membership Required\n\nYou have completed your limit of 5 free messages with NonStock AI Mentor. Upgrade to **NonStock Pro** to enjoy unlimited conversational guidance, options scanner metrics, and custom SMS/WhatsApp notifications.\n\n[Upgrade to Pro Membership](/upgrade-pro)'
+          text: '### Pro Membership Required\n\nYou have completed your limit of 5 free messages with Stocks Operator AI Mentor. Upgrade to **Stocks Operator Pro** to enjoy unlimited conversational guidance, options scanner metrics, and custom SMS/WhatsApp notifications.\n\n[Upgrade to Pro Membership](/upgrade-pro)'
         }
       ]);
       setSending(false);
@@ -607,7 +607,7 @@ export default function AIMentor() {
 
     } catch (err) {
       toast.error(err.response?.data?.error || 'AI request failed');
-      setMessages(prev => [...prev, { sender: 'ai', text: '### Connection Interrupted\nFailed to establish contact with NonStock AI Core. Please verify if the backend server is running and the GROQ_API_KEY is configured.' }]);
+      setMessages(prev => [...prev, { sender: 'ai', text: '### Connection Interrupted\nFailed to establish contact with Stocks Operator AI Core. Please verify if the backend server is running and the GROQ_API_KEY is configured.' }]);
     } finally {
       setSending(false);
     }
@@ -726,7 +726,7 @@ export default function AIMentor() {
             gap: '10px' 
           }}>
             <Sparkles size={24} style={{ color: '#00D26A' }} />
-            NonStock AI Mentor
+            Stocks Operator AI Mentor
             {(accountMode === 'pro' || user?.is_pro) && (
               <span style={{
                 fontSize: '11px',
@@ -745,7 +745,7 @@ export default function AIMentor() {
             )}
           </h1>
           <p style={{ color: '#334155', fontSize: '13px', margin: 0, fontWeight: 500 }}>
-            Connect indicator configurations and study setups with NonStock AI, our high-precision Groq quantitative assistant.
+            Connect indicator configurations and study setups with Stocks Operator AI, our high-precision Groq quantitative assistant.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -828,7 +828,7 @@ export default function AIMentor() {
           <div style={{ borderTop: '1px solid #E2E8F0', margin: '2px 0' }} />
 
           <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            NonStock AI Conversations
+            Stocks Operator AI Conversations
           </span>
 
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px', paddingRight: '4px' }}>

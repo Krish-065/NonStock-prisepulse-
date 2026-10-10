@@ -90,7 +90,7 @@ export default function Dashboard() {
   // Welcome / Transition overlay state
   const [showWelcomeSplash, setShowWelcomeSplash] = useState(() => {
     if (typeof window === 'undefined') return false;
-    const hasSeen = sessionStorage.getItem('nonstock_seen_welcome_splash');
+    const hasSeen = sessionStorage.getItem('stocksoperator_seen_welcome_splash');
     return !hasSeen;
   });
   const [welcomeSeconds, setWelcomeSeconds] = useState(3);
@@ -102,7 +102,7 @@ export default function Dashboard() {
       setWelcomeSeconds(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          sessionStorage.setItem('nonstock_seen_welcome_splash', 'true');
+          sessionStorage.setItem('stocksoperator_seen_welcome_splash', 'true');
           setShowWelcomeSplash(false);
           return 0;
         }
@@ -113,7 +113,7 @@ export default function Dashboard() {
   }, [showWelcomeSplash]);
 
   const dismissWelcome = () => {
-    sessionStorage.setItem('nonstock_seen_welcome_splash', 'true');
+    sessionStorage.setItem('stocksoperator_seen_welcome_splash', 'true');
     setShowWelcomeSplash(false);
   };
 
@@ -167,10 +167,10 @@ export default function Dashboard() {
 
   // Avatar & Banner state
   const [avatarUrl, setAvatarUrl] = useState(() => {
-    return typeof window !== 'undefined' ? localStorage.getItem('nonstock_user_avatar') || '' : '';
+    return typeof window !== 'undefined' ? localStorage.getItem('stocksoperator_user_avatar') || '' : '';
   });
   const [bannerUrl, setBannerUrl] = useState(() => {
-    return typeof window !== 'undefined' ? localStorage.getItem('nonstock_user_banner') || '' : '';
+    return typeof window !== 'undefined' ? localStorage.getItem('stocksoperator_user_banner') || '' : '';
   });
 
   const avatarInputRef = useRef(null);
@@ -188,7 +188,7 @@ export default function Dashboard() {
       const b64 = event.target?.result;
       if (b64) {
         setAvatarUrl(b64);
-        localStorage.setItem('nonstock_user_avatar', b64);
+        localStorage.setItem('stocksoperator_user_avatar', b64);
         toast.success('Avatar updated successfully');
       }
     };
@@ -207,7 +207,7 @@ export default function Dashboard() {
       const b64 = event.target?.result;
       if (b64) {
         setBannerUrl(b64);
-        localStorage.setItem('nonstock_user_banner', b64);
+        localStorage.setItem('stocksoperator_user_banner', b64);
         toast.success('Terminal banner updated successfully');
       }
     };
@@ -708,11 +708,11 @@ export default function Dashboard() {
               margin: '0 auto 16px auto',
               boxShadow: '0 4px 16px rgba(0, 210, 106, 0.2)'
             }}>
-              <ShieldCheck size={36} color="#009E47" />
+              <ShieldCheck size={36} color="#EA580C" />
             </div>
 
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', letterSpacing: '1px', textTransform: 'uppercase' }}>
-              NONSTOCK VERIFIED PROTOCOL
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              STOCKS OPERATOR VERIFIED PROTOCOL
             </div>
             <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', margin: '8px 0 10px 0' }}>
               Welcome to Your Proving Terminal
@@ -823,7 +823,7 @@ export default function Dashboard() {
               height: isMobile ? '125px' : '185px',
               background: bannerUrl 
                 ? `url(${bannerUrl}) center/cover no-repeat` 
-                : 'linear-gradient(135deg, #059669 0%, #00D26A 50%, #10B981 100%)',
+                : 'linear-gradient(135deg, #C2410C 0%, #EA580C 50%, #FB923C 100%)',
               transition: 'height 0.25s ease',
               overflow: 'hidden'
             }}>
@@ -876,7 +876,7 @@ export default function Dashboard() {
                   <button
                     onClick={() => {
                       setBannerUrl('');
-                      localStorage.removeItem('nonstock_user_banner');
+                      localStorage.removeItem('stocksoperator_user_banner');
                       toast.success('Custom banner removed');
                     }}
                     title="Remove custom banner"
@@ -949,7 +949,7 @@ export default function Dashboard() {
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ fontSize: isMobile ? '26px' : '34px', fontWeight: 900, color: '#00D26A' }}>
+                      <div style={{ fontSize: isMobile ? '26px' : '34px', fontWeight: 900, color: '#EA580C' }}>
                         {userName.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -979,7 +979,7 @@ export default function Dashboard() {
                     <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>Disciplined Prover</span>
                       <span>•</span>
-                      <span style={{ color: '#009E47', fontWeight: 800 }}>Pro Member</span>
+                      <span style={{ color: '#EA580C', fontWeight: 800 }}>Pro Member</span>
                       <span>•</span>
                       <span style={{ color: '#64748B' }}>Baseline $1,000.00</span>
                     </div>
@@ -1052,11 +1052,11 @@ export default function Dashboard() {
                 textTransform: 'uppercase'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                  <span style={{ color: '#0F172A', fontWeight: 900 }}>NONSTOCK PROTOCOL</span>
+                  <span style={{ color: '#0F172A', fontWeight: 900 }}>STOCKS OPERATOR PROTOCOL</span>
                   <span>•</span>
-                  <span>ACCOUNT: NS-{user?.id?.substring(0, 8) || 'c141ad16'}</span>
+                  <span>ACCOUNT: SO-{user?.id?.substring(0, 8) || 'c141ad16'}</span>
                   <span>•</span>
-                  <span>UNIVERSAL BASELINE: <strong style={{ color: '#009E47' }}>$1,000.00</strong></span>
+                  <span>UNIVERSAL BASELINE: <strong style={{ color: '#EA580C' }}>$1,000.00</strong></span>
                   <span>•</span>
                   <span>REGIME: CONTINUOUS AUDIT</span>
                 </div>
@@ -1930,7 +1930,7 @@ export default function Dashboard() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <button
                           onClick={() => {
-                            localStorage.setItem('nonstock_active_symbol', sym);
+                            localStorage.setItem('stocksoperator_active_symbol', sym);
                             navigate(`/trading?symbol=${sym}`);
                           }}
                           title={`Launch trade ticket for ${sym}`}
@@ -2460,11 +2460,11 @@ export default function Dashboard() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 GLOBAL VERIFIED RANKINGS
               </div>
               <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '3px 0 0 0' }}>
-                NonStock Proving Leaderboard
+                Stocks Operator Proving Leaderboard
               </h3>
             </div>
             <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 800 }}>

@@ -55,11 +55,11 @@ export default function OnboardingTour() {
   // Standard Tour Steps (Easy, simple language)
   const standardSteps = [
     {
-      title: "Welcome to NonStock!",
+      title: "Welcome to Stocks Operator!",
       path: "/dashboard",
       selector: null,
       icon: <LayoutDashboard size={40} className="text-emerald-400" />,
-      content: "Welcome to your risk-free trading platform! We created NonStock so you can learn trading easily without losing any real money. Let's take a quick 1-minute look at how everything works.",
+      content: "Welcome to your risk-free trading platform! We created Stocks Operator so you can learn trading easily without losing any real money. Let's take a quick 1-minute look at how everything works.",
       illustration: (
         <div style={{
           height: '100px',
@@ -146,7 +146,7 @@ export default function OnboardingTour() {
           textAlign: 'center',
           margin: '12px 0'
         }}>
-          Unlock NonStock AI & Smart Trading Bots
+          Unlock Stocks Operator AI & Smart Trading Bots
         </div>
       )
     }
@@ -155,7 +155,7 @@ export default function OnboardingTour() {
   // Pro Tour Steps (Easy, simple language for Pro features)
   const proSteps = [
     {
-      title: "Welcome to NonStock Pro!",
+      title: "Welcome to Stocks Operator Pro!",
       path: "/dashboard",
       selector: null,
       icon: <Sparkles size={40} style={{ color: '#ffb300' }} />,

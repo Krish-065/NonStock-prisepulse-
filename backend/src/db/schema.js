@@ -21,7 +21,7 @@ async function createTables() {
       landing_page VARCHAR(50) DEFAULT 'Dashboard',
       broker_code VARCHAR(50) DEFAULT 'PRP065',
       demat_id VARCHAR(50) DEFAULT '1208160001094852',
-      dp_name VARCHAR(100) DEFAULT 'NonStock Securities Pvt Ltd',
+      dp_name VARCHAR(100) DEFAULT 'Stocks Operator Securities Pvt Ltd',
       pan_id VARCHAR(50) DEFAULT 'ABCDE*****F',
       brokerage_plan VARCHAR(100) DEFAULT '₹0 Equity Delivery / ₹20 F&O Intraday',
       gold_coins INT DEFAULT 0,
@@ -38,7 +38,7 @@ async function createTables() {
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS landing_page VARCHAR(50) DEFAULT 'Dashboard'`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS broker_code VARCHAR(50) DEFAULT 'PRP065'`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS demat_id VARCHAR(50) DEFAULT '1208160001094852'`);
-  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS dp_name VARCHAR(100) DEFAULT 'NonStock Securities Pvt Ltd'`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS dp_name VARCHAR(100) DEFAULT 'Stocks Operator Securities Pvt Ltd'`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pan_id VARCHAR(50) DEFAULT 'ABCDE*****F'`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS brokerage_plan VARCHAR(100) DEFAULT '₹0 Equity Delivery / ₹20 F&O Intraday'`);
   await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS connected_broker VARCHAR(100)`);
@@ -388,10 +388,10 @@ async function createTables() {
   if (parseInt(courseCount.rows[0].count) === 0) {
     console.log('Seeding default educational courses...');
     const defaultCourses = [
-      ['c1', 'Stock Investing 101 for Beginners', 'Learn the basics of stock market, how shares work, and your first steps in investing.', 'NonStock Academy', 'https://www.youtube.com/watch?v=Xn7KWR97DQA', 'Basics'],
+      ['c1', 'Stock Investing 101 for Beginners', 'Learn the basics of stock market, how shares work, and your first steps in investing.', 'Stocks Operator Academy', 'https://www.youtube.com/watch?v=Xn7KWR97DQA', 'Basics'],
       ['c2', 'Mastering RSI & EMA Technical Indicators', 'In-depth guide to technical indicators, standard parameters, and setups.', 'QuantPro Teacher', 'https://www.youtube.com/watch?v=fn24_D3L4z8', 'Technicals'],
       ['c3', 'Introduction to Futures & Options (F&O)', 'Learn option chains, Open Interest, Call-Put ratios, and contract definitions.', 'OptionGeek YouTuber', 'https://www.youtube.com/watch?v=1u4bWvjFpxM', 'F&O'],
-      ['c4', 'Building & Backtesting Algorithmic Strategies', 'Step-by-step walkthrough on creating risk-managed backtest systems.', 'NonStock AI Mentor', 'https://www.youtube.com/watch?v=8mG_E15_l_0', 'Algorithms']
+      ['c4', 'Building & Backtesting Algorithmic Strategies', 'Step-by-step walkthrough on creating risk-managed backtest systems.', 'Stocks Operator AI Mentor', 'https://www.youtube.com/watch?v=8mG_E15_l_0', 'Algorithms']
     ];
     for (const c of defaultCourses) {
       await query('INSERT INTO courses (id, title, description, instructor, youtube_link, category) VALUES ($1,$2,$3,$4,$5,$6)', c);

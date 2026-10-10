@@ -26,13 +26,13 @@ router.get('/status', authenticate, async (req, res) => {
     const connectedBroker = row.connected_broker || null;
     const isActive = Boolean(row.mirror_is_active);
     const realBalance = parseFloat(row.mirror_real_balance || 12480.00);
-    const nonstockCapital = parseFloat(row.virtual_balance || 1000.00);
+    const stocksoperatorCapital = parseFloat(row.virtual_balance || 1000.00);
     const riskPct = parseFloat(row.mirror_risk_pct || 2.0);
 
     const tradesRes = await query(
       `SELECT id, broker, symbol, type, real_entry_price as "realEntryPrice", real_exit_price as "realExitPrice",
               real_equity as "realEquity", real_risk_pct as "realRiskPct", real_pnl as "realPnl", real_pnl_pct as "realPnlPct",
-              nonstock_capital as "nonstockCapital", nonstock_risk_amount as "nonstockRiskAmount", nonstock_pnl as "nonstockPnl",
+              stocksoperator_capital as "stocksoperatorCapital", stocksoperator_risk_amount as "stocksoperatorRiskAmount", stocksoperator_pnl as "stocksoperatorPnl",
               status, sl_distance as "slDistance", tp_distance as "tpDistance", opened_at as "openedAt", closed_at as "closedAt"
        FROM mirrored_trades 
        WHERE user_id = $1 
@@ -45,15 +45,15 @@ router.get('/status', authenticate, async (req, res) => {
       connectedBroker,
       isActive,
       realBalance,
-      nonstockCapital,
+      stocksoperatorCapital,
       riskPct,
       lastSyncAt: row.mirror_last_sync_at,
       mapping: {
         realEquity: realBalance,
         realRiskAmount: parseFloat((realBalance * (riskPct / 100)).toFixed(2)),
-        nonstockBaseline: nonstockCapital,
-        nonstockRiskAmount: parseFloat((nonstockCapital * (riskPct / 100)).toFixed(2)),
-        ratio: `1 : ${(realBalance / (nonstockCapital || 1)).toFixed(2)}`
+        stocksoperatorBaseline: stocksoperatorCapital,
+        stocksoperatorRiskAmount: parseFloat((stocksoperatorCapital * (riskPct / 100)).toFixed(2)),
+        ratio: `1 : ${(realBalance / (stocksoperatorCapital || 1)).toFixed(2)}`
       },
       trades: tradesRes.rows
     });
@@ -132,7 +132,7 @@ router.post('/connect', authenticate, async (req, res) => {
         const closed = new Date(opened.getTime() + 1800000);
         await query(
           `INSERT INTO mirrored_trades 
-           (id, user_id, broker, symbol, type, real_entry_price, real_exit_price, real_equity, real_risk_pct, real_pnl, real_pnl_pct, nonstock_capital, nonstock_risk_amount, nonstock_pnl, status, opened_at, closed_at)
+           (id, user_id, broker, symbol, type, real_entry_price, real_exit_price, real_equity, real_risk_pct, real_pnl, real_pnl_pct, stocksoperator_capital, stocksoperator_risk_amount, stocksoperator_pnl, status, opened_at, closed_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
           [
             crypto.randomUUID(), req.user.id, broker, t.symbol, t.type,
@@ -189,7 +189,7 @@ router.post('/disconnect', authenticate, async (req, res) => {
       [req.user.id]
     );
 
-    res.json({ success: true, message: 'Broker disconnected from NonStock Proving Protocol' });
+    res.json({ success: true, message: 'Broker disconnected from Stocks Operator Proving Protocol' });
   } catch (err) {
     console.error('❌ Broker Mirror disconnect error:', err);
     res.status(500).json({ error: 'Failed to disconnect broker' });

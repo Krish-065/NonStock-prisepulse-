@@ -210,7 +210,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
   const navigate = useNavigate();
   const [assets, setAssets] = useState(() => {
     try {
-      const saved = localStorage.getItem('nonstock_custom_screener_assets');
+      const saved = localStorage.getItem('stocksoperator_custom_screener_assets');
       if (saved) {
         const parsed = JSON.parse(saved);
         const existingSymbols = new Set(INITIAL_ASSETS.map(a => a.symbol));
@@ -251,7 +251,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
     setAssets(updated);
     try {
       const customOnly = updated.filter(a => !INITIAL_ASSETS.some(ia => ia.symbol === a.symbol));
-      localStorage.setItem('nonstock_custom_screener_assets', JSON.stringify(customOnly));
+      localStorage.setItem('stocksoperator_custom_screener_assets', JSON.stringify(customOnly));
     } catch (e) {
       console.warn(e);
     }
@@ -315,7 +315,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
     setAssets(updated);
     try {
       const customOnly = updated.filter(a => !INITIAL_ASSETS.some(ia => ia.symbol === a.symbol));
-      localStorage.setItem('nonstock_custom_screener_assets', JSON.stringify(customOnly));
+      localStorage.setItem('stocksoperator_custom_screener_assets', JSON.stringify(customOnly));
     } catch (e) {
       console.warn(e);
     }
@@ -468,7 +468,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
     else if (asset.symbol === 'USDCAD=X') sym = 'USDCAD';
     else sym = (asset.badge || asset.symbol).replace(/[\/\-=]/g, '');
 
-    localStorage.setItem('nonstock_active_symbol', sym);
+    localStorage.setItem('stocksoperator_active_symbol', sym);
 
     if (onSelectAsset) {
       onSelectAsset(asset);

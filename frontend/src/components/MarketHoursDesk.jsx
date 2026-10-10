@@ -5,7 +5,7 @@ import { getAllMarketSessions } from '../utils/marketHours';
 /**
  * MarketHoursDesk — Global Market Sessions & Live World Clock
  * Directly inspired by Screen 1 of the mobile reference design,
- * adapted to the NonStock light theme (pure white, emerald green, and black text).
+ * adapted to the Stocks Operator light theme (pure white, emerald green, and black text).
  */
 export default function MarketHoursDesk({ 
   onSelectSession = null,
