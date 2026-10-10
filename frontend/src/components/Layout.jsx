@@ -131,12 +131,12 @@ export default function Layout({ children }) {
             }}
             title="Stocks Operator Dashboard (Verified Proving Ground)"
           >
-            <Logo size={isMobile ? 28 : 36} showName={true} showTagline={false} nameSize={isMobile ? "17px" : "21px"} color="#0F172A" />
+            <Logo size={isMobile ? 32 : 42} showName={true} showTagline={false} nameSize={isMobile ? "19px" : "24px"} color="#0F172A" />
           </div>
 
           {/* Desktop Navigation Links */}
           {user && !isMobile && (
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {navItems.filter(item => item.show).map((item) => {
                 const Icon = item.icon;
                 return (
@@ -152,21 +152,21 @@ export default function Layout({ children }) {
                         : 'transparent',
                       color: item.active
                         ? (item.highlight ? '#FFFFFF' : '#EA580C')
-                        : '#475569',
+                        : '#334155',
                       border: item.active && !item.highlight
                         ? '1px solid #FFEDD5'
                         : '1px solid transparent',
-                      borderRadius: '8px',
-                      padding: item.highlight ? '7px 15px' : '7px 13px',
-                      fontSize: '13px',
+                      borderRadius: '10px',
+                      padding: item.highlight ? '8px 18px' : '8px 14px',
+                      fontSize: '15px',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '7px',
+                      gap: '8px',
                       transition: 'all 0.15s ease',
                       boxShadow: item.active && item.highlight 
-                        ? '0 2px 10px rgba(234, 88, 12, 0.25)' 
+                        ? '0 4px 14px rgba(234, 88, 12, 0.28)' 
                         : 'none'
                     }}
                     onMouseEnter={(e) => {

@@ -110,14 +110,14 @@ export default function CelestialEngine({
 
       const isHero = mode === 'hero';
 
-      // ─── 1. BACKGROUND GRADIENT ───
+      // ─── 1. BACKGROUND GRADIENT (PURE LUXURY ORANGE & WHITE THEME) ───
       const bgGrad = ctx.createLinearGradient(0, 0, width, height);
       if (isHero) {
-        // Deep obsidian charcoal fading into crisp light grid
-        bgGrad.addColorStop(0, '#0F172A');
-        bgGrad.addColorStop(0.45, '#1E293B');
-        bgGrad.addColorStop(0.85, '#0B0F19');
-        bgGrad.addColorStop(1, '#020617');
+        // High-end institutional radiant white with subtle warm orange undertones
+        bgGrad.addColorStop(0, '#FFFFFF');
+        bgGrad.addColorStop(0.3, '#FFFDF8');
+        bgGrad.addColorStop(0.7, '#FFF7ED');
+        bgGrad.addColorStop(1, '#FFEDD5');
       } else {
         // Subtle ambient for dashboard
         bgGrad.addColorStop(0, 'rgba(255, 247, 237, 0.45)');
@@ -129,9 +129,9 @@ export default function CelestialEngine({
 
       // ─── 2. ISOMETRIC PERSPECTIVE GRID LINES ───
       ctx.save();
-      const gridSpacing = isHero ? 60 : 80;
-      const gridAlpha = isHero ? 0.09 : 0.05;
-      ctx.strokeStyle = isHero ? `rgba(234, 88, 12, ${gridAlpha * 1.5})` : `rgba(194, 65, 12, ${gridAlpha})`;
+      const gridSpacing = isHero ? 50 : 80;
+      const gridAlpha = isHero ? 0.05 : 0.04;
+      ctx.strokeStyle = `rgba(234, 88, 12, ${gridAlpha})`;
       ctx.lineWidth = 1;
 
       // Vertical grid lines
@@ -152,8 +152,8 @@ export default function CelestialEngine({
 
       // Diagonal cross-vector lines (Institutional algorithmic depth)
       if (isHero) {
-        ctx.strokeStyle = 'rgba(234, 88, 12, 0.05)';
-        ctx.setLineDash([4, 12]);
+        ctx.strokeStyle = 'rgba(234, 88, 12, 0.025)';
+        ctx.setLineDash([4, 16]);
         for (let d = -height; d <= width; d += gridSpacing * 2) {
           ctx.beginPath();
           ctx.moveTo(d, 0);
@@ -164,32 +164,23 @@ export default function CelestialEngine({
       }
       ctx.restore();
 
-      // ─── 3. DARK DULL ORANGE ORDER-FLOW DEPTH WAVE (HARMONIC SINE CURVE) ───
-      const baselineY = isHero ? height * 0.68 : height * 0.8;
-      const waveAmplitude = isHero ? 50 : 25;
+      // ─── 3. SUBTLE ORDER-FLOW DEPTH HORIZON (CALM MATHEMATICAL CURVE) ───
+      const baselineY = isHero ? height * 0.85 : height * 0.8;
+      const waveAmplitude = isHero ? 12 : 18;
 
       ctx.save();
-      // Gradient for waveform fill
       const waveFillGrad = ctx.createLinearGradient(0, baselineY - waveAmplitude * 2, 0, height);
-      if (isHero) {
-        waveFillGrad.addColorStop(0, 'rgba(234, 88, 12, 0.16)');
-        waveFillGrad.addColorStop(0.4, 'rgba(194, 65, 12, 0.08)');
-        waveFillGrad.addColorStop(1, 'rgba(15, 23, 42, 0)');
-      } else {
-        waveFillGrad.addColorStop(0, 'rgba(234, 88, 12, 0.06)');
-        waveFillGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      }
+      waveFillGrad.addColorStop(0, 'rgba(234, 88, 12, 0.06)');
+      waveFillGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
-      // Draw primary harmonic wave
+      // Draw calm baseline wave
       ctx.beginPath();
       ctx.moveTo(0, height);
       ctx.lineTo(0, baselineY);
 
-      for (let x = 0; x <= width; x += 15) {
+      for (let x = 0; x <= width; x += 20) {
         const nx = x / width;
-        const wave = Math.sin(nx * 8 + t) * (waveAmplitude * 0.6) +
-                     Math.cos(nx * 14 - t * 0.8) * (waveAmplitude * 0.3) +
-                     Math.sin(nx * 4 + t * 0.5) * (waveAmplitude * 0.4);
+        const wave = Math.sin(nx * 4 + t * 0.3) * waveAmplitude;
         ctx.lineTo(x, baselineY + wave);
       }
 
@@ -198,60 +189,44 @@ export default function CelestialEngine({
       ctx.fillStyle = waveFillGrad;
       ctx.fill();
 
-      // Draw sharp wave crest line
-      ctx.beginPath();
-      for (let x = 0; x <= width; x += 15) {
-        const nx = x / width;
-        const wave = Math.sin(nx * 8 + t) * (waveAmplitude * 0.6) +
-                     Math.cos(nx * 14 - t * 0.8) * (waveAmplitude * 0.3) +
-                     Math.sin(nx * 4 + t * 0.5) * (waveAmplitude * 0.4);
-        if (x === 0) ctx.moveTo(x, baselineY + wave);
-        else ctx.lineTo(x, baselineY + wave);
-      }
-      ctx.strokeStyle = isHero ? 'rgba(234, 88, 12, 0.55)' : 'rgba(194, 65, 12, 0.25)';
-      ctx.lineWidth = isHero ? 2 : 1.2;
-      ctx.stroke();
-
-      // Secondary white mathematical baseline vector
+      // Sharp baseline telemetry vector
       ctx.beginPath();
       for (let x = 0; x <= width; x += 20) {
         const nx = x / width;
-        const wave2 = Math.sin(nx * 10 - t * 1.2) * (waveAmplitude * 0.45);
-        if (x === 0) ctx.moveTo(x, baselineY - 20 + wave2);
-        else ctx.lineTo(x, baselineY - 20 + wave2);
+        const wave = Math.sin(nx * 4 + t * 0.3) * waveAmplitude;
+        if (x === 0) ctx.moveTo(x, baselineY + wave);
+        else ctx.lineTo(x, baselineY + wave);
       }
-      ctx.strokeStyle = isHero ? 'rgba(255, 255, 255, 0.35)' : 'rgba(15, 23, 42, 0.1)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = 'rgba(234, 88, 12, 0.22)';
+      ctx.lineWidth = 1.2;
       ctx.stroke();
-      ctx.setLineDash([]);
       ctx.restore();
 
-      // ─── 4. ALGORITHMIC CANDLESTICK MATRIX (DARK DULL ORANGE & METALLIC WHITE) ───
+      // ─── 4. ALGORITHMIC CANDLESTICKS (SUBTLE BACKGROUND TELEMETRY) ───
       if (isHero) {
         ctx.save();
         candles.forEach((c) => {
           const cx = c.xRatio * (width - 80) + 40;
-          const osc = Math.sin(t * c.speed * 40 + c.offset);
-          const bodyH = Math.max(8, c.baseHeight + osc * 14);
-          const cy = baselineY - 40 - Math.sin(c.xRatio * 6 + t * 0.5) * 45;
-          const isUp = (c.baseHeight + osc * 14) > c.baseHeight;
+          const osc = Math.sin(t * c.speed * 20 + c.offset);
+          const bodyH = Math.max(6, c.baseHeight * 0.7 + osc * 8);
+          const cy = baselineY - 30 - Math.sin(c.xRatio * 4 + t * 0.3) * 12;
+          const isUp = (c.baseHeight + osc * 8) > c.baseHeight;
 
           // Wick
           const wickH = bodyH * c.wickRatio;
           ctx.beginPath();
           ctx.moveTo(cx, cy - wickH / 2);
           ctx.lineTo(cx, cy + wickH / 2);
-          ctx.strokeStyle = isUp ? 'rgba(234, 88, 12, 0.4)' : 'rgba(255, 255, 255, 0.25)';
-          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = isUp ? 'rgba(234, 88, 12, 0.25)' : 'rgba(100, 116, 139, 0.2)';
+          ctx.lineWidth = 1;
           ctx.stroke();
 
           // Body
-          const bw = 5;
+          const bw = 4;
           ctx.fillStyle = isUp
-            ? 'rgba(194, 65, 12, 0.75)' // Deep dark dull orange
-            : 'rgba(255, 255, 255, 0.55)'; // Crisp white accent
-          ctx.strokeStyle = isUp ? '#EA580C' : '#FFFFFF';
+            ? 'rgba(234, 88, 12, 0.45)' // Dark dull orange
+            : 'rgba(255, 255, 255, 0.85)'; // White body
+          ctx.strokeStyle = isUp ? 'rgba(234, 88, 12, 0.6)' : 'rgba(203, 213, 225, 0.6)';
           ctx.lineWidth = 0.8;
           ctx.fillRect(cx - bw / 2, cy - bodyH / 2, bw, bodyH);
           ctx.strokeRect(cx - bw / 2, cy - bodyH / 2, bw, bodyH);
@@ -259,11 +234,11 @@ export default function CelestialEngine({
         ctx.restore();
       }
 
-      // ─── 5. FLOATING TELEMETRY NODES & CROSSHAIRS ───
+      // ─── 5. FLOATING TELEMETRY NODES ───
       ctx.save();
       particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
+        p.x += p.vx * 0.5;
+        p.y += p.vy * 0.5;
         if (p.x < 0) p.x = 1;
         if (p.x > 1) p.x = 0;
         if (p.y < 0) p.y = 1;
@@ -272,42 +247,12 @@ export default function CelestialEngine({
         const px = p.x * width;
         const py = p.y * height;
 
-        ctx.fillStyle = isHero ? `rgba(234, 88, 12, ${p.alpha * 0.8})` : `rgba(194, 65, 12, ${p.alpha * 0.4})`;
+        ctx.fillStyle = `rgba(234, 88, 12, ${p.alpha * 0.35})`;
         ctx.beginPath();
-        ctx.arc(px, py, p.size, 0, Math.PI * 2);
+        ctx.arc(px, py, p.size * 0.8, 0, Math.PI * 2);
         ctx.fill();
-
-        // Subtle crosshair around every 4th particle
-        if (Math.round(p.size * 10) % 4 === 0 && isHero) {
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-          ctx.lineWidth = 0.8;
-          const s = 6;
-          ctx.beginPath();
-          ctx.moveTo(px - s, py);
-          ctx.lineTo(px + s, py);
-          ctx.moveTo(px, py - s);
-          ctx.lineTo(px, py + s);
-          ctx.stroke();
-        }
       });
       ctx.restore();
-
-      // ─── 6. CORNER TACTICAL TELEMETRY HUD (HERO MODE ONLY) ───
-      if (isHero) {
-        ctx.save();
-        ctx.font = '10px monospace';
-        ctx.fillStyle = 'rgba(234, 88, 12, 0.5)';
-        ctx.fillText('STOCKS OPERATOR // QUANT ARCHITECTURE V3.8', 24, 30);
-        ctx.fillText(`TELEMETRY: ${timeString} [LATENCY: 0.84ms]`, 24, 46);
-
-        // Top right telemetry coordinates
-        const sysInfo = 'ORDERBOOK PROTOCOL: ACTIVE';
-        ctx.textAlign = 'right';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.fillText(sysInfo, width - 24, 30);
-        ctx.fillText('UNIVERSAL PROVING ENGINE: ONLINE', width - 24, 46);
-        ctx.restore();
-      }
 
       animationFrameId = requestAnimationFrame(render);
     };
@@ -327,13 +272,13 @@ export default function CelestialEngine({
       ref={containerRef}
       className={`operator-matrix-bg ${className}`}
       style={{
-        position: isHero ? 'relative' : 'fixed',
-        inset: isHero ? 'auto' : 0,
+        position: isHero ? 'absolute' : 'fixed',
+        inset: 0,
         width: '100%',
-        height: isHero ? 'auto' : '100%',
-        minHeight: isHero ? '680px' : 'auto',
+        height: '100%',
+        minHeight: 'auto',
         overflow: 'hidden',
-        pointerEvents: isHero ? 'auto' : 'none',
+        pointerEvents: 'none',
         zIndex: 0,
         ...style
       }}
@@ -379,13 +324,13 @@ export default function CelestialEngine({
                   gap: '6px',
                   padding: '5px 12px',
                   borderRadius: '20px',
-                  background: isOpen ? 'rgba(15, 23, 42, 0.88)' : 'rgba(15, 23, 42, 0.65)',
-                  border: isOpen ? '1.5px solid #EA580C' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: isOpen ? '#FFFFFF' : 'rgba(255, 255, 255, 0.85)',
+                  border: isOpen ? '1.5px solid #EA580C' : '1px solid #E2E8F0',
                   backdropFilter: 'blur(8px)',
-                  boxShadow: isOpen ? '0 2px 10px rgba(234, 88, 12, 0.3)' : 'none',
+                  boxShadow: isOpen ? '0 4px 12px rgba(234, 88, 12, 0.18)' : '0 2px 6px rgba(0, 0, 0, 0.04)',
                   fontSize: '11px',
                   fontWeight: 700,
-                  color: isOpen ? '#FFFFFF' : '#94A3B8',
+                  color: isOpen ? '#0F172A' : '#64748B',
                   letterSpacing: '0.4px',
                   userSelect: 'none'
                 }}

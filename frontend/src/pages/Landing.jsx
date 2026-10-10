@@ -102,6 +102,18 @@ export default function Landing() {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const navLinkStyle = {
+    background: 'none',
+    border: 'none',
+    fontSize: '15px',
+    fontWeight: 700,
+    color: '#334155',
+    cursor: 'pointer',
+    padding: '6px 10px',
+    borderRadius: '8px',
+    transition: 'all 0.15s ease'
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF', color: '#0F172A', fontFamily: 'Inter, sans-serif', overflowX: 'hidden' }}>
       
@@ -119,7 +131,7 @@ export default function Landing() {
         WebkitBackdropFilter: 'blur(16px)',
         borderBottom: '1px solid #E2E8F0',
         padding: isMobile ? '0 16px' : '0 32px',
-        height: '70px',
+        height: '74px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -127,7 +139,7 @@ export default function Landing() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '36px' }}>
           <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer', zoom: isMobile ? 0.9 : 1 }}>
-            <Logo size={36} showName={true} showTagline={false} nameSize="22px" />
+            <Logo size={38} showName={true} showTagline={false} nameSize="24px" />
           </div>
 
           {!isMobile && (
@@ -148,14 +160,14 @@ export default function Landing() {
           <Link 
             to="/login"
             style={{
-              padding: '9px 18px',
+              padding: '10px 20px',
               borderRadius: '10px',
-              fontSize: '13px',
+              fontSize: '14.5px',
               fontWeight: 700,
               color: '#334155',
               textDecoration: 'none',
               background: '#F8FAFC',
-              border: '1px solid #E2E8F0',
+              border: '1.5px solid #E2E8F0',
               transition: 'all 0.15s'
             }}
           >
@@ -165,9 +177,9 @@ export default function Landing() {
           <Link
             to="/register"
             style={{
-              padding: '10px 22px',
+              padding: '11px 24px',
               borderRadius: '10px',
-              fontSize: '13px',
+              fontSize: '14.5px',
               fontWeight: 800,
               color: '#FFFFFF',
               textDecoration: 'none',
@@ -180,7 +192,7 @@ export default function Landing() {
             }}
           >
             <span>Start Proving ($1,000 Baseline)</span>
-            <ArrowRight size={15} />
+            <ArrowRight size={16} />
           </Link>
         </div>
       </header>
@@ -247,7 +259,7 @@ export default function Landing() {
                 <span key={i} style={{ color: '#EA580C', fontSize: '13px' }}>{star}</span>
               ))}
             </div>
-            <span>STOCKS OPERATOR // 100% UNALTERABLE MATHEMATICAL PROVING PROTOCOL</span>
+            <span>GLOBAL VERIFIED // 100% UNALTERABLE MATHEMATICAL PROVING PROTOCOL</span>
           </div>
 
           {/* Monumental Headline Centered Over The Earth Dome */}
@@ -642,7 +654,7 @@ export default function Landing() {
           }}>
             <div>
               <div style={{ fontSize: '12px', fontWeight: 800, color: '#C2410C', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                THE STOCKS OPERATOR VERIFICATION STANDARD
+                THE VERIFIED TRADING PROTOCOL STANDARD
               </div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginTop: '4px' }}>
                 An un-fakeable proving ledger where every order, stop-loss, and drawdown is mathematically locked against live exchange feeds.
@@ -968,10 +980,10 @@ export default function Landing() {
                   </div>
                   <div>
                     <div style={{ fontSize: '11px', color: '#EA580C', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>
-                      OFFICIAL STOCKS OPERATOR CREDENTIAL
+                      OFFICIAL VERIFIED CREDENTIAL
                     </div>
                     <div style={{ fontSize: '17px', fontWeight: 900, color: '#FFFFFF' }}>
-                      Stocks Operator Verified Prover
+                      Verified Institutional Prover
                     </div>
                   </div>
                 </div>
@@ -1268,7 +1280,7 @@ export default function Landing() {
               textTransform: 'uppercase',
               marginBottom: '16px'
             }}>
-              <span>STOCKS OPERATOR PROVING PROTOCOL</span>
+              <span>INSTITUTIONAL PROVING PROTOCOL</span>
             </div>
 
             <h2 style={{
@@ -1279,7 +1291,7 @@ export default function Landing() {
               margin: '0 0 16px 0',
               lineHeight: 1.15
             }}>
-              Stocks Operator Engine — Unmatched Mathematical Reliability Across The Industry
+              Execution Proving Engine — Unmatched Mathematical Reliability Across The Industry
             </h2>
             <p style={{ fontSize: '17px', color: '#64748B', lineHeight: 1.65 }}>
               Engineered with sub-second execution latency, strict stop-loss validation, and the universal $1,000 baseline economy.
@@ -1377,7 +1389,7 @@ export default function Landing() {
                 textAlign: 'center'
               }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', letterSpacing: '1.2px', textTransform: 'uppercase' }}>
-                  OFFICIAL STOCKS OPERATOR PROTOCOL MINT
+                  OFFICIAL VERIFIED PROTOCOL MINT
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
                   The 1K Sovereign Gold Coin
@@ -1554,116 +1566,165 @@ export default function Landing() {
             </p>
           </div>
 
-          {/* 5 Decagon Tiers Showcase (Clean Luxury Light Theme) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '22px', marginBottom: '70px' }}>
+          {/* 5 Decagon Tiers Showcase (Huge Authentic Colored Crest Badges with Radiant Auras) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '26px', marginBottom: '70px' }}>
             
-            {/* Tier 1: Contender */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #FED7AA', boxShadow: '0 4px 20px rgba(234, 88, 12, 0.06)', textAlign: 'center' }}>
+            {/* Tier 1: Contender (Pure Orange & White Warrior Crest) */}
+            <div style={{
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FFF7ED 100%)',
+              borderRadius: '24px',
+              padding: '36px 20px',
+              border: '2px solid #FDBA74',
+              boxShadow: '0 8px 30px rgba(234, 88, 12, 0.12)',
+              textAlign: 'center',
+              position: 'relative',
+              transition: 'transform 0.25s ease'
+            }}>
+              {/* Huge 124px Badge with Radiant Orange-White Aura */}
               <div style={{
-                width: '76px',
-                height: '76px',
-                margin: '0 auto 18px auto',
-                background: '#FFF7ED',
-                border: '2px solid #EA580C',
+                width: '124px',
+                height: '124px',
+                margin: '0 auto 20px auto',
                 borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 16px rgba(234, 88, 12, 0.25)'
+                overflow: 'hidden',
+                border: '3px solid #EA580C',
+                boxShadow: '0 0 28px rgba(234, 88, 12, 0.55), 0 0 50px rgba(234, 88, 12, 0.2)',
+                background: '#FFFFFF'
               }}>
-                <ShieldCheck size={36} color="#EA580C" />
+                <img src="/assets/badge_contender.jpg" alt="Contender Badge" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase' }}>TIER 1 BASELINE</div>
-              <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '6px 0 8px 0' }}>Contender</h4>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>$1,000 Baseline</div>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '10px 0 0 0', lineHeight: 1.6 }}>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.8px' }}>TIER 1 BASELINE</div>
+              <h4 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', margin: '8px 0 8px 0' }}>Contender</h4>
+              <div style={{ fontSize: '17px', fontWeight: 800, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>$1,000 Baseline</div>
+              <p style={{ fontSize: '13.5px', color: '#64748B', margin: '12px 0 0 0', lineHeight: 1.6 }}>
                 The entry proving ground. 50x leverage cap with liquidation protection.
               </p>
             </div>
 
-            {/* Tier 2: Silver Prover */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #CBD5E1', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', textAlign: 'center' }}>
+            {/* Tier 2: Silver Prover (Authentic Polished Silver Titanium Crest) */}
+            <div style={{
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
+              borderRadius: '24px',
+              padding: '36px 20px',
+              border: '2px solid #CBD5E1',
+              boxShadow: '0 8px 30px rgba(100, 116, 139, 0.12)',
+              textAlign: 'center',
+              position: 'relative',
+              transition: 'transform 0.25s ease'
+            }}>
+              {/* Huge 124px Badge with Radiant Metallic Silver Aura */}
               <div style={{
-                width: '76px',
-                height: '76px',
-                margin: '0 auto 18px auto',
-                background: '#F8FAFC',
-                border: '2px solid #64748B',
+                width: '124px',
+                height: '124px',
+                margin: '0 auto 20px auto',
                 borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 16px rgba(100, 116, 139, 0.2)'
+                overflow: 'hidden',
+                border: '3px solid #94A3B8',
+                boxShadow: '0 0 28px rgba(148, 163, 184, 0.65), 0 0 50px rgba(203, 213, 225, 0.35)',
+                background: '#F8FAFC'
               }}>
-                <Medal size={36} color="#475569" />
+                <img src="/assets/badge_silver_prover.jpg" alt="Silver Prover Badge" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>TIER 2 VERIFIED</div>
-              <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '6px 0 8px 0' }}>Silver Prover</h4>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#334155', fontFamily: 'var(--font-mono)' }}>$2,000+ Capital</div>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '10px 0 0 0', lineHeight: 1.6 }}>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.8px' }}>TIER 2 VERIFIED</div>
+              <h4 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', margin: '8px 0 8px 0' }}>Silver Prover</h4>
+              <div style={{ fontSize: '17px', fontWeight: 800, color: '#334155', fontFamily: 'var(--font-mono)' }}>$2,000+ Capital</div>
+              <p style={{ fontSize: '13.5px', color: '#64748B', margin: '12px 0 0 0', lineHeight: 1.6 }}>
                 Doubled baseline through disciplined execution and strict stop-loss adherence.
               </p>
             </div>
 
-            {/* Tier 3: Gold Sovereign (Dangerous Imperial Bull Crest) */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #FDBA74', boxShadow: '0 4px 24px rgba(234, 88, 12, 0.12)', textAlign: 'center' }}>
+            {/* Tier 3: Gold Sovereign (Bright Shining 24K Gold Bull Crest) */}
+            <div style={{
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FEFCE8 100%)',
+              borderRadius: '24px',
+              padding: '36px 20px',
+              border: '2px solid #FDE047',
+              boxShadow: '0 8px 32px rgba(234, 179, 8, 0.2)',
+              textAlign: 'center',
+              position: 'relative',
+              transition: 'transform 0.25s ease'
+            }}>
+              {/* Huge 124px Badge with Radiant 24K Shining Gold Aura */}
               <div style={{
-                width: '76px',
-                height: '76px',
-                margin: '0 auto 18px auto',
+                width: '124px',
+                height: '124px',
+                margin: '0 auto 20px auto',
                 borderRadius: '50%',
                 overflow: 'hidden',
-                border: '2.5px solid #EA580C',
-                boxShadow: '0 4px 20px rgba(234, 88, 12, 0.45)'
+                border: '3px solid #EAB308',
+                boxShadow: '0 0 32px rgba(234, 179, 8, 0.75), 0 0 58px rgba(250, 204, 21, 0.45)',
+                background: '#FEFCE8'
               }}>
                 <img src="/assets/badge_gold_sovereign.jpg" alt="Gold Sovereign Crest" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase' }}>TIER 3 SOVEREIGN</div>
-              <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '6px 0 8px 0' }}>Gold Sovereign</h4>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#C2410C', fontFamily: 'var(--font-mono)' }}>$4,000+ Capital</div>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '10px 0 0 0', lineHeight: 1.6 }}>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.8px' }}>TIER 3 SOVEREIGN</div>
+              <h4 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', margin: '8px 0 8px 0' }}>Gold Sovereign</h4>
+              <div style={{ fontSize: '17px', fontWeight: 800, color: '#B45309', fontFamily: 'var(--font-mono)' }}>$4,000+ Capital</div>
+              <p style={{ fontSize: '13.5px', color: '#64748B', margin: '12px 0 0 0', lineHeight: 1.6 }}>
                 Top 8% globally. Quadrupled baseline across shifting market regimes.
               </p>
             </div>
 
-            {/* Tier 4: Master Titan (Fierce Dragon-Titan Crest) */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #EA580C', boxShadow: '0 6px 26px rgba(194, 65, 12, 0.16)', textAlign: 'center' }}>
+            {/* Tier 4: Master Titan (Dangerous Neon Red Dragon Crest) */}
+            <div style={{
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FEF2F2 100%)',
+              borderRadius: '24px',
+              padding: '36px 20px',
+              border: '2px solid #FCA5A5',
+              boxShadow: '0 8px 34px rgba(239, 68, 68, 0.22)',
+              textAlign: 'center',
+              position: 'relative',
+              transition: 'transform 0.25s ease'
+            }}>
+              {/* Huge 124px Badge with Radiant Neon Red Dangerous Aura */}
               <div style={{
-                width: '76px',
-                height: '76px',
-                margin: '0 auto 18px auto',
+                width: '124px',
+                height: '124px',
+                margin: '0 auto 20px auto',
                 borderRadius: '50%',
                 overflow: 'hidden',
-                border: '2.5px solid #C2410C',
-                boxShadow: '0 4px 22px rgba(194, 65, 12, 0.55)'
+                border: '3px solid #EF4444',
+                boxShadow: '0 0 35px rgba(239, 68, 68, 0.8), 0 0 65px rgba(220, 38, 38, 0.5)',
+                background: '#FEF2F2'
               }}>
                 <img src="/assets/badge_master_titan.jpg" alt="Master Titan Crest" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase' }}>TIER 4 TITAN</div>
-              <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '6px 0 8px 0' }}>Master Titan</h4>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#9A3412', fontFamily: 'var(--font-mono)' }}>$8,000+ Capital</div>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '10px 0 0 0', lineHeight: 1.6 }}>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#DC2626', textTransform: 'uppercase', letterSpacing: '0.8px' }}>TIER 4 TITAN</div>
+              <h4 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', margin: '8px 0 8px 0' }}>Master Titan</h4>
+              <div style={{ fontSize: '17px', fontWeight: 800, color: '#DC2626', fontFamily: 'var(--font-mono)' }}>$8,000+ Capital</div>
+              <p style={{ fontSize: '13.5px', color: '#64748B', margin: '12px 0 0 0', lineHeight: 1.6 }}>
                 8x compounder with minimal drawdowns and multi-week winning streaks.
               </p>
             </div>
 
-            {/* Tier 5: Apex Operator (Dangerous Cyber-Wolf Predator Crest) */}
-            <div style={{ background: '#0F172A', borderRadius: '20px', padding: '32px 22px', border: '2px solid #EA580C', boxShadow: '0 8px 32px rgba(234, 88, 12, 0.35)', textAlign: 'center' }}>
+            {/* Tier 5: Apex Operator (Cosmic Ultraviolet Purple Predator Crest) */}
+            <div style={{
+              background: 'linear-gradient(180deg, #0F172A 0%, #1E1B4B 100%)',
+              borderRadius: '24px',
+              padding: '36px 20px',
+              border: '2.5px solid #A855F7',
+              boxShadow: '0 10px 40px rgba(168, 85, 247, 0.45)',
+              textAlign: 'center',
+              position: 'relative',
+              transition: 'transform 0.25s ease'
+            }}>
+              {/* Huge 124px Badge with Cosmic Purple Aura */}
               <div style={{
-                width: '76px',
-                height: '76px',
-                margin: '0 auto 18px auto',
+                width: '124px',
+                height: '124px',
+                margin: '0 auto 20px auto',
                 borderRadius: '50%',
                 overflow: 'hidden',
-                border: '2.5px solid #EA580C',
-                boxShadow: '0 0 24px rgba(234, 88, 12, 0.75)'
+                border: '3px solid #C084FC',
+                boxShadow: '0 0 40px rgba(168, 85, 247, 0.9), 0 0 75px rgba(147, 51, 234, 0.65)',
+                background: '#FAF5FF'
               }}>
                 <img src="/assets/badge_apex_operator.jpg" alt="Apex Operator Crest" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.8px' }}>TIER 5 APEX</div>
-              <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', margin: '6px 0 8px 0' }}>Apex Operator</h4>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>$15,000+ Capital</div>
-              <p style={{ fontSize: '13px', color: '#CBD5E1', margin: '10px 0 0 0', lineHeight: 1.6 }}>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#C084FC', textTransform: 'uppercase', letterSpacing: '0.8px' }}>TIER 5 APEX</div>
+              <h4 style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF', margin: '8px 0 8px 0' }}>Apex Operator</h4>
+              <div style={{ fontSize: '17px', fontWeight: 800, color: '#C084FC', fontFamily: 'var(--font-mono)' }}>$15,000+ Capital</div>
+              <p style={{ fontSize: '13.5px', color: '#E2E8F0', margin: '12px 0 0 0', lineHeight: 1.6 }}>
                 The elite 0.1% global echelon. Recognized sovereign institutional risk manager.
               </p>
             </div>
@@ -1905,7 +1966,7 @@ export default function Landing() {
               PUBLIC AUDITABLE LEDGER
             </span>
             <h2 style={{ fontSize: 'clamp(34px, 4vw, 48px)', fontWeight: 900, letterSpacing: '-1.2px', color: '#0F172A', margin: '12px 0 18px 0' }}>
-              The Global Hall of Fame: Stocks Operator Provers.
+              The Global Hall of Fame: Verified Elite Provers.
             </h2>
             <p style={{ fontSize: '17px', color: '#64748B', fontWeight: 500 }}>
               All records are verified mathematically with zero manual overrides. The public ledger sorts provers strictly by DER Score and capital compounded from the $1,000 baseline.
@@ -1925,11 +1986,11 @@ export default function Landing() {
               </thead>
               <tbody>
                 {[
-                  { rank: 1, desk: 'Stocks Operator', tag: 'Apex Operator', color: '#A855F7', der: '94.2', balance: '$15,820.00', status: 'VERIFIED PRO' },
-                  { rank: 2, desk: 'Stocks Operator', tag: 'Master Titan', color: '#E11D48', der: '91.8', balance: '$8,450.50', status: 'VERIFIED PRO' },
-                  { rank: 3, desk: 'Stocks Operator', tag: 'Gold Sovereign', color: '#EAB308', der: '88.5', balance: '$4,120.00', status: 'VERIFIED PRO' },
-                  { rank: 4, desk: 'Stocks Operator', tag: 'Silver Prover', color: '#94A3B8', der: '84.0', balance: '$2,380.00', status: 'ACTIVE' },
-                  { rank: 5, desk: 'Stocks Operator', tag: 'Contender', color: '#0F172A', der: '75.0', balance: '$1,000.00', status: 'ACTIVE' }
+                  { rank: 1, desk: 'Desk Alpha Quant', tag: 'Apex Operator', color: '#A855F7', der: '94.2', balance: '$15,820.00', status: 'VERIFIED PRO' },
+                  { rank: 2, desk: 'Sovereign Titan Desk', tag: 'Master Titan', color: '#EF4444', der: '91.8', balance: '$8,450.50', status: 'VERIFIED PRO' },
+                  { rank: 3, desk: 'Golden Bull Capital', tag: 'Gold Sovereign', color: '#EAB308', der: '88.5', balance: '$4,120.00', status: 'VERIFIED PRO' },
+                  { rank: 4, desk: 'Silver Flow Matrix', tag: 'Silver Prover', color: '#94A3B8', der: '84.0', balance: '$2,380.00', status: 'ACTIVE' },
+                  { rank: 5, desk: 'Iron Contender Desk', tag: 'Contender', color: '#EA580C', der: '75.0', balance: '$1,000.00', status: 'ACTIVE' }
                 ].map((item, idx) => (
                   <tr key={item.rank} style={{ borderBottom: '1px solid #F1F5F9', background: idx === 0 ? '#FAF5FF' : '#FFFFFF' }}>
                     <td style={{ padding: '18px 24px', fontWeight: 900, color: item.rank === 1 ? '#A855F7' : '#0F172A' }}>
@@ -2114,7 +2175,7 @@ export default function Landing() {
             marginBottom: '24px'
           }}>
             <ShieldCheck size={16} />
-            <span>JOIN THE UNTOUCHABLE STOCKS OPERATOR PROVING ARENA</span>
+            <span>JOIN THE UNTOUCHABLE GLOBAL PROVING ARENA</span>
           </div>
 
           <h2 style={{

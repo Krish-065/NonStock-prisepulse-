@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTrading } from '../contexts/TradingContext';
@@ -711,8 +711,8 @@ export default function Dashboard() {
               <ShieldCheck size={36} color="#EA580C" />
             </div>
 
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', letterSpacing: '1px', textTransform: 'uppercase' }}>
-              STOCKS OPERATOR VERIFIED PROTOCOL
+            <div style={{ fontSize: '12px', fontWeight: 800, color: '#EA580C', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              VERIFIED INSTITUTIONAL PROTOCOL
             </div>
             <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', margin: '8px 0 10px 0' }}>
               Welcome to Your Proving Terminal
@@ -1052,7 +1052,7 @@ export default function Dashboard() {
                 textTransform: 'uppercase'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                  <span style={{ color: '#0F172A', fontWeight: 900 }}>STOCKS OPERATOR PROTOCOL</span>
+                  <span style={{ color: '#0F172A', fontWeight: 900 }}>UNALTERABLE EXECUTION PROTOCOL</span>
                   <span>•</span>
                   <span>ACCOUNT: SO-{user?.id?.substring(0, 8) || 'c141ad16'}</span>
                   <span>•</span>
@@ -1299,48 +1299,110 @@ export default function Dashboard() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : 'repeat(5, 1fr)',
-          gap: '12px'
+          gap: '14px'
         }}>
           {[
-            { name: 'Contender', target: '$1,000', active: balanceNum < 2000, color: '#C2410C', tag: 'Baseline' },
-            { name: 'Silver Prover', target: '$2,000', active: balanceNum >= 2000 && balanceNum < 4000, color: '#64748B', tag: '2x Capital' },
-            { name: 'Gold Sovereign', target: '$4,000', active: balanceNum >= 4000 && balanceNum < 8000, color: '#EAB308', tag: '4x Edge' },
-            { name: 'Master Titan', target: '$8,000', active: balanceNum >= 8000 && balanceNum < 15000, color: '#E11D48', tag: '8x Mastery' },
-            { name: 'Apex Operator', target: '$15,000', active: balanceNum >= 15000, color: '#A855F7', tag: '15x Sovereign' },
+            { 
+              name: 'Contender', 
+              theme: 'decagon_contender',
+              target: '$1,000', 
+              active: balanceNum < 2000, 
+              color: '#EA580C', 
+              bg: '#FFFFFF',
+              borderColor: '#EA580C',
+              glow: '0 8px 24px rgba(234, 88, 12, 0.28)',
+              tag: 'Baseline' 
+            },
+            { 
+              name: 'Silver Prover', 
+              theme: 'decagon_silver',
+              target: '$2,000', 
+              active: balanceNum >= 2000 && balanceNum < 4000, 
+              color: '#475569', 
+              bg: '#F8FAFC',
+              borderColor: '#94A3B8',
+              glow: '0 8px 24px rgba(148, 163, 184, 0.3)',
+              tag: '2x Capital' 
+            },
+            { 
+              name: 'Gold Sovereign', 
+              theme: 'decagon_gold',
+              target: '$4,000', 
+              active: balanceNum >= 4000 && balanceNum < 8000, 
+              color: '#EAB308', 
+              bg: '#FEFCE8',
+              borderColor: '#EAB308',
+              glow: '0 8px 26px rgba(234, 179, 8, 0.35)',
+              tag: '4x Edge' 
+            },
+            { 
+              name: 'Master Titan', 
+              theme: 'decagon_titan',
+              target: '$8,000', 
+              active: balanceNum >= 8000 && balanceNum < 15000, 
+              color: '#EF4444', 
+              bg: '#FEF2F2',
+              borderColor: '#EF4444',
+              glow: '0 8px 28px rgba(239, 68, 68, 0.4)',
+              tag: '8x Mastery' 
+            },
+            { 
+              name: 'Apex Operator', 
+              theme: 'decagon_apex',
+              target: '$15,000', 
+              active: balanceNum >= 15000, 
+              color: '#A855F7', 
+              bg: '#FAF5FF',
+              borderColor: '#A855F7',
+              glow: '0 8px 32px rgba(168, 85, 247, 0.45)',
+              tag: '15x Sovereign' 
+            },
           ].map((t) => (
             <div
               key={t.name}
               style={{
-                padding: '12px 16px',
-                borderRadius: '16px',
-                background: t.active ? 'rgba(240, 253, 244, 0.88)' : '#F8FAFC',
-                border: t.active ? '2px solid #EA580C' : '1.5px solid #E2E8F0',
-                boxShadow: t.active ? '0 4px 16px rgba(234, 88, 12, 0.15)' : 'none',
-                transition: 'all 0.15s ease',
+                padding: '14px 18px',
+                borderRadius: '18px',
+                background: t.active ? t.bg : '#FFFFFF',
+                border: t.active ? `2.5px solid ${t.borderColor}` : '1.5px solid #E2E8F0',
+                boxShadow: t.active ? t.glow : '0 2px 8px rgba(0,0,0,0.02)',
+                transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                gap: '12px'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <TradingBadgeIcon theme={`decagon_${t.name.toLowerCase().split(' ')[0]}`} size={26} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <TradingBadgeIcon 
+                  theme={t.theme} 
+                  size={isMobile ? 54 : 64} 
+                />
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: t.active ? '#C2410C' : '#0F172A' }}>
+                    <span style={{ fontSize: '15.5px', fontWeight: 900, color: t.active ? t.color : '#0F172A' }}>
                       {t.name}
                     </span>
                     {t.active && (
-                      <span style={{ fontSize: '9px', background: '#EA580C', color: '#FFFFFF', padding: '1px 5px', borderRadius: '4px', fontWeight: 900 }}>
+                      <span style={{ 
+                        fontSize: '10px', 
+                        background: t.color, 
+                        color: '#FFFFFF', 
+                        padding: '2px 7px', 
+                        borderRadius: '6px', 
+                        fontWeight: 900,
+                        letterSpacing: '0.5px'
+                      }}>
                         ACTIVE
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#64748B', marginTop: '2px' }}>
                     {t.tag}
                   </div>
                 </div>
               </div>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
                 {t.target}
               </div>
             </div>
@@ -2460,11 +2522,11 @@ export default function Dashboard() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 GLOBAL VERIFIED RANKINGS
               </div>
-              <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '3px 0 0 0' }}>
-                Stocks Operator Proving Leaderboard
+              <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: '3px 0 0 0' }}>
+                Global Proving Leaderboard
               </h3>
             </div>
             <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 800 }}>

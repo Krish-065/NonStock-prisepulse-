@@ -726,7 +726,7 @@ export default function AIMentor() {
             gap: '10px' 
           }}>
             <Sparkles size={24} style={{ color: '#EA580C' }} />
-            Stocks Operator AI Mentor
+            AI Quantitative Mentor
             {(accountMode === 'pro' || user?.is_pro) && (
               <span style={{
                 fontSize: '11px',
@@ -745,7 +745,7 @@ export default function AIMentor() {
             )}
           </h1>
           <p style={{ color: '#334155', fontSize: '13px', margin: 0, fontWeight: 500 }}>
-            Connect indicator configurations and study setups with Stocks Operator AI, our high-precision Groq quantitative assistant.
+            Connect indicator configurations and study setups with our high-precision Groq quantitative assistant.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -828,7 +828,7 @@ export default function AIMentor() {
           <div style={{ borderTop: '1px solid #E2E8F0', margin: '2px 0' }} />
 
           <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Stocks Operator AI Conversations
+            AI Mentorship Conversations
           </span>
 
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px', paddingRight: '4px' }}>

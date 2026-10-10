@@ -331,52 +331,58 @@ export default function TradingBadgeIcon({
         </div>
       );
 
-    // ─── 13. HIGH-PROFILED DECAGON TIER BADGE: CONTENDER (SLATE & EMERALD) ───
+    // ─── 13. HIGH-PROFILED DECAGON TIER BADGE: CONTENDER (ORANGE & WHITE CREST) ───
     case 'decagon_contender':
     case 'contender':
       return (
         <div className={`trading-badge-icon ${className}`} style={wrapperStyle}>
-          <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="contenderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#1E293B" />
-                <stop offset="100%" stopColor="#0F172A" />
-              </linearGradient>
-            </defs>
-            {/* 10-Sided Decagon Shield Polygon */}
-            <polygon points="22,4 32,7 39,15 39,26 32,35 22,39 12,35 5,26 5,15 12,7" fill="url(#contenderGrad)" stroke="#EA580C" strokeWidth="2" />
-            <polygon points="22,8 29,10 35,16 35,25 29,32 22,35 15,32 9,25 9,16 15,10" fill="none" stroke="#EA580C" strokeWidth="1" strokeOpacity="0.5" />
-            {/* Shield Check Center Emblem */}
-            <path d="M22 14L28 17V22C28 26 25 29 22 30C19 29 16 26 16 22V17L22 14Z" fill="#EA580C" />
-            <path d="M20 22L21.5 23.5L24.5 20.5" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <div style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '2.5px solid #EA580C',
+            boxShadow: '0 0 16px rgba(234, 88, 12, 0.65), 0 0 30px rgba(234, 88, 12, 0.3)',
+            position: 'relative',
+            background: '#FFFFFF'
+          }}>
+            <img 
+              src="/assets/badge_contender.jpg" 
+              alt="Contender" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
         </div>
       );
 
-    // ─── 14. HIGH-PROFILED DECAGON TIER BADGE: SILVER PROVER (PLATINUM SILVER) ───
+    // ─── 14. HIGH-PROFILED DECAGON TIER BADGE: SILVER PROVER (CHROME SILVER CREST) ───
     case 'decagon_silver':
     case 'silver_prover':
     case 'silver':
       return (
         <div className={`trading-badge-icon ${className}`} style={wrapperStyle}>
-          <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#F8FAFC" />
-                <stop offset="35%" stopColor="#CBD5E1" />
-                <stop offset="70%" stopColor="#94A3B8" />
-                <stop offset="100%" stopColor="#64748B" />
-              </linearGradient>
-            </defs>
-            <polygon points="22,4 32,7 39,15 39,26 32,35 22,39 12,35 5,26 5,15 12,7" fill="url(#silverGrad)" stroke="#FFFFFF" strokeWidth="2" />
-            <circle cx="22" cy="22" r="9" fill="#334155" stroke="#E2E8F0" strokeWidth="1.5" />
-            {/* Silver Laurel / Star */}
-            <polygon points="22,16 24,20 28,20 25,23 26,27 22,25 18,27 19,23 16,20 20,20" fill="#F8FAFC" />
-          </svg>
+          <div style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '2.5px solid #CBD5E1',
+            boxShadow: '0 0 16px rgba(203, 213, 225, 0.8), 0 0 30px rgba(148, 163, 184, 0.45)',
+            position: 'relative',
+            background: '#F8FAFC'
+          }}>
+            <img 
+              src="/assets/badge_silver_prover.jpg" 
+              alt="Silver Prover" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
         </div>
       );
 
-    // ─── 15. HIGH-PROFILED DECAGON TIER BADGE: GOLD SOVEREIGN (DANGEROUS IMPERIAL BULL CREST) ───
+    // ─── 15. HIGH-PROFILED DECAGON TIER BADGE: GOLD SOVEREIGN (SHINING 24K GOLD BULL CREST) ───
     case 'decagon_gold':
     case 'gold_sovereign':
     case 'gold':
@@ -387,9 +393,10 @@ export default function TradingBadgeIcon({
             height: '100%',
             borderRadius: '50%',
             overflow: 'hidden',
-            border: '2px solid #EA580C',
-            boxShadow: '0 0 12px rgba(234, 88, 12, 0.45)',
-            position: 'relative'
+            border: '2.5px solid #EAB308',
+            boxShadow: '0 0 20px rgba(234, 179, 8, 0.85), 0 0 36px rgba(250, 204, 21, 0.5)',
+            position: 'relative',
+            background: '#FEFCE8'
           }}>
             <img 
               src="/assets/badge_gold_sovereign.jpg" 
@@ -401,9 +408,11 @@ export default function TradingBadgeIcon({
         </div>
       );
 
-    // ─── 16. HIGH-PROFILED DECAGON TIER BADGE: MASTER TITAN (FIERCE DRAGON-TITAN CREST) ───
+    // ─── 16. HIGH-PROFILED DECAGON TIER BADGE: MASTER TITAN (NEON RED DRAGON CREST) ───
     case 'decagon_titan':
+    case 'decagon_master':
     case 'master_titan':
+    case 'master':
     case 'titan':
       return (
         <div className={`trading-badge-icon ${className}`} style={wrapperStyle}>
@@ -412,9 +421,10 @@ export default function TradingBadgeIcon({
             height: '100%',
             borderRadius: '50%',
             overflow: 'hidden',
-            border: '2px solid #C2410C',
-            boxShadow: '0 0 14px rgba(194, 65, 12, 0.55)',
-            position: 'relative'
+            border: '2.5px solid #EF4444',
+            boxShadow: '0 0 22px rgba(239, 68, 68, 0.9), 0 0 40px rgba(220, 38, 38, 0.55)',
+            position: 'relative',
+            background: '#FEF2F2'
           }}>
             <img 
               src="/assets/badge_master_titan.jpg" 
@@ -426,7 +436,7 @@ export default function TradingBadgeIcon({
         </div>
       );
 
-    // ─── 17. HIGH-PROFILED DECAGON TIER BADGE: APEX OPERATOR (DANGEROUS CYBER-WOLF PREDATOR CREST) ───
+    // ─── 17. HIGH-PROFILED DECAGON TIER BADGE: APEX OPERATOR (COSMIC PURPLE WOLF CREST) ───
     case 'decagon_apex':
     case 'apex_operator':
     case 'apex_crown':
@@ -438,9 +448,10 @@ export default function TradingBadgeIcon({
             height: '100%',
             borderRadius: '50%',
             overflow: 'hidden',
-            border: '2px solid #EA580C',
-            boxShadow: '0 0 16px rgba(234, 88, 12, 0.65)',
-            position: 'relative'
+            border: '2.5px solid #A855F7',
+            boxShadow: '0 0 25px rgba(168, 85, 247, 0.95), 0 0 45px rgba(147, 51, 234, 0.6)',
+            position: 'relative',
+            background: '#FAF5FF'
           }}>
             <img 
               src="/assets/badge_apex_operator.jpg" 

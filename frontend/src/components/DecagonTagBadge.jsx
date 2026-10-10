@@ -16,10 +16,10 @@ export const TIER_CONFIG = {
     name: 'Contender',
     theme: 'decagon_contender',
     color: '#EA580C',
-    textColor: '#9A3412',
-    bgColor: '#FFF7ED',
-    borderColor: '#FDBA74',
-    boxShadow: '0 2px 10px rgba(234, 88, 12, 0.25)',
+    textColor: '#EA580C',
+    bgColor: '#FFFFFF',
+    borderColor: '#EA580C',
+    boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
     targetText: '$1,000 Baseline'
   },
   'Silver Prover': {
@@ -28,45 +28,45 @@ export const TIER_CONFIG = {
     color: '#64748B',
     textColor: '#334155',
     bgColor: '#F8FAFC',
-    borderColor: '#CBD5E1',
-    boxShadow: '0 2px 10px rgba(100, 116, 139, 0.2)',
+    borderColor: '#94A3B8',
+    boxShadow: '0 4px 16px rgba(148, 163, 184, 0.4), 0 0 10px rgba(255, 255, 255, 0.8)',
     targetText: '$2,000+ Verified'
   },
   'Gold Sovereign': {
     name: 'Gold Sovereign',
     theme: 'decagon_gold',
-    color: '#C2410C',
-    textColor: '#7C2D12',
-    bgColor: '#FFFBEB',
-    borderColor: '#FDBA74',
-    boxShadow: '0 3px 14px rgba(234, 88, 12, 0.35)',
+    color: '#EAB308',
+    textColor: '#854D0E',
+    bgColor: '#FEFCE8',
+    borderColor: '#EAB308',
+    boxShadow: '0 4px 18px rgba(234, 179, 8, 0.45), 0 0 14px rgba(250, 204, 21, 0.4)',
     targetText: '$4,000+ Sovereign'
   },
   'Master Titan': {
     name: 'Master Titan',
     theme: 'decagon_titan',
-    color: '#9A3412',
-    textColor: '#7C2D12',
-    bgColor: '#FFF7ED',
-    borderColor: '#EA580C',
-    boxShadow: '0 3px 16px rgba(194, 65, 12, 0.45)',
+    color: '#EF4444',
+    textColor: '#DC2626',
+    bgColor: '#FEF2F2',
+    borderColor: '#EF4444',
+    boxShadow: '0 4px 20px rgba(239, 68, 68, 0.5), 0 0 14px rgba(220, 38, 38, 0.4)',
     targetText: '$8,000+ Titan'
   },
   'Apex Operator': {
     name: 'Apex Operator',
     theme: 'decagon_apex',
-    color: '#EA580C',
-    textColor: '#FFFFFF',
-    bgColor: '#0F172A',
-    borderColor: '#EA580C',
-    boxShadow: '0 4px 20px rgba(234, 88, 12, 0.55)',
+    color: '#A855F7',
+    textColor: '#7E22CE',
+    bgColor: '#FAF5FF',
+    borderColor: '#A855F7',
+    boxShadow: '0 4px 24px rgba(168, 85, 247, 0.55), 0 0 18px rgba(147, 51, 234, 0.45)',
     targetText: '$15,000+ Apex Predator'
   }
 };
 
 export default function DecagonTagBadge({
   tier = 'Contender',
-  size = 'md', // 'sm' | 'md' | 'lg'
+  size = 'md', // 'sm' | 'md' | 'lg' | 'hero'
   showIcon = true,
   className = '',
   style = {}
@@ -78,9 +78,10 @@ export default function DecagonTagBadge({
   const cfg = TIER_CONFIG[normKey];
 
   const sizeMap = {
-    sm: { iconSize: 18, fontSize: '10px', padding: '3px 8px', gap: '5px' },
-    md: { iconSize: 22, fontSize: '11px', padding: '4px 12px', gap: '7px' },
-    lg: { iconSize: 28, fontSize: '13px', padding: '7px 16px', gap: '9px' }
+    sm: { iconSize: 24, fontSize: '12px', padding: '4px 10px', gap: '6px' },
+    md: { iconSize: 32, fontSize: '13px', padding: '6px 14px', gap: '8px' },
+    lg: { iconSize: 44, fontSize: '15px', padding: '8px 20px', gap: '10px' },
+    hero: { iconSize: 64, fontSize: '17px', padding: '12px 26px', gap: '14px' }
   };
 
   const sz = sizeMap[size] || sizeMap.md;

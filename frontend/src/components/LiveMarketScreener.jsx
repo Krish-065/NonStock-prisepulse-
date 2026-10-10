@@ -164,8 +164,8 @@ function MiniSparkline({ data, isPositive, height = 54, width = 180, showGlow = 
   const lastPt = points[points.length - 1];
   const areaD = `${pathD} L ${width},${height} L 0,${height} Z`;
 
-  const strokeColor = isPositive ? '#EA580C' : '#ef4444';
-  const fillGradientId = `spark-grad-${isPositive ? 'orange' : 'red'}-${Math.random().toString(36).substring(2, 7)}`;
+  const strokeColor = isPositive ? '#16A34A' : '#DC2626';
+  const fillGradientId = `spark-grad-${isPositive ? 'green' : 'red'}-${Math.random().toString(36).substring(2, 7)}`;
 
   return (
     <div style={{ position: 'relative', width: `${width}px`, height: `${height}px`, overflow: 'hidden' }}>
@@ -728,14 +728,14 @@ export default function LiveMarketScreener({ onSelectAsset }) {
             const isPos = asset.change >= 0;
             const flashState = flashing[asset.symbol];
             const flashBg = flashState === 'up' 
-              ? 'rgba(234, 88, 12, 0.12)' 
+              ? 'rgba(22, 163, 74, 0.12)' 
               : flashState === 'down' 
-              ? 'rgba(239, 68, 68, 0.12)' 
+              ? 'rgba(220, 38, 38, 0.12)' 
               : '#ffffff';
             const flashBorder = flashState === 'up'
-              ? '1px solid #EA580C'
+              ? '1.5px solid #16A34A'
               : flashState === 'down'
-              ? '1px solid #ef4444'
+              ? '1.5px solid #DC2626'
               : '1px solid #e5e7eb';
 
             // Calculate Day Range position percentage
@@ -759,8 +759,10 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 10px 25px rgba(234, 88, 12, 0.12)';
-                  e.currentTarget.style.borderColor = '#EA580C';
+                  e.currentTarget.style.boxShadow = isPos 
+                    ? '0 10px 25px rgba(22, 163, 74, 0.14)' 
+                    : '0 10px 25px rgba(220, 38, 38, 0.14)';
+                  e.currentTarget.style.borderColor = isPos ? '#16A34A' : '#DC2626';
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
@@ -802,16 +804,16 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        background: isPos ? '#FFF7ED' : '#fef2f2',
-                        color: isPos ? '#EA580C' : '#ef4444',
-                        border: `1px solid ${isPos ? '#FED7AA' : '#fecaca'}`,
-                        padding: '4px 8px',
+                        gap: '5px',
+                        background: isPos ? '#F0FDF4' : '#FEF2F2',
+                        color: isPos ? '#15803D' : '#DC2626',
+                        border: `1.5px solid ${isPos ? '#86EFAC' : '#FECACA'}`,
+                        padding: '4px 10px',
                         borderRadius: '8px',
                         fontSize: '12px',
-                        fontWeight: 800
+                        fontWeight: 900
                       }}>
-                        {isPos ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                        {isPos ? <TrendingUp size={14} color="#16A34A" /> : <TrendingDown size={14} color="#DC2626" />}
                         <span>{isPos ? '+' : ''}{asset.changePercent.toFixed(2)}%</span>
                       </div>
 
@@ -855,16 +857,16 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                       <div style={{
                         fontSize: '24px',
                         fontWeight: 900,
-                        color: flashState === 'up' ? '#EA580C' : flashState === 'down' ? '#ef4444' : '#000000',
+                        color: flashState === 'up' ? '#16A34A' : flashState === 'down' ? '#DC2626' : '#0F172A',
                         letterSpacing: '-0.5px',
                         transition: 'color 0.2s'
                       }}>
                         {formatPriceValue(asset.price, asset.digits, asset.prefix)}
                       </div>
                       <div style={{ 
-                        fontSize: '12px', 
-                        color: isPos ? '#EA580C' : '#ef4444', 
-                        fontWeight: 700, 
+                        fontSize: '13px', 
+                        color: isPos ? '#16A34A' : '#DC2626', 
+                        fontWeight: 800, 
                         marginTop: '2px' 
                       }}>
                         {isPos ? '+' : ''}{asset.change > 0 ? '+' : ''}{asset.change.toFixed(asset.digits)} 24h
@@ -895,7 +897,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         left: 0,
                         width: `${rangePos}%`,
                         height: '100%',
-                        background: '#EA580C',
+                        background: isPos ? '#16A34A' : '#DC2626',
                         borderRadius: '10px'
                       }} />
                       {/* Current Point Indicator */}
@@ -906,7 +908,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         width: '10px',
                         height: '10px',
                         borderRadius: '50%',
-                        background: '#EA580C',
+                        background: isPos ? '#16A34A' : '#DC2626',
                         border: '2px solid #ffffff',
                         boxShadow: '0 0 4px rgba(0,0,0,0.3)'
                       }} />
@@ -918,9 +920,9 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                 <button
                   onClick={() => handleTradeAsset(asset)}
                   style={{
-                    background: '#FFF7ED',
-                    color: '#EA580C',
-                    border: '1px solid #FED7AA',
+                    background: isPos ? '#F0FDF4' : '#FEF2F2',
+                    color: isPos ? '#15803D' : '#DC2626',
+                    border: `1.5px solid ${isPos ? '#BBF7D0' : '#FECACA'}`,
                     borderRadius: '10px',
                     padding: '10px 14px',
                     fontSize: '13px',
@@ -934,14 +936,14 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                     transition: 'all 0.2s'
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.background = '#EA580C';
+                    e.currentTarget.style.background = isPos ? '#16A34A' : '#DC2626';
                     e.currentTarget.style.color = '#ffffff';
-                    e.currentTarget.style.borderColor = '#EA580C';
+                    e.currentTarget.style.borderColor = isPos ? '#16A34A' : '#DC2626';
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.background = '#FFF7ED';
-                    e.currentTarget.style.color = '#EA580C';
-                    e.currentTarget.style.borderColor = '#FED7AA';
+                    e.currentTarget.style.background = isPos ? '#F0FDF4' : '#FEF2F2';
+                    e.currentTarget.style.color = isPos ? '#15803D' : '#DC2626';
+                    e.currentTarget.style.borderColor = isPos ? '#BBF7D0' : '#FECACA';
                   }}
                 >
                   <span>Trade {asset.badge} Now</span>
@@ -1029,11 +1031,11 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        color: isPos ? '#EA580C' : '#ef4444',
-                        fontWeight: 800,
-                        fontSize: '13px'
+                        color: isPos ? '#16A34A' : '#DC2626',
+                        fontWeight: 900,
+                        fontSize: '14px'
                       }}>
-                        {isPos ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                        {isPos ? <TrendingUp size={14} color="#16A34A" /> : <TrendingDown size={14} color="#DC2626" />}
                         <span>{isPos ? '+' : ''}{asset.changePercent.toFixed(2)}%</span>
                       </div>
                     </td>

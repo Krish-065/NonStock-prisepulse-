@@ -64,16 +64,22 @@ export default function Logo({
       {showName && (
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <span style={{ 
+            fontFamily: "'Syne', sans-serif",
             fontSize: nameSize, 
-            fontWeight: 800, 
+            fontWeight: 900, 
             color: color || '#0F172A',
-            letterSpacing: '-0.5px',
+            letterSpacing: '-0.3px',
             display: 'inline-flex',
             alignItems: 'baseline',
-            gap: '5px'
+            gap: '4px',
+            textTransform: 'uppercase'
           }}>
-            <span>Stocks</span>
-            <span style={{ color: '#EA580C' }}>Operator</span>
+            <span style={{ letterSpacing: '0.5px' }}>Stocks</span>
+            <span style={{ 
+              color: '#EA580C', 
+              letterSpacing: '1px',
+              textShadow: '0 0 12px rgba(234, 88, 12, 0.35)'
+            }}>Operator</span>
           </span>
         </div>
       )}

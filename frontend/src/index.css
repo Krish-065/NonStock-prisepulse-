@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
 
 * {
   margin: 0;
@@ -17,21 +17,27 @@
   --text-heading: #0F172A;
   
   /* Brand Accents - Premium Deep Orange Theme */
-  --accent-brand: #EA580C; /* Rich deep orange (Tailwind Orange 600) */
-  --accent-brand-dark: #C2410C; /* Burnt deep orange (Tailwind Orange 700) */
+  --accent-brand: #EA580C; /* Rich deep orange */
+  --accent-brand-dark: #C2410C; /* Burnt deep orange */
   --accent-brand-light: #FFEDD5; /* Soft light orange tint */
-  --accent-bullish: #EA580C;
-  --accent-bullish-dark: #C2410C;
-  --accent-bearish: #EF4444;
-  --accent-warning: #F59E0B;
   --accent-primary: #EA580C;
+  
+  /* Real-Time Market Direction Colors (Green for Upwards, Red for Downwards) */
+  --accent-bullish: #16A34A; /* Vibrant Trading Green */
+  --accent-bullish-dark: #15803D;
+  --accent-bullish-light: #F0FDF4;
+  --accent-bearish: #DC2626; /* Sharp Trading Crimson */
+  --accent-bearish-dark: #B91C1C;
+  --accent-bearish-light: #FEF2F2;
+  --accent-warning: #F59E0B;
 
   /* UI Borders */
   --border-color: #E2E8F0;
   --border-hover: #CBD5E1;
 
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-signature: 'Syne', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
