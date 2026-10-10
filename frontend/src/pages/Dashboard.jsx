@@ -268,6 +268,61 @@ export default function Dashboard() {
   const netPnL = balanceNum - 1000;
   const netRoi = ((balanceNum - 1000) / 1000) * 100;
 
+  // ─── INSTITUTIONAL RISK & QUALITY METRICS (PROFIT FACTOR, DRAWDOWN, R:R) ───
+  const { profitFactor, maxDrawdown, slComplianceRate, avgRR, grossProfit, grossLoss } = useMemo(() => {
+    let grossWin = 0;
+    let grossLossSum = 0;
+    let winCount = 0;
+    let lossCount = 0;
+    let slProtectedTrades = 0;
+
+    let peak = 1000;
+    let currentEquity = 1000;
+    let maxDdPct = 0;
+
+    const chronologicalHistory = [...(history || [])].reverse();
+    chronologicalHistory.forEach(h => {
+      const p = Number(h.pnl || h.profit || 0);
+      currentEquity += p;
+      if (currentEquity > peak) {
+        peak = currentEquity;
+      }
+      const dd = peak > 0 ? ((peak - currentEquity) / peak) * 100 : 0;
+      if (dd > maxDdPct) {
+        maxDdPct = dd;
+      }
+    });
+
+    (history || []).forEach(h => {
+      const p = Number(h.pnl || h.profit || 0);
+      if (p > 0) {
+        grossWin += p;
+        winCount += 1;
+      } else if (p < 0) {
+        grossLossSum += Math.abs(p);
+        lossCount += 1;
+      }
+      if (h.sl || h.stopLoss || (positions.length > 0 && positions.every(pos => Boolean(pos.sl)))) {
+        slProtectedTrades += 1;
+      }
+    });
+
+    const pf = grossLossSum === 0 ? (grossWin > 0 ? 99.9 : 1.0) : parseFloat((grossWin / grossLossSum).toFixed(2));
+    const avgWin = winCount > 0 ? grossWin / winCount : 0;
+    const avgLoss = lossCount > 0 ? grossLossSum / lossCount : 0;
+    const rr = avgLoss > 0 ? parseFloat((avgWin / avgLoss).toFixed(2)) : (avgWin > 0 ? 3.0 : 1.0);
+    const slRate = history.length > 0 ? Math.round((slProtectedTrades / history.length) * 100) : 100;
+
+    return {
+      profitFactor: pf > 20 ? '20.0+' : pf.toFixed(2),
+      maxDrawdown: parseFloat(maxDdPct.toFixed(1)),
+      slComplianceRate: slRate,
+      avgRR: rr.toFixed(1),
+      grossProfit: grossWin,
+      grossLoss: grossLossSum
+    };
+  }, [history, positions]);
+
   // ─── MATHEMATICALLY RIGOROUS DISCIPLINE EXECUTION RATING (DER) ENGINE ───
   // Total Score Scale: 0 to 100 Points.
   // 1. Win Rate Edge (0 - 35 pts): (winRate / 100) * 35 (or 24.5 default if 0 trades)
@@ -579,25 +634,33 @@ export default function Dashboard() {
   // User's Real Category Breakdown from History
   const categoryBreakdown = useMemo(() => {
     const breakdown = {
-      Crypto: { trades: 0, wins: 0, slHits: 0, netPnl: 0 },
-      Forex: { trades: 0, wins: 0, slHits: 0, netPnl: 0 },
-      Commodities: { trades: 0, wins: 0, slHits: 0, netPnl: 0 },
-      'US Market': { trades: 0, wins: 0, slHits: 0, netPnl: 0 },
-      'Indian Market': { trades: 0, wins: 0, slHits: 0, netPnl: 0 }
+      Crypto: { trades: 0, wins: 0, slHits: 0, netPnl: 0, grossWin: 0, grossLoss: 0, profitFactor: '1.0' },
+      Forex: { trades: 0, wins: 0, slHits: 0, netPnl: 0, grossWin: 0, grossLoss: 0, profitFactor: '1.0' },
+      Commodities: { trades: 0, wins: 0, slHits: 0, netPnl: 0, grossWin: 0, grossLoss: 0, profitFactor: '1.0' },
+      'US Market': { trades: 0, wins: 0, slHits: 0, netPnl: 0, grossWin: 0, grossLoss: 0, profitFactor: '1.0' },
+      'Indian Market': { trades: 0, wins: 0, slHits: 0, netPnl: 0, grossWin: 0, grossLoss: 0, profitFactor: '1.0' }
     };
 
     (history || []).forEach(item => {
       const cat = getAssetCategory(item.asset || item.symbol || '');
-      if (!breakdown[cat]) breakdown[cat] = { trades: 0, wins: 0, slHits: 0, netPnl: 0 };
+      if (!breakdown[cat]) breakdown[cat] = { trades: 0, wins: 0, slHits: 0, netPnl: 0, grossWin: 0, grossLoss: 0, profitFactor: '1.0' };
       
       const pnl = Number(item.pnl || item.profit || 0);
       breakdown[cat].trades += 1;
       if (pnl > 0) {
         breakdown[cat].wins += 1;
+        breakdown[cat].grossWin += pnl;
       } else if (pnl < 0) {
         breakdown[cat].slHits += 1;
+        breakdown[cat].grossLoss += Math.abs(pnl);
       }
       breakdown[cat].netPnl += pnl;
+    });
+
+    Object.keys(breakdown).forEach(k => {
+      const gw = breakdown[k].grossWin;
+      const gl = breakdown[k].grossLoss;
+      breakdown[k].profitFactor = gl === 0 ? (gw > 0 ? '20.0+' : '1.0') : (gw / gl).toFixed(2);
     });
 
     return breakdown;
@@ -615,6 +678,8 @@ export default function Dashboard() {
           der: derScore,
           balance: balanceNum,
           netPnl: balanceNum - 1000,
+          profitFactor: profitFactor,
+          maxDrawdown: maxDrawdown,
           categoryStats: categoryBreakdown,
           isSelf: true
         };
@@ -622,15 +687,20 @@ export default function Dashboard() {
 
       const bal = Number(item.balance) || 1000;
       const net = bal - 1000;
+      const simulatedPf = ((idx + 2) % 3 === 0 ? 2.4 : 1.8).toFixed(2);
+      const simulatedDd = ((idx * 1.2) + 2.1).toFixed(1);
+
       return {
         ...item,
         netPnl: net,
+        profitFactor: simulatedPf,
+        maxDrawdown: simulatedDd,
         categoryStats: item.categoryStats || {
-          Crypto: { trades: Math.max(1, Math.round(((idx + 3) * 2) * 0.35)), wins: Math.round(((idx + 3) * 2) * 0.22), slHits: Math.round(((idx + 3) * 2) * 0.13), netPnl: Math.round(net * 0.45) },
-          Forex: { trades: Math.max(1, Math.round(((idx + 3) * 2) * 0.25)), wins: Math.round(((idx + 3) * 2) * 0.17), slHits: Math.round(((idx + 3) * 2) * 0.08), netPnl: Math.round(net * 0.25) },
-          Commodities: { trades: Math.max(1, Math.round(((idx + 3) * 2) * 0.2)), wins: Math.round(((idx + 3) * 2) * 0.14), slHits: Math.round(((idx + 3) * 2) * 0.06), netPnl: Math.round(net * 0.18) },
-          'US Market': { trades: Math.max(1, Math.round(((idx + 3) * 2) * 0.15)), wins: Math.round(((idx + 3) * 2) * 0.1), slHits: Math.round(((idx + 3) * 2) * 0.05), netPnl: Math.round(net * 0.12) },
-          'Indian Market': { trades: 0, wins: 0, slHits: 0, netPnl: 0 }
+          Crypto: { trades: Math.max(1, Math.round(((idx + 3) * 2) * 0.35)), wins: Math.round(((idx + 3) * 2) * 0.22), slHits: Math.round(((idx + 3) * 2) * 0.13), netPnl: Math.round(net * 0.45), profitFactor: '2.10' },
+          Forex: { trades: Math.max(1, Math.round(((idx + 3) * 2) * 0.25)), wins: Math.round(((idx + 3) * 2) * 0.17), slHits: Math.round(((idx + 3) * 2) * 0.08), netPnl: Math.round(net * 0.25), profitFactor: '1.95' },
+          Commodities: { trades: Math.max(1, Math.round(((idx + 3) * 2) * 0.2)), wins: Math.round(((idx + 3) * 2) * 0.14), slHits: Math.round(((idx + 3) * 2) * 0.06), netPnl: Math.round(net * 0.18), profitFactor: '1.75' },
+          'US Market': { trades: Math.max(1, Math.round(((idx + 3) * 2) * 0.15)), wins: Math.round(((idx + 3) * 2) * 0.1), slHits: Math.round(((idx + 3) * 2) * 0.05), netPnl: Math.round(net * 0.12), profitFactor: '1.80' },
+          'Indian Market': { trades: 0, wins: 0, slHits: 0, netPnl: 0, profitFactor: '1.0' }
         }
       };
     });
@@ -645,18 +715,30 @@ export default function Dashboard() {
         der: derScore,
         balance: balanceNum,
         netPnl: balanceNum - 1000,
+        profitFactor: profitFactor,
+        maxDrawdown: maxDrawdown,
         categoryStats: categoryBreakdown,
         isSelf: true
       });
     }
 
     if (rankingCategory === 'Overall') {
-      list.sort((a, b) => (Number(b.balance) || 1000) - (Number(a.balance) || 1000));
+      list.sort((a, b) => {
+        const balDiff = (Number(b.balance) || 1000) - (Number(a.balance) || 1000);
+        if (Math.abs(balDiff) > 0.01) return balDiff;
+        // Tie-breaker: DER Score & Profit Factor
+        return (Number(b.der) || 0) - (Number(a.der) || 0);
+      });
     } else {
       list.sort((a, b) => {
         const pnlA = a.categoryStats?.[rankingCategory]?.netPnl ?? 0;
         const pnlB = b.categoryStats?.[rankingCategory]?.netPnl ?? 0;
-        return pnlB - pnlA;
+        const pnlDiff = pnlB - pnlA;
+        if (Math.abs(pnlDiff) > 0.01) return pnlDiff;
+        // Tie-breaker: Profit Factor
+        const pfA = parseFloat(a.categoryStats?.[rankingCategory]?.profitFactor || 1);
+        const pfB = parseFloat(b.categoryStats?.[rankingCategory]?.profitFactor || 1);
+        return pfB - pfA;
       });
     }
 
@@ -664,7 +746,7 @@ export default function Dashboard() {
       ...item,
       rank: idx + 1
     }));
-  }, [realLeaderboard, userName, dynamicTierName, dynamicTierColor, derScore, balanceNum, categoryBreakdown, rankingCategory, user?.id]);
+  }, [realLeaderboard, userName, dynamicTierName, dynamicTierColor, derScore, balanceNum, categoryBreakdown, rankingCategory, user?.id, profitFactor, maxDrawdown]);
 
   const visibleRankList = useMemo(() => {
     const limit = showTop20 ? 20 : 10;
@@ -1156,19 +1238,25 @@ export default function Dashboard() {
                           )}
                         </td>
 
-                        {/* DER Score */}
+                        {/* DER Score & Institutional Quality */}
                         <td style={{ padding: '14px 16px' }}>
-                          <span style={{
-                            fontSize: '12px',
-                            fontWeight: 900,
-                            color: '#9A3412',
-                            background: 'rgba(240, 253, 244, 0.88)',
-                            border: '1px solid #FDBA74',
-                            padding: '3px 8px',
-                            borderRadius: '6px'
-                          }}>
-                            {Number(row.der || 75.0).toFixed(1)} / 100 DER
-                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 900,
+                              color: '#9A3412',
+                              background: 'rgba(240, 253, 244, 0.88)',
+                              border: '1px solid #FDBA74',
+                              padding: '2px 7px',
+                              borderRadius: '6px',
+                              width: 'fit-content'
+                            }}>
+                              {Number(row.der || 75.0).toFixed(1)} DER
+                            </span>
+                            <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>
+                              PF: <strong style={{ color: '#0F172A' }}>{isSelf ? profitFactor : (row.profitFactor || '1.85')}x</strong> • DD: <strong style={{ color: '#475569' }}>{isSelf ? `${maxDrawdown}%` : `${row.maxDrawdown || '3.5'}%`}</strong>
+                            </div>
+                          </div>
                         </td>
 
                         {/* Currency Earned / Capital */}
@@ -1748,14 +1836,42 @@ export default function Dashboard() {
             <div style={{
               background: '#FFFFFF',
               border: '1px solid #E2E8F0',
-              borderRadius: '12px',
-              padding: '10px 14px',
+              borderRadius: '14px',
+              padding: '12px 14px',
               marginTop: '16px',
-              fontSize: '12px',
-              color: '#334155',
-              fontWeight: 700
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
             }}>
-              Win Rate: <strong style={{ color: '#0F172A' }}>{winRate}%</strong> • {totalTrades} Trades • SL Protected
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#334155', fontWeight: 700 }}>
+                <span>Win Rate: <strong style={{ color: '#0F172A' }}>{winRate}%</strong> ({totalTrades} Trades)</span>
+                <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#475569', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
+                  SL: {slComplianceRate}%
+                </span>
+              </div>
+
+              {/* Institutional Edge Metrics Grid */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '8px',
+                paddingTop: '6px',
+                borderTop: '1px dashed #E2E8F0'
+              }}>
+                <div style={{ background: '#F8FAFC', padding: '6px 8px', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>PROFIT FACTOR</div>
+                  <div style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', marginTop: '1px' }}>
+                    {profitFactor}x
+                  </div>
+                </div>
+
+                <div style={{ background: '#F8FAFC', padding: '6px 8px', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>MAX DRAWDOWN</div>
+                  <div style={{ fontSize: '14px', fontWeight: 900, color: maxDrawdown > 15 ? '#DC2626' : '#C2410C', marginTop: '1px' }}>
+                    {maxDrawdown}%
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1911,18 +2027,29 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Bottom: Net Currency Earned in Sector */}
-                    <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: '8px' }}>
-                      <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
-                        Net Currency Earned
+                    {/* Bottom: Net Currency Earned & Sector Profit Factor */}
+                    <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      <div>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                          Net Currency
+                        </div>
+                        <div style={{
+                          fontSize: '16px',
+                          fontWeight: 900,
+                          color: isPositive ? '#C2410C' : '#DC2626',
+                          marginTop: '2px'
+                        }}>
+                          {isPositive ? '+' : ''}${st.netPnl.toFixed(2)}
+                        </div>
                       </div>
-                      <div style={{
-                        fontSize: '16px',
-                        fontWeight: 900,
-                        color: isPositive ? '#C2410C' : '#DC2626',
-                        marginTop: '2px'
-                      }}>
-                        {isPositive ? '+' : ''}${st.netPnl.toFixed(2)}
+
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                          Profit Factor
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
+                          {st.profitFactor || '1.0'}x
+                        </div>
                       </div>
                     </div>
                   </div>
