@@ -57,7 +57,7 @@ async function sendVerificationEmail(email, otp) {
         const postData = JSON.stringify({
           sender: {
             name: process.env.FROM_NAME || 'Stocks Operator',
-            email: process.env.FROM_EMAIL
+            email: process.env.FROM_EMAIL || 'team@stocksoperator.com'
           },
           to: [{ email }],
           subject: 'Verify your email - Stocks Operator',
@@ -112,7 +112,7 @@ async function sendVerificationEmail(email, otp) {
   // 2. Fallback to standard SMTP (works locally)
   console.log('Sending verification email via traditional SMTP...');
   await transporter.sendMail({
-    from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
+    from: `"${process.env.FROM_NAME || 'Stocks Operator'}" <${process.env.FROM_EMAIL || 'team@stocksoperator.com'}>`,
     to: email,
     subject: 'Verify your email - Stocks Operator',
     html,
@@ -127,7 +127,7 @@ async function sendResetEmail(email, resetUrl) {
     </div>
   `;
   await transporter.sendMail({
-    from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
+    from: `"${process.env.FROM_NAME || 'Stocks Operator'}" <${process.env.FROM_EMAIL || 'team@stocksoperator.com'}>`,
     to: email,
     subject: 'Reset your password - Stocks Operator',
     html,
@@ -167,7 +167,7 @@ async function sendPasswordChangeNotificationEmail(email, userName) {
       const postData = JSON.stringify({
         sender: {
           name: process.env.FROM_NAME || 'Stocks Operator',
-          email: process.env.FROM_EMAIL
+          email: process.env.FROM_EMAIL || 'team@stocksoperator.com'
         },
         to: [{ email }],
         subject: 'Security Alert: Password Changed - Stocks Operator',
@@ -222,7 +222,7 @@ async function sendPasswordChangeNotificationEmail(email, userName) {
 
   console.log('Sending password change email via traditional SMTP...');
   await transporter.sendMail({
-    from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
+    from: `"${process.env.FROM_NAME || 'Stocks Operator'}" <${process.env.FROM_EMAIL || 'team@stocksoperator.com'}>`,
     to: email,
     subject: 'Security Alert: Password Changed - Stocks Operator',
     html,

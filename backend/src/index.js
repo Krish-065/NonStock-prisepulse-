@@ -36,6 +36,8 @@ app.use(cors({
     const isAllowed = 
       origin === allowedOrigin || 
       origin === frontendUrl ||
+      origin.includes('stocksoperator.com') ||
+      origin.includes('hostinger') ||
       origin.includes('localhost') || 
       origin.includes('127.0.0.1') || 
       origin.endsWith('.vercel.app') || 

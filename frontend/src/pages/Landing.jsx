@@ -1055,7 +1055,7 @@ export default function Landing() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#CBD5E1' }}>
                   <FileCheck2 size={16} color="#00D26A" />
-                  <span>Public Proof Link: <strong>stocksoperator.io/p/NS-7429</strong></span>
+                  <span>Public Proof Link: <strong>stocksoperator.com/p/SO-7429</strong></span>
                 </div>
                 <div style={{ color: '#00D26A', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>Verified On-Chain</span>
@@ -2212,12 +2212,21 @@ export default function Landing() {
                 <Link to="/register" style={{ color: '#94A3B8', textDecoration: 'none' }}>Create Free Account</Link>
               </div>
             </div>
+
+            <div>
+              <div style={{ color: '#FFFFFF', fontWeight: 800, marginBottom: '12px' }}>CONTACT</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <a href="mailto:team@stocksoperator.com" style={{ color: '#EA580C', textDecoration: 'none', fontWeight: 700 }}>team@stocksoperator.com</a>
+                <a href="https://stocksoperator.com" target="_blank" rel="noreferrer" style={{ color: '#94A3B8', textDecoration: 'none' }}>stocksoperator.com</a>
+                <span style={{ color: '#64748B', fontSize: '12px' }}>Hostinger High-Performance Cloud</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <div style={{ maxWidth: '1280px', margin: '0 auto', paddingTop: '24px', borderTop: '1px solid #1E293B', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            © {new Date().getFullYear()} Stocks Operator Protocol. Built for true market discipline.
+            © {new Date().getFullYear()} Stocks Operator Protocol (stocksoperator.com). Built for true market discipline.
           </div>
           <div style={{ fontSize: '12px', color: '#475569' }}>
             Educational and skill verification simulator. No real money deposits or investments accepted.

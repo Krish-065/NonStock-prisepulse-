@@ -4,13 +4,14 @@
 
 ### *Your Professional Financial Learning Dashboard for Indian Markets*
 
-[![🚀 Launch App](https://img.shields.io/badge/🚀%20Launch%20App-stocksoperator.vercel.app-00ff88?style=for-the-badge)](https://stocksoperator.vercel.app/)
+[![🚀 Launch App](https://img.shields.io/badge/🚀%20Launch%20App-stocksoperator.com-EA580C?style=for-the-badge)](https://stocksoperator.com/)
 [![Status](https://img.shields.io/badge/Status-Live-brightgreen?style=for-the-badge)]()
 [![Market](https://img.shields.io/badge/Market-NSE%20%7C%20BSE%20%7C%20Crypto-blue?style=for-the-badge)]()
 
-> **Stocks Operator** is a real-time financial intelligence dashboard built for Indian retail investors and traders. Track live markets, simulate trades risk-free, scan equities, and monitor your personal portfolio — all in one unified, high-performance web interface.
+> **Stocks Operator** is a real-time financial intelligence dashboard built for retail investors and market operators. Track live markets, simulate trades risk-free, scan equities, and monitor your personal portfolio — all in one unified, high-performance web interface.
 
-### 🌐 [https://stocksoperator.vercel.app/](https://stocksoperator.vercel.app/)
+### 🌐 [https://stocksoperator.com/](https://stocksoperator.com/)
+### ✉️ Contact: [team@stocksoperator.com](mailto:team@stocksoperator.com)
 
 </div>
 
@@ -44,13 +45,15 @@ Stocks Operator aggregates live data across multiple asset classes to provide re
 
 ## 🚀 Start Using Stocks Operator
 
-### **[https://stocksoperator.vercel.app/](https://stocksoperator.vercel.app/)**
+### **[https://stocksoperator.com/](https://stocksoperator.com/)**
 
 *Create a free account in seconds. No credit card required.*
 
+Official Support & Contact: **[team@stocksoperator.com](mailto:team@stocksoperator.com)**
+
 ---
 
-Built with ❤️ for Indian retail traders and investors
+Built with ❤️ for true market operators and disciplined traders
 
 [🐛 Report an Issue](https://github.com/Krish-065/Stocks Operator-prisepulse-/issues) · [✨ Suggest a Feature](https://github.com/Krish-065/Stocks Operator-prisepulse-/issues)
 

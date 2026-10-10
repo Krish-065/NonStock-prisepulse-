@@ -29,7 +29,7 @@ async function sendEmail({ to, subject, html }) {
         const postData = JSON.stringify({
           sender: {
             name: process.env.FROM_NAME || 'Stocks Operator',
-            email: process.env.FROM_EMAIL
+            email: process.env.FROM_EMAIL || 'team@stocksoperator.com'
           },
           to: [{ email: to }],
           subject,
@@ -84,7 +84,7 @@ async function sendEmail({ to, subject, html }) {
   // Fallback to SMTP
   console.log(`Sending email to ${to} via traditional SMTP...`);
   await transporter.sendMail({
-    from: `"${process.env.FROM_NAME || 'Stocks Operator'}" <${process.env.FROM_EMAIL}>`,
+    from: `"${process.env.FROM_NAME || 'Stocks Operator'}" <${process.env.FROM_EMAIL || 'team@stocksoperator.com'}>`,
     to,
     subject,
     html,
