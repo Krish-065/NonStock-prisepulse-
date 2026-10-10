@@ -4,7 +4,7 @@ import TradingBadgeIcon from './TradingBadgeIcon';
 /**
  * DecagonTagBadge — Proper High-Profile Tier Tag Badge
  * Renders verified high-profile badges in their signature tag color:
- * - Contender: Slate Obsidian & Electric Emerald (#00D26A)
+ * - Contender: Slate Obsidian & Electric Emerald (#EA580C)
  * - Silver Prover: Polished Platinum Silver (#CBD5E1 / #94A3B8)
  * - Gold Sovereign: 24K Radiant Imperial Gold (#F59E0B / #FDE047)
  * - Master Titan: Fiery Ruby Crimson (#E11D48 / #BE123C)
@@ -15,11 +15,11 @@ export const TIER_CONFIG = {
   'Contender': {
     name: 'Contender',
     theme: 'decagon_contender',
-    color: '#00D26A',
-    textColor: '#006C2E',
-    bgColor: '#F0FDF4',
-    borderColor: '#86EFAC',
-    boxShadow: '0 2px 10px rgba(0, 210, 106, 0.25)',
+    color: '#EA580C',
+    textColor: '#9A3412',
+    bgColor: '#FFF7ED',
+    borderColor: '#FDBA74',
+    boxShadow: '0 2px 10px rgba(234, 88, 12, 0.25)',
     targetText: '$1,000 Baseline'
   },
   'Silver Prover': {
@@ -35,32 +35,32 @@ export const TIER_CONFIG = {
   'Gold Sovereign': {
     name: 'Gold Sovereign',
     theme: 'decagon_gold',
-    color: '#D97706',
-    textColor: '#78350F',
-    bgColor: '#FEFCE8',
-    borderColor: '#FDE047',
-    boxShadow: '0 3px 14px rgba(245, 158, 11, 0.3)',
+    color: '#C2410C',
+    textColor: '#7C2D12',
+    bgColor: '#FFFBEB',
+    borderColor: '#FDBA74',
+    boxShadow: '0 3px 14px rgba(234, 88, 12, 0.35)',
     targetText: '$4,000+ Sovereign'
   },
   'Master Titan': {
     name: 'Master Titan',
     theme: 'decagon_titan',
-    color: '#E11D48',
-    textColor: '#881337',
-    bgColor: '#FFF1F2',
-    borderColor: '#FDA4AF',
-    boxShadow: '0 3px 14px rgba(225, 29, 72, 0.3)',
+    color: '#9A3412',
+    textColor: '#7C2D12',
+    bgColor: '#FFF7ED',
+    borderColor: '#EA580C',
+    boxShadow: '0 3px 16px rgba(194, 65, 12, 0.45)',
     targetText: '$8,000+ Titan'
   },
   'Apex Operator': {
     name: 'Apex Operator',
     theme: 'decagon_apex',
-    color: '#A855F7',
-    textColor: '#581C87',
-    bgColor: '#FAF5FF',
-    borderColor: '#D8B4FE',
-    boxShadow: '0 4px 18px rgba(168, 85, 247, 0.35)',
-    targetText: '$15,000+ Apex'
+    color: '#EA580C',
+    textColor: '#FFFFFF',
+    bgColor: '#0F172A',
+    borderColor: '#EA580C',
+    boxShadow: '0 4px 20px rgba(234, 88, 12, 0.55)',
+    targetText: '$15,000+ Apex Predator'
   }
 };
 

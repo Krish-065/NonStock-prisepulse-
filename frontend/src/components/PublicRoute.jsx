@@ -13,7 +13,7 @@ export default function PublicRoute({ children }) {
         alignItems: 'center',
         height: '100vh',
         background: '#0a0e27',
-        color: '#00ff88',
+        color: '#EA580C',
         fontFamily: "'Inter', sans-serif"
       }}>
         <div style={{

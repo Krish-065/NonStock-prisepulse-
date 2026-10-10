@@ -104,7 +104,7 @@ export default function MobilePortfolioHub({
               $1,000.00
             </div>
           </div>
-          <span style={{ fontSize: '10px', fontWeight: 900, color: '#059669', background: '#ECFDF5', padding: '2px 6px', borderRadius: '4px' }}>
+          <span style={{ fontSize: '10px', fontWeight: 900, color: '#C2410C', background: '#FFF7ED', padding: '2px 6px', borderRadius: '4px' }}>
             EQUAL
           </span>
         </div>
@@ -133,8 +133,8 @@ export default function MobilePortfolioHub({
 
         {/* DER Score Pod */}
         <div style={{
-          background: '#F0FDF4',
-          border: '1px solid #BBF7D0',
+          background: '#FFF7ED',
+          border: '1px solid #FED7AA',
           borderRadius: '12px',
           padding: '8px 14px',
           display: 'flex',
@@ -143,10 +143,10 @@ export default function MobilePortfolioHub({
           flexShrink: 0
         }}>
           <div>
-            <div style={{ fontSize: '10px', fontWeight: 800, color: '#047857', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '10px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase' }}>
               DER Rating
             </div>
-            <div style={{ fontSize: '14px', fontWeight: 900, color: '#059669' }}>
+            <div style={{ fontSize: '14px', fontWeight: 900, color: '#C2410C' }}>
               {derScore}/100
             </div>
           </div>
@@ -206,8 +206,8 @@ export default function MobilePortfolioHub({
           marginTop: '8px',
           padding: '4px 10px',
           borderRadius: '999px',
-          background: netPnL >= 0 ? '#ECFDF5' : '#FEF2F2',
-          color: netPnL >= 0 ? '#059669' : '#DC2626',
+          background: netPnL >= 0 ? '#FFF7ED' : '#FEF2F2',
+          color: netPnL >= 0 ? '#C2410C' : '#DC2626',
           fontSize: '12px',
           fontWeight: 800
         }}>
@@ -218,7 +218,7 @@ export default function MobilePortfolioHub({
         </div>
       </div>
 
-      {/* ─── INTERACTIVE NEON GREEN PERFORMANCE GRAPH (MATCHING SCREEN 2) ─── */}
+      {/* ─── INTERACTIVE DARK DULL ORANGE PERFORMANCE GRAPH (MATCHING SCREEN 2) ─── */}
       <div style={{ position: 'relative', width: '100%', height: `${svgHeight}px` }}>
         <svg 
           viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
@@ -226,8 +226,8 @@ export default function MobilePortfolioHub({
         >
           <defs>
             <linearGradient id="mobileCurveGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#10B981" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#EA580C" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#EA580C" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -238,7 +238,7 @@ export default function MobilePortfolioHub({
           <path 
             d={pathD} 
             fill="none" 
-            stroke="#10B981" 
+            stroke="#EA580C" 
             strokeWidth="3" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
@@ -253,7 +253,7 @@ export default function MobilePortfolioHub({
                 y1={0} 
                 x2={activePoint.x} 
                 y2={svgHeight} 
-                stroke="rgba(16, 185, 129, 0.4)" 
+                stroke="rgba(234, 88, 12, 0.4)" 
                 strokeDasharray="3 3" 
                 strokeWidth="1.2" 
               />
@@ -263,15 +263,15 @@ export default function MobilePortfolioHub({
                 cx={activePoint.x} 
                 cy={activePoint.y} 
                 r="10" 
-                fill="rgba(16, 185, 129, 0.25)" 
+                fill="rgba(234, 88, 12, 0.25)" 
               />
-              {/* Solid White Center with Green Rim */}
+              {/* Solid White Center with Orange Rim */}
               <circle 
                 cx={activePoint.x} 
                 cy={activePoint.y} 
                 r="5" 
                 fill="#FFFFFF" 
-                stroke="#10B981" 
+                stroke="#EA580C" 
                 strokeWidth="2.5" 
               />
             </g>
@@ -286,10 +286,10 @@ export default function MobilePortfolioHub({
             top: `${Math.max(activePoint.y - 48, 0)}px`,
             transform: 'translateX(-50%)',
             background: '#FFFFFF',
-            border: '1.5px solid #10B981',
+            border: '1.5px solid #EA580C',
             borderRadius: '10px',
             padding: '4px 10px',
-            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+            boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
             textAlign: 'center',
             pointerEvents: 'none',
             zIndex: 10
@@ -312,13 +312,13 @@ export default function MobilePortfolioHub({
           width: '100%',
           padding: '16px 24px',
           borderRadius: '999px',
-          background: '#10B981',
+          background: '#EA580C',
           color: '#FFFFFF',
           border: 'none',
           fontSize: '16px',
           fontWeight: 900,
           cursor: 'pointer',
-          boxShadow: '0 6px 20px rgba(16, 185, 129, 0.4)',
+          boxShadow: '0 6px 20px rgba(234, 88, 12, 0.4)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -326,11 +326,11 @@ export default function MobilePortfolioHub({
           transition: 'all 0.2s ease'
         }}
         onMouseOver={(e) => {
-          e.currentTarget.style.background = '#059669';
+          e.currentTarget.style.background = '#C2410C';
           e.currentTarget.style.transform = 'translateY(-1px)';
         }}
         onMouseOut={(e) => {
-          e.currentTarget.style.background = '#10B981';
+          e.currentTarget.style.background = '#EA580C';
           e.currentTarget.style.transform = 'translateY(0)';
         }}
       >

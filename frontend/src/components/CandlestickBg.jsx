@@ -33,7 +33,7 @@ export default function CandlestickBg() {
         <defs>
           <pattern id="candlePattern" x="0" y="0" width="100" height="70" patternUnits="userSpaceOnUse">
             {candles.map((c, i) => {
-              const color = c.green ? '#00ff88' : '#ff4466';
+              const color = c.green ? '#EA580C' : '#ff4466';
               const cx = c.x + 3;
               return (
                 <g key={i}>

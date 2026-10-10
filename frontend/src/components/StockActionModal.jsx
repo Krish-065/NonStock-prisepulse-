@@ -23,7 +23,7 @@ const Overlay = styled.div`
 
 const ModalContent = styled.div`
   background: ${props => props.isLight ? '#ffffff' : '#121629'};
-  border: 1px solid ${props => props.isLight ? '#e5e7eb' : 'rgba(0,255,136,0.2)'};
+  border: 1px solid ${props => props.isLight ? '#e5e7eb' : 'rgba(234,88,12,0.2)'};
   border-radius: 16px;
   padding: 32px;
   width: 90%;
@@ -83,7 +83,7 @@ const ActionBtn = styled.button`
 
   &:hover {
     border-color: ${props => props.color};
-    background: ${props => props.isLight ? 'rgba(0,176,96,0.05)' : 'rgba(0,176,96,0.1)'};
+    background: ${props => props.isLight ? 'rgba(234,88,12,0.05)' : 'rgba(234,88,12,0.1)'};
     transform: translateY(-2px);
   }
 `;
@@ -146,13 +146,13 @@ export default function StockActionModal({ symbol, onClose }) {
         <ActionGrid>
           <ActionBtn 
             isLight={isLight} 
-            color="#00b060"
+            color="#EA580C"
             onClick={() => {
               navigate('/markets', { state: { selectSymbol: routeSym } });
               onClose();
             }}
           >
-            <IconWrap bg="rgba(0,176,96,0.15)" color="#00b060">
+            <IconWrap bg="rgba(234,88,12,0.15)" color="#EA580C">
               <LineChart size={24} />
             </IconWrap>
             <TextWrap>
@@ -180,7 +180,7 @@ export default function StockActionModal({ symbol, onClose }) {
 
           <ActionBtn 
             isLight={isLight} 
-            color="#00f2fe"
+            color="#C2410C"
             onClick={async () => {
               const qty = prompt(`Enter quantity of ${symbol} to add to your Portfolio:`, '10');
               if (qty && parseFloat(qty) > 0) {
@@ -201,7 +201,7 @@ export default function StockActionModal({ symbol, onClose }) {
               }
             }}
           >
-            <IconWrap bg="rgba(0,242,254,0.15)" color="#00f2fe">
+            <IconWrap bg="rgba(194,65,12,0.15)" color="#C2410C">
               <Briefcase size={24} />
             </IconWrap>
             <TextWrap>

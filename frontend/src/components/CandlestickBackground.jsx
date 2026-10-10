@@ -13,14 +13,14 @@ export default function CandlestickBackground() {
           opacity: 0.08;
           background-image: 
             repeating-linear-gradient(90deg, 
-              #00ff88 0px, #00ff88 2px, 
+              #EA580C 0px, #EA580C 2px, 
               transparent 2px, transparent 8px,
               #ff4444 8px, #ff4444 10px,
               transparent 10px, transparent 30px
             ),
             repeating-linear-gradient(0deg,
               transparent 0px, transparent 20px,
-              #00ff88 20px, #00ff88 22px,
+              #EA580C 20px, #EA580C 22px,
               transparent 22px, transparent 50px
             );
           background-size: 40px 100px;

@@ -5,7 +5,7 @@ import { getAllMarketSessions } from '../utils/marketHours';
 /**
  * MarketHoursDesk — Global Market Sessions & Live World Clock
  * Directly inspired by Screen 1 of the mobile reference design,
- * adapted to the Stocks Operator light theme (pure white, emerald green, and black text).
+ * adapted to the Stocks Operator light theme (pure white, dark dull orange, and black text).
  */
 export default function MarketHoursDesk({ 
   onSelectSession = null,
@@ -52,12 +52,12 @@ export default function MarketHoursDesk({
             width: '38px',
             height: '38px',
             borderRadius: '12px',
-            background: '#ECFDF5',
-            border: '1.5px solid #10B981',
+            background: '#FFF7ED',
+            border: '1.5px solid #EA580C',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#059669'
+            color: '#C2410C'
           }}>
             <Clock size={20} />
           </div>
@@ -70,7 +70,7 @@ export default function MarketHoursDesk({
                 width: '6px',
                 height: '6px',
                 borderRadius: '50%',
-                background: openCount > 0 ? '#10B981' : '#F59E0B'
+                background: openCount > 0 ? '#EA580C' : '#F59E0B'
               }} />
               <span>{openCount} of 4 Sessions Currently Open</span>
             </div>
@@ -80,16 +80,16 @@ export default function MarketHoursDesk({
         <div style={{
           padding: '5px 12px',
           borderRadius: '999px',
-          background: '#F0FDF4',
-          border: '1px solid #BBF7D0',
+          background: '#FFF7ED',
+          border: '1px solid #FED7AA',
           fontSize: '11px',
           fontWeight: 800,
-          color: '#047857',
+          color: '#9A3412',
           display: 'flex',
           alignItems: 'center',
           gap: '5px'
         }}>
-          <Globe size={13} color="#10B981" />
+          <Globe size={13} color="#EA580C" />
           <span>UTC SYNC</span>
         </div>
       </div>
@@ -100,7 +100,7 @@ export default function MarketHoursDesk({
         width: '100%',
         height: compact ? '160px' : '200px',
         borderRadius: '18px',
-        background: 'radial-gradient(ellipse at center, #F0FDF4 0%, #FFFFFF 85%)',
+        background: 'radial-gradient(ellipse at center, #FFF7ED 0%, #FFFFFF 85%)',
         border: '1.5px solid #E2E8F0',
         overflow: 'hidden',
         display: 'flex',
@@ -111,7 +111,7 @@ export default function MarketHoursDesk({
         <div style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: 'radial-gradient(rgba(16, 185, 129, 0.22) 1.2px, transparent 1.2px)',
+          backgroundImage: 'radial-gradient(rgba(234, 88, 12, 0.22) 1.2px, transparent 1.2px)',
           backgroundSize: '16px 16px',
           opacity: 0.85
         }} />
@@ -129,16 +129,16 @@ export default function MarketHoursDesk({
           }}
         >
           {/* North America */}
-          <path d="M120 70 L260 70 L340 180 L280 260 L200 240 L160 170 Z" fill="#BBF7D0" stroke="#10B981" strokeWidth="1" />
+          <path d="M120 70 L260 70 L340 180 L280 260 L200 240 L160 170 Z" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
           {/* South America */}
-          <path d="M260 260 L350 280 L320 420 L270 440 L240 320 Z" fill="#BBF7D0" stroke="#10B981" strokeWidth="1" />
+          <path d="M260 260 L350 280 L320 420 L270 440 L240 320 Z" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
           {/* Europe & Africa */}
-          <path d="M460 70 L580 80 L560 180 L460 180 Z" fill="#BBF7D0" stroke="#10B981" strokeWidth="1" />
-          <path d="M460 190 L580 200 L560 360 L480 340 L450 230 Z" fill="#BBF7D0" stroke="#10B981" strokeWidth="1" />
+          <path d="M460 70 L580 80 L560 180 L460 180 Z" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
+          <path d="M460 190 L580 200 L560 360 L480 340 L450 230 Z" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
           {/* Asia */}
-          <path d="M600 70 L880 90 L850 240 L720 250 L640 160 Z" fill="#BBF7D0" stroke="#10B981" strokeWidth="1" />
+          <path d="M600 70 L880 90 L850 240 L720 250 L640 160 Z" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
           {/* Australia */}
-          <path d="M780 300 L900 310 L880 410 L790 400 Z" fill="#BBF7D0" stroke="#10B981" strokeWidth="1" />
+          <path d="M780 300 L900 310 L880 410 L790 400 Z" fill="#FED7AA" stroke="#EA580C" strokeWidth="1" />
         </svg>
 
         {/* Live Session Pinpoint Badges on the Map (Directly matching Screen 1) */}
@@ -169,7 +169,7 @@ export default function MarketHoursDesk({
                   width: '26px',
                   height: '26px',
                   borderRadius: '50%',
-                  background: 'rgba(16, 185, 129, 0.3)',
+                  background: 'rgba(234, 88, 12, 0.3)',
                   animation: 'pulse 2s infinite'
                 }} />
               )}
@@ -182,13 +182,13 @@ export default function MarketHoursDesk({
                 padding: '4px 10px',
                 borderRadius: '999px',
                 background: s.isOpen ? '#FFFFFF' : 'rgba(255, 255, 255, 0.92)',
-                border: s.isOpen ? '2px solid #10B981' : '1.5px solid #CBD5E1',
+                border: s.isOpen ? '2px solid #EA580C' : '1.5px solid #CBD5E1',
                 boxShadow: s.isOpen 
-                  ? '0 4px 14px rgba(16, 185, 129, 0.3)' 
+                  ? '0 4px 14px rgba(234, 88, 12, 0.3)' 
                   : '0 2px 6px rgba(0, 0, 0, 0.06)',
                 fontSize: '11px',
                 fontWeight: 900,
-                color: s.isOpen ? '#047857' : '#475569',
+                color: s.isOpen ? '#9A3412' : '#475569',
                 whiteSpace: 'nowrap'
               }}>
                 <span>{s.flag}</span>
@@ -198,7 +198,7 @@ export default function MarketHoursDesk({
                     width: '6px',
                     height: '6px',
                     borderRadius: '50%',
-                    background: '#10B981'
+                    background: '#EA580C'
                   }} />
                 )}
               </div>
@@ -219,9 +219,9 @@ export default function MarketHoursDesk({
                 if (onSelectSession) onSelectSession(session);
               }}
               style={{
-                background: session.isOpen ? '#F0FDF4' : '#FFFFFF',
+                background: session.isOpen ? '#FFF7ED' : '#FFFFFF',
                 border: session.isOpen 
-                  ? '1.5px solid #86EFAC' 
+                  ? '1.5px solid #FDBA74' 
                   : (isSelected ? '1.5px solid #CBD5E1' : '1.5px solid #F1F5F9'),
                 borderRadius: '16px',
                 padding: '14px 18px',
@@ -230,10 +230,10 @@ export default function MarketHoursDesk({
                 justifyContent: 'space-between',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
-                boxShadow: session.isOpen ? '0 2px 10px rgba(16, 185, 129, 0.08)' : 'none'
+                boxShadow: session.isOpen ? '0 2px 10px rgba(234, 88, 12, 0.08)' : 'none'
               }}
               onMouseOver={(e) => {
-                if (!session.isOpen) e.currentTarget.style.borderColor = '#10B981';
+                if (!session.isOpen) e.currentTarget.style.borderColor = '#EA580C';
               }}
               onMouseOut={(e) => {
                 if (!session.isOpen && !isSelected) e.currentTarget.style.borderColor = '#F1F5F9';
@@ -245,15 +245,15 @@ export default function MarketHoursDesk({
                   width: '36px',
                   height: '36px',
                   borderRadius: '10px',
-                  background: session.isOpen ? '#ECFDF5' : '#F8FAFC',
-                  border: session.isOpen ? '1px solid #10B981' : '1px solid #E2E8F0',
+                  background: session.isOpen ? '#FFF7ED' : '#F8FAFC',
+                  border: session.isOpen ? '1px solid #EA580C' : '1px solid #E2E8F0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: session.isOpen ? '#059669' : '#94A3B8'
+                  color: session.isOpen ? '#C2410C' : '#94A3B8'
                 }}>
                   {session.isOpen ? (
-                    <Sun size={18} color="#059669" />
+                    <Sun size={18} color="#C2410C" />
                   ) : (
                     <Moon size={18} color="#64748B" />
                   )}
@@ -279,7 +279,7 @@ export default function MarketHoursDesk({
                 <div style={{
                   fontSize: '13px',
                   fontWeight: 800,
-                  color: session.isOpen ? '#059669' : '#64748B',
+                  color: session.isOpen ? '#C2410C' : '#64748B',
                   letterSpacing: '-0.2px'
                 }}>
                   {session.countdownText}
@@ -293,8 +293,8 @@ export default function MarketHoursDesk({
                   fontWeight: 900,
                   padding: '1px 6px',
                   borderRadius: '4px',
-                  background: session.isOpen ? '#DCFCE7' : '#F1F5F9',
-                  color: session.isOpen ? '#047857' : '#64748B',
+                  background: session.isOpen ? '#FFEDD5' : '#F1F5F9',
+                  color: session.isOpen ? '#9A3412' : '#64748B',
                   textTransform: 'uppercase'
                 }}>
                   <span>{session.isOpen ? 'SESSION OPEN' : 'SESSION CLOSED'}</span>

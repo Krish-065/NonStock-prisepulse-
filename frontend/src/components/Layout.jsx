@@ -90,7 +90,7 @@ export default function Layout({ children }) {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'radial-gradient(ellipse at top, #F0FDF4 0%, #F8FAFC 50%, #FFFFFF 100%)', 
+      background: 'radial-gradient(ellipse at top, #FFF7ED 0%, #F8FAFC 50%, #FFFFFF 100%)', 
       color: '#0F172A',
       display: 'flex',
       flexDirection: 'column',
@@ -283,7 +283,7 @@ export default function Layout({ children }) {
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  background: badge?.name === 'Contender' ? '#10B981' : (badge?.color || '#10B981')
+                  background: badge?.name === 'Contender' ? '#EA580C' : (badge?.color || '#EA580C')
                 }} />
                 <span>{badge?.name || 'CONTENDER'}</span>
               </div>
@@ -316,7 +316,7 @@ export default function Layout({ children }) {
                     width: '26px',
                     height: '26px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #10B981, #059669)',
+                    background: 'linear-gradient(135deg, #EA580C, #C2410C)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -346,7 +346,7 @@ export default function Layout({ children }) {
             <button
               onClick={() => navigate('/login')}
               style={{
-                background: '#10B981',
+                background: '#EA580C',
                 color: '#ffffff',
                 border: 'none',
                 padding: '8px 18px',
@@ -460,9 +460,9 @@ export default function Layout({ children }) {
               width: '100%',
               padding: '12px 16px',
               borderRadius: '10px',
-              background: (location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))) ? '#F0FDF4' : '#F8FAFC',
-              border: (location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))) ? '1px solid #10B981' : '1px solid #E2E8F0',
-              color: (location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))) ? '#059669' : '#0F172A',
+              background: (location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))) ? '#FFF7ED' : '#F8FAFC',
+              border: (location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))) ? '1px solid #EA580C' : '1px solid #E2E8F0',
+              color: (location.pathname === '/dashboard' && (!location.search || location.search.includes('tab=overview'))) ? '#C2410C' : '#0F172A',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -472,7 +472,7 @@ export default function Layout({ children }) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <LayoutDashboard size={18} color="#059669" />
+              <LayoutDashboard size={18} color="#C2410C" />
               <span>Dashboard & Proving Ground</span>
             </div>
             <ChevronRight size={16} color="#64748B" />
@@ -495,9 +495,9 @@ export default function Layout({ children }) {
                   width: '100%',
                   padding: '12px 16px',
                   borderRadius: '10px',
-                  background: item.active ? '#F0FDF4' : '#F8FAFC',
-                  border: item.active ? '1px solid #10B981' : '1px solid #E2E8F0',
-                  color: item.active ? '#059669' : '#0F172A',
+                  background: item.active ? '#FFF7ED' : '#F8FAFC',
+                  border: item.active ? '1px solid #EA580C' : '1px solid #E2E8F0',
+                  color: item.active ? '#C2410C' : '#0F172A',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -540,7 +540,7 @@ export default function Layout({ children }) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Clock size={18} color="#059669" />
+              <Clock size={18} color="#C2410C" />
               <span>Global Market Hours (NY, LDN, TYO, SYD)</span>
             </div>
             <ChevronRight size={16} color="#64748B" />
@@ -567,7 +567,7 @@ export default function Layout({ children }) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Calculator size={18} color="#059669" />
+              <Calculator size={18} color="#C2410C" />
               <span>Position Size & Risk Calculator</span>
             </div>
             <ChevronRight size={16} color="#64748B" />
@@ -645,7 +645,7 @@ export default function Layout({ children }) {
         {children}
       </main>
 
-      {/* ─── SLEEK MOBILE BOTTOM NAVIGATION BAR (WHITE & GREEN APP FEEL) ─── */}
+      {/* ─── SLEEK MOBILE BOTTOM NAVIGATION BAR (WHITE & ORANGE APP FEEL) ─── */}
       {isMobile && user && (
         <nav style={{
           position: 'fixed',

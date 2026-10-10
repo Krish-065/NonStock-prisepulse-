@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
 import { 
   Globe, TrendingUp, TrendingDown, DollarSign, Activity, 
@@ -64,18 +64,18 @@ export default function GlobalMarkets() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
               <div style={{
-                background: '#ECFDF5',
-                color: '#059669',
+                background: '#FFF7ED',
+                color: '#C2410C',
                 borderRadius: '10px',
                 padding: '7px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1px solid #A7F3D0'
+                border: '1px solid #FED7AA'
               }}>
                 <Globe size={18} />
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                 FOREIGN MARKET INTELLIGENCE & GLOBAL MACRO
               </span>
               <span style={{
@@ -119,7 +119,7 @@ export default function GlobalMarkets() {
                 width: isMobile ? '100%' : 'auto'
               }}
             >
-              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} color="#059669" />
+              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} color="#C2410C" />
               <span>{refreshing ? 'Updating Feeds...' : 'Refresh Quotes'}</span>
             </button>
           </div>
@@ -143,7 +143,7 @@ export default function GlobalMarkets() {
                 GLOBAL RISK APPETITE COMPOSITE
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginTop: '4px' }}>
-                <span style={{ fontSize: '30px', fontWeight: 900, color: '#059669' }}>
+                <span style={{ fontSize: '30px', fontWeight: 900, color: '#C2410C' }}>
                   {data.sentiment.score}
                 </span>
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
@@ -161,7 +161,7 @@ export default function GlobalMarkets() {
                 <div style={{
                   height: '100%',
                   width: `${data.sentiment.score}%`,
-                  background: 'linear-gradient(90deg, #10B981, #059669)',
+                  background: 'linear-gradient(90deg, #EA580C, #C2410C)',
                   borderRadius: '999px'
                 }} />
               </div>
@@ -178,7 +178,7 @@ export default function GlobalMarkets() {
                 FII CAPITAL FLOW PROXY
               </div>
               <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Zap size={16} color="#059669" />
+                <Zap size={16} color="#C2410C" />
                 {data.fiiAnalysis?.bias}
               </div>
               <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', lineHeight: 1.4 }}>
@@ -196,10 +196,10 @@ export default function GlobalMarkets() {
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 PROJECTED EM ALLOCATION
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: '#059669', marginTop: '4px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#C2410C', marginTop: '4px' }}>
                 {data.fiiAnalysis?.fiiScore}
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#047857', background: '#ECFDF5', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '6px', border: '1px solid #A7F3D0' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#9A3412', background: '#FFF7ED', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '6px', border: '1px solid #FED7AA' }}>
                 {data.fiiAnalysis?.signalStrength}
               </div>
             </div>
@@ -213,7 +213,7 @@ export default function GlobalMarkets() {
       {/* ─── 2. MACRO BAROMETER CARDS (YIELDS, DOLLAR, VIX, CRUDE, GOLD) ─── */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-          <Activity size={18} color="#059669" />
+          <Activity size={18} color="#C2410C" />
           <h2 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             Foreign Macro Barometer & Crucial Yields
           </h2>
@@ -241,8 +241,8 @@ export default function GlobalMarkets() {
                     fontWeight: 800,
                     padding: '2px 6px',
                     borderRadius: '4px',
-                    background: item.impact === 'Bullish' ? '#ECFDF5' : (item.impact === 'Risk-On' ? '#EFF6FF' : '#F1F5F9'),
-                    color: item.impact === 'Bullish' ? '#059669' : (item.impact === 'Risk-On' ? '#0284C7' : '#475569')
+                    background: item.impact === 'Bullish' ? '#FFF7ED' : (item.impact === 'Risk-On' ? '#EFF6FF' : '#F1F5F9'),
+                    color: item.impact === 'Bullish' ? '#C2410C' : (item.impact === 'Risk-On' ? '#0284C7' : '#475569')
                   }}>
                     {item.impact}
                   </span>
@@ -259,7 +259,7 @@ export default function GlobalMarkets() {
                   <span style={{
                     fontSize: '12px',
                     fontWeight: 800,
-                    color: isPositive ? '#059669' : '#DC2626',
+                    color: isPositive ? '#C2410C' : '#DC2626',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '2px'
@@ -296,7 +296,7 @@ export default function GlobalMarkets() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BarChart3 size={20} color="#059669" /> Major Foreign Stock Exchanges & Indices
+              <BarChart3 size={20} color="#C2410C" /> Major Foreign Stock Exchanges & Indices
             </h3>
             <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
               Real-time foreign index benchmarks from Wall Street, Europe, and Asia-Pacific.
@@ -310,9 +310,9 @@ export default function GlobalMarkets() {
                 key={region}
                 onClick={() => setSelectedRegion(region)}
                 style={{
-                  background: selectedRegion === region ? '#10B981' : '#F8FAFC',
+                  background: selectedRegion === region ? '#EA580C' : '#F8FAFC',
                   color: selectedRegion === region ? '#FFFFFF' : '#64748B',
-                  border: selectedRegion === region ? '1px solid #10B981' : '1px solid #E2E8F0',
+                  border: selectedRegion === region ? '1px solid #EA580C' : '1px solid #E2E8F0',
                   padding: '6px 14px',
                   borderRadius: '8px',
                   fontSize: '12px',
@@ -382,8 +382,8 @@ export default function GlobalMarkets() {
                     gap: '4px',
                     padding: '6px 10px',
                     borderRadius: '8px',
-                    background: isUp ? '#ECFDF5' : '#FEF2F2',
-                    color: isUp ? '#059669' : '#DC2626',
+                    background: isUp ? '#FFF7ED' : '#FEF2F2',
+                    color: isUp ? '#C2410C' : '#DC2626',
                     fontSize: '13px',
                     fontWeight: 900
                   }}>
@@ -407,7 +407,7 @@ export default function GlobalMarkets() {
       }}>
         <div style={{ marginBottom: '18px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Clock size={20} color="#059669" /> World Financial Centers Live Status
+            <Clock size={20} color="#C2410C" /> World Financial Centers Live Status
           </h3>
           <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
             Live status of world stock exchanges, session overlap times, and active liquidity cycles.
@@ -419,8 +419,8 @@ export default function GlobalMarkets() {
             <div 
               key={idx}
               style={{
-                background: sess.isOpen ? '#ECFDF5' : '#F8FAFC',
-                border: sess.isOpen ? '1.5px solid #10B981' : '1px solid #E2E8F0',
+                background: sess.isOpen ? '#FFF7ED' : '#F8FAFC',
+                border: sess.isOpen ? '1.5px solid #EA580C' : '1px solid #E2E8F0',
                 borderRadius: '14px',
                 padding: '16px',
                 display: 'flex',
@@ -435,7 +435,7 @@ export default function GlobalMarkets() {
                   fontWeight: 900,
                   padding: '3px 8px',
                   borderRadius: '6px',
-                  background: sess.isOpen ? '#10B981' : '#F1F5F9',
+                  background: sess.isOpen ? '#EA580C' : '#F1F5F9',
                   color: sess.isOpen ? '#FFFFFF' : '#64748B',
                   display: 'flex',
                   alignItems: 'center',
@@ -464,7 +464,7 @@ export default function GlobalMarkets() {
               <div style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: sess.trend.includes('Bullish') || sess.trend.includes('Rally') ? '#059669' : '#0284C7',
+                color: sess.trend.includes('Bullish') || sess.trend.includes('Rally') ? '#C2410C' : '#0284C7',
                 marginTop: '4px'
               }}>
                 Signal: {sess.trend}
@@ -485,7 +485,7 @@ export default function GlobalMarkets() {
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
         }}>
           <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Compass size={18} color="#059669" /> Cross-Market Macro Correlations
+            <Compass size={18} color="#C2410C" /> Cross-Market Macro Correlations
           </h3>
           <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 16px 0' }}>
             Statistical relationship between global assets and domestic market direction.
@@ -522,7 +522,7 @@ export default function GlobalMarkets() {
                   borderTop: isMobile ? '1px dashed #E2E8F0' : 'none',
                   paddingTop: isMobile ? '8px' : '0'
                 }}>
-                  <div style={{ fontSize: '14px', fontWeight: 900, color: c.coefficient.startsWith('+') ? '#059669' : '#DC2626' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 900, color: c.coefficient.startsWith('+') ? '#C2410C' : '#DC2626' }}>
                     {c.coefficient}
                   </div>
                   <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700 }}>{c.correlation}</div>
@@ -566,7 +566,7 @@ export default function GlobalMarkets() {
                 <div style={{ width: isMobile ? '100%' : 'auto' }}>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', wordBreak: 'break-word' }}>{item.event}</div>
                   <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px', lineHeight: 1.4 }}>
-                    Consensus: <span style={{ color: '#059669', fontWeight: 700 }}>{item.consensus}</span>
+                    Consensus: <span style={{ color: '#C2410C', fontWeight: 700 }}>{item.consensus}</span>
                   </div>
                 </div>
 

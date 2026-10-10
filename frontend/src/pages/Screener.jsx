@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '../services/api';
 import { 
   Search, TrendingUp, TrendingDown, RefreshCw, Filter, Zap, Sliders, 
@@ -181,9 +181,9 @@ export default function Screener() {
             </h1>
             <span style={{
               fontSize: '11px',
-              background: '#ECFDF5',
-              color: '#059669',
-              border: '1px solid #A7F3D0',
+              background: '#FFF7ED',
+              color: '#C2410C',
+              border: '1px solid #FED7AA',
               padding: '3px 9px',
               borderRadius: '999px',
               fontWeight: 800
@@ -241,20 +241,20 @@ export default function Screener() {
           <button
             onClick={() => setShowAdvancedFilters(prev => !prev)}
             style={{
-              background: showAdvancedFilters ? '#ECFDF5' : '#FFFFFF',
-              border: showAdvancedFilters ? '1.5px solid #10B981' : '1px solid #CBD5E1',
+              background: showAdvancedFilters ? '#FFF7ED' : '#FFFFFF',
+              border: showAdvancedFilters ? '1.5px solid #EA580C' : '1px solid #CBD5E1',
               borderRadius: '8px',
               padding: '8px 14px',
               fontSize: '12px',
               fontWeight: 700,
-              color: showAdvancedFilters ? '#059669' : '#475569',
+              color: showAdvancedFilters ? '#C2410C' : '#475569',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px'
             }}
           >
-            <Sliders size={13} color={showAdvancedFilters ? '#059669' : '#64748B'} />
+            <Sliders size={13} color={showAdvancedFilters ? '#C2410C' : '#64748B'} />
             <span>Advanced Filters</span>
           </button>
         </div>
@@ -275,9 +275,9 @@ export default function Screener() {
               key={preset.id}
               onClick={() => setTechnicalPreset(preset.id)}
               style={{
-                background: isActive ? '#ECFDF5' : '#FFFFFF',
-                border: isActive ? '1.5px solid #10B981' : '1px solid #E2E8F0',
-                color: isActive ? '#059669' : '#64748B',
+                background: isActive ? '#FFF7ED' : '#FFFFFF',
+                border: isActive ? '1.5px solid #EA580C' : '1px solid #E2E8F0',
+                color: isActive ? '#C2410C' : '#64748B',
                 padding: '8px 14px',
                 borderRadius: '10px',
                 fontSize: '12px',
@@ -288,10 +288,10 @@ export default function Screener() {
                 gap: '8px',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
-                boxShadow: isActive ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
+                boxShadow: isActive ? '0 2px 8px rgba(234, 88, 12, 0.15)' : 'none'
               }}
             >
-              <Icon size={14} color={isActive ? '#059669' : '#64748B'} />
+              <Icon size={14} color={isActive ? '#C2410C' : '#64748B'} />
               <span>{preset.label}</span>
               {preset.badge && (
                 <span style={{
@@ -299,7 +299,7 @@ export default function Screener() {
                   fontWeight: 900,
                   padding: '1px 5px',
                   borderRadius: '4px',
-                  background: isActive ? '#10B981' : '#F1F5F9',
+                  background: isActive ? '#EA580C' : '#F1F5F9',
                   color: isActive ? '#FFFFFF' : '#64748B'
                 }}>
                   {preset.badge}
@@ -358,7 +358,7 @@ export default function Screener() {
               step="0.5"
               value={minVolumeMultiple}
               onChange={e => setMinVolumeMultiple(parseFloat(e.target.value))}
-              style={{ width: '100%', accentColor: '#10B981' }}
+              style={{ width: '100%', accentColor: '#EA580C' }}
             />
           </div>
 
@@ -428,9 +428,9 @@ export default function Screener() {
               key={m}
               onClick={() => setMoverFilter(m)}
               style={{
-                background: moverFilter === m ? '#ECFDF5' : '#F8FAFC',
-                border: moverFilter === m ? '1.5px solid #10B981' : '1px solid #E2E8F0',
-                color: moverFilter === m ? '#059669' : '#64748B',
+                background: moverFilter === m ? '#FFF7ED' : '#F8FAFC',
+                border: moverFilter === m ? '1.5px solid #EA580C' : '1px solid #E2E8F0',
+                color: moverFilter === m ? '#C2410C' : '#64748B',
                 padding: '6px 12px',
                 borderRadius: '8px',
                 fontSize: '12px',
@@ -456,12 +456,12 @@ export default function Screener() {
               borderRadius: '16px',
               fontSize: '11px',
               fontWeight: 700,
-              background: sectorFilter === sec ? '#10B981' : '#FFFFFF',
+              background: sectorFilter === sec ? '#EA580C' : '#FFFFFF',
               color: sectorFilter === sec ? '#FFFFFF' : '#64748B',
-              border: sectorFilter === sec ? '1px solid #10B981' : '1px solid #E2E8F0',
+              border: sectorFilter === sec ? '1px solid #EA580C' : '1px solid #E2E8F0',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              boxShadow: sectorFilter === sec ? '0 2px 6px rgba(16, 185, 129, 0.2)' : 'none'
+              boxShadow: sectorFilter === sec ? '0 2px 6px rgba(234, 88, 12, 0.2)' : 'none'
             }}
           >
             {sec}
@@ -530,7 +530,7 @@ export default function Screener() {
                       <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>{s.symbol}</span>
                         {s.isBBSqueeze && (
-                          <span style={{ fontSize: '9px', background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', padding: '1px 5px', borderRadius: '4px', fontWeight: 900 }}>
+                          <span style={{ fontSize: '9px', background: '#FFF7ED', color: '#9A3412', border: '1px solid #FED7AA', padding: '1px 5px', borderRadius: '4px', fontWeight: 900 }}>
                             SQUEEZE
                           </span>
                         )}
@@ -544,7 +544,7 @@ export default function Screener() {
                     </td>
 
                     {/* Change % */}
-                    <td style={{ padding: '14px 12px', fontWeight: 800, color: chg >= 0 ? '#059669' : '#DC2626' }}>
+                    <td style={{ padding: '14px 12px', fontWeight: 800, color: chg >= 0 ? '#C2410C' : '#DC2626' }}>
                       {chg >= 0 ? '+' : ''}{chg.toFixed(2)}%
                     </td>
 
@@ -558,8 +558,8 @@ export default function Screener() {
                         borderRadius: '6px',
                         fontSize: '12px',
                         fontWeight: 800,
-                        background: rsi < 38 ? '#ECFDF5' : rsi > 65 ? '#FEF2F2' : '#F1F5F9',
-                        color: rsi < 38 ? '#059669' : rsi > 65 ? '#DC2626' : '#0F172A'
+                        background: rsi < 38 ? '#FFF7ED' : rsi > 65 ? '#FEF2F2' : '#F1F5F9',
+                        color: rsi < 38 ? '#C2410C' : rsi > 65 ? '#DC2626' : '#0F172A'
                       }}>
                         <span>{rsi}</span>
                         <span style={{ fontSize: '10px', opacity: 0.8 }}>
@@ -571,7 +571,7 @@ export default function Screener() {
                     {/* Moving Avg Cross */}
                     <td style={{ padding: '14px 12px' }}>
                       {isCross ? (
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', background: '#ECFDF5', padding: '2px 8px', borderRadius: '6px', border: '1px solid #A7F3D0' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', background: '#FFF7ED', padding: '2px 8px', borderRadius: '6px', border: '1px solid #FED7AA' }}>
                           Golden Cross (20 &gt; 50)
                         </span>
                       ) : isDeath ? (
@@ -606,8 +606,8 @@ export default function Screener() {
                         borderRadius: '6px',
                         fontSize: '11px',
                         fontWeight: 800,
-                        background: isSuperBull ? '#ECFDF5' : '#FEF2F2',
-                        color: isSuperBull ? '#059669' : '#DC2626'
+                        background: isSuperBull ? '#FFF7ED' : '#FEF2F2',
+                        color: isSuperBull ? '#C2410C' : '#DC2626'
                       }}>
                         {isSuperBull ? 'BULLISH' : 'BEARISH'}
                       </span>
@@ -632,7 +632,7 @@ export default function Screener() {
                       <button
                         onClick={() => navigate('/trading')}
                         style={{
-                          background: '#10B981',
+                          background: '#EA580C',
                           color: '#FFFFFF',
                           border: 'none',
                           borderRadius: '6px',
@@ -643,7 +643,7 @@ export default function Screener() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
-                          boxShadow: '0 2px 6px rgba(16, 185, 129, 0.2)'
+                          boxShadow: '0 2px 6px rgba(234, 88, 12, 0.2)'
                         }}
                       >
                         <span>Trade</span>

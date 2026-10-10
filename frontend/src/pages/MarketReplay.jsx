@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { 
   Play, Pause, RotateCcw, SkipForward, Calendar, Clock, DollarSign, 
@@ -271,10 +271,10 @@ export default function MarketReplay() {
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: '#10B981',
+      upColor: '#EA580C',
       downColor: '#EF4444',
       borderVisible: false,
-      wickUpColor: '#10B981',
+      wickUpColor: '#EA580C',
       wickDownColor: '#EF4444'
     });
 
@@ -437,7 +437,7 @@ export default function MarketReplay() {
   }, [currentIndex, currentCandle, activePositions]);
 
   // ─── 7. DRAWING TOOLS HANDLERS ───
-  const handleAddHorizontalLine = (priceLevel, label = 'Key S&R Level', color = '#059669') => {
+  const handleAddHorizontalLine = (priceLevel, label = 'Key S&R Level', color = '#C2410C') => {
     if (!seriesRef.current) return;
     const price = priceLevel || currentCandle.close;
     
@@ -478,7 +478,7 @@ export default function MarketReplay() {
     const tp = side === 'BUY' ? entry + (riskAmount * 2) : entry - (riskAmount * 2); // 1:2 R:R
 
     handleAddHorizontalLine(entry, `${side} Entry`, '#0284C7');
-    handleAddHorizontalLine(tp, `TP Target (2R)`, '#10B981');
+    handleAddHorizontalLine(tp, `TP Target (2R)`, '#EA580C');
     handleAddHorizontalLine(sl, `SL Invalidation (1R)`, '#EF4444');
 
     setPositionBoxes(prev => [...prev, {
@@ -582,7 +582,7 @@ export default function MarketReplay() {
       <div style={{
         background: '#FFFFFF',
         borderRadius: '20px',
-        border: '1.5px solid #A7F3D0',
+        border: '1.5px solid #FED7AA',
         padding: '22px 28px',
         color: '#0F172A',
         display: 'flex',
@@ -590,14 +590,14 @@ export default function MarketReplay() {
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '20px',
-        boxShadow: '0 4px 20px rgba(16, 185, 129, 0.06)'
+        boxShadow: '0 4px 20px rgba(234, 88, 12, 0.06)'
       }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-            <span style={{ background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', fontSize: '11px', fontWeight: '900', padding: '3px 8px', borderRadius: '4px', letterSpacing: '0.8px' }}>
+            <span style={{ background: '#FFF7ED', color: '#9A3412', border: '1px solid #FED7AA', fontSize: '11px', fontWeight: '900', padding: '3px 8px', borderRadius: '4px', letterSpacing: '0.8px' }}>
               PRO ENGINE 2.0
             </span>
-            <span style={{ fontSize: '13px', color: '#059669', fontWeight: '800' }}>
+            <span style={{ fontSize: '13px', color: '#C2410C', fontWeight: '800' }}>
               Bar-by-Bar Replay + Live Market Continuation
             </span>
             {isLiveActive && (
@@ -620,9 +620,9 @@ export default function MarketReplay() {
           <button
             onClick={() => setShowKeyModal(true)}
             style={{
-              background: twelveApiKey ? '#ECFDF5' : '#FFFFFF',
-              color: twelveApiKey ? '#047857' : '#0F172A',
-              border: twelveApiKey ? '1.5px solid #10B981' : '1.5px solid #CBD5E1',
+              background: twelveApiKey ? '#FFF7ED' : '#FFFFFF',
+              color: twelveApiKey ? '#9A3412' : '#0F172A',
+              border: twelveApiKey ? '1.5px solid #EA580C' : '1.5px solid #CBD5E1',
               borderRadius: '10px',
               padding: '8px 14px',
               fontWeight: '800',
@@ -634,10 +634,10 @@ export default function MarketReplay() {
               boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
             }}
           >
-            <Key size={14} color={twelveApiKey ? '#059669' : '#64748B'} />
+            <Key size={14} color={twelveApiKey ? '#C2410C' : '#64748B'} />
             <span>Twelve Data API:</span>
             <span style={{ 
-              background: twelveApiKey ? '#10B981' : '#E2E8F0', 
+              background: twelveApiKey ? '#EA580C' : '#E2E8F0', 
               color: twelveApiKey ? '#FFFFFF' : '#475569', 
               padding: '2px 6px', 
               borderRadius: '4px',
@@ -676,7 +676,7 @@ export default function MarketReplay() {
               alignItems: 'center',
               justifyContent: 'space-between',
               background: '#F8FAFC',
-              border: isAssetDropdownOpen ? '2px solid #10B981' : '1px solid #CBD5E1',
+              border: isAssetDropdownOpen ? '2px solid #EA580C' : '1px solid #CBD5E1',
               borderRadius: '8px',
               padding: '8px 12px',
               cursor: 'pointer',
@@ -740,18 +740,18 @@ export default function MarketReplay() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
-                    background: a.symbol === selectedAsset.symbol ? '#ECFDF5' : '#fff',
+                    background: a.symbol === selectedAsset.symbol ? '#FFF7ED' : '#fff',
                     borderBottom: '1px solid #F8FAFC',
                     fontSize: '12px'
                   }}
                   onMouseOver={(e) => e.currentTarget.style.background = '#F8FAFC'}
-                  onMouseOut={(e) => e.currentTarget.style.background = a.symbol === selectedAsset.symbol ? '#ECFDF5' : '#fff'}
+                  onMouseOut={(e) => e.currentTarget.style.background = a.symbol === selectedAsset.symbol ? '#FFF7ED' : '#fff'}
                 >
                   <div>
                     <span style={{ fontWeight: '800', color: '#0F172A', marginRight: '6px' }}>{a.symbol}</span>
                     <span style={{ color: '#64748B' }}>{a.name}</span>
                   </div>
-                  <span style={{ fontSize: '10px', fontWeight: '700', color: '#059669', background: '#F0FDF4', padding: '2px 6px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '700', color: '#C2410C', background: '#FFF7ED', padding: '2px 6px', borderRadius: '4px' }}>
                     {a.category}
                   </span>
                 </div>
@@ -773,8 +773,8 @@ export default function MarketReplay() {
                 style={{
                   padding: '7px 12px',
                   borderRadius: '6px',
-                  border: timeframe.label === tf.label ? '1.5px solid #10B981' : '1px solid #CBD5E1',
-                  background: timeframe.label === tf.label ? '#10B981' : '#FFFFFF',
+                  border: timeframe.label === tf.label ? '1.5px solid #EA580C' : '1px solid #CBD5E1',
+                  background: timeframe.label === tf.label ? '#EA580C' : '#FFFFFF',
                   color: timeframe.label === tf.label ? '#FFFFFF' : '#475569',
                   fontWeight: '800',
                   fontSize: '12px',
@@ -791,7 +791,7 @@ export default function MarketReplay() {
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
           <div>
             <label style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-              <Calendar size={12} color="#059669" />
+              <Calendar size={12} color="#C2410C" />
               REPLAY START DATE
             </label>
             <input
@@ -812,7 +812,7 @@ export default function MarketReplay() {
 
           <div>
             <label style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-              <Clock size={12} color="#059669" />
+              <Clock size={12} color="#C2410C" />
               TIMESTAMP
             </label>
             <input
@@ -860,9 +860,9 @@ export default function MarketReplay() {
             <button
               onClick={() => handleQuickCutPreset('OCT_2_2026')}
               style={{
-                background: cutDate === '2026-10-02' ? '#ECFDF5' : '#FFFFFF',
-                color: cutDate === '2026-10-02' ? '#047857' : '#64748B',
-                border: cutDate === '2026-10-02' ? '1px solid #10B981' : '1px solid #E2E8F0',
+                background: cutDate === '2026-10-02' ? '#FFF7ED' : '#FFFFFF',
+                color: cutDate === '2026-10-02' ? '#9A3412' : '#64748B',
+                border: cutDate === '2026-10-02' ? '1px solid #EA580C' : '1px solid #E2E8F0',
                 borderRadius: '6px',
                 padding: '6px 10px',
                 fontSize: '11px',
@@ -936,7 +936,7 @@ export default function MarketReplay() {
               <span style={{ fontSize: '18px', fontWeight: '900', color: '#0F172A' }}>
                 {selectedAsset.symbol}
               </span>
-              <span style={{ fontSize: '18px', fontWeight: '900', color: '#059669' }}>
+              <span style={{ fontSize: '18px', fontWeight: '900', color: '#C2410C' }}>
                 ${currentCandle.close?.toFixed(selectedAsset.basePrice < 5 ? 4 : 2)}
               </span>
               <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>
@@ -946,7 +946,7 @@ export default function MarketReplay() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Clock size={14} color="#059669" />
+                <Clock size={14} color="#C2410C" />
                 <span>{formattedBarDate}</span>
               </div>
               <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', background: '#F1F5F9', padding: '3px 8px', borderRadius: '4px' }}>
@@ -973,7 +973,7 @@ export default function MarketReplay() {
 
               {/* Horizontal Ray Button */}
               <button
-                onClick={() => handleAddHorizontalLine(currentCandle.close, 'S&R Level', '#059669')}
+                onClick={() => handleAddHorizontalLine(currentCandle.close, 'S&R Level', '#C2410C')}
                 style={{
                   background: '#F8FAFC',
                   border: '1px solid #CBD5E1',
@@ -988,20 +988,20 @@ export default function MarketReplay() {
                   gap: '4px'
                 }}
               >
-                <Minus size={14} color="#059669" /> + Horizontal S&R Ray
+                <Minus size={14} color="#C2410C" /> + Horizontal S&R Ray
               </button>
 
               {/* Long Risk/Reward Box */}
               <button
                 onClick={() => handleCreateRiskRewardBox('BUY')}
                 style={{
-                  background: '#ECFDF5',
-                  border: '1px solid #A7F3D0',
+                  background: '#FFF7ED',
+                  border: '1px solid #FED7AA',
                   borderRadius: '6px',
                   padding: '5px 10px',
                   fontSize: '11px',
                   fontWeight: '800',
-                  color: '#047857',
+                  color: '#9A3412',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -1080,7 +1080,7 @@ export default function MarketReplay() {
                   }
                 }}
                 style={{
-                  background: isPlaying ? '#EF4444' : (isLiveActive ? '#DC2626' : '#10B981'),
+                  background: isPlaying ? '#EF4444' : (isLiveActive ? '#DC2626' : '#EA580C'),
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '8px',
@@ -1091,7 +1091,7 @@ export default function MarketReplay() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 2px 6px rgba(16, 185, 129, 0.25)'
+                  boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)'
                 }}
               >
                 {isPlaying ? (
@@ -1156,9 +1156,9 @@ export default function MarketReplay() {
                   key={s}
                   onClick={() => setSpeed(s)}
                   style={{
-                    background: speed === s ? '#10B981' : '#FFFFFF',
+                    background: speed === s ? '#EA580C' : '#FFFFFF',
                     color: speed === s ? '#FFFFFF' : '#64748B',
-                    border: speed === s ? '1px solid #10B981' : '1px solid #CBD5E1',
+                    border: speed === s ? '1px solid #EA580C' : '1px solid #CBD5E1',
                     borderRadius: '6px',
                     padding: '4px 10px',
                     fontSize: '12px',
@@ -1182,7 +1182,7 @@ export default function MarketReplay() {
                   setIsPlaying(false);
                   setCurrentIndex(parseInt(e.target.value));
                 }}
-                style={{ flex: 1, accentColor: '#10B981', cursor: 'pointer' }}
+                style={{ flex: 1, accentColor: '#EA580C', cursor: 'pointer' }}
               />
             </div>
           </div>
@@ -1207,7 +1207,7 @@ export default function MarketReplay() {
               <h3 style={{ fontSize: '16px', fontWeight: '900', margin: 0, color: '#0F172A' }}>
                 Replay Trade Desk
               </h3>
-              <span style={{ fontSize: '11px', fontWeight: '800', color: isLiveActive ? '#DC2626' : '#059669', background: isLiveActive ? '#FEF2F2' : '#ECFDF5', padding: '3px 8px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: isLiveActive ? '#DC2626' : '#C2410C', background: isLiveActive ? '#FEF2F2' : '#FFF7ED', padding: '3px 8px', borderRadius: '4px' }}>
                 {isLiveActive ? '🔴 LIVE PRICE' : 'REPLAY BAR'}
               </span>
             </div>
@@ -1220,7 +1220,7 @@ export default function MarketReplay() {
                   padding: '9px 0',
                   borderRadius: '8px',
                   border: 'none',
-                  background: orderSide === 'BUY' ? '#10B981' : '#F1F5F9',
+                  background: orderSide === 'BUY' ? '#EA580C' : '#F1F5F9',
                   color: orderSide === 'BUY' ? '#FFFFFF' : '#64748B',
                   fontWeight: '900',
                   fontSize: '13px',
@@ -1274,7 +1274,7 @@ export default function MarketReplay() {
             {/* Take Profit & Stop Loss Inputs */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div>
-                <label style={{ fontSize: '11px', fontWeight: '800', color: '#059669', display: 'block', marginBottom: '4px' }}>
+                <label style={{ fontSize: '11px', fontWeight: '800', color: '#C2410C', display: 'block', marginBottom: '4px' }}>
                   TAKE PROFIT (TP)
                 </label>
                 <input
@@ -1332,7 +1332,7 @@ export default function MarketReplay() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748B' }}>Replay Balance:</span>
-                <span style={{ fontWeight: '800', color: '#059669' }}>
+                <span style={{ fontWeight: '800', color: '#C2410C' }}>
                   ${replayBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -1345,12 +1345,12 @@ export default function MarketReplay() {
                 padding: '12px',
                 borderRadius: '8px',
                 border: 'none',
-                background: orderSide === 'BUY' ? 'linear-gradient(135deg, #10B981, #059669)' : 'linear-gradient(135deg, #EF4444, #DC2626)',
+                background: orderSide === 'BUY' ? 'linear-gradient(135deg, #EA580C, #C2410C)' : 'linear-gradient(135deg, #EF4444, #DC2626)',
                 color: '#FFFFFF',
                 fontWeight: '900',
                 fontSize: '14px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                boxShadow: '0 4px 12px rgba(234, 88, 12, 0.2)'
               }}
             >
               Place {orderSide} @ Bar {currentIndex}
@@ -1362,13 +1362,13 @@ export default function MarketReplay() {
             <div style={{
               background: '#FFFFFF',
               borderRadius: '20px',
-              border: '1px solid #A7F3D0',
+              border: '1px solid #FED7AA',
               padding: '16px',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
             }}>
               <h4 style={{ fontSize: '13px', fontWeight: '800', margin: '0 0 10px 0', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span>Active Backtest Positions ({activePositions.length})</span>
-                <span style={{ fontSize: '11px', color: '#059669' }}>Tracking TP / SL</span>
+                <span style={{ fontSize: '11px', color: '#C2410C' }}>Tracking TP / SL</span>
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {activePositions.map(pos => {
@@ -1378,10 +1378,10 @@ export default function MarketReplay() {
                   return (
                     <div key={pos.id} style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: '900', color: pos.side === 'BUY' ? '#059669' : '#DC2626' }}>
+                        <span style={{ fontWeight: '900', color: pos.side === 'BUY' ? '#C2410C' : '#DC2626' }}>
                           {pos.side} {pos.units} {pos.symbol}
                         </span>
-                        <span style={{ fontWeight: '900', color: unrealized >= 0 ? '#059669' : '#DC2626' }}>
+                        <span style={{ fontWeight: '900', color: unrealized >= 0 ? '#C2410C' : '#DC2626' }}>
                           {unrealized >= 0 ? '+' : ''}${unrealized.toFixed(2)}
                         </span>
                       </div>
@@ -1416,12 +1416,12 @@ export default function MarketReplay() {
                 {replayTrades.map((t, idx) => (
                   <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', background: '#F8FAFC', borderRadius: '6px', fontSize: '11px' }}>
                     <div>
-                      <span style={{ fontWeight: '800', color: t.side === 'BUY' ? '#059669' : '#DC2626', marginRight: '6px' }}>
+                      <span style={{ fontWeight: '800', color: t.side === 'BUY' ? '#C2410C' : '#DC2626', marginRight: '6px' }}>
                         {t.side} {t.units} {t.symbol}
                       </span>
                       <span style={{ color: '#64748B' }}>({t.reason || 'Closed'})</span>
                     </div>
-                    <span style={{ fontWeight: '800', color: (t.pnl || 0) >= 0 ? '#059669' : '#DC2626' }}>
+                    <span style={{ fontWeight: '800', color: (t.pnl || 0) >= 0 ? '#C2410C' : '#DC2626' }}>
                       {(t.pnl || 0) >= 0 ? '+' : ''}${(t.pnl || 0).toFixed(2)}
                     </span>
                   </div>
@@ -1460,7 +1460,7 @@ export default function MarketReplay() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Key size={18} color="#059669" />
+                <Key size={18} color="#C2410C" />
                 <h3 style={{ fontSize: '18px', fontWeight: '900', margin: 0, color: '#0F172A' }}>
                   Twelve Data Institutional API Key
                 </h3>
@@ -1500,7 +1500,7 @@ export default function MarketReplay() {
             </div>
 
             <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '20px', fontSize: '12px', color: '#475569' }}>
-              💡 <strong>No key yet?</strong> Leave this empty to use Stocks Operator's high-fidelity built-in institutional engine that supports Oct 2026 backtesting seamlessly! Or obtain a free API key at <a href="https://twelvedata.com" target="_blank" rel="noreferrer" style={{ color: '#059669', fontWeight: '700' }}>twelvedata.com</a>.
+              💡 <strong>No key yet?</strong> Leave this empty to use Stocks Operator's high-fidelity built-in institutional engine that supports Oct 2026 backtesting seamlessly! Or obtain a free API key at <a href="https://twelvedata.com" target="_blank" rel="noreferrer" style={{ color: '#C2410C', fontWeight: '700' }}>twelvedata.com</a>.
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -1532,12 +1532,12 @@ export default function MarketReplay() {
                   padding: '10px 20px',
                   borderRadius: '8px',
                   border: 'none',
-                  background: '#10B981',
+                  background: '#EA580C',
                   color: '#FFFFFF',
                   fontWeight: '900',
                   fontSize: '13px',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)'
+                  boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)'
                 }}
               >
                 Save & Connect Feed

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+﻿import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTrading } from '../contexts/TradingContext';
 import { 
@@ -593,7 +593,7 @@ export default function TradingPage() {
           </div>
           <div>
             <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', letterSpacing: '0.8px' }}>MAX LEVERAGE</div>
-            <div style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: '800', color: '#10B981' }}>50x Unlocked</div>
+            <div style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: '800', color: '#EA580C' }}>50x Unlocked</div>
           </div>
           <div>
             <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748B', letterSpacing: '0.8px' }}>FREE MARGIN</div>
@@ -681,7 +681,7 @@ export default function TradingPage() {
                   display: 'flex',
                   alignItems: 'center',
                   background: '#FFFFFF',
-                  border: isSearchOpen ? '2px solid #10B981' : '1.5px solid #CBD5E1',
+                  border: isSearchOpen ? '2px solid #EA580C' : '1.5px solid #CBD5E1',
                   borderRadius: '10px',
                   padding: '6px 12px',
                   cursor: 'pointer',
@@ -780,25 +780,25 @@ export default function TradingPage() {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         cursor: 'pointer',
-                        background: '#ECFDF5',
-                        borderBottom: '1.5px solid #A7F3D0',
+                        background: '#FFF7ED',
+                        borderBottom: '1.5px solid #FED7AA',
                         transition: 'background 0.15s'
                       }}
-                      onMouseOver={(e) => e.currentTarget.style.background = '#D1FAE5'}
-                      onMouseOut={(e) => e.currentTarget.style.background = '#ECFDF5'}
+                      onMouseOver={(e) => e.currentTarget.style.background = '#FFEDD5'}
+                      onMouseOut={(e) => e.currentTarget.style.background = '#FFF7ED'}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Zap size={16} color="#059669" />
+                        <Zap size={16} color="#C2410C" />
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#065F46' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#7C2D12' }}>
                             Open "{searchQuery.trim().toUpperCase()}" in Arena & Chart
                           </div>
-                          <div style={{ fontSize: '11px', color: '#047857' }}>
+                          <div style={{ fontSize: '11px', color: '#9A3412' }}>
                             Live institutional TradingView feed ({resolveTradingViewSymbol(searchQuery.trim().toUpperCase())})
                           </div>
                         </div>
                       </div>
-                      <span style={{ fontSize: '11px', fontWeight: 800, background: '#10B981', color: '#fff', padding: '4px 10px', borderRadius: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, background: '#EA580C', color: '#fff', padding: '4px 10px', borderRadius: '6px' }}>
                         TRADE
                       </span>
                     </div>
@@ -820,11 +820,11 @@ export default function TradingPage() {
                           justifyContent: 'space-between',
                           cursor: 'pointer',
                           borderBottom: '1px solid #F1F5F9',
-                          background: asset.symbol === symbol ? '#F0FDF4' : '#FFFFFF',
+                          background: asset.symbol === symbol ? '#FFF7ED' : '#FFFFFF',
                           transition: 'background 0.15s'
                         }}
                         onMouseOver={(e) => e.currentTarget.style.background = '#F8FAFC'}
-                        onMouseOut={(e) => e.currentTarget.style.background = asset.symbol === symbol ? '#F0FDF4' : '#FFFFFF'}
+                        onMouseOut={(e) => e.currentTarget.style.background = asset.symbol === symbol ? '#FFF7ED' : '#FFFFFF'}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{
@@ -848,7 +848,7 @@ export default function TradingPage() {
                         </div>
 
                         <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C' }}>
                             View Chart
                           </span>
                         </div>
@@ -868,14 +868,14 @@ export default function TradingPage() {
                   alignItems: 'center',
                   gap: '6px',
                   padding: '6px 14px',
-                  background: '#00D26A',
+                  background: '#EA580C',
                   color: '#FFFFFF',
                   borderRadius: '8px',
                   border: 'none',
                   fontSize: '12px',
                   fontWeight: 800,
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0, 210, 106, 0.3)',
+                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)',
                   transition: 'all 0.15s'
                 }}
               >
@@ -913,14 +913,14 @@ export default function TradingPage() {
                 alignItems: 'center',
                 gap: '6px',
                 padding: '6px 12px',
-                background: '#F0FDF4',
+                background: '#FFF7ED',
                 borderRadius: '8px',
-                border: '1px solid #BBF7D0',
+                border: '1px solid #FED7AA',
                 fontSize: '12px',
                 fontWeight: 800,
-                color: '#15803D'
+                color: '#9A3412'
               }}>
-                <Activity size={14} color="#15803D" />
+                <Activity size={14} color="#9A3412" />
                 <span>TradingView Pro Feed</span>
               </div>
             </div>
@@ -976,12 +976,12 @@ export default function TradingPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sparkles size={16} color="#10B981" />
+                <Sparkles size={16} color="#EA580C" />
                 <span style={{ fontSize: '11px', fontWeight: '900', color: '#64748B', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                   AI MENTOR TRADING INSIGHT
                 </span>
               </div>
-              <span style={{ fontSize: '10px', background: '#ECFDF5', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
+              <span style={{ fontSize: '10px', background: '#FFF7ED', color: '#C2410C', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
                 GROQ LLaMA 3.3
               </span>
             </div>
@@ -996,7 +996,7 @@ export default function TradingPage() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid #F1F5F9' }}>
               <div style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>
-                Risk Level: <span style={{ color: '#10B981', fontWeight: '800' }}>Low / Disciplined</span>
+                Risk Level: <span style={{ color: '#EA580C', fontWeight: '800' }}>Low / Disciplined</span>
               </div>
               <button
                 onClick={() => navigate(`/ai-mentor?symbol=${symbol}`)}
@@ -1050,7 +1050,7 @@ export default function TradingPage() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Activity size={20} color="#10B981" /> Current Working Trades ({positions.length})
+            <Activity size={20} color="#EA580C" /> Current Working Trades ({positions.length})
           </h3>
           <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>
             Live Unrealized PnL Updated in Real-Time
@@ -1100,8 +1100,8 @@ export default function TradingPage() {
                           borderRadius: '6px',
                           fontSize: '11px',
                           fontWeight: '800',
-                          background: p.side === 'LONG' ? '#ECFDF5' : '#FEF2F2',
-                          color: p.side === 'LONG' ? '#059669' : '#DC2626'
+                          background: p.side === 'LONG' ? '#FFF7ED' : '#FEF2F2',
+                          color: p.side === 'LONG' ? '#C2410C' : '#DC2626'
                         }}>
                           {p.side}
                         </span>
@@ -1113,10 +1113,10 @@ export default function TradingPage() {
                       <td style={{ padding: '14px', color: p.sl ? '#EF4444' : '#94A3B8', fontWeight: '700' }}>
                         {p.sl ? `$${p.sl}` : 'None'}
                       </td>
-                      <td style={{ padding: '14px', color: p.tp ? '#10B981' : '#94A3B8', fontWeight: '700' }}>
+                      <td style={{ padding: '14px', color: p.tp ? '#EA580C' : '#94A3B8', fontWeight: '700' }}>
                         {p.tp ? `$${p.tp}` : 'None'}
                       </td>
-                      <td style={{ padding: '14px', fontWeight: '900', fontFamily: 'var(--font-mono)', color: isProfit ? '#10B981' : '#EF4444' }}>
+                      <td style={{ padding: '14px', fontWeight: '900', fontFamily: 'var(--font-mono)', color: isProfit ? '#EA580C' : '#EF4444' }}>
                         {isProfit ? '+' : ''}${pnl.toFixed(2)}
                       </td>
                       <td style={{ padding: '14px', textAlign: 'right' }}>

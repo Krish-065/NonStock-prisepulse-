@@ -50,7 +50,7 @@ const TickerItem = styled.div`
   transition: all 0.2s;
   
   &:hover {
-    background: ${props => props.isLight ? 'rgba(0,176,96,0.05)' : 'rgba(255,255,255,0.05)'};
+    background: ${props => props.isLight ? 'rgba(234,88,12,0.05)' : 'rgba(255,255,255,0.05)'};
   }
 `;
 
@@ -69,7 +69,7 @@ const Price = styled.span`
 const Change = styled.span`
   font-size: 12px;
   font-weight: 700;
-  color: ${props => props.isUp ? '#00b060' : '#dc2626'};
+  color: ${props => props.isUp ? '#EA580C' : '#dc2626'};
   display: flex;
   align-items: center;
   gap: 2px;

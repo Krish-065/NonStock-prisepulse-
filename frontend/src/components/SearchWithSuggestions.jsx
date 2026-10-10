@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../services/api';
 import { Search } from 'lucide-react';
 
@@ -60,7 +60,7 @@ export default function SearchWithSuggestions({
           left: '18px', 
           top: '50%', 
           transform: 'translateY(-50%)', 
-          color: '#10b981', 
+          color: '#EA580C', 
           display: 'flex', 
           alignItems: 'center', 
           pointerEvents: 'none', 
@@ -96,7 +96,7 @@ export default function SearchWithSuggestions({
           {!loading && suggestions.map((item) => (
             <div key={item.symbol} className="search-suggestion" onClick={() => handleSelect(item)}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <strong style={{ color: '#10b981', fontWeight: 800 }}>{item.symbol}</strong>
+                <strong style={{ color: '#EA580C', fontWeight: 800 }}>{item.symbol}</strong>
                 <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{item.name}</span>
               </div>
               <small style={{ 
@@ -141,7 +141,7 @@ export default function SearchWithSuggestions({
           border-bottom: none;
         }
         .search-suggestion:hover { 
-          background: rgba(16, 185, 129, 0.1); 
+          background: rgba(234, 88, 12, 0.1); 
         }
         .search-loading, .search-no-results { 
           padding: 16px; 

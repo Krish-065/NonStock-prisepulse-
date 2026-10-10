@@ -171,8 +171,8 @@ export default function Landing() {
               fontWeight: 800,
               color: '#FFFFFF',
               textDecoration: 'none',
-              background: '#00D26A',
-              boxShadow: '0 4px 14px rgba(0, 210, 106, 0.35)',
+              background: '#EA580C',
+              boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
@@ -196,7 +196,7 @@ export default function Landing() {
         justifyContent: 'space-between',
         padding: '90px 24px 0 24px',
         boxSizing: 'border-box',
-        background: 'radial-gradient(ellipse at top, #F0FDF4 0%, #FFFFFF 65%)'
+        background: 'radial-gradient(ellipse at top, #FFF7ED 0%, #FFFFFF 65%)'
       }}>
         {/* Full-Width Panoramic Celestial Earth & Real-Time Revolving Sun Engine */}
         <CelestialEngine mode="hero" />
@@ -209,7 +209,7 @@ export default function Landing() {
           transform: 'translateX(-50%)',
           width: '1000px',
           height: '520px',
-          background: 'radial-gradient(circle, rgba(0, 210, 106, 0.16) 0%, rgba(255, 255, 255, 0) 70%)',
+          background: 'radial-gradient(circle, rgba(234, 88, 12, 0.16) 0%, rgba(255, 255, 255, 0) 70%)',
           pointerEvents: 'none',
           zIndex: 1
         }} />
@@ -233,18 +233,18 @@ export default function Landing() {
             borderRadius: '999px',
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(12px)',
-            border: '1.5px solid #86EFAC',
-            color: '#008736',
+            border: '1.5px solid #FDBA74',
+            color: '#B45309',
             fontSize: '12px',
             fontWeight: 800,
             letterSpacing: '1px',
             textTransform: 'uppercase',
             marginBottom: '22px',
-            boxShadow: '0 4px 18px rgba(0, 210, 106, 0.22)'
+            boxShadow: '0 4px 18px rgba(234, 88, 12, 0.22)'
           }}>
             <div style={{ display: 'flex', gap: '2px' }}>
               {'★★★★★'.split('').map((star, i) => (
-                <span key={i} style={{ color: '#00D26A', fontSize: '13px' }}>{star}</span>
+                <span key={i} style={{ color: '#EA580C', fontSize: '13px' }}>{star}</span>
               ))}
             </div>
             <span>STOCKS OPERATOR // 100% UNALTERABLE MATHEMATICAL PROVING PROTOCOL</span>
@@ -262,10 +262,10 @@ export default function Landing() {
           }}>
             Redefining the Future of Trading. <br />
             <span style={{
-              background: 'linear-gradient(135deg, #00A843 0%, #00D26A 50%, #00E676 100%)',
+              background: 'linear-gradient(135deg, #C2410C 0%, #EA580C 50%, #EA580C 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              textShadow: '0 2px 24px rgba(0, 210, 106, 0.28)'
+              textShadow: '0 2px 24px rgba(234, 88, 12, 0.28)'
             }}>
               Prove Your True Market Edge.
             </span>
@@ -280,7 +280,7 @@ export default function Landing() {
             fontWeight: 600,
             textShadow: '0 1px 8px rgba(255, 255, 255, 0.95), 0 2px 18px #FFFFFF'
           }}>
-            Every trader starts with an identical <strong style={{ color: '#008736' }}>$1,000 verified baseline capital</strong>. 0 Tips, 0 Fake Screenshot PnL. Access Forex, Indices, Commodities, Metals, Equities, and Cryptos backed by undeniable mathematical proof.
+            Every trader starts with an identical <strong style={{ color: '#B45309' }}>$1,000 verified baseline capital</strong>. 0 Tips, 0 Fake Screenshot PnL. Access Forex, Indices, Commodities, Metals, Equities, and Cryptos backed by undeniable mathematical proof.
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '40px' }}>
@@ -289,19 +289,19 @@ export default function Landing() {
               style={{
                 padding: '16px 40px',
                 borderRadius: '999px',
-                background: 'linear-gradient(135deg, #00D26A 0%, #00C853 100%)',
+                background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)',
                 color: '#FFFFFF',
                 fontSize: '16px',
                 fontWeight: 900,
                 textDecoration: 'none',
-                boxShadow: '0 8px 30px rgba(0, 210, 106, 0.45)',
+                boxShadow: '0 8px 30px rgba(234, 88, 12, 0.45)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
                 transition: 'all 0.2s ease'
               }}
-              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 35px rgba(0, 210, 106, 0.6)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 210, 106, 0.45)'; }}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 35px rgba(234, 88, 12, 0.6)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(234, 88, 12, 0.45)'; }}
             >
               <span>Start Proving ($1,000 Baseline)</span>
               <ArrowRight size={17} />
@@ -325,10 +325,10 @@ export default function Landing() {
                 transition: 'all 0.2s ease',
                 boxShadow: '0 4px 14px rgba(0,0,0,0.04)'
               }}
-              onMouseOver={(e) => { e.currentTarget.style.borderColor = '#00D26A'; e.currentTarget.style.color = '#009E47'; }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = '#EA580C'; e.currentTarget.style.color = '#C2410C'; }}
               onMouseOut={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#0F172A'; }}
             >
-              <Trophy size={16} color="#00D26A" />
+              <Trophy size={16} color="#EA580C" />
               <span>Explore Decagon Tiers</span>
             </button>
           </div>
@@ -348,7 +348,7 @@ export default function Landing() {
           alignItems: 'flex-end',
           flexWrap: 'wrap',
           gap: '20px',
-          borderTop: '1px solid rgba(0, 210, 106, 0.2)'
+          borderTop: '1px solid rgba(234, 88, 12, 0.2)'
         }}>
           <div style={{ display: 'flex', gap: '44px', flexWrap: 'wrap', textAlign: 'left' }}>
             <div>
@@ -361,7 +361,7 @@ export default function Landing() {
             </div>
 
             <div>
-              <div style={{ fontSize: '28px', fontWeight: 900, color: '#00D26A', letterSpacing: '-0.5px' }}>
+              <div style={{ fontSize: '28px', fontWeight: 900, color: '#EA580C', letterSpacing: '-0.5px' }}>
                 100+
               </div>
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', marginTop: '2px' }}>
@@ -395,9 +395,9 @@ export default function Landing() {
             gap: '6px',
             padding: '6px 18px',
             borderRadius: '999px',
-            background: '#F0FDF4',
-            border: '1.5px solid #86EFAC',
-            color: '#008736',
+            background: '#FFF7ED',
+            border: '1.5px solid #FDBA74',
+            color: '#B45309',
             fontSize: '11px',
             fontWeight: 800,
             letterSpacing: '1.2px',
@@ -422,11 +422,11 @@ export default function Landing() {
         }}>
           {/* Card 1: 100% Unalterable Proof */}
           <div style={{
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%)',
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #FFF7ED 100%)',
             padding: '36px 30px',
             borderRadius: '24px',
-            border: '1.5px solid #86EFAC',
-            boxShadow: '0 8px 30px rgba(0, 210, 106, 0.08)',
+            border: '1.5px solid #FDBA74',
+            boxShadow: '0 8px 30px rgba(234, 88, 12, 0.08)',
             position: 'relative',
             overflow: 'hidden'
           }}>
@@ -434,16 +434,16 @@ export default function Landing() {
               width: '54px',
               height: '54px',
               borderRadius: '16px',
-              background: '#00D26A',
+              background: '#EA580C',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '20px',
-              boxShadow: '0 6px 18px rgba(0, 210, 106, 0.35)'
+              boxShadow: '0 6px 18px rgba(234, 88, 12, 0.35)'
             }}>
               <ShieldCheck size={28} color="#FFFFFF" />
             </div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#008736', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '1px' }}>
               PILLAR 01 // ANTI-FRAUD STANDARD
             </div>
             <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '8px 0 12px 0' }}>
@@ -456,11 +456,11 @@ export default function Landing() {
 
           {/* Card 2: Identical $1,000 Baseline */}
           <div style={{
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%)',
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #FFF7ED 100%)',
             padding: '36px 30px',
             borderRadius: '24px',
-            border: '1.5px solid #86EFAC',
-            boxShadow: '0 8px 30px rgba(0, 210, 106, 0.08)',
+            border: '1.5px solid #FDBA74',
+            boxShadow: '0 8px 30px rgba(234, 88, 12, 0.08)',
             position: 'relative',
             overflow: 'hidden'
           }}>
@@ -468,16 +468,16 @@ export default function Landing() {
               width: '54px',
               height: '54px',
               borderRadius: '16px',
-              background: '#00D26A',
+              background: '#EA580C',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '20px',
-              boxShadow: '0 6px 18px rgba(0, 210, 106, 0.35)'
+              boxShadow: '0 6px 18px rgba(234, 88, 12, 0.35)'
             }}>
               <Target size={28} color="#FFFFFF" />
             </div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#008736', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '1px' }}>
               PILLAR 02 // UNIVERSAL BENCHMARK
             </div>
             <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '8px 0 12px 0' }}>
@@ -490,11 +490,11 @@ export default function Landing() {
 
           {/* Card 3: Institutional Zero-Spread Execution */}
           <div style={{
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%)',
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #FFF7ED 100%)',
             padding: '36px 30px',
             borderRadius: '24px',
-            border: '1.5px solid #86EFAC',
-            boxShadow: '0 8px 30px rgba(0, 210, 106, 0.08)',
+            border: '1.5px solid #FDBA74',
+            boxShadow: '0 8px 30px rgba(234, 88, 12, 0.08)',
             position: 'relative',
             overflow: 'hidden'
           }}>
@@ -502,16 +502,16 @@ export default function Landing() {
               width: '54px',
               height: '54px',
               borderRadius: '16px',
-              background: '#00D26A',
+              background: '#EA580C',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '20px',
-              boxShadow: '0 6px 18px rgba(0, 210, 106, 0.35)'
+              boxShadow: '0 6px 18px rgba(234, 88, 12, 0.35)'
             }}>
               <Zap size={28} color="#FFFFFF" />
             </div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#008736', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '1px' }}>
               PILLAR 03 // INSTITUTIONAL LIQUIDITY
             </div>
             <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '8px 0 12px 0' }}>
@@ -524,7 +524,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ─── 3. SECTION: THE PROBLEM IN MODERN TRADING (CLEAN WHITE & GREEN THEME) ─── */}
+      {/* ─── 3. SECTION: THE PROBLEM IN MODERN TRADING (CLEAN WHITE & ORANGE THEME) ─── */}
       <section id="the-crisis" style={{
         padding: '100px 24px',
         background: '#F8FAFC',
@@ -540,9 +540,9 @@ export default function Landing() {
               gap: '6px',
               padding: '6px 16px',
               borderRadius: '999px',
-              background: '#F0FDF4',
-              border: '1px solid #86EFAC',
-              color: '#006C2E',
+              background: '#FFF7ED',
+              border: '1px solid #FDBA74',
+              color: '#9A3412',
               fontSize: '12px',
               fontWeight: 800,
               letterSpacing: '1px',
@@ -580,7 +580,7 @@ export default function Landing() {
               border: '1.5px solid #E2E8F0',
               boxShadow: '0 8px 30px rgba(0,0,0,0.03)'
             }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
                 SYSTEMIC FLAW 01 // RETROACTIVE EDITING
               </div>
               <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', marginBottom: '12px' }}>
@@ -598,7 +598,7 @@ export default function Landing() {
               border: '1.5px solid #E2E8F0',
               boxShadow: '0 8px 30px rgba(0,0,0,0.03)'
             }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
                 SYSTEMIC FLAW 02 // INSPECT-ELEMENT WEALTH
               </div>
               <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', marginBottom: '12px' }}>
@@ -616,7 +616,7 @@ export default function Landing() {
               border: '1.5px solid #E2E8F0',
               boxShadow: '0 8px 30px rgba(0,0,0,0.03)'
             }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
                 SYSTEMIC FLAW 03 // SURVIVORSHIP BIAS
               </div>
               <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', marginBottom: '12px' }}>
@@ -631,8 +631,8 @@ export default function Landing() {
           <div style={{
             marginTop: '44px',
             padding: '24px 32px',
-            background: '#F0FDF4',
-            border: '1.5px solid #86EFAC',
+            background: '#FFF7ED',
+            border: '1.5px solid #FDBA74',
             borderRadius: '16px',
             display: 'flex',
             alignItems: 'center',
@@ -641,7 +641,7 @@ export default function Landing() {
             gap: '20px'
           }}>
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#009E47', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#C2410C', letterSpacing: '1px', textTransform: 'uppercase' }}>
                 THE STOCKS OPERATOR VERIFICATION STANDARD
               </div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginTop: '4px' }}>
@@ -654,12 +654,12 @@ export default function Landing() {
               style={{
                 padding: '12px 28px',
                 borderRadius: '10px',
-                background: '#00D26A',
+                background: '#EA580C',
                 color: '#FFFFFF',
                 fontSize: '14px',
                 fontWeight: 800,
                 textDecoration: 'none',
-                boxShadow: '0 4px 14px rgba(0, 210, 106, 0.3)'
+                boxShadow: '0 4px 14px rgba(234, 88, 12, 0.3)'
               }}
             >
               Start Proving On Equal $1,000 Baseline
@@ -685,7 +685,7 @@ export default function Landing() {
           marginBottom: '110px'
         }}>
           <div>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#00D26A', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
               THE PSYCHOLOGICAL DIAGNOSTIC
             </span>
             <h2 style={{ fontSize: 'clamp(34px, 4vw, 50px)', fontWeight: 900, letterSpacing: '-1.4px', color: '#0F172A', margin: '12px 0 24px 0', lineHeight: 1.15 }}>
@@ -702,7 +702,7 @@ export default function Landing() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <CheckCircle2 size={20} color="#00D26A" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <CheckCircle2 size={20} color="#EA580C" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <strong style={{ fontSize: '15px', color: '#0F172A', display: 'block' }}>Objective Mathematical Self-Discovery</strong>
                   <span style={{ fontSize: '14px', color: '#64748B' }}>Discover whether your strategy possesses genuine statistical edge or merely fleeting luck before risking real life savings.</span>
@@ -710,7 +710,7 @@ export default function Landing() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <CheckCircle2 size={20} color="#00D26A" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <CheckCircle2 size={20} color="#EA580C" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <strong style={{ fontSize: '15px', color: '#0F172A', display: 'block' }}>Drawdown Velocity Monitoring</strong>
                   <span style={{ fontSize: '14px', color: '#64748B' }}>Expose emotional revenge trading and over-leveraged sizing before capital is irreparably destroyed.</span>
@@ -751,7 +751,7 @@ export default function Landing() {
               style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
             />
             <div style={{ padding: '20px 24px', background: '#0F172A', color: '#FFFFFF' }}>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#00D26A', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#EA580C', letterSpacing: '1px', textTransform: 'uppercase' }}>
                 QUANTITATIVE TELEMETRY // DER SCORE ENGINE
               </div>
               <div style={{ fontSize: '14px', color: '#94A3B8', marginTop: '4px' }}>
@@ -792,7 +792,7 @@ export default function Landing() {
           </div>
 
           <div style={{ order: 1 }}>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#00D26A', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
               THE MERITOCRATIC ARENA
             </span>
             <h2 style={{ fontSize: 'clamp(34px, 4vw, 50px)', fontWeight: 900, letterSpacing: '-1.4px', color: '#0F172A', margin: '12px 0 24px 0', lineHeight: 1.15 }}>
@@ -809,7 +809,7 @@ export default function Landing() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <CheckCircle2 size={20} color="#00D26A" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <CheckCircle2 size={20} color="#EA580C" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <strong style={{ fontSize: '15px', color: '#0F172A', display: 'block' }}>Zero Capital Favoritism</strong>
                   <span style={{ fontSize: '14px', color: '#64748B' }}>Skill is measured in percentage return, Sharpe stability, and risk-adjusted efficiency rather than brute account size.</span>
@@ -817,7 +817,7 @@ export default function Landing() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <CheckCircle2 size={20} color="#00D26A" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <CheckCircle2 size={20} color="#EA580C" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <strong style={{ fontSize: '15px', color: '#0F172A', display: 'block' }}>Public Auditable Hall of Fame</strong>
                   <span style={{ fontSize: '14px', color: '#64748B' }}>A public ledger where every trade, entry candle, and liquidation is open for verification.</span>
@@ -864,7 +864,7 @@ export default function Landing() {
             alignItems: 'center'
           }}>
             <div>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#009E47', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
                 THE PROFESSIONAL CREDIBILITY BREAKTHROUGH
               </span>
               <h2 style={{ fontSize: 'clamp(34px, 4vw, 50px)', fontWeight: 900, letterSpacing: '-1.4px', color: '#0F172A', margin: '12px 0 24px 0', lineHeight: 1.15 }}>
@@ -916,12 +916,12 @@ export default function Landing() {
                   gap: '8px',
                   padding: '16px 32px',
                   borderRadius: '12px',
-                  background: '#00D26A',
+                  background: '#EA580C',
                   color: '#FFFFFF',
                   fontSize: '16px',
                   fontWeight: 800,
                   textDecoration: 'none',
-                  boxShadow: '0 4px 16px rgba(0, 210, 106, 0.3)'
+                  boxShadow: '0 4px 16px rgba(234, 88, 12, 0.3)'
                 }}
               >
                 <span>Claim Prover ID & Verify Your Credibility</span>
@@ -947,7 +947,7 @@ export default function Landing() {
                 right: 0,
                 width: '260px',
                 height: '260px',
-                background: 'radial-gradient(circle, rgba(0, 210, 106, 0.18) 0%, rgba(15, 23, 42, 0) 70%)',
+                background: 'radial-gradient(circle, rgba(234, 88, 12, 0.18) 0%, rgba(15, 23, 42, 0) 70%)',
                 pointerEvents: 'none'
               }} />
 
@@ -958,16 +958,16 @@ export default function Landing() {
                     width: '44px',
                     height: '44px',
                     borderRadius: '12px',
-                    background: '#00D26A',
+                    background: '#EA580C',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 4px 12px rgba(0, 210, 106, 0.4)'
+                    boxShadow: '0 4px 12px rgba(234, 88, 12, 0.4)'
                   }}>
                     <ShieldCheck size={26} color="#FFFFFF" />
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: '#00D26A', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '11px', color: '#EA580C', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>
                       OFFICIAL STOCKS OPERATOR CREDENTIAL
                     </div>
                     <div style={{ fontSize: '17px', fontWeight: 900, color: '#FFFFFF' }}>
@@ -999,9 +999,9 @@ export default function Landing() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '15px', fontWeight: 900, color: '#FFFFFF' }}>XAU / USD</span>
-                    <span style={{ fontSize: '11px', background: '#064E3B', color: '#6EE7B7', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>LONG EXECUTION</span>
+                    <span style={{ fontSize: '11px', background: '#7C2D12', color: '#FED7AA', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>LONG EXECUTION</span>
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#00D26A', fontFamily: 'var(--font-mono)' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>
                     +3.80 R Realized
                   </div>
                 </div>
@@ -1017,13 +1017,13 @@ export default function Landing() {
                   </div>
                   <div>
                     <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 700 }}>EXIT FILL</div>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#00D26A', marginTop: '2px' }}>$2,696.00</div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#EA580C', marginTop: '2px' }}>$2,696.00</div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', fontSize: '11px', color: '#94A3B8' }}>
-                  <span>Tick Ledger Hash: <code style={{ color: '#00D26A', background: 'rgba(0, 210, 106, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>0x9e4f...72ac</code></span>
-                  <span style={{ color: '#00D26A', fontWeight: 800 }}>Live Feed Verified</span>
+                  <span>Tick Ledger Hash: <code style={{ color: '#EA580C', background: 'rgba(234, 88, 12, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>0x9e4f...72ac</code></span>
+                  <span style={{ color: '#EA580C', fontWeight: 800 }}>Live Feed Verified</span>
                 </div>
               </div>
 
@@ -1031,8 +1031,8 @@ export default function Landing() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '22px' }}>
                 <div style={{ background: '#0F172A', padding: '16px', borderRadius: '14px', border: '1px solid #334155' }}>
                   <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 700 }}>DER DISCIPLINE SCORE</div>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#00D26A', marginTop: '2px' }}>96.4 <span style={{ fontSize: '12px', color: '#64748B' }}>/ 100</span></div>
-                  <div style={{ fontSize: '11px', color: '#00D26A', marginTop: '2px' }}>Top 0.5% Global Hierarchy</div>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#EA580C', marginTop: '2px' }}>96.4 <span style={{ fontSize: '12px', color: '#64748B' }}>/ 100</span></div>
+                  <div style={{ fontSize: '11px', color: '#EA580C', marginTop: '2px' }}>Top 0.5% Global Hierarchy</div>
                 </div>
 
                 <div style={{ background: '#0F172A', padding: '16px', borderRadius: '14px', border: '1px solid #334155' }}>
@@ -1054,10 +1054,10 @@ export default function Landing() {
                 fontSize: '12px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#CBD5E1' }}>
-                  <FileCheck2 size={16} color="#00D26A" />
+                  <FileCheck2 size={16} color="#EA580C" />
                   <span>Public Proof Link: <strong>stocksoperator.com/p/SO-7429</strong></span>
                 </div>
-                <div style={{ color: '#00D26A', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ color: '#EA580C', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>Verified On-Chain</span>
                   <Check size={14} />
                 </div>
@@ -1098,7 +1098,7 @@ export default function Landing() {
               style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
             />
             <div style={{ padding: '20px 24px', background: '#0F172A', color: '#FFFFFF' }}>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#00D26A', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#EA580C', letterSpacing: '1px', textTransform: 'uppercase' }}>
                 HIGH VELOCITY RADAR // 50+ LIVE PAIRS
               </div>
               <div style={{ fontSize: '14px', color: '#94A3B8', marginTop: '4px' }}>
@@ -1108,7 +1108,7 @@ export default function Landing() {
           </div>
 
           <div style={{ order: 1 }}>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#00D26A', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
               INTELLIGENCE & DISCOVERY
             </span>
             <h2 style={{ fontSize: 'clamp(34px, 4vw, 48px)', fontWeight: 900, letterSpacing: '-1.4px', color: '#0F172A', margin: '12px 0 24px 0', lineHeight: 1.15 }}>
@@ -1134,7 +1134,7 @@ export default function Landing() {
               </div>
               <div style={{ background: '#F8FAFC', padding: '14px 20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                 <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 800 }}>INTEGRATION</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: '#00D26A' }}>Direct Trade Link</div>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: '#EA580C' }}>Direct Trade Link</div>
               </div>
             </div>
 
@@ -1146,7 +1146,7 @@ export default function Landing() {
                 gap: '8px',
                 padding: '14px 28px',
                 borderRadius: '10px',
-                background: '#00D26A',
+                background: '#EA580C',
                 color: '#FFFFFF',
                 fontSize: '15px',
                 fontWeight: 800,
@@ -1167,7 +1167,7 @@ export default function Landing() {
           alignItems: 'center'
         }}>
           <div>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#009E47', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
               FORENSIC TRADE POST-MORTEM
             </span>
             <h2 style={{ fontSize: 'clamp(34px, 4vw, 48px)', fontWeight: 900, letterSpacing: '-1.4px', color: '#0F172A', margin: '12px 0 24px 0', lineHeight: 1.15 }}>
@@ -1184,7 +1184,7 @@ export default function Landing() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <CheckCircle2 size={20} color="#00D26A" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <CheckCircle2 size={20} color="#EA580C" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <strong style={{ fontSize: '15px', color: '#0F172A', display: 'block' }}>Zero Forward-Looking Bias</strong>
                   <span style={{ fontSize: '14px', color: '#64748B' }}>Candles unfold organically exactly as they did in real market hours.</span>
@@ -1192,7 +1192,7 @@ export default function Landing() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <CheckCircle2 size={20} color="#00D26A" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <CheckCircle2 size={20} color="#EA580C" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <strong style={{ fontSize: '15px', color: '#0F172A', display: 'block' }}>Instant Execution Simulation</strong>
                   <span style={{ fontSize: '14px', color: '#64748B' }}>Take simulated entries during replay and review your fills against tick history.</span>
@@ -1233,7 +1233,7 @@ export default function Landing() {
               style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
             />
             <div style={{ padding: '20px 24px', background: '#0F172A', color: '#FFFFFF' }}>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#00D26A', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#EA580C', letterSpacing: '1px', textTransform: 'uppercase' }}>
                 FORENSIC ENGINE // VARIABLE SPEED TIMELINE
               </div>
               <div style={{ fontSize: '14px', color: '#94A3B8', marginTop: '4px' }}>
@@ -1259,9 +1259,9 @@ export default function Landing() {
               gap: '6px',
               padding: '6px 18px',
               borderRadius: '999px',
-              background: '#F0FDF4',
-              border: '1.5px solid #00D26A',
-              color: '#006C2E',
+              background: '#FFF7ED',
+              border: '1.5px solid #EA580C',
+              color: '#9A3412',
               fontSize: '11px',
               fontWeight: 800,
               letterSpacing: '1.2px',
@@ -1325,19 +1325,19 @@ export default function Landing() {
                     transition: 'all 0.2s ease',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                   }}
-                  onMouseOver={(e) => { e.currentTarget.style.borderColor = '#00D26A'; e.currentTarget.style.background = '#FFFFFF'; }}
+                  onMouseOver={(e) => { e.currentTarget.style.borderColor = '#EA580C'; e.currentTarget.style.background = '#FFFFFF'; }}
                   onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#F8FAFC'; }}
                 >
                   <div style={{
                     width: '32px',
                     height: '32px',
                     borderRadius: '8px',
-                    background: '#F0FDF4',
-                    border: '1.5px solid #00D26A',
+                    background: '#FFF7ED',
+                    border: '1.5px solid #EA580C',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#009E47',
+                    color: '#C2410C',
                     flexShrink: 0,
                     marginTop: '2px'
                   }}>
@@ -1362,10 +1362,10 @@ export default function Landing() {
               alignItems: 'center',
               justifyContent: 'center',
               padding: '40px 20px',
-              background: 'radial-gradient(circle, #F0FDF4 0%, #FFFFFF 70%)',
+              background: 'radial-gradient(circle, #FFF7ED 0%, #FFFFFF 70%)',
               borderRadius: '28px',
-              border: '1.5px solid #86EFAC',
-              boxShadow: '0 20px 50px -10px rgba(0, 210, 106, 0.12)',
+              border: '1.5px solid #FDBA74',
+              boxShadow: '0 20px 50px -10px rgba(234, 88, 12, 0.12)',
               position: 'relative'
             }}>
               <div style={{ position: 'relative' }}>
@@ -1376,7 +1376,7 @@ export default function Landing() {
                 marginTop: '20px',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#006C2E', letterSpacing: '1.2px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', letterSpacing: '1.2px', textTransform: 'uppercase' }}>
                   OFFICIAL STOCKS OPERATOR PROTOCOL MINT
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
@@ -1405,9 +1405,9 @@ export default function Landing() {
               gap: '6px',
               padding: '6px 18px',
               borderRadius: '999px',
-              background: '#F0FDF4',
-              border: '1.5px solid #00D26A',
-              color: '#006C2E',
+              background: '#FFF7ED',
+              border: '1.5px solid #EA580C',
+              color: '#9A3412',
               fontSize: '11px',
               fontWeight: 800,
               letterSpacing: '1.2px',
@@ -1444,8 +1444,8 @@ export default function Landing() {
                 title: 'Sign Up & Claim $1,000 Baseline',
                 desc: 'Quick and easy registration. Receive $1,000 in verified proving capital with zero personal funds required.',
                 icon: ShieldCheck,
-                color: '#00D26A',
-                badgeBg: '#F0FDF4'
+                color: '#EA580C',
+                badgeBg: '#FFF7ED'
               },
               {
                 step: '02',
@@ -1460,8 +1460,8 @@ export default function Landing() {
                 title: 'Prove True Edge & Climb Ranks',
                 desc: 'Ascend Decagon tiers, earn rare protocol bounties, and share your unalterable proof ID with prop firms.',
                 icon: Trophy,
-                color: '#009E47',
-                badgeBg: '#F0FDF4'
+                color: '#C2410C',
+                badgeBg: '#FFF7ED'
               }
             ].map((step, idx) => {
               const Icon = step.icon;
@@ -1482,7 +1482,7 @@ export default function Landing() {
                     overflow: 'hidden',
                     transition: 'all 0.2s ease'
                   }}
-                  onMouseOver={(e) => { e.currentTarget.style.borderColor = '#00D26A'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseOver={(e) => { e.currentTarget.style.borderColor = '#EA580C'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
                   onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
                   <div>
@@ -1534,9 +1534,9 @@ export default function Landing() {
               gap: '6px',
               padding: '6px 18px',
               borderRadius: '999px',
-              background: '#F0FDF4',
-              border: '1.5px solid #00D26A',
-              color: '#006C2E',
+              background: '#FFF7ED',
+              border: '1.5px solid #EA580C',
+              color: '#9A3412',
               fontSize: '11px',
               fontWeight: 800,
               letterSpacing: '1.2px',
@@ -1558,42 +1558,44 @@ export default function Landing() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '22px', marginBottom: '70px' }}>
             
             {/* Tier 1: Contender */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #CBD5E1', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', textAlign: 'center' }}>
+            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #FED7AA', boxShadow: '0 4px 20px rgba(234, 88, 12, 0.06)', textAlign: 'center' }}>
               <div style={{
-                width: '72px',
-                height: '72px',
+                width: '76px',
+                height: '76px',
                 margin: '0 auto 18px auto',
-                background: '#F1F5F9',
-                border: '2px solid #64748B',
-                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
+                background: '#FFF7ED',
+                border: '2px solid #EA580C',
+                borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: '0 4px 16px rgba(234, 88, 12, 0.25)'
               }}>
-                <ShieldCheck size={32} color="#475569" />
+                <ShieldCheck size={36} color="#EA580C" />
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>TIER 1 BASELINE</div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase' }}>TIER 1 BASELINE</div>
               <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '6px 0 8px 0' }}>Contender</h4>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#009E47', fontFamily: 'var(--font-mono)' }}>$1,000 Baseline</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>$1,000 Baseline</div>
               <p style={{ fontSize: '13px', color: '#64748B', margin: '10px 0 0 0', lineHeight: 1.6 }}>
                 The entry proving ground. 50x leverage cap with liquidation protection.
               </p>
             </div>
 
             {/* Tier 2: Silver Prover */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #94A3B8', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', textAlign: 'center' }}>
+            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #CBD5E1', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', textAlign: 'center' }}>
               <div style={{
-                width: '72px',
-                height: '72px',
+                width: '76px',
+                height: '76px',
                 margin: '0 auto 18px auto',
                 background: '#F8FAFC',
                 border: '2px solid #64748B',
-                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
+                borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: '0 4px 16px rgba(100, 116, 139, 0.2)'
               }}>
-                <Medal size={32} color="#475569" />
+                <Medal size={36} color="#475569" />
               </div>
               <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>TIER 2 VERIFIED</div>
               <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '6px 0 8px 0' }}>Silver Prover</h4>
@@ -1603,72 +1605,66 @@ export default function Landing() {
               </p>
             </div>
 
-            {/* Tier 3: Gold Sovereign */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #F59E0B', boxShadow: '0 4px 20px rgba(245, 158, 11, 0.08)', textAlign: 'center' }}>
+            {/* Tier 3: Gold Sovereign (Dangerous Imperial Bull Crest) */}
+            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #FDBA74', boxShadow: '0 4px 24px rgba(234, 88, 12, 0.12)', textAlign: 'center' }}>
               <div style={{
-                width: '72px',
-                height: '72px',
+                width: '76px',
+                height: '76px',
                 margin: '0 auto 18px auto',
-                background: '#FEF3C7',
-                border: '2px solid #D97706',
-                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: '2.5px solid #EA580C',
+                boxShadow: '0 4px 20px rgba(234, 88, 12, 0.45)'
               }}>
-                <Award size={32} color="#D97706" />
+                <img src="/assets/badge_gold_sovereign.jpg" alt="Gold Sovereign Crest" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#D97706', textTransform: 'uppercase' }}>TIER 3 SOVEREIGN</div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase' }}>TIER 3 SOVEREIGN</div>
               <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '6px 0 8px 0' }}>Gold Sovereign</h4>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#D97706', fontFamily: 'var(--font-mono)' }}>$4,000+ Capital</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#C2410C', fontFamily: 'var(--font-mono)' }}>$4,000+ Capital</div>
               <p style={{ fontSize: '13px', color: '#64748B', margin: '10px 0 0 0', lineHeight: 1.6 }}>
                 Top 8% globally. Quadrupled baseline across shifting market regimes.
               </p>
             </div>
 
-            {/* Tier 4: Master Titan */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #FDA4AF', boxShadow: '0 4px 20px rgba(190, 18, 60, 0.06)', textAlign: 'center' }}>
+            {/* Tier 4: Master Titan (Fierce Dragon-Titan Crest) */}
+            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #EA580C', boxShadow: '0 6px 26px rgba(194, 65, 12, 0.16)', textAlign: 'center' }}>
               <div style={{
-                width: '72px',
-                height: '72px',
+                width: '76px',
+                height: '76px',
                 margin: '0 auto 18px auto',
-                background: '#FFF1F2',
-                border: '2px solid #BE123C',
-                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: '2.5px solid #C2410C',
+                boxShadow: '0 4px 22px rgba(194, 65, 12, 0.55)'
               }}>
-                <Trophy size={32} color="#BE123C" />
+                <img src="/assets/badge_master_titan.jpg" alt="Master Titan Crest" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#BE123C', textTransform: 'uppercase' }}>TIER 4 TITAN</div>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase' }}>TIER 4 TITAN</div>
               <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '6px 0 8px 0' }}>Master Titan</h4>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#BE123C', fontFamily: 'var(--font-mono)' }}>$8,000+ Capital</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#9A3412', fontFamily: 'var(--font-mono)' }}>$8,000+ Capital</div>
               <p style={{ fontSize: '13px', color: '#64748B', margin: '10px 0 0 0', lineHeight: 1.6 }}>
                 8x compounder with minimal drawdowns and multi-week winning streaks.
               </p>
             </div>
 
-            {/* Tier 5: Apex Operator */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px 22px', border: '1.5px solid #D8B4FE', boxShadow: '0 4px 20px rgba(126, 34, 206, 0.08)', textAlign: 'center' }}>
+            {/* Tier 5: Apex Operator (Dangerous Cyber-Wolf Predator Crest) */}
+            <div style={{ background: '#0F172A', borderRadius: '20px', padding: '32px 22px', border: '2px solid #EA580C', boxShadow: '0 8px 32px rgba(234, 88, 12, 0.35)', textAlign: 'center' }}>
               <div style={{
-                width: '72px',
-                height: '72px',
+                width: '76px',
+                height: '76px',
                 margin: '0 auto 18px auto',
-                background: '#FAF5FF',
-                border: '2px solid #7E22CE',
-                clipPath: 'polygon(50% 0%, 80% 9%, 100% 35%, 100% 65%, 80% 91%, 50% 100%, 20% 91%, 0% 65%, 0% 35%, 20% 9%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: '2.5px solid #EA580C',
+                boxShadow: '0 0 24px rgba(234, 88, 12, 0.75)'
               }}>
-                <Crown size={32} color="#7E22CE" />
+                <img src="/assets/badge_apex_operator.jpg" alt="Apex Operator Crest" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#7E22CE', textTransform: 'uppercase' }}>TIER 5 APEX</div>
-              <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '6px 0 8px 0' }}>Apex Operator</h4>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#7E22CE', fontFamily: 'var(--font-mono)' }}>$15,000+ Capital</div>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '10px 0 0 0', lineHeight: 1.6 }}>
-                The elite 0.1% global echelon. Recognized institutional risk manager.
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.8px' }}>TIER 5 APEX</div>
+              <h4 style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', margin: '6px 0 8px 0' }}>Apex Operator</h4>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>$15,000+ Capital</div>
+              <p style={{ fontSize: '13px', color: '#CBD5E1', margin: '10px 0 0 0', lineHeight: 1.6 }}>
+                The elite 0.1% global echelon. Recognized sovereign institutional risk manager.
               </p>
             </div>
 
@@ -1707,13 +1703,13 @@ export default function Landing() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div style={{ background: '#F8FAFC', padding: '22px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
                 <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 800 }}>DAILY STREAK BONUS</div>
-                <div style={{ fontSize: '26px', fontWeight: 900, color: '#009E47', marginTop: '4px' }}>+10 Coins</div>
+                <div style={{ fontSize: '26px', fontWeight: 900, color: '#C2410C', marginTop: '4px' }}>+10 Coins</div>
                 <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>Once per calendar day</div>
               </div>
 
               <div style={{ background: '#F8FAFC', padding: '22px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
                 <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 800 }}>SL PROTECTION</div>
-                <div style={{ fontSize: '26px', fontWeight: 900, color: '#009E47', marginTop: '4px' }}>+5 Coins</div>
+                <div style={{ fontSize: '26px', fontWeight: 900, color: '#C2410C', marginTop: '4px' }}>+5 Coins</div>
                 <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>On every protected order</div>
               </div>
 
@@ -1741,7 +1737,7 @@ export default function Landing() {
         margin: '0 auto'
       }}>
         <div style={{ textAlign: 'center', maxWidth: '820px', margin: '0 auto 56px auto' }}>
-          <span style={{ fontSize: '13px', fontWeight: 800, color: '#00D26A', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
             MATHEMATICAL SIMULATION
           </span>
           <h2 style={{ fontSize: 'clamp(34px, 4vw, 48px)', fontWeight: 900, letterSpacing: '-1.2px', color: '#0F172A', margin: '12px 0 18px 0' }}>
@@ -1770,7 +1766,7 @@ export default function Landing() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <label style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Estimated Win-Rate (%)</label>
-                <span style={{ fontSize: '18px', fontWeight: 900, color: '#00D26A', fontFamily: 'var(--font-mono)' }}>{winRate}%</span>
+                <span style={{ fontSize: '18px', fontWeight: 900, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>{winRate}%</span>
               </div>
               <input 
                 type="range" 
@@ -1778,7 +1774,7 @@ export default function Landing() {
                 max="85" 
                 value={winRate} 
                 onChange={(e) => setWinRate(Number(e.target.value))}
-                style={{ width: '100%', accentColor: '#00D26A', cursor: 'pointer', height: '6px' }}
+                style={{ width: '100%', accentColor: '#EA580C', cursor: 'pointer', height: '6px' }}
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94A3B8', marginTop: '6px' }}>
                 <span>35% (Trend Surfer)</span>
@@ -1790,7 +1786,7 @@ export default function Landing() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <label style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Risk-to-Reward Ratio (R:R)</label>
-                <span style={{ fontSize: '18px', fontWeight: 900, color: '#00D26A', fontFamily: 'var(--font-mono)' }}>1:{riskReward}</span>
+                <span style={{ fontSize: '18px', fontWeight: 900, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>1:{riskReward}</span>
               </div>
               <input 
                 type="range" 
@@ -1799,7 +1795,7 @@ export default function Landing() {
                 step="0.1" 
                 value={riskReward} 
                 onChange={(e) => setRiskReward(Number(e.target.value))}
-                style={{ width: '100%', accentColor: '#00D26A', cursor: 'pointer', height: '6px' }}
+                style={{ width: '100%', accentColor: '#EA580C', cursor: 'pointer', height: '6px' }}
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94A3B8', marginTop: '6px' }}>
                 <span>1:1.0 (Even Payoff)</span>
@@ -1811,7 +1807,7 @@ export default function Landing() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <label style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Disciplined Trades Per Week</label>
-                <span style={{ fontSize: '18px', fontWeight: 900, color: '#00D26A', fontFamily: 'var(--font-mono)' }}>{weeklyTrades} Trades</span>
+                <span style={{ fontSize: '18px', fontWeight: 900, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>{weeklyTrades} Trades</span>
               </div>
               <input 
                 type="range" 
@@ -1819,7 +1815,7 @@ export default function Landing() {
                 max="30" 
                 value={weeklyTrades} 
                 onChange={(e) => setWeeklyTrades(Number(e.target.value))}
-                style={{ width: '100%', accentColor: '#00D26A', cursor: 'pointer', height: '6px' }}
+                style={{ width: '100%', accentColor: '#EA580C', cursor: 'pointer', height: '6px' }}
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94A3B8', marginTop: '6px' }}>
                 <span>3 (Selective Swing)</span>
@@ -1868,7 +1864,7 @@ export default function Landing() {
               </div>
               <div>
                 <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 800 }}>ESTIMATED DER SCORE</div>
-                <div style={{ fontSize: '22px', fontWeight: 900, color: '#00D26A', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: '#EA580C', fontFamily: 'var(--font-mono)' }}>
                   {calculatedEdge.derScore} <span style={{ fontSize: '12px', color: '#64748B' }}>/ 100</span>
                 </div>
               </div>
@@ -1905,7 +1901,7 @@ export default function Landing() {
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           
           <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto 52px auto' }}>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#00D26A', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
               PUBLIC AUDITABLE LEDGER
             </span>
             <h2 style={{ fontSize: 'clamp(34px, 4vw, 48px)', fontWeight: 900, letterSpacing: '-1.2px', color: '#0F172A', margin: '12px 0 18px 0' }}>
@@ -1976,7 +1972,7 @@ export default function Landing() {
                         {item.tag}
                       </span>
                     </td>
-                    <td style={{ padding: '18px 24px', textAlign: 'right', fontWeight: 900, color: '#009E47', fontFamily: 'var(--font-mono)' }}>
+                    <td style={{ padding: '18px 24px', textAlign: 'right', fontWeight: 900, color: '#C2410C', fontFamily: 'var(--font-mono)' }}>
                       {item.der}
                     </td>
                     <td style={{ padding: '18px 24px', textAlign: 'right', fontWeight: 800, color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
@@ -1994,7 +1990,7 @@ export default function Landing() {
               style={{
                 fontSize: '14px',
                 fontWeight: 800,
-                color: '#009E47',
+                color: '#C2410C',
                 textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -2013,7 +2009,7 @@ export default function Landing() {
       <section id="faq" style={{ padding: '110px 24px', maxWidth: '880px', margin: '0 auto' }}>
         
         <div style={{ textAlign: 'center', marginBottom: '52px' }}>
-          <span style={{ fontSize: '13px', fontWeight: 800, color: '#00D26A', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1.2px' }}>
             RULES & CLARITY
           </span>
           <h2 style={{ fontSize: 'clamp(34px, 4vw, 46px)', fontWeight: 900, letterSpacing: '-1.2px', color: '#0F172A', margin: '12px 0 18px 0' }}>
@@ -2054,10 +2050,10 @@ export default function Landing() {
                 style={{
                   background: '#FFFFFF',
                   borderRadius: '16px',
-                  border: isOpen ? '1.5px solid #00D26A' : '1px solid #E2E8F0',
+                  border: isOpen ? '1.5px solid #EA580C' : '1px solid #E2E8F0',
                   overflow: 'hidden',
                   transition: 'all 0.2s',
-                  boxShadow: isOpen ? '0 4px 20px rgba(0, 210, 106, 0.08)' : 'none'
+                  boxShadow: isOpen ? '0 4px 20px rgba(234, 88, 12, 0.08)' : 'none'
                 }}
               >
                 <button
@@ -2077,7 +2073,7 @@ export default function Landing() {
                   <span style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
                     {item.q}
                   </span>
-                  {isOpen ? <ChevronUp size={20} color="#00D26A" /> : <ChevronDown size={20} color="#94A3B8" />}
+                  {isOpen ? <ChevronUp size={20} color="#EA580C" /> : <ChevronDown size={20} color="#94A3B8" />}
                 </button>
 
                 {isOpen && (
@@ -2095,7 +2091,7 @@ export default function Landing() {
       {/* ─── 11. MASSIVE FINAL CALL TO ACTION ─── */}
       <section style={{
         padding: '110px 24px',
-        background: 'linear-gradient(135deg, #0F172A 0%, #064E3B 100%)',
+        background: 'linear-gradient(135deg, #0F172A 0%, #7C2D12 100%)',
         color: '#FFFFFF',
         textAlign: 'center',
         position: 'relative',
@@ -2108,9 +2104,9 @@ export default function Landing() {
             gap: '8px',
             padding: '6px 18px',
             borderRadius: '999px',
-            background: 'rgba(0, 210, 106, 0.2)',
-            border: '1px solid rgba(0, 210, 106, 0.4)',
-            color: '#86EFAC',
+            background: 'rgba(234, 88, 12, 0.2)',
+            border: '1px solid rgba(234, 88, 12, 0.4)',
+            color: '#FDBA74',
             fontSize: '12px',
             fontWeight: 800,
             textTransform: 'uppercase',
@@ -2151,12 +2147,12 @@ export default function Landing() {
               gap: '10px',
               padding: '20px 46px',
               borderRadius: '14px',
-              background: '#00D26A',
+              background: '#EA580C',
               color: '#FFFFFF',
               fontSize: '17px',
               fontWeight: 900,
               textDecoration: 'none',
-              boxShadow: '0 8px 30px rgba(0, 210, 106, 0.4)',
+              boxShadow: '0 8px 30px rgba(234, 88, 12, 0.4)',
               transition: 'transform 0.15s'
             }}
             onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}

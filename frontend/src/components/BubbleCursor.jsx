@@ -98,11 +98,11 @@ export default function BubbleCursor() {
           width: clicked ? '48px' : '36px',
           height: clicked ? '48px' : '36px',
           borderRadius: '50%',
-          border: '2px solid rgba(0, 240, 255, 0.6)',
-          background: clicked ? 'rgba(0, 255, 136, 0.15)' : 'rgba(0, 240, 255, 0.05)',
+          border: '2px solid rgba(234, 88, 12, 0.6)',
+          background: clicked ? 'rgba(234, 88, 12, 0.2)' : 'rgba(234, 88, 12, 0.06)',
           boxShadow: clicked 
-            ? '0 0 20px rgba(0, 255, 136, 0.5), inset 0 0 10px rgba(0, 255, 136, 0.3)' 
-            : '0 0 12px rgba(0, 240, 255, 0.3)',
+            ? '0 0 20px rgba(234, 88, 12, 0.6), inset 0 0 10px rgba(234, 88, 12, 0.3)' 
+            : '0 0 12px rgba(234, 88, 12, 0.35)',
           pointerEvents: 'none',
           zIndex: 99999,
           transform: 'translate3d(-50%, -50%, 0)',
@@ -123,8 +123,8 @@ export default function BubbleCursor() {
           width: '8px',
           height: '8px',
           borderRadius: '50%',
-          background: '#00ff88',
-          boxShadow: '0 0 8px #00ff88',
+          background: '#EA580C',
+          boxShadow: '0 0 8px #EA580C',
           pointerEvents: 'none',
           zIndex: 999999,
           transform: 'translate3d(-50%, -50%, 0)',

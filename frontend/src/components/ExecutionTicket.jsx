@@ -178,11 +178,11 @@ export default function ExecutionTicket({
         {/* Current Mid Spread Banner */}
         <div style={{ background: '#F8FAFC', padding: '6px 8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #E2E8F0', fontWeight: '800', color: '#0F172A', display: 'flex', justifyContent: 'space-between' }}>
           <span>Mid Spread</span>
-          <span style={{ color: '#10B981', fontFamily: 'var(--font-mono)' }}>${currentPrice.toFixed(2)}</span>
+          <span style={{ color: '#EA580C', fontFamily: 'var(--font-mono)' }}>${currentPrice.toFixed(2)}</span>
           <span style={{ color: '#64748B' }}>±{spread}</span>
         </div>
 
-        {/* Bids (Buys - Green depth) */}
+        {/* Bids (Buys - Orange depth) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {bids.map((b, i) => (
             <div 
@@ -198,8 +198,8 @@ export default function ExecutionTicket({
                 fontFamily: 'var(--font-mono)'
               }}
             >
-              <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: `${(b.total / 12) * 100}%`, background: 'rgba(16, 185, 129, 0.12)', borderRadius: '4px', zIndex: 0 }} />
-              <span style={{ color: '#10B981', fontWeight: '700', zIndex: 1 }}>{b.price.toFixed(2)}</span>
+              <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: `${(b.total / 12) * 100}%`, background: 'rgba(234, 88, 12, 0.12)', borderRadius: '4px', zIndex: 0 }} />
+              <span style={{ color: '#EA580C', fontWeight: '700', zIndex: 1 }}>{b.price.toFixed(2)}</span>
               <span style={{ color: '#0F172A', zIndex: 1 }}>{b.size.toFixed(2)}</span>
               <span style={{ color: '#64748B', zIndex: 1 }}>{b.total.toFixed(2)}</span>
             </div>
@@ -241,7 +241,7 @@ export default function ExecutionTicket({
             alignItems: 'center',
             gap: '6px'
           }}>
-            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#EA580C', display: 'inline-block' }} />
             {symbol}
           </div>
         </div>
@@ -369,15 +369,15 @@ export default function ExecutionTicket({
                 padding: '10px 12px',
                 cursor: 'pointer',
                 textAlign: 'right',
-                background: side === 'BUY' ? '#ECFDF5' : 'transparent',
+                background: side === 'BUY' ? '#FFF7ED' : 'transparent',
                 borderLeft: '1px solid #E2E8F0',
                 transition: 'all 0.15s ease'
               }}
             >
-              <div style={{ fontSize: '0.75rem', fontWeight: '800', color: side === 'BUY' ? '#10B981' : '#64748B', marginBottom: '2px' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: '800', color: side === 'BUY' ? '#EA580C' : '#64748B', marginBottom: '2px' }}>
                 Buy
               </div>
-              <div style={{ fontSize: '1.05rem', fontWeight: '900', color: side === 'BUY' ? '#059669' : '#0F172A', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: '900', color: side === 'BUY' ? '#C2410C' : '#0F172A', fontFamily: 'var(--font-mono)' }}>
                 {currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </div>
@@ -562,7 +562,7 @@ export default function ExecutionTicket({
                 onChange={handleSliderChange}
                 style={{
                   flex: 1,
-                  accentColor: side === 'BUY' ? '#10B981' : '#EF4444',
+                  accentColor: side === 'BUY' ? '#EA580C' : '#EF4444',
                   cursor: 'pointer'
                 }}
               />
@@ -605,7 +605,7 @@ export default function ExecutionTicket({
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748B' }}>Required margin:</span>
-                <span style={{ fontWeight: '800', fontFamily: 'var(--font-mono)', color: requiredMargin > balance ? '#EF4444' : '#10B981' }}>
+                <span style={{ fontWeight: '800', fontFamily: 'var(--font-mono)', color: requiredMargin > balance ? '#EF4444' : '#EA580C' }}>
                   ${requiredMargin.toFixed(2)} USD
                 </span>
               </div>
@@ -666,7 +666,7 @@ export default function ExecutionTicket({
                       style={{
                         width: '36px',
                         height: '20px',
-                        background: tpEnabled ? '#10B981' : '#CBD5E1',
+                        background: tpEnabled ? '#EA580C' : '#CBD5E1',
                         borderRadius: '20px',
                         cursor: 'pointer',
                         position: 'relative',
@@ -705,7 +705,7 @@ export default function ExecutionTicket({
                           <ArrowLeftRight size={13} />
                         </button>
                       </div>
-                      <span style={{ background: '#ECFDF5', color: '#059669', fontSize: '0.7rem', fontWeight: '800', padding: '6px 8px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
+                      <span style={{ background: '#FFF7ED', color: '#C2410C', fontSize: '0.7rem', fontWeight: '800', padding: '6px 8px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
                         +{percentRewardAtTP}%
                       </span>
                     </div>
@@ -798,7 +798,7 @@ export default function ExecutionTicket({
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748B' }}>Execution Mode</span>
-                  <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#10B981', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#EA580C', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Zap size={12} /> Instant (&lt;10ms)
                   </span>
                 </div>
@@ -814,7 +814,7 @@ export default function ExecutionTicket({
               padding: '13px',
               borderRadius: '10px',
               background: side === 'BUY' 
-                ? 'linear-gradient(135deg, #10B981, #059669)' 
+                ? 'linear-gradient(135deg, #EA580C, #C2410C)' 
                 : 'linear-gradient(135deg, #EF4444, #DC2626)',
               color: '#FFFFFF',
               fontWeight: '900',
@@ -822,7 +822,7 @@ export default function ExecutionTicket({
               border: 'none',
               cursor: 'pointer',
               boxShadow: side === 'BUY' 
-                ? '0 4px 14px rgba(16, 185, 129, 0.35)' 
+                ? '0 4px 14px rgba(234, 88, 12, 0.35)' 
                 : '0 4px 14px rgba(239, 68, 68, 0.35)',
               transition: 'transform 0.1s, box-shadow 0.15s',
               display: 'flex',

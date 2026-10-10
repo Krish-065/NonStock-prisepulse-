@@ -41,7 +41,7 @@ export default function ResetPassword() {
           <input type="password" placeholder="Confirm Password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
           <button type="submit" disabled={loading}>{loading ? 'Resetting...' : 'Reset Password'}</button>
         </form>
-        {message && <p style={{ color: '#00ff88', marginTop: '16px' }}>{message}</p>}
+        {message && <p style={{ color: '#EA580C', marginTop: '16px' }}>{message}</p>}
         {error && <p style={{ color: '#ff4444', marginTop: '16px' }}>{error}</p>}
       </div>
     </div>

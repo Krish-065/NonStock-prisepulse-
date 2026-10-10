@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTrading } from '../contexts/TradingContext';
@@ -621,9 +621,9 @@ export default function Dashboard() {
                   gap: '8px',
                   padding: '9px 18px',
                   borderRadius: '10px',
-                  border: isActive ? '1.5px solid #00D26A' : '1px solid transparent',
+                  border: isActive ? '1.5px solid #EA580C' : '1px solid transparent',
                   background: isActive ? 'rgba(240, 253, 244, 0.88)' : '#F8FAFC',
-                  color: isActive ? '#006C2E' : '#475569',
+                  color: isActive ? '#9A3412' : '#475569',
                   fontSize: '13px',
                   fontWeight: isActive ? 900 : 700,
                   cursor: 'pointer',
@@ -631,7 +631,7 @@ export default function Dashboard() {
                   transition: 'all 0.15s ease'
                 }}
               >
-                <Icon size={16} color={isActive ? '#009E47' : '#64748B'} />
+                <Icon size={16} color={isActive ? '#C2410C' : '#64748B'} />
                 <span>{tab.label}</span>
                 {tab.badge && (
                   <span style={{
@@ -639,7 +639,7 @@ export default function Dashboard() {
                     fontWeight: 900,
                     padding: '1px 5px',
                     borderRadius: '4px',
-                    background: isActive ? '#00D26A' : '#E2E8F0',
+                    background: isActive ? '#EA580C' : '#E2E8F0',
                     color: isActive ? '#FFFFFF' : '#64748B'
                   }}>
                     {tab.badge}
@@ -666,7 +666,7 @@ export default function Dashboard() {
         }}>
           <div style={{
             background: '#FFFFFF',
-            border: '2px solid #00D26A',
+            border: '2px solid #EA580C',
             borderRadius: '24px',
             padding: '40px',
             maxWidth: '540px',
@@ -701,12 +701,12 @@ export default function Dashboard() {
               height: '68px',
               borderRadius: '18px',
               background: 'rgba(240, 253, 244, 0.88)',
-              border: '2px solid #00D26A',
+              border: '2px solid #EA580C',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px auto',
-              boxShadow: '0 4px 16px rgba(0, 210, 106, 0.2)'
+              boxShadow: '0 4px 16px rgba(234, 88, 12, 0.2)'
             }}>
               <ShieldCheck size={36} color="#EA580C" />
             </div>
@@ -724,7 +724,7 @@ export default function Dashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', textAlign: 'left', marginBottom: '24px' }}>
               <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px' }}>
                 <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B' }}>BASELINE CAPITAL</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: '#00D26A', marginTop: '2px' }}>$1,000.00 Equal</div>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: '#EA580C', marginTop: '2px' }}>$1,000.00 Equal</div>
                 <div style={{ fontSize: '11px', color: '#94A3B8' }}>Universal proving baseline</div>
               </div>
 
@@ -739,7 +739,7 @@ export default function Dashboard() {
               onClick={dismissWelcome}
               style={{
                 width: '100%',
-                background: 'linear-gradient(135deg, #00D26A, #009E47)',
+                background: 'linear-gradient(135deg, #EA580C, #C2410C)',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: '12px',
@@ -751,7 +751,7 @@ export default function Dashboard() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 14px rgba(0, 210, 106, 0.35)'
+                boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)'
               }}
             >
               <span>Enter Execution Desk ({welcomeSeconds}s)</span>
@@ -1002,12 +1002,12 @@ export default function Dashboard() {
                     padding: '6px 12px',
                     borderRadius: '999px',
                     background: 'rgba(240, 253, 244, 0.88)',
-                    border: '1px solid #86EFAC',
+                    border: '1px solid #FDBA74',
                     fontSize: '11px',
                     fontWeight: 800,
-                    color: '#006C2E'
+                    color: '#9A3412'
                   }}>
-                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#00D26A' }} />
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#EA580C' }} />
                     <span>LIVE FEED AUDIT</span>
                   </div>
 
@@ -1028,7 +1028,7 @@ export default function Dashboard() {
                       boxShadow: '0 4px 14px rgba(15, 23, 42, 0.18)'
                     }}
                   >
-                    <Zap size={15} color="#00D26A" />
+                    <Zap size={15} color="#EA580C" />
                     <span>ENTER ARENA</span>
                   </button>
                 </div>
@@ -1061,8 +1061,8 @@ export default function Dashboard() {
                   <span>REGIME: CONTINUOUS AUDIT</span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#009E47', fontWeight: 800 }}>
-                  <ShieldCheck size={14} color="#00D26A" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#C2410C', fontWeight: 800 }}>
+                  <ShieldCheck size={14} color="#EA580C" />
                   <span>VERIFIED PROVING GROUND</span>
                 </div>
               </div>
@@ -1099,7 +1099,7 @@ export default function Dashboard() {
                       ${balanceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
 
-                    <div style={{ fontSize: '13px', color: netPnL >= 0 ? '#009E47' : '#DC2626', fontWeight: 800, marginTop: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ fontSize: '13px', color: netPnL >= 0 ? '#C2410C' : '#DC2626', fontWeight: 800, marginTop: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       {netPnL >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                       <span>{netPnL >= 0 ? '+' : ''}${netPnL.toFixed(2)} ({netRoi >= 0 ? '+' : ''}{netRoi.toFixed(1)}% vs $1,000 baseline)</span>
                     </div>
@@ -1175,7 +1175,7 @@ export default function Dashboard() {
               {/* Distinct Trade Streak (Badges + Coins) */}
               <div style={{
                 background: 'rgba(240, 253, 244, 0.9)',
-                border: '1.5px solid #86EFAC',
+                border: '1.5px solid #FDBA74',
                 borderRadius: '12px',
                 padding: '8px 12px',
                 display: 'flex',
@@ -1186,15 +1186,15 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <TradingBadgeIcon theme="trade_streak" size={22} />
                   <div>
-                    <div style={{ fontWeight: 900, color: '#006C2E' }}>
+                    <div style={{ fontWeight: 900, color: '#9A3412' }}>
                       {tradeStreak}-Day Trade Streak
                     </div>
-                    <div style={{ fontSize: '10px', color: '#009E47', fontWeight: 700 }}>
+                    <div style={{ fontSize: '10px', color: '#C2410C', fontWeight: 700 }}>
                       +10 Coins daily • Badge at 1-Week
                     </div>
                   </div>
                 </div>
-                <span style={{ fontSize: '10px', fontWeight: 900, background: '#DCFCE7', color: '#166534', padding: '2px 7px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 900, background: '#FFEDD5', color: '#7C2D12', padding: '2px 7px', borderRadius: '4px' }}>
                   BADGES
                 </span>
               </div>
@@ -1230,30 +1230,30 @@ export default function Dashboard() {
 
           {/* Card C (Asymmetric Emerald Pod): Discipline Execution Rating DER */}
           <div style={{
-            background: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDF4 100%)',
-            border: '1.5px solid #86EFAC',
+            background: 'linear-gradient(145deg, #FFFFFF 0%, #FFF7ED 100%)',
+            border: '1.5px solid #FDBA74',
             borderRadius: '20px',
             padding: isMobile ? '18px 16px' : '24px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            boxShadow: '0 4px 16px rgba(0, 210, 106, 0.05)'
+            boxShadow: '0 4px 16px rgba(234, 88, 12, 0.05)'
           }}>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#006C2E', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                   DISCIPLINE RATING (DER)
                 </span>
-                <span style={{ fontSize: '10px', background: 'rgba(240, 253, 244, 0.88)', color: '#009E47', border: '1px solid #86EFAC', padding: '2px 7px', borderRadius: '4px', fontWeight: 900 }}>
+                <span style={{ fontSize: '10px', background: 'rgba(240, 253, 244, 0.88)', color: '#C2410C', border: '1px solid #FDBA74', padding: '2px 7px', borderRadius: '4px', fontWeight: 900 }}>
                   TOP 5% PRO
                 </span>
               </div>
 
               <div style={{ marginTop: '16px' }}>
-                <div style={{ fontSize: isMobile ? '30px' : '34px', fontWeight: 900, color: '#006C2E', lineHeight: 1 }}>
+                <div style={{ fontSize: isMobile ? '30px' : '34px', fontWeight: 900, color: '#9A3412', lineHeight: 1 }}>
                   {derScore.toFixed(1)} <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 700 }}>/ 100</span>
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#009E47', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#C2410C', marginTop: '4px' }}>
                   Algorithmic Edge Verified
                 </div>
               </div>
@@ -1287,7 +1287,7 @@ export default function Dashboard() {
         boxShadow: '0 8px 30px -5px rgba(0, 0, 0, 0.03)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: '8px', marginBottom: '14px', fontSize: '12px' }}>
-          <div style={{ fontWeight: 900, color: '#009E47', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <div style={{ fontWeight: 900, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             DECAGON CAPITAL PROVING HIERARCHY
           </div>
           <div style={{ color: '#64748B' }}>
@@ -1302,7 +1302,7 @@ export default function Dashboard() {
           gap: '12px'
         }}>
           {[
-            { name: 'Contender', target: '$1,000', active: balanceNum < 2000, color: '#009E47', tag: 'Baseline' },
+            { name: 'Contender', target: '$1,000', active: balanceNum < 2000, color: '#C2410C', tag: 'Baseline' },
             { name: 'Silver Prover', target: '$2,000', active: balanceNum >= 2000 && balanceNum < 4000, color: '#64748B', tag: '2x Capital' },
             { name: 'Gold Sovereign', target: '$4,000', active: balanceNum >= 4000 && balanceNum < 8000, color: '#EAB308', tag: '4x Edge' },
             { name: 'Master Titan', target: '$8,000', active: balanceNum >= 8000 && balanceNum < 15000, color: '#E11D48', tag: '8x Mastery' },
@@ -1314,8 +1314,8 @@ export default function Dashboard() {
                 padding: '12px 16px',
                 borderRadius: '16px',
                 background: t.active ? 'rgba(240, 253, 244, 0.88)' : '#F8FAFC',
-                border: t.active ? '2px solid #00D26A' : '1.5px solid #E2E8F0',
-                boxShadow: t.active ? '0 4px 16px rgba(0, 210, 106, 0.15)' : 'none',
+                border: t.active ? '2px solid #EA580C' : '1.5px solid #E2E8F0',
+                boxShadow: t.active ? '0 4px 16px rgba(234, 88, 12, 0.15)' : 'none',
                 transition: 'all 0.15s ease',
                 display: 'flex',
                 alignItems: 'center',
@@ -1326,11 +1326,11 @@ export default function Dashboard() {
                 <TradingBadgeIcon theme={`decagon_${t.name.toLowerCase().split(' ')[0]}`} size={26} />
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: t.active ? '#009E47' : '#0F172A' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: t.active ? '#C2410C' : '#0F172A' }}>
                       {t.name}
                     </span>
                     {t.active && (
-                      <span style={{ fontSize: '9px', background: '#00D26A', color: '#FFFFFF', padding: '1px 5px', borderRadius: '4px', fontWeight: 900 }}>
+                      <span style={{ fontSize: '9px', background: '#EA580C', color: '#FFFFFF', padding: '1px 5px', borderRadius: '4px', fontWeight: 900 }}>
                         ACTIVE
                       </span>
                     )}
@@ -1368,14 +1368,14 @@ export default function Dashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-start', flexDirection: isMobile ? 'column' : 'row', gap: '12px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                   DEDICATED PROTOCOL DESK
                 </span>
                 <span style={{
                   fontSize: '9px',
                   background: 'rgba(240, 253, 244, 0.88)',
-                  color: '#009E47',
-                  border: '1px solid #86EFAC',
+                  color: '#C2410C',
+                  border: '1px solid #FDBA74',
                   padding: '2px 8px',
                   borderRadius: '999px',
                   fontWeight: 900
@@ -1395,7 +1395,7 @@ export default function Dashboard() {
               <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>
                 {completedTasksCount} of 5 Completed Today
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 900, color: '#009E47', marginTop: '2px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 900, color: '#C2410C', marginTop: '2px' }}>
                 +{earnedTasksCoins} / +90 Coins Earned
               </div>
             </div>
@@ -1406,7 +1406,7 @@ export default function Dashboard() {
             <div style={{
               width: `${(completedTasksCount / 5) * 100}%`,
               height: '100%',
-              background: 'linear-gradient(90deg, #00D26A, #009E47)',
+              background: 'linear-gradient(90deg, #EA580C, #C2410C)',
               transition: 'width 0.3s ease'
             }} />
           </div>
@@ -1421,7 +1421,7 @@ export default function Dashboard() {
                   style={{
                     padding: isMobile ? '14px 16px' : '14px 18px',
                     borderRadius: '16px',
-                    border: t.completed ? '1.5px solid #86EFAC' : '1.5px solid #E2E8F0',
+                    border: t.completed ? '1.5px solid #FDBA74' : '1.5px solid #E2E8F0',
                     display: 'flex',
                     flexDirection: isMobile ? 'column' : 'row',
                     alignItems: isMobile ? 'stretch' : 'center',
@@ -1437,11 +1437,11 @@ export default function Dashboard() {
                       height: '38px',
                       borderRadius: '10px',
                       background: t.completed ? 'rgba(240, 253, 244, 0.88)' : '#F8FAFC',
-                      border: t.completed ? '1.5px solid #86EFAC' : '1.5px solid #CBD5E1',
+                      border: t.completed ? '1.5px solid #FDBA74' : '1.5px solid #CBD5E1',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: t.completed ? '#009E47' : '#64748B',
+                      color: t.completed ? '#C2410C' : '#64748B',
                       flexShrink: 0
                     }}>
                       <Icon size={18} />
@@ -1453,7 +1453,7 @@ export default function Dashboard() {
                           {t.title}
                         </span>
                         {t.completed ? (
-                          <span style={{ fontSize: '9px', background: 'rgba(240, 253, 244, 0.88)', color: '#009E47', border: '1px solid #86EFAC', padding: '1px 6px', borderRadius: '4px', fontWeight: 900 }}>
+                          <span style={{ fontSize: '9px', background: 'rgba(240, 253, 244, 0.88)', color: '#C2410C', border: '1px solid #FDBA74', padding: '1px 6px', borderRadius: '4px', fontWeight: 900 }}>
                             COMPLETED
                           </span>
                         ) : (
@@ -1540,21 +1540,21 @@ export default function Dashboard() {
             <div style={{
               background: '#FFFFFF',
               borderRadius: '20px',
-              border: '1.5px solid #86EFAC',
+              border: '1.5px solid #FDBA74',
               padding: '20px 24px',
               display: 'flex',
               flexDirection: 'column',
               gap: '10px',
-              boxShadow: '0 8px 30px -5px rgba(0, 210, 106, 0.05)'
+              boxShadow: '0 8px 30px -5px rgba(234, 88, 12, 0.05)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={16} color="#009E47" />
+                  <Sparkles size={16} color="#C2410C" />
                   <span style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A' }}>
                     60-Day Full Platform Access Voucher
                   </span>
                 </div>
-                <span style={{ fontSize: '10px', fontWeight: 900, background: '#00D26A', color: '#FFFFFF', padding: '3px 9px', borderRadius: '999px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 900, background: '#EA580C', color: '#FFFFFF', padding: '3px 9px', borderRadius: '999px' }}>
                   {trialDaysRemaining}D LEFT
                 </span>
               </div>
@@ -1584,7 +1584,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => navigate('/global-markets')}
                   style={{
-                    background: 'linear-gradient(135deg, #00D26A, #009E47)',
+                    background: 'linear-gradient(135deg, #EA580C, #C2410C)',
                     border: 'none',
                     color: '#FFFFFF',
                     borderRadius: '8px',
@@ -1595,7 +1595,7 @@ export default function Dashboard() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '5px',
-                    boxShadow: '0 4px 10px rgba(0, 210, 106, 0.25)'
+                    boxShadow: '0 4px 10px rgba(234, 88, 12, 0.25)'
                   }}
                 >
                   <Globe size={12} />
@@ -1628,7 +1628,7 @@ export default function Dashboard() {
             }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                     LIVE WATCHLIST SURVEILLANCE
                   </span>
                   <span style={{
@@ -1636,14 +1636,14 @@ export default function Dashboard() {
                     alignItems: 'center',
                     gap: '5px',
                     background: 'rgba(240, 253, 244, 0.88)',
-                    color: '#009E47',
-                    border: '1px solid #86EFAC',
+                    color: '#C2410C',
+                    border: '1px solid #FDBA74',
                     padding: '2px 8px',
                     borderRadius: '999px',
                     fontSize: '9px',
                     fontWeight: 900
                   }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00D26A', boxShadow: '0 0 6px #00D26A' }} />
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EA580C', boxShadow: '0 0 6px #EA580C' }} />
                     2.4S TICK ENGINE
                   </span>
                 </div>
@@ -1658,9 +1658,9 @@ export default function Dashboard() {
               <button
                 onClick={() => navigate('/trading')}
                 style={{
-                  background: 'rgba(0, 210, 106, 0.08)',
-                  border: '1px solid rgba(0, 210, 106, 0.3)',
-                  color: '#009E47',
+                  background: 'rgba(234, 88, 12, 0.08)',
+                  border: '1px solid rgba(234, 88, 12, 0.3)',
+                  color: '#C2410C',
                   borderRadius: '10px',
                   padding: '7px 14px',
                   fontSize: '12px',
@@ -1672,8 +1672,8 @@ export default function Dashboard() {
                   whiteSpace: 'nowrap',
                   transition: 'all 0.15s ease'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 210, 106, 0.16)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0, 210, 106, 0.08)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(234, 88, 12, 0.16)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(234, 88, 12, 0.08)'}
               >
                 <span>Arena Ticket</span>
                 <ArrowRight size={13} />
@@ -1686,11 +1686,11 @@ export default function Dashboard() {
                 display: 'flex',
                 alignItems: 'center',
                 background: '#F8FAFC',
-                border: isSearchFocused ? '1.5px solid #00D26A' : '1.5px solid #E2E8F0',
+                border: isSearchFocused ? '1.5px solid #EA580C' : '1.5px solid #E2E8F0',
                 borderRadius: '12px',
                 padding: '0 12px',
                 transition: 'border-color 0.2s ease',
-                boxShadow: isSearchFocused ? '0 0 0 3px rgba(0, 210, 106, 0.12)' : 'none'
+                boxShadow: isSearchFocused ? '0 0 0 3px rgba(234, 88, 12, 0.12)' : 'none'
               }}>
                 <Search size={15} color="#94A3B8" />
                 <input
@@ -1796,7 +1796,7 @@ export default function Dashboard() {
                             <div style={{
                               fontSize: '11px',
                               fontWeight: 700,
-                              color: item.change >= 0 ? '#15803D' : '#DC2626'
+                              color: item.change >= 0 ? '#9A3412' : '#DC2626'
                             }}>
                               {item.change >= 0 ? `+${item.change.toFixed(2)}%` : `${item.change.toFixed(2)}%`}
                             </div>
@@ -1808,7 +1808,7 @@ export default function Dashboard() {
                               handleAddSymbolToWatchlist(item.symbol);
                             }}
                             style={{
-                              background: '#00D26A',
+                              background: '#EA580C',
                               border: 'none',
                               color: '#FFFFFF',
                               borderRadius: '8px',
@@ -1819,7 +1819,7 @@ export default function Dashboard() {
                               display: 'flex',
                               alignItems: 'center',
                               gap: '4px',
-                              boxShadow: '0 2px 8px rgba(0, 210, 106, 0.3)'
+                              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)'
                             }}
                           >
                             <Plus size={13} />
@@ -1854,7 +1854,7 @@ export default function Dashboard() {
                       ? 'rgba(254, 242, 242, 0.95)' 
                       : '#FFFFFF';
                   const flashBorder = meta.flash === 'up'
-                    ? '#86EFAC'
+                    ? '#FDBA74'
                     : meta.flash === 'down'
                       ? '#FCA5A5'
                       : '#E2E8F0';
@@ -1919,7 +1919,7 @@ export default function Dashboard() {
                           gap: '3px',
                           fontSize: '11px',
                           fontWeight: 800,
-                          color: isPositive ? '#15803D' : '#DC2626'
+                          color: isPositive ? '#9A3412' : '#DC2626'
                         }}>
                           {isPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
                           <span>{isPositive ? `+${meta.change.toFixed(2)}%` : `${meta.change.toFixed(2)}%`}</span>
@@ -1957,7 +1957,7 @@ export default function Dashboard() {
                             e.currentTarget.style.color = '#0F172A';
                           }}
                         >
-                          <Zap size={12} color="#00D26A" />
+                          <Zap size={12} color="#EA580C" />
                           <span>Trade</span>
                         </button>
 
@@ -2018,7 +2018,7 @@ export default function Dashboard() {
                           gap: '4px'
                         }}
                       >
-                        <Plus size={11} color="#009E47" />
+                        <Plus size={11} color="#C2410C" />
                         <span>{quickSym}</span>
                       </button>
                     ))}
@@ -2054,12 +2054,12 @@ export default function Dashboard() {
                 {showAllWatchlist ? (
                   <>
                     <span>Show Less</span>
-                    <ChevronUp size={14} color="#009E47" />
+                    <ChevronUp size={14} color="#C2410C" />
                   </>
                 ) : (
                   <>
                     <span>Show More (+{watchlist.length - 5} More Assets)</span>
-                    <ChevronDown size={14} color="#009E47" />
+                    <ChevronDown size={14} color="#C2410C" />
                   </>
                 )}
               </button>
@@ -2089,7 +2089,7 @@ export default function Dashboard() {
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Trophy size={20} color="#009E47" />
+              <Trophy size={20} color="#C2410C" />
               <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
                 Institutional Badges Vault ({totalUnlockedCount} / 52 Unlocked)
               </h3>
@@ -2175,7 +2175,7 @@ export default function Dashboard() {
                 style={{
                   background: b.unlocked ? '#FFFFFF' : '#FAFBFC',
                   border: b.unlocked 
-                    ? '2px solid #00D26A' 
+                    ? '2px solid #EA580C' 
                     : (b.hasBounty ? '1.5px solid #FDE047' : '1.5px solid #E2E8F0'),
                   borderRadius: '18px',
                   padding: '18px',
@@ -2187,17 +2187,17 @@ export default function Dashboard() {
                   position: 'relative',
                   opacity: b.unlocked ? 1 : 0.88,
                   boxShadow: b.unlocked 
-                    ? '0 6px 20px rgba(0, 210, 106, 0.12)' 
+                    ? '0 6px 20px rgba(234, 88, 12, 0.12)' 
                     : '0 2px 8px rgba(0,0,0,0.02)',
                   transition: 'transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = b.unlocked ? '#009E47' : '#00D26A';
+                  e.currentTarget.style.borderColor = b.unlocked ? '#C2410C' : '#EA580C';
                   e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = b.unlocked 
-                    ? '#00D26A' 
+                    ? '#EA580C' 
                     : (b.hasBounty ? '#FDE047' : '#E2E8F0');
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
@@ -2279,7 +2279,7 @@ export default function Dashboard() {
                       {b.name}
                     </h4>
                     {b.unlocked && (
-                      <CheckCircle2 size={15} color="#009E47" />
+                      <CheckCircle2 size={15} color="#C2410C" />
                     )}
                   </div>
                   <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', lineHeight: 1.4 }}>
@@ -2291,7 +2291,7 @@ export default function Dashboard() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
                     <span>{b.progressText}</span>
-                    <span style={{ fontWeight: 800, color: b.unlocked ? '#009E47' : '#64748B' }}>
+                    <span style={{ fontWeight: 800, color: b.unlocked ? '#C2410C' : '#64748B' }}>
                       {b.unlocked ? 'UNLOCKED' : `${b.progressPct}%`}
                     </span>
                   </div>
@@ -2299,7 +2299,7 @@ export default function Dashboard() {
                     <div style={{
                       width: `${b.progressPct}%`,
                       height: '100%',
-                      background: b.unlocked ? '#009E47' : '#94A3B8'
+                      background: b.unlocked ? '#C2410C' : '#94A3B8'
                     }} />
                   </div>
                 </div>
@@ -2327,7 +2327,7 @@ export default function Dashboard() {
               boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
               transition: 'all 0.15s ease'
             }}
-            onMouseOver={(e) => { e.currentTarget.style.borderColor = '#00D26A'; e.currentTarget.style.color = '#009E47'; }}
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = '#EA580C'; e.currentTarget.style.color = '#C2410C'; }}
             onMouseOut={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#0F172A'; }}
           >
             <span>{showAllBadges ? 'Show Curated View (Top 6)' : `Show All Badges (${filteredBadges.length})`}</span>
@@ -2355,7 +2355,7 @@ export default function Dashboard() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: '12px' }}>
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#009E47', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 BROKER MIRROR PROTOCOL
               </div>
               <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '3px 0 0 0' }}>
@@ -2367,8 +2367,8 @@ export default function Dashboard() {
                 onClick={handleToggleMirror}
                 style={{
                   background: brokerMirror.isActive ? 'rgba(240, 253, 244, 0.88)' : '#FFFBEB',
-                  border: '1.5px solid #86EFAC',
-                  color: '#009E47',
+                  border: '1.5px solid #FDBA74',
+                  color: '#C2410C',
                   borderRadius: '8px',
                   padding: '6px 14px',
                   fontSize: '12px',
@@ -2382,7 +2382,7 @@ export default function Dashboard() {
               <button
                 onClick={() => setShowBrokerModal(true)}
                 style={{
-                  background: '#009E47',
+                  background: '#C2410C',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '8px',
@@ -2393,7 +2393,7 @@ export default function Dashboard() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 12px rgba(0, 158, 71, 0.25)',
+                  boxShadow: '0 4px 12px rgba(194, 65, 12, 0.25)',
                   alignSelf: isMobile ? 'flex-start' : 'auto'
                 }}
               >
@@ -2485,7 +2485,7 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {realLeaderboard.slice(0, 4).map((trader, i) => (
-                  <tr key={trader.rank || i} style={{ borderBottom: '1px solid #F1F5F9', background: trader.isSelf ? '#F0FDF4' : '#FFFFFF' }}>
+                  <tr key={trader.rank || i} style={{ borderBottom: '1px solid #F1F5F9', background: trader.isSelf ? '#FFF7ED' : '#FFFFFF' }}>
                     <td style={{ padding: '12px 14px', fontWeight: 900, color: '#0F172A' }}>
                       #{trader.rank || (i + 1)}
                     </td>
@@ -2493,7 +2493,7 @@ export default function Dashboard() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>{trader.name}</span>
                         {trader.isSelf && (
-                          <span style={{ fontSize: '8px', background: '#00D26A', color: '#FFFFFF', padding: '2px 5px', borderRadius: '3px', fontWeight: 900 }}>
+                          <span style={{ fontSize: '8px', background: '#EA580C', color: '#FFFFFF', padding: '2px 5px', borderRadius: '3px', fontWeight: 900 }}>
                             YOU
                           </span>
                         )}
@@ -2502,7 +2502,7 @@ export default function Dashboard() {
                         <DecagonTagBadge tier={trader.tag || 'Contender'} size="sm" />
                       </div>
                     </td>
-                    <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 900, color: '#009E47' }}>
+                    <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 900, color: '#C2410C' }}>
                       {trader.der ? Number(trader.der).toFixed(1) : '88.0'}
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 900, color: '#0F172A' }}>
@@ -2632,7 +2632,7 @@ export default function Dashboard() {
                 Badge #{selectedBadge.id} • Tier {selectedBadge.tier}
               </span>
               {selectedBadge.unlocked ? (
-                <span style={{ fontSize: '10px', background: 'rgba(240, 253, 244, 0.88)', color: '#009E47', padding: '1px 6px', borderRadius: '3px', fontWeight: 900 }}>
+                <span style={{ fontSize: '10px', background: 'rgba(240, 253, 244, 0.88)', color: '#C2410C', padding: '1px 6px', borderRadius: '3px', fontWeight: 900 }}>
                   VERIFIED UNLOCKED
                 </span>
               ) : (
@@ -2661,7 +2661,7 @@ export default function Dashboard() {
                 <div style={{
                   width: `${selectedBadge.progressPct}%`,
                   height: '100%',
-                  background: selectedBadge.unlocked ? '#00D26A' : '#94A3B8'
+                  background: selectedBadge.unlocked ? '#EA580C' : '#94A3B8'
                 }} />
               </div>
             </div>
@@ -2759,7 +2759,7 @@ export default function Dashboard() {
                     Gold Coins Vault & Audit Ledger
                   </h3>
                   <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <ShieldCheck size={12} color="#009E47" />
+                    <ShieldCheck size={12} color="#C2410C" />
                     <span>Cryptographically verified PostgreSQL transaction record</span>
                   </div>
                 </div>
@@ -2812,23 +2812,23 @@ export default function Dashboard() {
                 </div>
 
                 <div style={{
-                  background: '#F0FDF4',
-                  border: '1.5px solid #86EFAC',
+                  background: '#FFF7ED',
+                  border: '1.5px solid #FDBA74',
                   borderRadius: '12px',
                   padding: '12px 16px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px'
                 }}>
-                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#006C2E', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                     VERIFIED STREAKS
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 800, color: '#065F46' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 800, color: '#7C2D12' }}>
                       <TradingBadgeIcon theme="trade_streak" size={18} />
                       <span>Trade Streak:</span>
                     </div>
-                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#009E47' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#C2410C' }}>
                       {coinVaultData?.tradeStreak ?? tradeStreak} Days (+10 Coins & Badges)
                     </div>
                   </div>
@@ -2923,7 +2923,7 @@ export default function Dashboard() {
                                 <div>{tx.description || tx.reason}</div>
                                 <div style={{ fontSize: '10px', color: '#94A3B8' }}>{tx.reason}</div>
                               </td>
-                              <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: isPositive ? '#009E47' : '#DC2626' }}>
+                              <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: isPositive ? '#C2410C' : '#DC2626' }}>
                                 {isPositive ? `+${tx.amount}` : tx.amount} Coins
                               </td>
                             </tr>

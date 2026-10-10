@@ -164,8 +164,8 @@ function MiniSparkline({ data, isPositive, height = 54, width = 180, showGlow = 
   const lastPt = points[points.length - 1];
   const areaD = `${pathD} L ${width},${height} L 0,${height} Z`;
 
-  const strokeColor = isPositive ? '#00a854' : '#ef4444';
-  const fillGradientId = `spark-grad-${isPositive ? 'green' : 'red'}-${Math.random().toString(36).substring(2, 7)}`;
+  const strokeColor = isPositive ? '#EA580C' : '#ef4444';
+  const fillGradientId = `spark-grad-${isPositive ? 'orange' : 'red'}-${Math.random().toString(36).substring(2, 7)}`;
 
   return (
     <div style={{ position: 'relative', width: `${width}px`, height: `${height}px`, overflow: 'hidden' }}>
@@ -502,7 +502,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
         alignItems: 'center', 
         flexWrap: 'wrap', 
         gap: '16px',
-        borderBottom: '2px solid #f0fdf4',
+        borderBottom: '2px solid #FFF7ED',
         paddingBottom: '20px',
         marginBottom: '24px'
       }}>
@@ -515,9 +515,9 @@ export default function LiveMarketScreener({ onSelectAsset }) {
               gap: '6px',
               padding: '4px 10px',
               borderRadius: '20px',
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              color: '#166534',
+              background: '#FFF7ED',
+              border: '1px solid #FED7AA',
+              color: '#7C2D12',
               fontSize: '11px',
               fontWeight: 800,
               letterSpacing: '0.8px'
@@ -526,8 +526,8 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                background: '#00a854',
-                boxShadow: '0 0 10px #00a854',
+                background: '#EA580C',
+                boxShadow: '0 0 10px #EA580C',
                 display: 'inline-block',
                 animation: 'pulse 1.5s infinite'
               }} />
@@ -539,7 +539,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
           </div>
 
           <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#000000', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <BarChart2 size={24} color="#00a854" /> Global Market Screener & Price Radar
+            <BarChart2 size={24} color="#EA580C" /> Global Market Screener & Price Radar
           </h2>
           <p style={{ fontSize: '14px', color: '#475569', margin: '4px 0 0 0', fontWeight: 500 }}>
             Live updating prices, dynamic line charts, and direct execution tickets for BTC, Gold, and Forex pairs.
@@ -568,7 +568,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                 fontWeight: 500,
                 transition: 'all 0.2s'
               }}
-              onFocus={(e) => { e.target.style.borderColor = '#00a854'; e.target.style.background = '#ffffff'; }}
+              onFocus={(e) => { e.target.style.borderColor = '#EA580C'; e.target.style.background = '#ffffff'; }}
               onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
             />
           </div>
@@ -615,7 +615,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
           <button 
             onClick={() => setIsAddModalOpen(true)}
             style={{
-              background: '#00a854',
+              background: '#EA580C',
               color: '#ffffff',
               border: 'none',
               padding: '8px 14px',
@@ -626,11 +626,11 @@ export default function LiveMarketScreener({ onSelectAsset }) {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              boxShadow: '0 2px 8px rgba(0, 168, 84, 0.25)',
+              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
               transition: 'all 0.2s'
             }}
-            onMouseOver={(e) => { e.currentTarget.style.background = '#008f47'; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = '#00a854'; }}
+            onMouseOver={(e) => { e.currentTarget.style.background = '#C2410C'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = '#EA580C'; }}
           >
             <Plus size={14} />
             <span>Add Asset</span>
@@ -655,7 +655,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
               transition: 'all 0.2s'
             }}
             title="Refresh prices"
-            onMouseOver={(e) => { e.currentTarget.style.borderColor = '#00a854'; e.currentTarget.style.color = '#00a854'; }}
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = '#EA580C'; e.currentTarget.style.color = '#EA580C'; }}
             onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#334155'; }}
           >
             <RefreshCw size={14} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
@@ -680,9 +680,9 @@ export default function LiveMarketScreener({ onSelectAsset }) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               style={{
-                background: isActive ? '#00a854' : '#f8fafc',
+                background: isActive ? '#EA580C' : '#f8fafc',
                 color: isActive ? '#ffffff' : '#475569',
-                border: `1px solid ${isActive ? '#00a854' : '#e2e8f0'}`,
+                border: `1px solid ${isActive ? '#EA580C' : '#e2e8f0'}`,
                 padding: '8px 16px',
                 borderRadius: '10px',
                 fontSize: '13px',
@@ -692,7 +692,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                 alignItems: 'center',
                 gap: '8px',
                 transition: 'all 0.2s',
-                boxShadow: isActive ? '0 4px 12px rgba(0, 168, 84, 0.25)' : 'none'
+                boxShadow: isActive ? '0 4px 12px rgba(234, 88, 12, 0.25)' : 'none'
               }}
               onMouseOver={(e) => {
                 if (!isActive) e.currentTarget.style.borderColor = '#cbd5e1';
@@ -728,12 +728,12 @@ export default function LiveMarketScreener({ onSelectAsset }) {
             const isPos = asset.change >= 0;
             const flashState = flashing[asset.symbol];
             const flashBg = flashState === 'up' 
-              ? 'rgba(0, 168, 84, 0.12)' 
+              ? 'rgba(234, 88, 12, 0.12)' 
               : flashState === 'down' 
               ? 'rgba(239, 68, 68, 0.12)' 
               : '#ffffff';
             const flashBorder = flashState === 'up'
-              ? '1px solid #00a854'
+              ? '1px solid #EA580C'
               : flashState === 'down'
               ? '1px solid #ef4444'
               : '1px solid #e5e7eb';
@@ -759,8 +759,8 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 168, 84, 0.12)';
-                  e.currentTarget.style.borderColor = '#00a854';
+                  e.currentTarget.style.boxShadow = '0 10px 25px rgba(234, 88, 12, 0.12)';
+                  e.currentTarget.style.borderColor = '#EA580C';
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
@@ -776,14 +776,14 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         width: '38px',
                         height: '38px',
                         borderRadius: '10px',
-                        background: asset.category === 'crypto' ? '#fef3c7' : asset.category === 'commodities' ? '#fef08a' : '#dcfce7',
-                        border: `1px solid ${asset.category === 'crypto' ? '#fde047' : asset.category === 'commodities' ? '#facc15' : '#86efac'}`,
+                        background: asset.category === 'crypto' ? '#fef3c7' : asset.category === 'commodities' ? '#fef08a' : '#FFEDD5',
+                        border: `1px solid ${asset.category === 'crypto' ? '#fde047' : asset.category === 'commodities' ? '#facc15' : '#FED7AA'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: 900,
                         fontSize: '13px',
-                        color: asset.category === 'crypto' ? '#b45309' : asset.category === 'commodities' ? '#a16207' : '#15803d'
+                        color: asset.category === 'crypto' ? '#b45309' : asset.category === 'commodities' ? '#a16207' : '#9A3412'
                       }}>
                         {asset.badge.split('/')[0]}
                       </div>
@@ -803,9 +803,9 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
-                        background: isPos ? '#f0fdf4' : '#fef2f2',
-                        color: isPos ? '#00a854' : '#ef4444',
-                        border: `1px solid ${isPos ? '#bbf7d0' : '#fecaca'}`,
+                        background: isPos ? '#FFF7ED' : '#fef2f2',
+                        color: isPos ? '#EA580C' : '#ef4444',
+                        border: `1px solid ${isPos ? '#FED7AA' : '#fecaca'}`,
                         padding: '4px 8px',
                         borderRadius: '8px',
                         fontSize: '12px',
@@ -855,7 +855,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                       <div style={{
                         fontSize: '24px',
                         fontWeight: 900,
-                        color: flashState === 'up' ? '#00a854' : flashState === 'down' ? '#ef4444' : '#000000',
+                        color: flashState === 'up' ? '#EA580C' : flashState === 'down' ? '#ef4444' : '#000000',
                         letterSpacing: '-0.5px',
                         transition: 'color 0.2s'
                       }}>
@@ -863,7 +863,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                       </div>
                       <div style={{ 
                         fontSize: '12px', 
-                        color: isPos ? '#00a854' : '#ef4444', 
+                        color: isPos ? '#EA580C' : '#ef4444', 
                         fontWeight: 700, 
                         marginTop: '2px' 
                       }}>
@@ -895,7 +895,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         left: 0,
                         width: `${rangePos}%`,
                         height: '100%',
-                        background: '#00a854',
+                        background: '#EA580C',
                         borderRadius: '10px'
                       }} />
                       {/* Current Point Indicator */}
@@ -906,7 +906,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         width: '10px',
                         height: '10px',
                         borderRadius: '50%',
-                        background: '#00a854',
+                        background: '#EA580C',
                         border: '2px solid #ffffff',
                         boxShadow: '0 0 4px rgba(0,0,0,0.3)'
                       }} />
@@ -918,9 +918,9 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                 <button
                   onClick={() => handleTradeAsset(asset)}
                   style={{
-                    background: '#f0fdf4',
-                    color: '#00a854',
-                    border: '1px solid #bbf7d0',
+                    background: '#FFF7ED',
+                    color: '#EA580C',
+                    border: '1px solid #FED7AA',
                     borderRadius: '10px',
                     padding: '10px 14px',
                     fontSize: '13px',
@@ -934,14 +934,14 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                     transition: 'all 0.2s'
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.background = '#00a854';
+                    e.currentTarget.style.background = '#EA580C';
                     e.currentTarget.style.color = '#ffffff';
-                    e.currentTarget.style.borderColor = '#00a854';
+                    e.currentTarget.style.borderColor = '#EA580C';
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.background = '#f0fdf4';
-                    e.currentTarget.style.color = '#00a854';
-                    e.currentTarget.style.borderColor = '#bbf7d0';
+                    e.currentTarget.style.background = '#FFF7ED';
+                    e.currentTarget.style.color = '#EA580C';
+                    e.currentTarget.style.borderColor = '#FED7AA';
                   }}
                 >
                   <span>Trade {asset.badge} Now</span>
@@ -978,7 +978,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                     key={asset.symbol}
                     style={{
                       borderBottom: '1px solid #f1f5f9',
-                      background: flashState === 'up' ? 'rgba(0, 168, 84, 0.08)' : flashState === 'down' ? 'rgba(239, 68, 68, 0.08)' : 'transparent',
+                      background: flashState === 'up' ? 'rgba(234, 88, 12, 0.08)' : flashState === 'down' ? 'rgba(239, 68, 68, 0.08)' : 'transparent',
                       transition: 'background 0.2s'
                     }}
                     onMouseOver={(e) => {
@@ -1013,8 +1013,8 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         fontWeight: 700,
                         padding: '3px 8px',
                         borderRadius: '6px',
-                        background: '#f0fdf4',
-                        color: '#166534'
+                        background: '#FFF7ED',
+                        color: '#7C2D12'
                       }}>
                         {asset.categoryLabel}
                       </span>
@@ -1029,7 +1029,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        color: isPos ? '#00a854' : '#ef4444',
+                        color: isPos ? '#EA580C' : '#ef4444',
                         fontWeight: 800,
                         fontSize: '13px'
                       }}>
@@ -1059,7 +1059,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         <button
                           onClick={() => handleTradeAsset(asset)}
                           style={{
-                            background: '#00a854',
+                            background: '#EA580C',
                             color: '#ffffff',
                             border: 'none',
                             borderRadius: '8px',
@@ -1125,7 +1125,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
         gap: '10px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Sparkles size={16} color="#00a854" />
+          <Sparkles size={16} color="#EA580C" />
           <span style={{ fontSize: '12px', color: '#334155', fontWeight: 600 }}>
             <strong>Edge Proving Tip:</strong> High DER traders prioritize high-liquidity pairs like EUR/USD & BTC/USD during New York and London session crossovers to minimize spread impact.
           </span>
@@ -1135,7 +1135,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#00a854',
+            color: '#EA580C',
             fontSize: '12px',
             fontWeight: 800,
             cursor: 'pointer',
@@ -1182,7 +1182,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
               <div>
                 <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Plus size={20} color="#00a854" /> Add Asset to Live Price Radar
+                  <Plus size={20} color="#EA580C" /> Add Asset to Live Price Radar
                 </h3>
                 <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
                   Track additional global instruments with live updates, charts, and 1-click execution.
@@ -1224,7 +1224,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                       key={item.symbol}
                       style={{
                         background: alreadyAdded ? '#f8fafc' : '#ffffff',
-                        border: `1px solid ${alreadyAdded ? '#e2e8f0' : '#bbf7d0'}`,
+                        border: `1px solid ${alreadyAdded ? '#e2e8f0' : '#FED7AA'}`,
                         borderRadius: '12px',
                         padding: '12px',
                         display: 'flex',
@@ -1238,8 +1238,8 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         <span style={{
                           padding: '2px 7px',
                           borderRadius: '6px',
-                          background: '#f0fdf4',
-                          color: '#166534',
+                          background: '#FFF7ED',
+                          color: '#7C2D12',
                           fontSize: '11px',
                           fontWeight: 800
                         }}>
@@ -1252,7 +1252,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
 
                       <div>
                         <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{item.name}</div>
-                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#00a854', marginTop: '2px' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#EA580C', marginTop: '2px' }}>
                           {item.prefix}{item.price.toLocaleString(undefined, { minimumFractionDigits: item.digits })}
                         </div>
                       </div>
@@ -1261,7 +1261,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                         onClick={() => !alreadyAdded && handleAddAsset(item)}
                         disabled={alreadyAdded}
                         style={{
-                          background: alreadyAdded ? '#e2e8f0' : '#00a854',
+                          background: alreadyAdded ? '#e2e8f0' : '#EA580C',
                           color: alreadyAdded ? '#64748b' : '#ffffff',
                           border: 'none',
                           borderRadius: '8px',
@@ -1401,7 +1401,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                   <button
                     type="submit"
                     style={{
-                      background: '#00a854',
+                      background: '#EA580C',
                       color: '#ffffff',
                       border: 'none',
                       borderRadius: '10px',
@@ -1414,7 +1414,7 @@ export default function LiveMarketScreener({ onSelectAsset }) {
                       justifyContent: 'center',
                       gap: '8px',
                       width: '100%',
-                      boxShadow: '0 4px 12px rgba(0, 168, 84, 0.25)'
+                      boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)'
                     }}
                   >
                     <Plus size={16} />

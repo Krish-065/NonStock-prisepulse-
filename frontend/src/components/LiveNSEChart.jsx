@@ -52,8 +52,8 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
       },
       crosshair: {
         mode: 1,
-        vertLine: { color: isLight ? '#00b060' : '#00f2fe', width: 1, style: 2, labelBackgroundColor: isLight ? '#00b060' : '#00f2fe' },
-        horzLine: { color: isLight ? '#00b060' : '#00f2fe', width: 1, style: 2, labelBackgroundColor: isLight ? '#00b060' : '#00f2fe' },
+        vertLine: { color: '#EA580C', width: 1, style: 2, labelBackgroundColor: '#EA580C' },
+        horzLine: { color: '#EA580C', width: 1, style: 2, labelBackgroundColor: '#EA580C' },
       },
       rightPriceScale: {
         borderColor: isLight ? '#e5e7eb' : 'rgba(255, 255, 255, 0.08)',
@@ -68,11 +68,11 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
 
     // Candlestick Series
     const candleSeries = chart.addCandlestickSeries({
-      upColor: '#10b981',
+      upColor: '#EA580C',
       downColor: '#ef4444',
-      borderUpColor: '#10b981',
+      borderUpColor: '#EA580C',
       borderDownColor: '#ef4444',
-      wickUpColor: '#10b981',
+      wickUpColor: '#EA580C',
       wickDownColor: '#ef4444',
     });
 
@@ -85,7 +85,7 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
     });
 
     // EMA Indicators
-    const ema20Series = chart.addLineSeries({ color: '#00f2fe', lineWidth: 1.5, title: 'EMA 20' });
+    const ema20Series = chart.addLineSeries({ color: '#C2410C', lineWidth: 1.5, title: 'EMA 20' });
     const ema50Series = chart.addLineSeries({ color: '#8b5cf6', lineWidth: 1.5, title: 'EMA 50' });
 
     chartInstanceRef.current = chart;
@@ -144,7 +144,7 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
           volumes.push({
             time: timestamp,
             value: vol,
-            color: close >= open ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)',
+            color: close >= open ? 'rgba(234, 88, 12, 0.4)' : 'rgba(239, 68, 68, 0.4)',
           });
 
           // Calculate Simple EMA approximations
@@ -273,7 +273,7 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
           volumeSeriesRef.current.update({
             time: currentCandleTime,
             value: tick.volume || 5000,
-            color: curBar.close >= curBar.open ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)',
+            color: curBar.close >= curBar.open ? 'rgba(234, 88, 12, 0.5)' : 'rgba(239, 68, 68, 0.5)',
           });
         }
       }
@@ -297,7 +297,7 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
       }`}>
         <div className="flex items-center gap-3">
           <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-bold text-sm border ${
-            isLight ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-gradient-to-tr from-cyan-500/20 to-blue-600/20 border-cyan-500/30 text-cyan-400'
+            isLight ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-gradient-to-tr from-cyan-500/20 to-blue-600/20 border-cyan-500/30 text-cyan-400'
           }`}>
             NSE
           </div>
@@ -305,9 +305,9 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
             <div className="flex items-center gap-2">
               <h2 className={`text-xl font-bold tracking-wide ${isLight ? 'text-slate-900' : 'text-white'}`}>{symbol}</h2>
               <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                isLight ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                isLight ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-orange-500/10 text-orange-400 border-orange-500/20'
               }`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping"></span>
                 LIVE WS
               </span>
             </div>
@@ -320,16 +320,16 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
 
         {/* Live Price & Flash Indicator */}
         <div className="flex items-center gap-6">
-          <div className={`transition-all duration-300 ${tickFlash === 'up' ? 'scale-105 text-emerald-600' : tickFlash === 'down' ? 'scale-105 text-red-600' : ''}`}>
+          <div className={`transition-all duration-300 ${tickFlash === 'up' ? 'scale-105 text-orange-600' : tickFlash === 'down' ? 'scale-105 text-red-600' : ''}`}>
             <div className={`text-2xl font-extrabold tracking-tight flex items-center justify-end gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
               ₹{livePrice ? livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '---'}
               {isPositive ? (
-                <TrendingUp className="w-5 h-5 text-emerald-600" />
+                <TrendingUp className="w-5 h-5 text-orange-600" />
               ) : (
                 <TrendingDown className="w-5 h-5 text-red-600" />
               )}
             </div>
-            <div className={`text-xs font-bold text-right ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+            <div className={`text-xs font-bold text-right ${isPositive ? 'text-orange-600' : 'text-red-600'}`}>
               {isPositive ? '+' : ''}{priceChange} ({isPositive ? '+' : ''}{priceChangePercent}%)
             </div>
           </div>
@@ -344,7 +344,7 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
                 onClick={() => setTimeframe(tf)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   timeframe === tf
-                    ? (isLight ? 'bg-[#00b060] text-white font-bold shadow' : 'bg-cyan-500 text-slate-950 font-bold shadow-lg shadow-cyan-500/20')
+                    ? 'bg-orange-600 text-white font-bold shadow'
                     : (isLight ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-200' : 'text-slate-400 hover:text-white hover:bg-white/5')
                 }`}
               >
@@ -411,7 +411,7 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
       <div className="flex flex-wrap items-center justify-between gap-4 mt-3 pt-3 border-t border-white/5 text-xs text-slate-400">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#00f2fe]"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[#C2410C]"></span>
             <span>EMA 20</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -419,7 +419,7 @@ export default function LiveNSEChart({ symbol = 'RELIANCE', height = 450 }) {
             <span>EMA 50</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
             <span>Bullish Candle</span>
           </div>
           <div className="flex items-center gap-1.5">

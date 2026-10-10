@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Logo from '../components/Logo';
@@ -117,7 +117,7 @@ export default function Login() {
             <button 
               type="submit" 
               disabled={loading} 
-              style={{ background: '#10B981', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%', marginTop: '8px' }}
+              style={{ background: '#EA580C', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%', marginTop: '8px' }}
             >
               {loading ? 'Authenticating...' : 'Sign In'}
             </button>
@@ -140,11 +140,11 @@ export default function Login() {
             />
           </div>
 
-          <p style={{ color: '#475569', fontSize: '14px' }}>Don't have an account? <Link to="/register" style={{ color: '#10B981', textDecoration: 'none', fontWeight: '700' }}>Register</Link></p>
+          <p style={{ color: '#475569', fontSize: '14px' }}>Don't have an account? <Link to="/register" style={{ color: '#EA580C', textDecoration: 'none', fontWeight: '700' }}>Register</Link></p>
           <p style={{ marginTop: '12px' }}><Link to="/forgot-password" style={{ color: '#3B82F6', textDecoration: 'none', fontSize: '14px', fontWeight: '600' }}>Forgot Password?</Link></p>
         </div>
       ) : (
-        <div style={{ background: '#FFFFFF', padding: '48px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column', alignItems: 'center', border: '2px solid #10B981' }}>
+        <div style={{ background: '#FFFFFF', padding: '48px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column', alignItems: 'center', border: '2px solid #EA580C' }}>
           <div style={{ marginBottom: '32px' }}>
             <Logo size={50} showName={true} showTagline={false} />
           </div>
@@ -168,7 +168,7 @@ export default function Login() {
             <button 
               type="submit" 
               disabled={loading} 
-              style={{ background: '#10B981', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}
+              style={{ background: '#EA580C', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}
             >
               {loading ? 'Verifying...' : 'Verify & Login'}
             </button>

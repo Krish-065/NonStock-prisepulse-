@@ -23,7 +23,7 @@ export const BADGES_CATALOG = [
     hasBounty: true,
     theme: 'bull_candle',
     icon: Zap,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history, positions }) => {
       const total = (history?.length || 0) + (positions?.length || 0);
       return { unlocked: total >= 1, progress: Math.min(1, total), target: 1, text: `${Math.min(1, total)}/1 trade` };
@@ -39,7 +39,7 @@ export const BADGES_CATALOG = [
     tagline: 'Customize your profile and avatar',
     desc: 'Establish your institutional trading handle with an avatar photo or banner.',
     icon: Award,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ hasAvatar }) => {
       return { unlocked: Boolean(hasAvatar), progress: hasAvatar ? 1 : 0, target: 1, text: hasAvatar ? 'Customized' : '0/1 set' };
     }
@@ -55,7 +55,7 @@ export const BADGES_CATALOG = [
     tagline: 'Add 3+ assets to your live Watchlist',
     desc: 'Organize your trading screens by tracking at least 3 global instruments.',
     icon: Target,
-    color: '#0D9488',
+    color: '#C2410C',
     check: ({ watchlist }) => {
       const count = watchlist?.length || 0;
       return { unlocked: count >= 3, progress: Math.min(3, count), target: 3, text: `${Math.min(3, count)}/3 assets` };
@@ -89,7 +89,7 @@ export const BADGES_CATALOG = [
     tagline: 'Execute an order with Stop-Loss defined',
     desc: 'Professional capital preservation starts with pre-calculated downside limits.',
     icon: ShieldCheck,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history, positions }) => {
       const all = [...(history || []), ...(positions || [])];
       const hasSL = all.some(o => o.stopLoss || o.sl);
@@ -122,9 +122,9 @@ export const BADGES_CATALOG = [
     theme: 'gold_vault',
     name: 'First Blood',
     tagline: 'Close your first trade in net profit',
-    desc: 'The proving journey begins: take capital off the table into green territory.',
+    desc: 'The proving journey begins: take capital off the table into positive territory.',
     icon: Trophy,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history }) => {
       const hasWin = (history || []).some(h => (h.pnl || h.profit || 0) > 0);
       return { unlocked: hasWin, progress: hasWin ? 1 : 0, target: 1, text: hasWin ? '1/1 Won' : '0/1 Win' };
@@ -140,7 +140,7 @@ export const BADGES_CATALOG = [
     tagline: 'Keep position risk under 5% of equity',
     desc: 'Never risk your sovereign desk on a single thesis. Size with precision.',
     icon: AlertCircle,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ history, positions }) => {
       const all = [...(history || []), ...(positions || [])];
       const disciplined = all.some(o => (o.margin || 50) <= 100);
@@ -177,7 +177,7 @@ export const BADGES_CATALOG = [
     tagline: 'Log 2 consecutive profitable exits',
     desc: 'Initial repeatability: back-to-back winners proving edge over randomness.',
     icon: Flame,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history }) => {
       let maxWinStreak = 0, curr = 0;
       (history || []).forEach(h => {
@@ -203,7 +203,7 @@ export const BADGES_CATALOG = [
     desc: 'Capture asymmetrical convexity with extreme reward-to-risk ratio.',
     // BOUNTY 1
     icon: Zap,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history }) => {
       const had5x = (history || []).some(h => {
         const roi = h.margin ? ((h.pnl || h.profit || 0) / h.margin) * 100 : 0;
@@ -222,7 +222,7 @@ export const BADGES_CATALOG = [
     tagline: 'Score 3 consecutive winning trades',
     desc: 'Three in a row: compounding disciplined gains without emotional overtrading.',
     icon: Flame,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ history }) => {
       let maxWinStreak = 0, curr = 0;
       (history || []).forEach(h => {
@@ -300,7 +300,7 @@ export const BADGES_CATALOG = [
     tagline: 'Execute 5 trades on Currency pairs',
     desc: 'Master liquidity, spread management, and macro rates in foreign exchange.',
     icon: BarChart2,
-    color: '#0D9488',
+    color: '#C2410C',
     check: ({ history, positions }) => {
       const all = [...(history || []), ...(positions || [])];
       const fx = all.filter(o => ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD'].includes((o.symbol || o.asset || '').toUpperCase())).length;
@@ -335,7 +335,7 @@ export const BADGES_CATALOG = [
     tagline: 'Execute 5 trades on AAPL, NVDA, or SPY',
     desc: 'Analyze balance sheets, earnings volatility, and institutional order books.',
     icon: TrendingUp,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history, positions }) => {
       const all = [...(history || []), ...(positions || [])];
       const eq = all.filter(o => ['AAPL', 'NVDA', 'TSLA', 'SPY', 'QQQ'].includes((o.symbol || o.asset || '').toUpperCase())).length;
@@ -370,7 +370,7 @@ export const BADGES_CATALOG = [
     tagline: 'Never allow a loss exceeding -10% of portfolio',
     desc: 'Ironclad risk control: cut losers immediately and prevent tail-risk drawdowns.',
     icon: ShieldCheck,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ history }) => {
       const total = history?.length || 0;
       if (total < 5) return { unlocked: false, progress: total, target: 5, text: `${total}/5 trades to prove` };
@@ -389,7 +389,7 @@ export const BADGES_CATALOG = [
     tagline: 'Close a trade with Risk-to-Reward ratio >= 1:3',
     desc: 'Pristine setup execution: risk $1 to extract $3+ from the market.',
     icon: Target,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history }) => {
       const sniper = (history || []).some(h => {
         if (!h.sl || !h.tp || !h.entryPrice) return false;
@@ -411,7 +411,7 @@ export const BADGES_CATALOG = [
     desc: 'Form the unbreakable institutional habit: never open naked market exposure.',
     // BOUNTY 3
     icon: ShieldCheck,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ history }) => {
       const total = history?.length || 0;
       const count = (history || []).filter(h => h.stopLoss || h.sl).length;
@@ -447,7 +447,7 @@ export const BADGES_CATALOG = [
     tagline: 'Transact $10,000 in cumulative trading volume',
     desc: 'Move five figures of liquidity across global order books.',
     icon: Activity,
-    color: '#0D9488',
+    color: '#C2410C',
     check: ({ history }) => {
       const vol = (history || []).reduce((sum, h) => sum + (h.size || 1) * (h.entryPrice || 100), 0);
       return { unlocked: vol >= 10000, progress: Math.min(10000, Math.round(vol)), target: 10000, text: `$${Math.round(vol).toLocaleString()} / $10k` };
@@ -465,7 +465,7 @@ export const BADGES_CATALOG = [
     desc: 'Statistically significant edge: prove that your methodology is non-random.',
     // BOUNTY 4
     icon: Crown,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history }) => {
       const total = history?.length || 0;
       if (total < 15) return { unlocked: false, progress: total, target: 15, text: `${total}/15 trades (need 60%+)` };
@@ -504,7 +504,7 @@ export const BADGES_CATALOG = [
     tagline: 'Execute 10 trades without exceeding 2x leverage',
     desc: 'Prudent risk management: avoid aggressive leverage traps that liquidate retail accounts.',
     icon: ShieldAlert,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ history }) => {
       const lowLev = (history || []).filter(h => (h.leverage || 1) <= 2).length;
       return { unlocked: lowLev >= 10, progress: Math.min(10, lowLev), target: 10, text: `${Math.min(10, lowLev)}/10 ≤2x trades` };
@@ -565,7 +565,7 @@ export const BADGES_CATALOG = [
     desc: 'Surpass fifty thousand dollars of verified notional volume transacted.',
     // BOUNTY 5
     icon: Activity,
-    color: '#0D9488',
+    color: '#C2410C',
     check: ({ history }) => {
       const vol = (history || []).reduce((sum, h) => sum + (h.size || 1) * (h.entryPrice || 100), 0);
       return { unlocked: vol >= 50000, progress: Math.min(50000, Math.round(vol)), target: 50000, text: `$${Math.round(vol).toLocaleString()} / $50k` };
@@ -585,7 +585,7 @@ export const BADGES_CATALOG = [
     desc: 'Execute disciplined market trades on 3 consecutive days.',
     // BOUNTY 6
     icon: Flame,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ tradeStreak }) => {
       const s = tradeStreak || 0;
       return { unlocked: s >= 3, progress: Math.min(3, s), target: 3, text: `${Math.min(3, s)}/3 trading days` };
@@ -602,7 +602,7 @@ export const BADGES_CATALOG = [
     desc: 'One full week of disciplined daily trade executions in the arena.',
     // BOUNTY 7
     icon: Flame,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ tradeStreak }) => {
       const s = tradeStreak || 0;
       return { unlocked: s >= 7, progress: Math.min(7, s), target: 7, text: `${Math.min(7, s)}/7 trading days` };
@@ -619,7 +619,7 @@ export const BADGES_CATALOG = [
     tagline: '14-day continuous trading streak',
     desc: 'Two solid weeks of continuous daily disciplined trade execution.',
     icon: Flame,
-    color: '#047857',
+    color: '#9A3412',
     check: ({ tradeStreak }) => {
       const s = tradeStreak || 0;
       return { unlocked: s >= 14, progress: Math.min(14, s), target: 14, text: `${Math.min(14, s)}/14 trading days` };
@@ -635,7 +635,7 @@ export const BADGES_CATALOG = [
     tagline: '21-day continuous trading streak',
     desc: 'Neuroplastic routine: 21 consecutive days of disciplined trading.',
     icon: Flame,
-    color: '#065F46',
+    color: '#7C2D12',
     check: ({ tradeStreak }) => {
       const s = tradeStreak || 0;
       return { unlocked: s >= 21, progress: Math.min(21, s), target: 21, text: `${Math.min(21, s)}/21 trading days` };
@@ -703,7 +703,7 @@ export const BADGES_CATALOG = [
     tagline: 'Score 5 consecutive winning trades',
     desc: 'Five consecutive winners without a single drawdown exit.',
     icon: Zap,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history }) => {
       let maxWinStreak = 0, curr = 0;
       (history || []).forEach(h => {
@@ -724,9 +724,9 @@ export const BADGES_CATALOG = [
     theme: 'apex_crown',
     name: 'Septa-Strike',
     tagline: '7 consecutive winning trades',
-    desc: 'Seven consecutive green prints across any market environment.',
+    desc: 'Seven consecutive positive prints across any market environment.',
     icon: Flame,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ history }) => {
       let maxWinStreak = 0, curr = 0;
       (history || []).forEach(h => {
@@ -749,7 +749,7 @@ export const BADGES_CATALOG = [
     desc: 'Ten wins in a row. Elite probability engineering and zero tilt.',
     // BOUNTY 10
     icon: Crown,
-    color: '#047857',
+    color: '#9A3412',
     check: ({ history }) => {
       let maxWinStreak = 0, curr = 0;
       (history || []).forEach(h => {
@@ -772,7 +772,7 @@ export const BADGES_CATALOG = [
     tagline: 'Execute 50 total lifetime trades',
     desc: 'Solidify your track record across fifty unique market setups.',
     icon: ShieldCheck,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history, positions }) => {
       const total = (history?.length || 0) + (positions?.length || 0);
       return { unlocked: total >= 50, progress: Math.min(50, total), target: 50, text: `${Math.min(50, total)}/50 trades` };
@@ -788,7 +788,7 @@ export const BADGES_CATALOG = [
     tagline: 'Execute 100 total lifetime trades',
     desc: 'One hundred trades executed. A statistically significant sample size.',
     icon: Award,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ history, positions }) => {
       const total = (history?.length || 0) + (positions?.length || 0);
       return { unlocked: total >= 100, progress: Math.min(100, total), target: 100, text: `${Math.min(100, total)}/100 trades` };
@@ -805,7 +805,7 @@ export const BADGES_CATALOG = [
     tagline: 'Execute 250 lifetime trades',
     desc: 'Quarter of a thousand trades. Hardened against market noise and whipsaws.',
     icon: Medal,
-    color: '#047857',
+    color: '#9A3412',
     check: ({ history, positions }) => {
       const total = (history?.length || 0) + (positions?.length || 0);
       return { unlocked: total >= 250, progress: Math.min(250, total), target: 250, text: `${Math.min(250, total)}/250 trades` };
@@ -908,7 +908,7 @@ export const BADGES_CATALOG = [
     desc: 'Prove that your 10x return was not luck: replicate it three separate times.',
     // BOUNTY 14
     icon: Flame,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history }) => {
       const count10x = (history || []).filter(h => {
         const roi = h.margin ? ((h.pnl || h.profit || 0) / h.margin) * 100 : 0;
@@ -946,7 +946,7 @@ export const BADGES_CATALOG = [
     tagline: 'Achieve DER Discipline Rating >= 90 over 20+ trades',
     desc: 'Never breach risk rules. High risk-reward, consistent sizing, and flawless stops.',
     icon: ShieldCheck,
-    color: '#10B981',
+    color: '#EA580C',
     check: ({ history }) => {
       const count = history?.length || 0;
       if (count < 20) return { unlocked: false, progress: count, target: 20, text: `${count}/20 trades (need 90+ DER)` };
@@ -966,7 +966,7 @@ export const BADGES_CATALOG = [
     desc: 'The pinnacle of trading prowess. Reserved for the absolute top 0.1% on Stocks Operator.',
     // BOUNTY 15
     icon: Crown,
-    color: '#059669',
+    color: '#C2410C',
     check: ({ history, unlockedBadgeCount }) => {
       const count = history?.length || 0;
       const wins = (history || []).filter(h => (h.pnl || h.profit || 0) > 0).length;
@@ -1068,7 +1068,7 @@ export const DISCIPLINE_TASKS = [
   {
     id: 'sniper_exit',
     title: 'Execution Edge Profit Target',
-    desc: 'Close at least one position in verified net green profit.',
+    desc: 'Close at least one position in verified net positive profit.',
     coins: 20,
     icon: TrendingUp,
     check: ({ history }) => {
@@ -1077,7 +1077,7 @@ export const DISCIPLINE_TASKS = [
         completed: wins >= 1,
         progress: Math.min(1, wins),
         target: 1,
-        statusText: wins >= 1 ? `${wins} Green Exits Verified` : '0/1 Profitable Exit'
+        statusText: wins >= 1 ? `${wins} Positive Exits Verified` : '0/1 Profitable Exit'
       };
     }
   }

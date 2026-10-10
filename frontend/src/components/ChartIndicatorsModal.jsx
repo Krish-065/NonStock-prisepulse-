@@ -183,9 +183,9 @@ export default function ChartIndicatorsModal({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              color: '#00a854',
+              background: '#FFF7ED',
+              border: '1px solid #FED7AA',
+              color: '#EA580C',
               borderRadius: '10px',
               padding: '8px',
               display: 'flex',
@@ -257,7 +257,7 @@ export default function ChartIndicatorsModal({
                 fontWeight: 500,
                 boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#00a854'}
+              onFocus={(e) => e.target.style.borderColor = '#EA580C'}
               onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
             />
           </div>
@@ -275,9 +275,9 @@ export default function ChartIndicatorsModal({
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 style={{
-                  background: selectedCategory === cat.id ? '#00a854' : '#ffffff',
+                  background: selectedCategory === cat.id ? '#EA580C' : '#ffffff',
                   color: selectedCategory === cat.id ? '#ffffff' : '#64748b',
-                  border: `1px solid ${selectedCategory === cat.id ? '#00a854' : '#e2e8f0'}`,
+                  border: `1px solid ${selectedCategory === cat.id ? '#EA580C' : '#e2e8f0'}`,
                   padding: '6px 12px',
                   borderRadius: '8px',
                   fontSize: '12px',
@@ -310,8 +310,8 @@ export default function ChartIndicatorsModal({
               <div
                 key={ind.id}
                 style={{
-                  background: isActive ? '#f0fdf4' : '#ffffff',
-                  border: `1px solid ${isActive ? '#86efac' : '#e2e8f0'}`,
+                  background: isActive ? '#FFF7ED' : '#ffffff',
+                  border: `1px solid ${isActive ? '#FED7AA' : '#e2e8f0'}`,
                   borderRadius: '12px',
                   padding: '16px 18px',
                   display: 'flex',
@@ -319,7 +319,7 @@ export default function ChartIndicatorsModal({
                   alignItems: 'center',
                   gap: '16px',
                   transition: 'all 0.15s',
-                  boxShadow: isActive ? '0 2px 8px rgba(0, 168, 84, 0.08)' : 'none'
+                  boxShadow: isActive ? '0 2px 8px rgba(234, 88, 12, 0.08)' : 'none'
                 }}
               >
                 <div style={{ flex: 1 }}>
@@ -400,9 +400,9 @@ export default function ChartIndicatorsModal({
                     <button
                       onClick={() => onToggleIndicator(ind.id)}
                       style={{
-                        background: isActive ? '#00a854' : '#f8fafc',
+                        background: isActive ? '#EA580C' : '#f8fafc',
                         color: isActive ? '#ffffff' : '#475569',
-                        border: `1px solid ${isActive ? '#00a854' : '#cbd5e1'}`,
+                        border: `1px solid ${isActive ? '#EA580C' : '#cbd5e1'}`,
                         padding: '8px 16px',
                         borderRadius: '8px',
                         fontSize: '12px',
@@ -440,7 +440,7 @@ export default function ChartIndicatorsModal({
           <button
             onClick={onClose}
             style={{
-              background: '#00a854',
+              background: '#EA580C',
               color: '#ffffff',
               border: 'none',
               padding: '8px 20px',

@@ -83,7 +83,7 @@ if (time <= time("D") + orbMinutes * 60 * 1000)
     orbHigh := math.max(orbHigh, high)
     orbLow := math.min(orbLow, low)
 
-plot(orbHigh, "30m ORB High", color=color.green, style=plot.style_linebr)
+plot(orbHigh, "30m ORB High", color=color.orange, style=plot.style_linebr)
 plot(orbLow, "30m ORB Low", color=color.red, style=plot.style_linebr)
 
 // Breakout Entry Rules
@@ -168,7 +168,7 @@ strategy("PricePulse ICT Silver Bullet Engine", overlay=true, initial_capital=10
 bullishFVG = low[0] > high[2]
 bearishFVG = high[0] < low[2]
 
-plotshape(bullishFVG, title="Bullish FVG", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small)
+plotshape(bullishFVG, title="Bullish FVG", location=location.belowbar, color=color.orange, style=shape.triangleup, size=size.small)
 plotshape(bearishFVG, title="Bearish FVG", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small)
 
 if (bullishFVG and ta.rsi(close, 14) < 48)
@@ -270,9 +270,9 @@ ema12 = ta.ema(close, 12)
 ema34 = ta.ema(close, 34)
 ema50 = ta.ema(close, 50)
 
-p1 = plot(ema5, "EMA 5", color=color.green)
-p2 = plot(ema12, "EMA 12", color=color.lime)
-fill(p1, p2, color=color.new(color.green, 80), title="Fast Cloud")
+p1 = plot(ema5, "EMA 5", color=color.orange)
+p2 = plot(ema12, "EMA 12", color=color.orange)
+fill(p1, p2, color=color.new(color.orange, 80), title="Fast Cloud")
 
 p3 = plot(ema34, "EMA 34", color=color.blue)
 p4 = plot(ema50, "EMA 50", color=color.navy)
@@ -352,7 +352,7 @@ strategy("PricePulse Waddah Attar Explosion", overlay=false, initial_capital=100
 explosionLine = (bbUpper - bbLower)
 
 trendPower = (macdLine - signalLine) * 150
-plot(trendPower, "Up Trend Power", color=trendPower > 0 ? color.green : color.red, style=plot.style_columns)
+plot(trendPower, "Up Trend Power", color=trendPower > 0 ? color.orange : color.red, style=plot.style_columns)
 plot(explosionLine, "Explosion Threshold", color=color.yellow, linewidth=2)
 
 if (trendPower > explosionLine and trendPower > 0)
@@ -387,7 +387,7 @@ strategy("PricePulse RSI Divergence Sniper", overlay=false, initial_capital=1000
 
 rsi = ta.rsi(close, 14)
 plot(rsi, "RSI", color=color.purple, linewidth=2)
-hline(30, "Oversold", color=color.green)
+hline(30, "Oversold", color=color.orange)
 hline(70, "Overbought", color=color.red)
 
 // Divergence: Price Low < Prev Price Low while RSI Low > Prev RSI Low
@@ -420,7 +420,7 @@ strategy("PricePulse EMA Golden Cross", overlay=true, initial_capital=100000)
 
 fastEMA = ta.ema(close, 20)
 slowEMA = ta.ema(close, 50)
-plot(fastEMA, "20 EMA", color=color.green)
+plot(fastEMA, "20 EMA", color=color.orange)
 plot(slowEMA, "50 EMA", color=color.blue)
 
 if (ta.crossover(fastEMA, slowEMA))
@@ -440,7 +440,7 @@ if (ta.crossunder(fastEMA, slowEMA))
     sharpeRatio: 1.96,
     maxDrawdown: 14.8,
     profitFactor: 2.30,
-    description: 'Dynamic volatility trailing stop filter. Stays long as long as the market remains above the green Supertrend support level across any timeframe.',
+    description: 'Dynamic volatility trailing stop filter. Stays long as long as the market remains above the orange Supertrend support level across any timeframe.',
     buyConditions: [{ indicator: 'Price', operator: 'crossesAbove', targetType: 'indicator', targetIndicator: 'SMA20' }],
     sellConditions: [{ indicator: 'Price', operator: 'crossesBelow', targetType: 'indicator', targetIndicator: 'SMA50' }],
     stopLoss: 3.5,
@@ -449,7 +449,7 @@ if (ta.crossunder(fastEMA, slowEMA))
 strategy("PricePulse Supertrend Multi-TF", overlay=true, initial_capital=100000)
 
 [supertrend, direction] = ta.supertrend(3.0, 10)
-plot(direction < 0 ? supertrend : na, "Bullish Supertrend", color=color.green, style=plot.style_linebr, linewidth=2)
+plot(direction < 0 ? supertrend : na, "Bullish Supertrend", color=color.orange, style=plot.style_linebr, linewidth=2)
 
 if (ta.change(direction) < 0)
     strategy.entry("Long", strategy.long)
@@ -888,7 +888,7 @@ export default function StrategyBuilder() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '40px', textAlign: 'left' }}>
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '20px' }}>
-              <div style={{ color: '#00ff88', marginBottom: '10px' }}><BarChart2 size={24} /></div>
+              <div style={{ color: '#EA580C', marginBottom: '10px' }}><BarChart2 size={24} /></div>
               <h3 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 6px 0', color: '#ffffff' }}>All Timeframes Supported</h3>
               <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0, lineHeight: '1.5' }}>
                 Seamless backtesting on 1m, 3m, 5m, 15m, 30m, 45m, 1h, 4h, and 1D without limits.
@@ -975,7 +975,7 @@ export default function StrategyBuilder() {
       {/* Top Banner Header */}
       <div style={{
         background: 'linear-gradient(135deg, rgba(16, 20, 39, 0.75) 0%, rgba(22, 28, 59, 0.55) 100%)',
-        border: '1px solid rgba(0, 255, 136, 0.2)',
+        border: '1px solid rgba(234, 88, 12, 0.2)',
         borderRadius: '18px',
         padding: '24px',
         marginBottom: '24px',
@@ -991,14 +991,14 @@ export default function StrategyBuilder() {
               fontSize: '26px', 
               fontWeight: '900', 
               margin: 0, 
-              background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)', 
+              background: 'linear-gradient(135deg, #EA580C 0%, #00bcd4 100%)', 
               WebkitBackgroundClip: 'text', 
               WebkitTextFillColor: 'transparent', 
               display: 'flex', 
               alignItems: 'center', 
               gap: '10px' 
             }}>
-              <Sparkles size={26} style={{ color: '#00ff88' }} />
+              <Sparkles size={26} style={{ color: '#EA580C' }} />
               Strategy Lab & Quantitative Studio
             </h1>
             <span style={{
@@ -1023,7 +1023,7 @@ export default function StrategyBuilder() {
             onClick={() => handleRunBacktest()}
             disabled={running}
             style={{
-              background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+              background: 'linear-gradient(135deg, #EA580C 0%, #00bcd4 100%)',
               border: 'none',
               borderRadius: '10px',
               color: '#0a0e27',
@@ -1034,7 +1034,7 @@ export default function StrategyBuilder() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: '0 4px 15px rgba(0, 255, 136, 0.3)',
+              boxShadow: '0 4px 15px rgba(234, 88, 12, 0.3)',
               opacity: running ? 0.7 : 1
             }}
           >
@@ -1065,10 +1065,10 @@ export default function StrategyBuilder() {
             onClick={handleShareStrategy}
             disabled={!backtestResult}
             style={{
-              background: 'rgba(0, 255, 136, 0.08)',
-              border: '1px solid rgba(0, 255, 136, 0.25)',
+              background: 'rgba(234, 88, 12, 0.08)',
+              border: '1px solid rgba(234, 88, 12, 0.25)',
               borderRadius: '10px',
-              color: '#00ff88',
+              color: '#EA580C',
               padding: '10px 18px',
               fontWeight: '800',
               fontSize: '13px',
@@ -1136,7 +1136,7 @@ export default function StrategyBuilder() {
                   fontWeight: '800',
                   border: 'none',
                   cursor: 'pointer',
-                  background: strategyCategoryFilter === cat ? 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)' : 'rgba(255,255,255,0.05)',
+                  background: strategyCategoryFilter === cat ? 'linear-gradient(135deg, #EA580C 0%, #00bcd4 100%)' : 'rgba(255,255,255,0.05)',
                   color: strategyCategoryFilter === cat ? '#0a0e27' : '#94a3b8',
                   transition: 'all 0.2s'
                 }}
@@ -1162,8 +1162,8 @@ export default function StrategyBuilder() {
               <div
                 key={strat.id}
                 style={{
-                  background: isCurrent ? 'rgba(0, 255, 136, 0.05)' : 'rgba(255,255,255,0.02)',
-                  border: isCurrent ? '1px solid rgba(0, 255, 136, 0.4)' : '1px solid rgba(255,255,255,0.06)',
+                  background: isCurrent ? 'rgba(234, 88, 12, 0.05)' : 'rgba(255,255,255,0.02)',
+                  border: isCurrent ? '1px solid rgba(234, 88, 12, 0.4)' : '1px solid rgba(255,255,255,0.06)',
                   borderRadius: '12px',
                   padding: '16px',
                   display: 'flex',
@@ -1200,7 +1200,7 @@ export default function StrategyBuilder() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', background: 'rgba(0,0,0,0.25)', padding: '8px', borderRadius: '8px', textAlign: 'center' }}>
                     <div>
                       <div style={{ fontSize: '9px', color: '#64748b', fontWeight: '700' }}>WIN RATE</div>
-                      <div style={{ fontSize: '13px', fontWeight: '900', color: '#00ff88' }}>{strat.winRate}%</div>
+                      <div style={{ fontSize: '13px', fontWeight: '900', color: '#EA580C' }}>{strat.winRate}%</div>
                     </div>
                     <div>
                       <div style={{ fontSize: '9px', color: '#64748b', fontWeight: '700' }}>PROFIT FACTOR</div>
@@ -1218,9 +1218,9 @@ export default function StrategyBuilder() {
                     onClick={() => loadPreset(strat)}
                     style={{
                       flex: 1,
-                      background: isCurrent ? 'rgba(0, 255, 136, 0.2)' : 'rgba(0, 255, 136, 0.08)',
-                      border: '1px solid rgba(0, 255, 136, 0.3)',
-                      color: '#00ff88',
+                      background: isCurrent ? 'rgba(234, 88, 12, 0.2)' : 'rgba(234, 88, 12, 0.08)',
+                      border: '1px solid rgba(234, 88, 12, 0.3)',
+                      color: '#EA580C',
                       borderRadius: '8px',
                       padding: '8px',
                       fontSize: '11px',
@@ -1290,9 +1290,9 @@ export default function StrategyBuilder() {
                   borderRadius: '8px',
                   fontSize: '11px',
                   fontWeight: '800',
-                  border: symbol === ast.value ? '1px solid #00ff88' : '1px solid rgba(255,255,255,0.08)',
-                  background: symbol === ast.value ? 'rgba(0, 255, 136, 0.12)' : 'rgba(255,255,255,0.03)',
-                  color: symbol === ast.value ? '#00ff88' : '#ffffff',
+                  border: symbol === ast.value ? '1px solid #EA580C' : '1px solid rgba(255,255,255,0.08)',
+                  background: symbol === ast.value ? 'rgba(234, 88, 12, 0.12)' : 'rgba(255,255,255,0.03)',
+                  color: symbol === ast.value ? '#EA580C' : '#ffffff',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap'
                 }}
@@ -1333,7 +1333,7 @@ export default function StrategyBuilder() {
 
         </div>
 
-        {/* Dedicated Strategy & Backtest Status Band (Placed cleanly outside chart canvas in white & emerald theme) */}
+        {/* Dedicated Strategy & Backtest Status Band (Placed cleanly outside chart canvas in white & orange theme) */}
         <div style={{
           background: '#FFFFFF',
           border: '1px solid #E2E8F0',
@@ -1349,9 +1349,9 @@ export default function StrategyBuilder() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <span style={{
-              background: '#F0FDF4',
-              border: '1px solid #BBF7D0',
-              color: '#15803D',
+              background: '#FFF7ED',
+              border: '1px solid #FED7AA',
+              color: '#9A3412',
               fontSize: '11px',
               fontWeight: 800,
               padding: '4px 8px',
@@ -1360,7 +1360,7 @@ export default function StrategyBuilder() {
               alignItems: 'center',
               gap: '5px'
             }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#00D26A', display: 'inline-block' }} />
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#EA580C', display: 'inline-block' }} />
               ACTIVE STRATEGY
             </span>
             <span style={{ fontSize: '13px', fontWeight: 900, color: '#0F172A' }}>
@@ -1383,11 +1383,11 @@ export default function StrategyBuilder() {
                   <span style={{
                     fontSize: '12px',
                     fontWeight: 900,
-                    color: backtestResult.profit >= 0 ? '#15803D' : '#DC2626',
-                    background: backtestResult.profit >= 0 ? '#F0FDF4' : '#FEF2F2',
+                    color: backtestResult.profit >= 0 ? '#9A3412' : '#DC2626',
+                    background: backtestResult.profit >= 0 ? '#FFF7ED' : '#FEF2F2',
                     padding: '2px 8px',
                     borderRadius: '6px',
-                    border: `1px solid ${backtestResult.profit >= 0 ? '#BBF7D0' : '#FECACA'}`
+                    border: `1px solid ${backtestResult.profit >= 0 ? '#FED7AA' : '#FECACA'}`
                   }}>
                     {backtestResult.profit >= 0 ? '+' : ''}{backtestResult.profit}%
                   </span>
@@ -1450,7 +1450,7 @@ export default function StrategyBuilder() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: studioTab === 'visual' ? 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)' : 'rgba(255,255,255,0.04)',
+                  background: studioTab === 'visual' ? 'linear-gradient(135deg, #EA580C 0%, #00bcd4 100%)' : 'rgba(255,255,255,0.04)',
                   color: studioTab === 'visual' ? '#0a0e27' : '#94a3b8'
                 }}
               >
@@ -1480,9 +1480,9 @@ export default function StrategyBuilder() {
             <button
               onClick={() => handleRunBacktest()}
               style={{
-                background: 'rgba(0, 255, 136, 0.1)',
-                border: '1px solid rgba(0, 255, 136, 0.3)',
-                color: '#00ff88',
+                background: 'rgba(234, 88, 12, 0.1)',
+                border: '1px solid rgba(234, 88, 12, 0.3)',
+                color: '#EA580C',
                 borderRadius: '8px',
                 padding: '6px 14px',
                 fontSize: '12px',
@@ -1545,7 +1545,7 @@ export default function StrategyBuilder() {
                       step="0.1"
                       value={takeProfitPct}
                       onChange={(e) => setTakeProfitPct(parseFloat(e.target.value) || 0)}
-                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 10px', borderRadius: '8px', color: '#00ff88', fontSize: '13px', fontWeight: '700' }}
+                      style={{ background: 'rgba(10,14,39,0.5)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 10px', borderRadius: '8px', color: '#EA580C', fontSize: '13px', fontWeight: '700' }}
                     />
                   </div>
 
@@ -1567,7 +1567,7 @@ export default function StrategyBuilder() {
                 
                 {/* Buy Conditions */}
                 <div>
-                  <h4 style={{ fontSize: '14px', fontWeight: '800', color: '#00ff88', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: '800', color: '#EA580C', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <TrendingUp size={16} /> Buy / Entry Rules
                   </h4>
 
@@ -1662,7 +1662,7 @@ export default function StrategyBuilder() {
 
                     <button
                       onClick={() => handleAddCondition('buy')}
-                      style={{ background: 'rgba(0, 255, 136, 0.06)', border: '1px dashed rgba(0, 255, 136, 0.25)', borderRadius: '8px', color: '#00ff88', padding: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: '800' }}
+                      style={{ background: 'rgba(234, 88, 12, 0.06)', border: '1px dashed rgba(234, 88, 12, 0.25)', borderRadius: '8px', color: '#EA580C', padding: '8px', fontSize: '11px', cursor: 'pointer', fontWeight: '800' }}
                     >
                       + Add Buy Rule
                     </button>
@@ -1809,9 +1809,9 @@ export default function StrategyBuilder() {
                   <button
                     onClick={() => handleRunBacktest()}
                     style={{
-                      background: 'rgba(0, 255, 136, 0.1)',
-                      border: '1px solid rgba(0, 255, 136, 0.3)',
-                      color: '#00ff88',
+                      background: 'rgba(234, 88, 12, 0.1)',
+                      border: '1px solid rgba(234, 88, 12, 0.3)',
+                      color: '#EA580C',
                       borderRadius: '6px',
                       padding: '6px 12px',
                       fontSize: '11px',
@@ -1836,7 +1836,7 @@ export default function StrategyBuilder() {
                   background: '#070a1e',
                   border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: '10px',
-                  color: '#00ff88',
+                  color: '#EA580C',
                   fontFamily: 'monospace',
                   fontSize: '12px',
                   padding: '14px',
@@ -1852,7 +1852,7 @@ export default function StrategyBuilder() {
           {backtestResult && (
             <div style={{
               background: 'var(--bg-card-glass)',
-              border: '1px solid rgba(0, 255, 136, 0.25)',
+              border: '1px solid rgba(234, 88, 12, 0.25)',
               borderRadius: '18px',
               padding: '24px',
               display: 'flex',
@@ -1865,7 +1865,7 @@ export default function StrategyBuilder() {
                   <Award size={20} style={{ color: '#ffd700' }} />
                   Simulation Performance Metrics ({symbol} · {chartInterval.toUpperCase()})
                 </h3>
-                <span style={{ fontSize: '11px', background: 'rgba(0, 255, 136, 0.12)', color: '#00ff88', padding: '4px 10px', borderRadius: '6px', fontWeight: '800' }}>
+                <span style={{ fontSize: '11px', background: 'rgba(234, 88, 12, 0.12)', color: '#EA580C', padding: '4px 10px', borderRadius: '6px', fontWeight: '800' }}>
                   VERIFIED SIMULATION
                 </span>
               </div>
@@ -1874,14 +1874,14 @@ export default function StrategyBuilder() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.04)' }}>
                   <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '800', textTransform: 'uppercase' }}>Win Rate</span>
-                  <div style={{ fontSize: '22px', fontWeight: '900', color: backtestResult.winRate >= 50 ? '#00ff88' : '#ff4444' }}>
+                  <div style={{ fontSize: '22px', fontWeight: '900', color: backtestResult.winRate >= 50 ? '#EA580C' : '#ff4444' }}>
                     {backtestResult.winRate}%
                   </div>
                 </div>
 
                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.04)' }}>
                   <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '800', textTransform: 'uppercase' }}>Net Return</span>
-                  <div style={{ fontSize: '22px', fontWeight: '900', color: backtestResult.profit >= 0 ? '#00ff88' : '#ff4444' }}>
+                  <div style={{ fontSize: '22px', fontWeight: '900', color: backtestResult.profit >= 0 ? '#EA580C' : '#ff4444' }}>
                     {backtestResult.profit >= 0 ? '+' : ''}{backtestResult.profit}%
                   </div>
                 </div>
@@ -1927,8 +1927,8 @@ export default function StrategyBuilder() {
                           fontWeight: '800',
                           border: 'none',
                           cursor: 'pointer',
-                          background: tradeFilter === filterKey ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255,255,255,0.04)',
-                          color: tradeFilter === filterKey ? '#00ff88' : '#94a3b8'
+                          background: tradeFilter === filterKey ? 'rgba(234, 88, 12, 0.2)' : 'rgba(255,255,255,0.04)',
+                          color: tradeFilter === filterKey ? '#EA580C' : '#94a3b8'
                         }}
                       >
                         {filterKey.toUpperCase()}
@@ -1956,7 +1956,7 @@ export default function StrategyBuilder() {
                           <td style={{ padding: '8px 12px' }}>{t.exitDate}</td>
                           <td style={{ padding: '8px 12px' }}>${t.entryPrice.toFixed(2)}</td>
                           <td style={{ padding: '8px 12px' }}>${t.exitPrice.toFixed(2)}</td>
-                          <td style={{ padding: '8px 12px', fontWeight: '800', color: t.pnl >= 0 ? '#00ff88' : '#ff4444' }}>
+                          <td style={{ padding: '8px 12px', fontWeight: '800', color: t.pnl >= 0 ? '#EA580C' : '#ff4444' }}>
                             {t.pnl >= 0 ? '+' : ''}{t.pnl}%
                           </td>
                           <td style={{ padding: '8px 12px', color: '#94a3b8' }}>{t.exitReason}</td>
@@ -1985,7 +1985,7 @@ export default function StrategyBuilder() {
             gap: '14px'
           }}>
             <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Save size={16} style={{ color: '#00ff88' }} />
+              <Save size={16} style={{ color: '#EA580C' }} />
               My Saved Systems ({savedStrategies.length})
             </h3>
 
@@ -2009,7 +2009,7 @@ export default function StrategyBuilder() {
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '12px', fontWeight: '800', color: '#00ff88' }}>{strat.name}</span>
+                      <span style={{ fontSize: '12px', fontWeight: '800', color: '#EA580C' }}>{strat.name}</span>
                       <button
                         onClick={() => handleDeleteStrategy(strat.id)}
                         style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', padding: 0 }}
@@ -2036,10 +2036,10 @@ export default function StrategyBuilder() {
                         handleRunBacktest();
                       }}
                       style={{
-                        background: 'rgba(0, 255, 136, 0.08)',
-                        border: '1px solid rgba(0, 255, 136, 0.2)',
+                        background: 'rgba(234, 88, 12, 0.08)',
+                        border: '1px solid rgba(234, 88, 12, 0.2)',
                         borderRadius: '6px',
-                        color: '#00ff88',
+                        color: '#EA580C',
                         padding: '6px',
                         fontSize: '11px',
                         fontWeight: '800',
@@ -2121,7 +2121,7 @@ export default function StrategyBuilder() {
                 onClick={handleSaveStrategy}
                 style={{
                   flex: 1,
-                  background: 'linear-gradient(135deg, #00ff88 0%, #00bcd4 100%)',
+                  background: 'linear-gradient(135deg, #EA580C 0%, #00bcd4 100%)',
                   border: 'none',
                   borderRadius: '8px',
                   color: '#0a0e27',
@@ -2207,7 +2207,7 @@ export default function StrategyBuilder() {
                 background: '#040716',
                 border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: '10px',
-                color: '#00ff88',
+                color: '#EA580C',
                 fontFamily: 'monospace',
                 fontSize: '11px',
                 padding: '14px',
@@ -2247,9 +2247,9 @@ export default function StrategyBuilder() {
                   setSelectedCodeStrategy(null);
                 }}
                 style={{
-                  background: 'rgba(0, 255, 136, 0.1)',
-                  border: '1px solid rgba(0, 255, 136, 0.3)',
-                  color: '#00ff88',
+                  background: 'rgba(234, 88, 12, 0.1)',
+                  border: '1px solid rgba(234, 88, 12, 0.3)',
+                  color: '#EA580C',
                   borderRadius: '10px',
                   padding: '12px 20px',
                   fontWeight: '800',

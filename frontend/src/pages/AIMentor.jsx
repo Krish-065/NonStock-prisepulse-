@@ -34,7 +34,7 @@ function formatAIMessage(text) {
     
     // Check headers
     if (cleanLine.startsWith('###')) {
-      return <h4 key={idx} style={{ fontSize: '13px', fontWeight: '800', color: '#059669', marginTop: '12px', marginBottom: '6px', textTransform: 'uppercase' }}>{cleanLine.replace('###', '')}</h4>;
+      return <h4 key={idx} style={{ fontSize: '13px', fontWeight: '800', color: '#C2410C', marginTop: '12px', marginBottom: '6px', textTransform: 'uppercase' }}>{cleanLine.replace('###', '')}</h4>;
     }
     if (cleanLine.startsWith('##')) {
       return <h3 key={idx} style={{ fontSize: '15px', fontWeight: '800', color: '#0369a1', marginTop: '16px', marginBottom: '8px' }}>{cleanLine.replace('##', '')}</h3>;
@@ -677,7 +677,7 @@ export default function AIMentor() {
           display: inline-block;
           align-self: flex-end;
           max-width: 85%;
-          box-shadow: 0 0 15px rgba(0, 255, 136, 0.15);
+          box-shadow: 0 0 15px rgba(234, 88, 12, 0.2);
         }
         .neon-border-wrapper-standard::before {
           content: '';
@@ -686,7 +686,7 @@ export default function AIMentor() {
           left: -150%;
           width: 400%;
           height: 400%;
-          background: conic-gradient(from 0deg, transparent 30%, #00ff88 50%, transparent 70%);
+          background: conic-gradient(from 0deg, transparent 30%, #EA580C 50%, transparent 70%);
           animation: rotate-neon 4s infinite linear;
           z-index: 0;
         }
@@ -725,7 +725,7 @@ export default function AIMentor() {
             alignItems: 'center', 
             gap: '10px' 
           }}>
-            <Sparkles size={24} style={{ color: '#00D26A' }} />
+            <Sparkles size={24} style={{ color: '#EA580C' }} />
             Stocks Operator AI Mentor
             {(accountMode === 'pro' || user?.is_pro) && (
               <span style={{
@@ -751,11 +751,11 @@ export default function AIMentor() {
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <span style={{ 
             fontSize: '12px', 
-            color: '#006C2E', 
-            background: '#F0FDF4', 
+            color: '#9A3412', 
+            background: '#FFF7ED', 
             padding: '6px 14px', 
             borderRadius: '20px', 
-            border: '1.5px solid #86EFAC', 
+            border: '1.5px solid #FDBA74', 
             fontWeight: '800' 
           }}>
             Groq LLaMA 3.3 70B
@@ -767,13 +767,13 @@ export default function AIMentor() {
       {isMobile && (
         <div style={{ marginBottom: '16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: '#F1F5F9', padding: '4px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-            <button type="button" onClick={() => setMobileTab('history')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: mobileTab === 'history' ? '#FFFFFF' : 'transparent', color: mobileTab === 'history' ? '#006C2E' : '#475569', boxShadow: mobileTab === 'history' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s' }}>
+            <button type="button" onClick={() => setMobileTab('history')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: mobileTab === 'history' ? '#FFFFFF' : 'transparent', color: mobileTab === 'history' ? '#9A3412' : '#475569', boxShadow: mobileTab === 'history' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s' }}>
               History
             </button>
-            <button type="button" onClick={() => setMobileTab('chat')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: mobileTab === 'chat' ? '#FFFFFF' : 'transparent', color: mobileTab === 'chat' ? '#006C2E' : '#475569', boxShadow: mobileTab === 'chat' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s' }}>
+            <button type="button" onClick={() => setMobileTab('chat')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: mobileTab === 'chat' ? '#FFFFFF' : 'transparent', color: mobileTab === 'chat' ? '#9A3412' : '#475569', boxShadow: mobileTab === 'chat' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s' }}>
               AI Chat
             </button>
-            <button type="button" onClick={() => setMobileTab('technicals')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: mobileTab === 'technicals' ? '#FFFFFF' : 'transparent', color: mobileTab === 'technicals' ? '#006C2E' : '#475569', boxShadow: mobileTab === 'technicals' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s' }}>
+            <button type="button" onClick={() => setMobileTab('technicals')} style={{ padding: '10px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: '800', cursor: 'pointer', background: mobileTab === 'technicals' ? '#FFFFFF' : 'transparent', color: mobileTab === 'technicals' ? '#9A3412' : '#475569', boxShadow: mobileTab === 'technicals' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.2s' }}>
               Analytics
             </button>
           </div>
@@ -800,10 +800,10 @@ export default function AIMentor() {
           <button
             onClick={handleNewChat}
             style={{
-              background: '#F0FDF4',
-              border: '1.5px solid #86EFAC',
+              background: '#FFF7ED',
+              border: '1.5px solid #FDBA74',
               borderRadius: '8px',
-              color: '#006C2E',
+              color: '#9A3412',
               padding: '10px',
               fontWeight: '800',
               fontSize: '12px',
@@ -815,10 +815,10 @@ export default function AIMentor() {
               transition: 'all 0.2s ease'
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = '#DCFCE7';
+              e.currentTarget.style.background = '#FFEDD5';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.background = '#F0FDF4';
+              e.currentTarget.style.background = '#FFF7ED';
             }}
           >
             <Plus size={14} />
@@ -844,8 +844,8 @@ export default function AIMentor() {
                      key={conv.id}
                      onClick={() => handleSelectConversation(conv.id)}
                      style={{
-                       background: isActive ? '#F0FDF4' : '#F8FAFC',
-                       border: isActive ? '1.5px solid #86EFAC' : '1px solid #E2E8F0',
+                       background: isActive ? '#FFF7ED' : '#F8FAFC',
+                       border: isActive ? '1.5px solid #FDBA74' : '1px solid #E2E8F0',
                        borderRadius: '8px',
                        padding: '8px 10px',
                        cursor: 'pointer',
@@ -857,11 +857,11 @@ export default function AIMentor() {
                      }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', flex: 1 }}>
-                      <MessageSquare size={13} style={{ color: isActive ? '#006C2E' : '#64748B', flexShrink: 0 }} />
+                      <MessageSquare size={13} style={{ color: isActive ? '#9A3412' : '#64748B', flexShrink: 0 }} />
                       <span style={{
                         fontSize: '12px',
                         fontWeight: isActive ? '800' : '600',
-                        color: isActive ? '#006C2E' : '#0F172A',
+                        color: isActive ? '#9A3412' : '#0F172A',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -1167,9 +1167,9 @@ export default function AIMentor() {
               onClick={() => setRightTab('simulator')}
               style={{
                 padding: '10px 6px',
-                border: rightTab === 'simulator' ? '1px solid #86EFAC' : 'none',
-                background: rightTab === 'simulator' ? '#F0FDF4' : 'transparent',
-                color: rightTab === 'simulator' ? '#006C2E' : '#475569',
+                border: rightTab === 'simulator' ? '1px solid #FDBA74' : 'none',
+                background: rightTab === 'simulator' ? '#FFF7ED' : 'transparent',
+                color: rightTab === 'simulator' ? '#9A3412' : '#475569',
                 fontSize: '11px',
                 fontWeight: '800',
                 cursor: 'pointer',
@@ -1189,9 +1189,9 @@ export default function AIMentor() {
               onClick={() => setRightTab('forecast')}
               style={{
                 padding: '10px 6px',
-                border: rightTab === 'forecast' ? '1px solid #86EFAC' : 'none',
-                background: rightTab === 'forecast' ? '#F0FDF4' : 'transparent',
-                color: rightTab === 'forecast' ? '#006C2E' : '#475569',
+                border: rightTab === 'forecast' ? '1px solid #FDBA74' : 'none',
+                background: rightTab === 'forecast' ? '#FFF7ED' : 'transparent',
+                color: rightTab === 'forecast' ? '#9A3412' : '#475569',
                 fontSize: '11px',
                 fontWeight: '800',
                 cursor: 'pointer',
@@ -1211,9 +1211,9 @@ export default function AIMentor() {
               onClick={() => setRightTab('library')}
               style={{
                 padding: '10px 6px',
-                border: rightTab === 'library' ? '1px solid #86EFAC' : 'none',
-                background: rightTab === 'library' ? '#F0FDF4' : 'transparent',
-                color: rightTab === 'library' ? '#006C2E' : '#475569',
+                border: rightTab === 'library' ? '1px solid #FDBA74' : 'none',
+                background: rightTab === 'library' ? '#FFF7ED' : 'transparent',
+                color: rightTab === 'library' ? '#9A3412' : '#475569',
                 fontSize: '11px',
                 fontWeight: '800',
                 cursor: 'pointer',
@@ -1238,7 +1238,7 @@ export default function AIMentor() {
             {rightTab === 'simulator' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', color: '#006C2E', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <span style={{ fontSize: '11px', color: '#9A3412', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Simulation Ingestion
                   </span>
                   <div style={{ display: 'flex', gap: '4px', background: '#F1F5F9', padding: '2px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
@@ -1251,7 +1251,7 @@ export default function AIMentor() {
                         fontSize: '10px',
                         fontWeight: '800',
                         cursor: 'pointer',
-                        background: accountMode === 'learner' ? '#00D26A' : 'transparent',
+                        background: accountMode === 'learner' ? '#EA580C' : 'transparent',
                         color: accountMode === 'learner' ? '#FFFFFF' : '#475569'
                       }}
                     >
@@ -1280,11 +1280,11 @@ export default function AIMentor() {
                   <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>SCENARIO PRESETS</span>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                     {Object.keys(presets).map((key) => {
-                      let color = '#006C2E';
-                      let bg = '#F0FDF4';
-                      let border = '#BBF7D0';
+                      let color = '#9A3412';
+                      let bg = '#FFF7ED';
+                      let border = '#FED7AA';
                       if (key === 'trap') { color = '#DC2626'; bg = '#FEF2F2'; border = '#FECACA'; }
-                      if (key === 'breakout') { color = '#15803D'; bg = '#F0FDF4'; border = '#BBF7D0'; }
+                      if (key === 'breakout') { color = '#9A3412'; bg = '#FFF7ED'; border = '#FED7AA'; }
                       if (key === 'bearTrap') { color = '#B45309'; bg = '#FFFBEB'; border = '#FDE68A'; }
 
                       return (
@@ -1352,7 +1352,7 @@ export default function AIMentor() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '11px', color: '#0F172A', fontWeight: '800' }}>RSI (14)</span>
-                      <span style={{ fontSize: '12px', fontWeight: '900', color: rsi > 70 ? '#DC2626' : rsi < 30 ? '#15803D' : '#006C2E' }}>{rsi}</span>
+                      <span style={{ fontSize: '12px', fontWeight: '900', color: rsi > 70 ? '#DC2626' : rsi < 30 ? '#9A3412' : '#9A3412' }}>{rsi}</span>
                     </div>
                     <input
                       type="range"
@@ -1360,7 +1360,7 @@ export default function AIMentor() {
                       max="90"
                       value={rsi}
                       onChange={e => setRsi(e.target.value)}
-                      style={{ width: '100%', accentColor: '#00D26A', height: '6px', borderRadius: '3px' }}
+                      style={{ width: '100%', accentColor: '#EA580C', height: '6px', borderRadius: '3px' }}
                     />
                   </div>
 
@@ -1505,7 +1505,7 @@ export default function AIMentor() {
                           outline: 'none',
                           transition: 'border 0.2s'
                         }}
-                        onFocus={e => e.currentTarget.style.borderColor = '#00D26A'}
+                        onFocus={e => e.currentTarget.style.borderColor = '#EA580C'}
                         onBlur={e => e.currentTarget.style.borderColor = '#CBD5E1'}
                       />
                       <button
@@ -1546,9 +1546,9 @@ export default function AIMentor() {
                             transition: 'all 0.15s ease'
                           }}
                           onMouseEnter={e => {
-                            e.currentTarget.style.borderColor = '#00D26A';
-                            e.currentTarget.style.color = '#006C2E';
-                            e.currentTarget.style.background = '#F0FDF4';
+                            e.currentTarget.style.borderColor = '#EA580C';
+                            e.currentTarget.style.color = '#9A3412';
+                            e.currentTarget.style.background = '#FFF7ED';
                           }}
                           onMouseLeave={e => {
                             e.currentTarget.style.borderColor = '#CBD5E1';
@@ -1577,7 +1577,7 @@ export default function AIMentor() {
 
                   {/* Live Technicals Section */}
                   <div>
-                    <span style={{ fontSize: '11px', color: '#006C2E', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '11px', color: '#9A3412', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '10px' }}>
                       Live Technical Signals
                     </span>
                     
@@ -1585,20 +1585,20 @@ export default function AIMentor() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '14px', borderRadius: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '8px' }}>
                           <span style={{ fontSize: '15px', fontWeight: '900', color: '#0F172A' }}>{activeTechnicals.symbol}</span>
-                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#008736' }}>{formatPrice(activeTechnicals.price)}</span>
+                          <span style={{ fontSize: '16px', fontWeight: '900', color: '#B45309' }}>{formatPrice(activeTechnicals.price)}</span>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: '#64748B', fontWeight: '600' }}>RSI (14):</span>
-                            <span style={{ fontWeight: '800', color: activeTechnicals.rsi > 70 ? '#DC2626' : activeTechnicals.rsi < 30 ? '#15803D' : '#006C2E' }}>
+                            <span style={{ fontWeight: '800', color: activeTechnicals.rsi > 70 ? '#DC2626' : activeTechnicals.rsi < 30 ? '#9A3412' : '#9A3412' }}>
                               {activeTechnicals.rsi} ({activeTechnicals.rsi > 70 ? 'Overbought' : activeTechnicals.rsi < 30 ? 'Oversold' : 'Neutral'})
                             </span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: '#64748B', fontWeight: '600' }}>30-Day Trend:</span>
-                            <span style={{ fontWeight: '800', color: activeTechnicals.trend === 'BULLISH' ? '#15803D' : '#DC2626', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <span style={{ fontWeight: '800', color: activeTechnicals.trend === 'BULLISH' ? '#9A3412' : '#DC2626', display: 'flex', alignItems: 'center', gap: '3px' }}>
                               {activeTechnicals.trend === 'BULLISH' ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
                               {activeTechnicals.trend}
                             </span>
@@ -1606,7 +1606,7 @@ export default function AIMentor() {
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: '#64748B', fontWeight: '600' }}>Support Floor:</span>
-                             <span style={{ fontWeight: '800', color: '#15803D' }}>{formatPrice(activeTechnicals.support)}</span>
+                             <span style={{ fontWeight: '800', color: '#9A3412' }}>{formatPrice(activeTechnicals.support)}</span>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1634,7 +1634,7 @@ export default function AIMentor() {
                           <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '800' }}>OVERALL FORECAST PROBABILITY</span>
                           <div style={{ height: '22px', borderRadius: '11px', overflow: 'hidden', display: 'flex', fontSize: '10px', fontWeight: '800', color: '#FFFFFF' }}>
                             {activeMLEnsemble.overall.buy > 0 && (
-                              <div style={{ background: '#16A34A', width: `${activeMLEnsemble.overall.buy}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ background: '#C2410C', width: `${activeMLEnsemble.overall.buy}%`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 Buy {activeMLEnsemble.overall.buy}%
                               </div>
                             )}
@@ -1658,7 +1658,7 @@ export default function AIMentor() {
                               <span style={{ color: '#0F172A', fontWeight: '600' }}>{comp.name}</span>
                               <span style={{ 
                                 fontWeight: '800', 
-                                color: comp.signal === 'Buy' || comp.signal === 'Bullish' ? '#16A34A' : comp.signal === 'Sell' || comp.signal === 'Bearish' ? '#DC2626' : '#D97706' 
+                                color: comp.signal === 'Buy' || comp.signal === 'Bullish' ? '#C2410C' : comp.signal === 'Sell' || comp.signal === 'Bearish' ? '#DC2626' : '#D97706' 
                               }}>
                                 {comp.signal} ({comp.strength}%)
                               </span>
@@ -1668,7 +1668,7 @@ export default function AIMentor() {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: '8px', fontSize: '12px' }}>
                           <span style={{ color: '#64748B', fontWeight: '600' }}>Ensemble Confidence:</span>
-                          <span style={{ fontWeight: '900', color: '#006C2E' }}>{activeMLEnsemble.confidence}%</span>
+                          <span style={{ fontWeight: '900', color: '#9A3412' }}>{activeMLEnsemble.confidence}%</span>
                         </div>
                       </div>
                     </div>
@@ -1698,7 +1698,7 @@ export default function AIMentor() {
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.background = '#FFFFFF';
-                              e.currentTarget.style.borderColor = '#86EFAC';
+                              e.currentTarget.style.borderColor = '#FDBA74';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.background = '#F8FAFC';
@@ -1753,7 +1753,7 @@ export default function AIMentor() {
             {/* 3. SYLLABUS LIBRARY TAB CONTENT */}
             {rightTab === 'library' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <span style={{ fontSize: '11px', color: '#006C2E', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>
+                <span style={{ fontSize: '11px', color: '#9A3412', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>
                   Trading Library Syllabus
                 </span>
                 
@@ -1774,7 +1774,7 @@ export default function AIMentor() {
                               width: '100%',
                               background: 'none',
                               border: 'none',
-                              color: isExpanded ? '#006C2E' : '#0F172A',
+                              color: isExpanded ? '#9A3412' : '#0F172A',
                               padding: '8px 0',
                               fontSize: '12px',
                               fontWeight: '800',
@@ -1813,9 +1813,9 @@ export default function AIMentor() {
                                     width: '100%'
                                   }}
                                   onMouseEnter={e => {
-                                    e.currentTarget.style.background = '#F0FDF4';
-                                    e.currentTarget.style.color = '#006C2E';
-                                    e.currentTarget.style.borderColor = '#86EFAC';
+                                    e.currentTarget.style.background = '#FFF7ED';
+                                    e.currentTarget.style.color = '#9A3412';
+                                    e.currentTarget.style.borderColor = '#FDBA74';
                                   }}
                                   onMouseLeave={e => {
                                     e.currentTarget.style.background = '#F8FAFC';
@@ -1823,7 +1823,7 @@ export default function AIMentor() {
                                     e.currentTarget.style.borderColor = '#E2E8F0';
                                   }}
                                 >
-                                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#00D26A', flexShrink: 0 }} />
+                                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#EA580C', flexShrink: 0 }} />
                                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{topic.title}</span>
                                 </button>
                               ))}

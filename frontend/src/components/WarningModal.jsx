@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useTrading } from '../contexts/TradingContext';
 import { ShieldAlert } from 'lucide-react';
 
@@ -29,7 +29,7 @@ export default function WarningModal() {
         </p>
         
         <label style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', marginBottom: '24px', cursor: 'pointer', background: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-          <input type="checkbox" id="understand-rules" style={{ width: '20px', height: '20px', accentColor: '#10B981' }} />
+          <input type="checkbox" id="understand-rules" style={{ width: '20px', height: '20px', accentColor: '#EA580C' }} />
           <span style={{ fontWeight: '600' }}>I understand my capital rules</span>
         </label>
         
@@ -42,7 +42,7 @@ export default function WarningModal() {
               alert("You must check the box to proceed.");
             }
           }}
-          style={{ width: '100%', padding: '16px', background: '#10B981', color: '#FFFFFF', border: 'none', borderRadius: '8px', fontSize: '1.125rem', fontWeight: '700', cursor: 'pointer' }}
+          style={{ width: '100%', padding: '16px', background: '#EA580C', color: '#FFFFFF', border: 'none', borderRadius: '8px', fontSize: '1.125rem', fontWeight: '700', cursor: 'pointer' }}
         >
           Enter Trading Floor
         </button>

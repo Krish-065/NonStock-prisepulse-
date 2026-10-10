@@ -126,13 +126,13 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
                 width: '28px',
                 height: '28px',
                 borderRadius: '6px',
-                background: '#ECFDF5',
-                border: '1px solid #A7F3D0',
+                background: '#FFF7ED',
+                border: '1px solid #FED7AA',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <Server size={16} color="#059669" />
+                <Server size={16} color="#C2410C" />
               </div>
               <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: 0, letterSpacing: '-0.3px' }}>
                 Broker Mirror • Real Account Equity Sync
@@ -167,14 +167,14 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
           margin: '20px 28px 0 28px',
           padding: '12px 16px',
           borderRadius: '10px',
-          background: '#F0FDF4',
-          border: '1px solid #A7F3D0',
+          background: '#FFF7ED',
+          border: '1px solid #FED7AA',
           display: 'flex',
           alignItems: 'flex-start',
           gap: '12px'
         }}>
-          <ShieldCheck size={18} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div style={{ fontSize: '12px', color: '#065F46', lineHeight: 1.5 }}>
+          <ShieldCheck size={18} color="#C2410C" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div style={{ fontSize: '12px', color: '#7C2D12', lineHeight: 1.5 }}>
             <span style={{ fontWeight: 800 }}>Non-Custodial Architecture:</span> We only read execution and fill data. 
             Withdrawals and deposit controls are mathematically impossible. 
             All API communications are encrypted via TLS 1.3 with AES-256 field encryption.
@@ -193,8 +193,8 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
                   key={b.id}
                   onClick={() => setSelectedBroker(b.id)}
                   style={{
-                    background: selectedBroker === b.id ? '#F0FDF4' : '#FFFFFF',
-                    border: selectedBroker === b.id ? '2px solid #059669' : '1px solid #E2E8F0',
+                    background: selectedBroker === b.id ? '#FFF7ED' : '#FFFFFF',
+                    border: selectedBroker === b.id ? '2px solid #C2410C' : '1px solid #E2E8F0',
                     borderRadius: '10px',
                     padding: '12px',
                     cursor: 'pointer',
@@ -203,15 +203,15 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>{b.name}</span>
-                    {selectedBroker === b.id && <CheckCircle2 size={14} color="#059669" />}
+                    {selectedBroker === b.id && <CheckCircle2 size={14} color="#C2410C" />}
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748B' }}>{b.category}</div>
                   <div style={{
                     marginTop: '8px',
                     fontSize: '9px',
                     fontWeight: 800,
-                    color: '#059669',
-                    background: '#ECFDF5',
+                    color: '#C2410C',
+                    background: '#FFF7ED',
                     padding: '2px 6px',
                     borderRadius: '4px',
                     display: 'inline-block'
@@ -235,7 +235,7 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
               <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                 2. Equity Scaling & Mathematical Mirroring
               </span>
-              <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
+              <span style={{ fontSize: '11px', color: '#C2410C', fontWeight: 700 }}>
                 Scale Factor: {ratio}x
               </span>
             </div>
@@ -297,7 +297,7 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
             {/* Visual 1:1 Mapping Comparison Card */}
             <div style={{
               background: '#FFFFFF',
-              border: '1.5px dashed #A7F3D0',
+              border: '1.5px dashed #FED7AA',
               borderRadius: '10px',
               padding: '12px 16px',
               display: 'flex',
@@ -320,9 +320,9 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  background: '#ECFDF5',
-                  border: '1px solid #10B981',
-                  color: '#059669',
+                  background: '#FFF7ED',
+                  border: '1px solid #EA580C',
+                  color: '#C2410C',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -332,15 +332,15 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
                 }}>
                   =
                 </div>
-                <span style={{ fontSize: '10px', color: '#059669', fontWeight: 800 }}>PROPORTIONAL</span>
+                <span style={{ fontSize: '10px', color: '#C2410C', fontWeight: 800 }}>PROPORTIONAL</span>
               </div>
 
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Stocks Operator Proving Baseline</div>
-                <div style={{ fontSize: '14px', fontWeight: 900, color: '#059669' }}>
+                <div style={{ fontSize: '14px', fontWeight: 900, color: '#C2410C' }}>
                   $1,000.00
                 </div>
-                <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
+                <div style={{ fontSize: '11px', color: '#C2410C', fontWeight: 700 }}>
                   {riskPctNum}% Risk = ${stocksoperatorRiskAmount}
                 </div>
               </div>
@@ -417,7 +417,7 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
               type="submit"
               disabled={isSubmitting}
               style={{
-                background: '#059669',
+                background: '#C2410C',
                 border: 'none',
                 color: '#FFFFFF',
                 borderRadius: '8px',
@@ -428,7 +428,7 @@ export default function BrokerMirrorModal({ isOpen, onClose, onSyncSuccess, curr
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)'
+                boxShadow: '0 2px 8px rgba(194, 65, 12, 0.25)'
               }}
             >
               {isSubmitting ? (

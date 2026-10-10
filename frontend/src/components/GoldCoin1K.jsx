@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 
 /**
  * GoldCoin1K — Institutional Minted Sovereign Coin Component
- * Displays "1K" minted on a gleaming gold coin with concentric emerald HUD rings,
+ * Displays "1K" minted on a gleaming gold coin with concentric orange HUD rings,
  * directly representing Stocks Operator's universal $1,000 baseline capital.
  */
 export default function GoldCoin1K({ size = 180, showRings = true, animated = true, style = {} }) {
@@ -58,12 +58,12 @@ export default function GoldCoin1K({ size = 180, showRings = true, animated = tr
 
           {/* Neon Emerald HUD Ring Gradients */}
           <linearGradient id="hudEmeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#10B981" />
-            <stop offset="50%" stopColor="#059669" />
-            <stop offset="100%" stopColor="#047857" />
+            <stop offset="0%" stopColor="#EA580C" />
+            <stop offset="50%" stopColor="#C2410C" />
+            <stop offset="100%" stopColor="#9A3412" />
           </linearGradient>
 
-          <filter id="emeraldGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id="orangeGlow" x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="3" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
@@ -77,7 +77,7 @@ export default function GoldCoin1K({ size = 180, showRings = true, animated = tr
               cx="100"
               cy="100"
               r="94"
-              stroke="#10B981"
+              stroke="#EA580C"
               strokeWidth="1.2"
               strokeDasharray="4 6"
               strokeOpacity="0.45"
@@ -88,11 +88,11 @@ export default function GoldCoin1K({ size = 180, showRings = true, animated = tr
               cx="100"
               cy="100"
               r="86"
-              stroke="#059669"
+              stroke="#C2410C"
               strokeWidth="2"
               strokeDasharray="30 18 10 18"
               strokeOpacity="0.75"
-              filter="url(#emeraldGlow)"
+              filter="url(#orangeGlow)"
             />
 
             {/* Micro HUD tick marks */}
@@ -103,7 +103,7 @@ export default function GoldCoin1K({ size = 180, showRings = true, animated = tr
                 y1="8"
                 x2="100"
                 y2="14"
-                stroke="#10B981"
+                stroke="#EA580C"
                 strokeWidth="2"
                 transform={`rotate(${deg} 100 100)`}
                 strokeOpacity="0.8"
@@ -119,7 +119,7 @@ export default function GoldCoin1K({ size = 180, showRings = true, animated = tr
               cx="100"
               cy="100"
               r="76"
-              stroke="#34D399"
+              stroke="#FDBA74"
               strokeWidth="1"
               strokeDasharray="16 12 40 12"
               strokeOpacity="0.6"

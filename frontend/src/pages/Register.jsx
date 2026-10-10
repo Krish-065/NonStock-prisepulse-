@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Logo from '../components/Logo';
@@ -143,17 +143,17 @@ export default function Register() {
                 checked={agreed} 
                 onChange={(e) => setAgreed(e.target.checked)} 
                 required 
-                style={{ marginTop: '4px', cursor: 'pointer', width: '16px', height: '16px', accentColor: '#10B981' }}
+                style={{ marginTop: '4px', cursor: 'pointer', width: '16px', height: '16px', accentColor: '#EA580C' }}
               />
               <label htmlFor="termsCheckbox" style={{ fontSize: '12px', color: '#475569', lineHeight: '1.5', cursor: 'pointer' }}>
-                I agree to the <Link to="/terms" style={{ color: '#10B981', textDecoration: 'underline', fontWeight: '600' }}>Terms</Link> and understand this is a simulated paper trading platform.
+                I agree to the <Link to="/terms" style={{ color: '#EA580C', textDecoration: 'underline', fontWeight: '600' }}>Terms</Link> and understand this is a simulated paper trading platform.
               </label>
             </div>
             
             <button 
               type="submit" 
               disabled={loading} 
-              style={{ background: '#10B981', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}
+              style={{ background: '#EA580C', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}
             >
               {loading ? 'Creating Account...' : 'Register'}
             </button>
@@ -171,7 +171,7 @@ export default function Register() {
             <button 
               type="submit" 
               disabled={loading} 
-              style={{ background: '#10B981', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}
+              style={{ background: '#EA580C', border: 'none', color: '#FFFFFF', padding: '14px', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}
             >
               {loading ? 'Verifying...' : 'Verify Email'}
             </button>
@@ -197,7 +197,7 @@ export default function Register() {
               />
             </div>
 
-            <p style={{ color: '#475569', fontSize: '14px' }}>Already have an account? <Link to="/login" style={{ color: '#10B981', textDecoration: 'none', fontWeight: '700' }}>Log In</Link></p>
+            <p style={{ color: '#475569', fontSize: '14px' }}>Already have an account? <Link to="/login" style={{ color: '#EA580C', textDecoration: 'none', fontWeight: '700' }}>Log In</Link></p>
           </>
         )}
       </div>

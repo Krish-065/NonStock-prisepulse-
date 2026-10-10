@@ -100,12 +100,12 @@ export default function PositionSizeCalculator({
             width: '38px',
             height: '38px',
             borderRadius: '12px',
-            background: '#ECFDF5',
-            border: '1.5px solid #10B981',
+            background: '#FFF7ED',
+            border: '1.5px solid #EA580C',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#059669'
+            color: '#C2410C'
           }}>
             <Calculator size={20} />
           </div>
@@ -243,7 +243,7 @@ export default function PositionSizeCalculator({
             <label style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
               Allowable Risk Ratio
             </label>
-            <span style={{ fontSize: '12px', fontWeight: 900, color: '#059669' }}>
+            <span style={{ fontSize: '12px', fontWeight: 900, color: '#C2410C' }}>
               {riskPercent}% of Equity (${((accountBalance * riskPercent) / 100).toFixed(2)})
             </span>
           </div>
@@ -259,9 +259,9 @@ export default function PositionSizeCalculator({
                   minWidth: '45px',
                   padding: '7px 0',
                   borderRadius: '8px',
-                  border: riskPercent === pct ? '2px solid #10B981' : '1px solid #CBD5E1',
-                  background: riskPercent === pct ? '#ECFDF5' : '#FFFFFF',
-                  color: riskPercent === pct ? '#047857' : '#475569',
+                  border: riskPercent === pct ? '2px solid #EA580C' : '1px solid #CBD5E1',
+                  background: riskPercent === pct ? '#FFF7ED' : '#FFFFFF',
+                  color: riskPercent === pct ? '#9A3412' : '#475569',
                   fontSize: '12px',
                   fontWeight: 800,
                   cursor: 'pointer',
@@ -275,7 +275,7 @@ export default function PositionSizeCalculator({
         </div>
       </div>
 
-      {/* Calculate Button (Bright Vibrant Green) */}
+      {/* Calculate Button (Dark Dull Orange) */}
       <button
         type="button"
         onClick={calculatePosition}
@@ -283,13 +283,13 @@ export default function PositionSizeCalculator({
           width: '100%',
           padding: '14px 20px',
           borderRadius: '14px',
-          background: '#10B981',
+          background: '#EA580C',
           color: '#FFFFFF',
           border: 'none',
           fontSize: '15px',
           fontWeight: 900,
           cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(16, 185, 129, 0.35)',
+          boxShadow: '0 4px 16px rgba(234, 88, 12, 0.35)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -297,11 +297,11 @@ export default function PositionSizeCalculator({
           transition: 'all 0.15s ease'
         }}
         onMouseOver={(e) => {
-          e.currentTarget.style.background = '#059669';
+          e.currentTarget.style.background = '#C2410C';
           e.currentTarget.style.transform = 'translateY(-1px)';
         }}
         onMouseOut={(e) => {
-          e.currentTarget.style.background = '#10B981';
+          e.currentTarget.style.background = '#EA580C';
           e.currentTarget.style.transform = 'translateY(0)';
         }}
       >
@@ -330,19 +330,19 @@ export default function PositionSizeCalculator({
         </div>
 
         <div style={{
-          background: '#F0FDF4',
-          border: '1.5px solid #86EFAC',
+          background: '#FFF7ED',
+          border: '1.5px solid #FDBA74',
           borderRadius: '16px',
           padding: '16px',
           textAlign: 'left'
         }}>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
             Amount At Risk
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: '#059669', marginTop: '4px', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: '#C2410C', marginTop: '4px', letterSpacing: '-0.5px' }}>
             {amountAtRisk !== null ? `$${amountAtRisk.toFixed(2)}` : '—'}
           </div>
-          <div style={{ fontSize: '11px', color: '#047857', marginTop: '2px' }}>
+          <div style={{ fontSize: '11px', color: '#9A3412', marginTop: '2px' }}>
             {riskPercent}% max drawdown loss
           </div>
         </div>
@@ -365,8 +365,8 @@ export default function PositionSizeCalculator({
               key={m.symbol}
               onClick={() => selectMarket(m)}
               style={{
-                background: selectedAsset === m.symbol ? '#F0FDF4' : '#FFFFFF',
-                border: selectedAsset === m.symbol ? '1.5px solid #10B981' : '1px solid #E2E8F0',
+                background: selectedAsset === m.symbol ? '#FFF7ED' : '#FFFFFF',
+                border: selectedAsset === m.symbol ? '1.5px solid #EA580C' : '1px solid #E2E8F0',
                 borderRadius: '12px',
                 padding: '10px 14px',
                 display: 'flex',
@@ -396,7 +396,7 @@ export default function PositionSizeCalculator({
                 <div style={{
                   fontSize: '11px',
                   fontWeight: 800,
-                  color: m.positive ? '#059669' : '#DC2626'
+                  color: m.positive ? '#C2410C' : '#DC2626'
                 }}>
                   {m.change}
                 </div>

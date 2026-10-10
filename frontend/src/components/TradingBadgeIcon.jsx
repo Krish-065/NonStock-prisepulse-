@@ -47,7 +47,7 @@ export default function TradingBadgeIcon({
   };
 
   switch (theme) {
-    // ─── 1. BULLISH CANDLESTICK (JAPANESE GREEN CANDLE WITH BODY & WICKS) ───
+    // ─── 1. BULLISH CANDLESTICK (DEEP ORANGE CANDLE WITH BODY & WICKS) ───
     case 'bull_candle':
     case 'candlestick':
     case 'green_candle':
@@ -56,26 +56,26 @@ export default function TradingBadgeIcon({
           <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="bullBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00E676" />
-                <stop offset="60%" stopColor="#00D26A" />
-                <stop offset="100%" stopColor="#008736" />
+                <stop offset="0%" stopColor="#EA580C" />
+                <stop offset="60%" stopColor="#EA580C" />
+                <stop offset="100%" stopColor="#B45309" />
               </linearGradient>
               <linearGradient id="bullWickGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#86EFAC" />
-                <stop offset="100%" stopColor="#00A344" />
+                <stop offset="0%" stopColor="#FDBA74" />
+                <stop offset="100%" stopColor="#C2410C" />
               </linearGradient>
               <filter id="bullGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#00D26A" floodOpacity="0.45" />
+                <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#EA580C" floodOpacity="0.45" />
               </filter>
             </defs>
             {/* Background disc */}
-            <circle cx="22" cy="22" r="20" fill="#F0FDF4" stroke="#86EFAC" strokeWidth="1.5" />
+            <circle cx="22" cy="22" r="20" fill="#FFF7ED" stroke="#FDBA74" strokeWidth="1.5" />
             
             {/* Candlestick Upper Wick */}
             <line x1="22" y1="6" x2="22" y2="14" stroke="url(#bullWickGrad)" strokeWidth="2.5" strokeLinecap="round" />
             
             {/* Candlestick Main Real Body */}
-            <rect x="15" y="14" width="14" height="18" rx="3" fill="url(#bullBodyGrad)" stroke="#006C2E" strokeWidth="1.2" filter="url(#bullGlow)" />
+            <rect x="15" y="14" width="14" height="18" rx="3" fill="url(#bullBodyGrad)" stroke="#9A3412" strokeWidth="1.2" filter="url(#bullGlow)" />
             
             {/* Candlestick Lower Wick */}
             <line x1="22" y1="32" x2="22" y2="39" stroke="url(#bullWickGrad)" strokeWidth="2.5" strokeLinecap="round" />
@@ -85,8 +85,8 @@ export default function TradingBadgeIcon({
             <line x1="18" y1="23" x2="24" y2="23" stroke="#FFFFFF" strokeWidth="1" strokeOpacity="0.5" strokeLinecap="round" />
             
             {/* Mini Ascending Momentum Arrow */}
-            <path d="M29 11L35 11L35 17" stroke="#00C853" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M26 20L34 12" stroke="#00C853" strokeWidth="2" strokeLinecap="round" />
+            <path d="M29 11L35 11L35 17" stroke="#C2410C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M26 20L34 12" stroke="#C2410C" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </div>
       );
@@ -128,10 +128,10 @@ export default function TradingBadgeIcon({
             <rect x="22" y="10" width="14" height="3" rx="1.5" fill="#EF4444" opacity="0.85" />
             <rect x="22" y="15" width="9" height="3" rx="1.5" fill="#EF4444" opacity="0.65" />
             <rect x="22" y="20" width="16" height="3" rx="1.5" fill="#EF4444" opacity="0.95" />
-            {/* Bids (Buy Orders - Green Ladder) */}
-            <rect x="10" y="25" width="12" height="3" rx="1.5" fill="#00D26A" opacity="0.95" />
-            <rect x="15" y="30" width="7" height="3" rx="1.5" fill="#00D26A" opacity="0.75" />
-            <rect x="8" y="35" width="14" height="3" rx="1.5" fill="#00D26A" opacity="0.85" />
+            {/* Bids (Buy Orders - Orange Ladder) */}
+            <rect x="10" y="25" width="12" height="3" rx="1.5" fill="#EA580C" opacity="0.95" />
+            <rect x="15" y="30" width="7" height="3" rx="1.5" fill="#EA580C" opacity="0.75" />
+            <rect x="8" y="35" width="14" height="3" rx="1.5" fill="#EA580C" opacity="0.85" />
             {/* Mid Price Spread Divider */}
             <line x1="22" y1="7" x2="22" y2="37" stroke="#0F172A" strokeWidth="1.5" strokeDasharray="2 2" />
           </svg>
@@ -148,14 +148,14 @@ export default function TradingBadgeIcon({
           <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00E676" />
-                <stop offset="50%" stopColor="#00D26A" />
-                <stop offset="100%" stopColor="#006C2E" />
+                <stop offset="0%" stopColor="#EA580C" />
+                <stop offset="50%" stopColor="#EA580C" />
+                <stop offset="100%" stopColor="#9A3412" />
               </linearGradient>
             </defs>
-            <circle cx="22" cy="22" r="20" fill="#F0FDF4" stroke="#86EFAC" strokeWidth="1.5" />
+            <circle cx="22" cy="22" r="20" fill="#FFF7ED" stroke="#FDBA74" strokeWidth="1.5" />
             {/* Metallic Protective Shield Crest */}
-            <path d="M22 8L33 13V22C33 29.5 28 35.5 22 38C16 35.5 11 29.5 11 22V13L22 8Z" fill="url(#shieldGrad)" stroke="#004D25" strokeWidth="1.5" />
+            <path d="M22 8L33 13V22C33 29.5 28 35.5 22 38C16 35.5 11 29.5 11 22V13L22 8Z" fill="url(#shieldGrad)" stroke="#7C2D12" strokeWidth="1.5" />
             {/* Center Lock / Keyhole */}
             <circle cx="22" cy="21" r="3.5" fill="#FFFFFF" />
             <path d="M20.5 23L19.5 29H24.5L23.5 23" fill="#FFFFFF" />
@@ -193,12 +193,12 @@ export default function TradingBadgeIcon({
           <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="22" cy="22" r="20" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.5" />
             {/* Outer Scope Ring */}
-            <circle cx="22" cy="22" r="14" stroke="#00D26A" strokeWidth="2" strokeDasharray="18 4" />
+            <circle cx="22" cy="22" r="14" stroke="#EA580C" strokeWidth="2" strokeDasharray="18 4" />
             {/* Crosshair Lines */}
-            <line x1="22" y1="4" x2="22" y2="14" stroke="#009E47" strokeWidth="2" />
-            <line x1="22" y1="30" x2="22" y2="40" stroke="#009E47" strokeWidth="2" />
-            <line x1="4" y1="22" x2="14" y2="22" stroke="#009E47" strokeWidth="2" />
-            <line x1="30" y1="22" x2="40" y2="22" stroke="#009E47" strokeWidth="2" />
+            <line x1="22" y1="4" x2="22" y2="14" stroke="#C2410C" strokeWidth="2" />
+            <line x1="22" y1="30" x2="22" y2="40" stroke="#C2410C" strokeWidth="2" />
+            <line x1="4" y1="22" x2="14" y2="22" stroke="#C2410C" strokeWidth="2" />
+            <line x1="30" y1="22" x2="40" y2="22" stroke="#C2410C" strokeWidth="2" />
             {/* Target Core Dot */}
             <circle cx="22" cy="22" r="3.5" fill="#EF4444" />
             <circle cx="22" cy="22" r="1.5" fill="#FFFFFF" />
@@ -286,12 +286,12 @@ export default function TradingBadgeIcon({
       return (
         <div className={`trading-badge-icon ${className}`} style={wrapperStyle}>
           <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="22" cy="22" r="20" fill="#F0FDF4" stroke="#86EFAC" strokeWidth="1.5" />
+            <circle cx="22" cy="22" r="20" fill="#FFF7ED" stroke="#FDBA74" strokeWidth="1.5" />
             {/* Rocket Hull */}
-            <path d="M28 11C28 11 28 16 26 20L22 24L19 21L23 17C27 15 28 11 28 11Z" fill="#00D26A" stroke="#006C2E" strokeWidth="1.5" />
+            <path d="M28 11C28 11 28 16 26 20L22 24L19 21L23 17C27 15 28 11 28 11Z" fill="#EA580C" stroke="#9A3412" strokeWidth="1.5" />
             {/* Fins */}
-            <path d="M19 21L15 21L17 25L20 24" fill="#008736" />
-            <path d="M22 24L22 28L26 26L25 23" fill="#008736" />
+            <path d="M19 21L15 21L17 25L20 24" fill="#B45309" />
+            <path d="M22 24L22 28L26 26L25 23" fill="#B45309" />
             {/* Thrust Flame */}
             <path d="M19 25L13 31L17 28L15 35L21 27" fill="#F59E0B" />
           </svg>
@@ -321,11 +321,11 @@ export default function TradingBadgeIcon({
           <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="22" cy="22" r="20" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.5" />
             {/* Smooth Logarithmic Ascending Equity Curve */}
-            <path d="M11 32C16 31 19 27 23 23C27 19 30 15 35 11" stroke="#00D26A" strokeWidth="3" strokeLinecap="round" />
+            <path d="M11 32C16 31 19 27 23 23C27 19 30 15 35 11" stroke="#EA580C" strokeWidth="3" strokeLinecap="round" />
             {/* Fill under curve */}
-            <path d="M11 32C16 31 19 27 23 23C27 19 30 15 35 11V34H11V32Z" fill="rgba(0, 210, 106, 0.2)" />
+            <path d="M11 32C16 31 19 27 23 23C27 19 30 15 35 11V34H11V32Z" fill="rgba(234, 88, 12, 0.2)" />
             {/* Peak Star */}
-            <circle cx="35" cy="11" r="3" fill="#00D26A" />
+            <circle cx="35" cy="11" r="3" fill="#EA580C" />
             <circle cx="35" cy="11" r="1.5" fill="#FFFFFF" />
           </svg>
         </div>
@@ -344,10 +344,10 @@ export default function TradingBadgeIcon({
               </linearGradient>
             </defs>
             {/* 10-Sided Decagon Shield Polygon */}
-            <polygon points="22,4 32,7 39,15 39,26 32,35 22,39 12,35 5,26 5,15 12,7" fill="url(#contenderGrad)" stroke="#00D26A" strokeWidth="2" />
-            <polygon points="22,8 29,10 35,16 35,25 29,32 22,35 15,32 9,25 9,16 15,10" fill="none" stroke="#00E676" strokeWidth="1" strokeOpacity="0.5" />
+            <polygon points="22,4 32,7 39,15 39,26 32,35 22,39 12,35 5,26 5,15 12,7" fill="url(#contenderGrad)" stroke="#EA580C" strokeWidth="2" />
+            <polygon points="22,8 29,10 35,16 35,25 29,32 22,35 15,32 9,25 9,16 15,10" fill="none" stroke="#EA580C" strokeWidth="1" strokeOpacity="0.5" />
             {/* Shield Check Center Emblem */}
-            <path d="M22 14L28 17V22C28 26 25 29 22 30C19 29 16 26 16 22V17L22 14Z" fill="#00D26A" />
+            <path d="M22 14L28 17V22C28 26 25 29 22 30C19 29 16 26 16 22V17L22 14Z" fill="#EA580C" />
             <path d="M20 22L21.5 23.5L24.5 20.5" stroke="#0F172A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
@@ -376,75 +376,79 @@ export default function TradingBadgeIcon({
         </div>
       );
 
-    // ─── 15. HIGH-PROFILED DECAGON TIER BADGE: GOLD SOVEREIGN (24K IMPERIAL GOLD) ───
+    // ─── 15. HIGH-PROFILED DECAGON TIER BADGE: GOLD SOVEREIGN (DANGEROUS IMPERIAL BULL CREST) ───
     case 'decagon_gold':
     case 'gold_sovereign':
     case 'gold':
       return (
         <div className={`trading-badge-icon ${className}`} style={wrapperStyle}>
-          <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="imperialGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FEF08A" />
-                <stop offset="30%" stopColor="#F59E0B" />
-                <stop offset="70%" stopColor="#D97706" />
-                <stop offset="100%" stopColor="#78350F" />
-              </linearGradient>
-            </defs>
-            <polygon points="22,4 32,7 39,15 39,26 32,35 22,39 12,35 5,26 5,15 12,7" fill="url(#imperialGoldGrad)" stroke="#FDE047" strokeWidth="2.5" />
-            <polygon points="22,8 29,10 35,16 35,25 29,32 22,35 15,32 9,25 9,16 15,10" fill="none" stroke="#FFFFFF" strokeWidth="1" strokeOpacity="0.75" />
-            {/* Sovereign Crown Core */}
-            <path d="M16 26L16 19L19 22L22 17L25 22L28 19L28 26H16Z" fill="#FFFBEB" stroke="#78350F" strokeWidth="1.2" />
-          </svg>
+          <div style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '2px solid #EA580C',
+            boxShadow: '0 0 12px rgba(234, 88, 12, 0.45)',
+            position: 'relative'
+          }}>
+            <img 
+              src="/assets/badge_gold_sovereign.jpg" 
+              alt="Gold Sovereign" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
         </div>
       );
 
-    // ─── 16. HIGH-PROFILED DECAGON TIER BADGE: MASTER TITAN (RUBY CRIMSON) ───
+    // ─── 16. HIGH-PROFILED DECAGON TIER BADGE: MASTER TITAN (FIERCE DRAGON-TITAN CREST) ───
     case 'decagon_titan':
     case 'master_titan':
     case 'titan':
       return (
         <div className={`trading-badge-icon ${className}`} style={wrapperStyle}>
-          <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="titanRubyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FDA4AF" />
-                <stop offset="40%" stopColor="#E11D48" />
-                <stop offset="80%" stopColor="#BE123C" />
-                <stop offset="100%" stopColor="#4C0519" />
-              </linearGradient>
-            </defs>
-            <polygon points="22,4 32,7 39,15 39,26 32,35 22,39 12,35 5,26 5,15 12,7" fill="url(#titanRubyGrad)" stroke="#FFE4E6" strokeWidth="2.5" />
-            <polygon points="22,8 29,10 35,16 35,25 29,32 22,35 15,32 9,25 9,16 15,10" fill="none" stroke="#FDA4AF" strokeWidth="1" strokeOpacity="0.8" />
-            {/* Titan Trophy Insignia */}
-            <path d="M17 17H27V21C27 24 24.5 26 22 26C19.5 26 17 24 17 21V17Z" fill="#FFF1F2" stroke="#881337" strokeWidth="1.2" />
-            <path d="M22 26V29M18 29H26" stroke="#FFF1F2" strokeWidth="2" strokeLinecap="round" />
-          </svg>
+          <div style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '2px solid #C2410C',
+            boxShadow: '0 0 14px rgba(194, 65, 12, 0.55)',
+            position: 'relative'
+          }}>
+            <img 
+              src="/assets/badge_master_titan.jpg" 
+              alt="Master Titan" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
         </div>
       );
 
-    // ─── 17. HIGH-PROFILED DECAGON TIER BADGE: APEX OPERATOR (CYBER AMETHYST PURPLE) ───
+    // ─── 17. HIGH-PROFILED DECAGON TIER BADGE: APEX OPERATOR (DANGEROUS CYBER-WOLF PREDATOR CREST) ───
     case 'decagon_apex':
     case 'apex_operator':
     case 'apex_crown':
     case 'apex':
       return (
         <div className={`trading-badge-icon ${className}`} style={wrapperStyle}>
-          <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="apexAmethystGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#E9D5FF" />
-                <stop offset="35%" stopColor="#A855F7" />
-                <stop offset="70%" stopColor="#7E22CE" />
-                <stop offset="100%" stopColor="#3B0764" />
-              </linearGradient>
-            </defs>
-            <polygon points="22,4 32,7 39,15 39,26 32,35 22,39 12,35 5,26 5,15 12,7" fill="url(#apexAmethystGrad)" stroke="#F3E8FF" strokeWidth="2.5" />
-            <polygon points="22,8 29,10 35,16 35,25 29,32 22,35 15,32 9,25 9,16 15,10" fill="none" stroke="#D8B4FE" strokeWidth="1" strokeOpacity="0.8" />
-            {/* Apex Crown & Diamond */}
-            <path d="M15 25L15 18L18.5 21L22 15L25.5 21L29 18L29 25H15Z" fill="#FAF5FF" stroke="#581C87" strokeWidth="1.2" />
-            <circle cx="22" cy="27" r="1.5" fill="#E9D5FF" />
-          </svg>
+          <div style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '2px solid #EA580C',
+            boxShadow: '0 0 16px rgba(234, 88, 12, 0.65)',
+            position: 'relative'
+          }}>
+            <img 
+              src="/assets/badge_apex_operator.jpg" 
+              alt="Apex Operator" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
         </div>
       );
 
@@ -453,10 +457,10 @@ export default function TradingBadgeIcon({
       return (
         <div className={`trading-badge-icon ${className}`} style={wrapperStyle}>
           <svg width={s} height={s} viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="22" cy="22" r="20" fill="#F0FDF4" stroke="#86EFAC" strokeWidth="1.5" />
-            <line x1="22" y1="7" x2="22" y2="14" stroke="#00A344" strokeWidth="2.5" strokeLinecap="round" />
-            <rect x="15" y="14" width="14" height="17" rx="3" fill="#00D26A" stroke="#006C2E" strokeWidth="1.2" />
-            <line x1="22" y1="31" x2="22" y2="38" stroke="#00A344" strokeWidth="2.5" strokeLinecap="round" />
+            <circle cx="22" cy="22" r="20" fill="#FFF7ED" stroke="#FDBA74" strokeWidth="1.5" />
+            <line x1="22" y1="7" x2="22" y2="14" stroke="#C2410C" strokeWidth="2.5" strokeLinecap="round" />
+            <rect x="15" y="14" width="14" height="17" rx="3" fill="#EA580C" stroke="#9A3412" strokeWidth="1.2" />
+            <line x1="22" y1="31" x2="22" y2="38" stroke="#C2410C" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
         </div>
       );

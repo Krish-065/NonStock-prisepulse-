@@ -58,13 +58,13 @@ export default function OnboardingTour() {
       title: "Welcome to Stocks Operator!",
       path: "/dashboard",
       selector: null,
-      icon: <LayoutDashboard size={40} className="text-emerald-400" />,
+      icon: <LayoutDashboard size={40} className="text-orange-400" />,
       content: "Welcome to your risk-free trading platform! We created Stocks Operator so you can learn trading easily without losing any real money. Let's take a quick 1-minute look at how everything works.",
       illustration: (
         <div style={{
           height: '100px',
-          background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 188, 212, 0.05))',
-          border: '1px dashed rgba(0, 255, 136, 0.25)',
+          background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.1), rgba(194, 65, 12, 0.05))',
+          border: '1px dashed rgba(234, 88, 12, 0.25)',
           borderRadius: '12px',
           display: 'flex',
           alignItems: 'center',
@@ -73,7 +73,7 @@ export default function OnboardingTour() {
           position: 'relative',
           overflow: 'hidden'
         }}>
-          <Zap size={36} color="#00ff88" />
+          <Zap size={36} color="#EA580C" />
           <div style={{ position: 'absolute', bottom: '8px', fontSize: '11px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Quick Interactive Tour</div>
         </div>
       )
@@ -94,10 +94,10 @@ export default function OnboardingTour() {
       illustration: (
         <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '60px', padding: '10px 0', justifyContent: 'center' }}>
           <div style={{ width: '8px', height: '20px', background: '#ff4444', borderRadius: '2px' }}></div>
-          <div style={{ width: '8px', height: '35px', background: '#00ff88', borderRadius: '2px' }}></div>
+          <div style={{ width: '8px', height: '35px', background: '#EA580C', borderRadius: '2px' }}></div>
           <div style={{ width: '8px', height: '25px', background: '#ff4444', borderRadius: '2px' }}></div>
-          <div style={{ width: '8px', height: '48px', background: '#00ff88', borderRadius: '2px' }}></div>
-          <div style={{ width: '8px', height: '60px', background: '#00ff88', borderRadius: '2px' }}></div>
+          <div style={{ width: '8px', height: '48px', background: '#EA580C', borderRadius: '2px' }}></div>
+          <div style={{ width: '8px', height: '60px', background: '#EA580C', borderRadius: '2px' }}></div>
         </div>
       )
     },
@@ -109,7 +109,7 @@ export default function OnboardingTour() {
       content: "Practice trading with zero risk! We have added ₹50,000 in free virtual cash to your account. Practice buying and selling stocks and building your confidence.",
       illustration: (
         <div style={{ textAlign: 'center', margin: '12px 0' }}>
-          <div style={{ fontSize: '20px', fontWeight: 800, color: '#00ff88' }}>₹50,000.00</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#EA580C' }}>₹50,000.00</div>
           <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Free Virtual Cash Balance Allocated</div>
         </div>
       )
@@ -319,8 +319,8 @@ export default function OnboardingTour() {
     left: targetRect.left - 6,
     width: targetRect.width + 12,
     height: targetRect.height + 12,
-    border: `2px dashed ${showProTour ? '#ffb300' : '#00ff88'}`,
-    boxShadow: `0 0 20px ${showProTour ? 'rgba(255, 179, 0, 0.4)' : 'rgba(0, 255, 136, 0.4)'}`,
+    border: `2px dashed ${showProTour ? '#ffb300' : '#EA580C'}`,
+    boxShadow: `0 0 20px ${showProTour ? 'rgba(255, 179, 0, 0.4)' : 'rgba(234, 88, 12, 0.4)'}`,
     borderRadius: '10px',
     pointerEvents: 'none',
     zIndex: 9998,
@@ -351,11 +351,11 @@ export default function OnboardingTour() {
 
   const themeBorder = showProTour
     ? '1px solid rgba(255, 179, 0, 0.4)'
-    : (isDark ? '1px solid rgba(0, 255, 136, 0.25)' : '1px solid rgba(0, 121, 107, 0.2)');
+    : (isDark ? '1px solid rgba(234, 88, 12, 0.25)' : '1px solid rgba(234, 88, 12, 0.2)');
 
   const themeShadow = showProTour
     ? '0 12px 40px rgba(255, 179, 0, 0.25)'
-    : (isDark ? '0 12px 40px rgba(0, 255, 136, 0.15)' : '0 8px 30px rgba(0, 121, 107, 0.1)');
+    : (isDark ? '0 12px 40px rgba(234, 88, 12, 0.15)' : '0 8px 30px rgba(234, 88, 12, 0.1)');
 
   const themeBg = isDark
     ? (showProTour ? 'rgba(20, 16, 8, 0.96)' : 'rgba(10, 14, 35, 0.96)')
@@ -410,8 +410,8 @@ export default function OnboardingTour() {
               width: '36px', 
               height: '36px', 
               borderRadius: '50%', 
-              background: showProTour ? 'rgba(255, 179, 0, 0.15)' : 'rgba(0, 255, 136, 0.12)',
-              color: showProTour ? '#ffb300' : (isDark ? '#00ff88' : '#00796b')
+              background: showProTour ? 'rgba(255, 179, 0, 0.15)' : 'rgba(234, 88, 12, 0.12)',
+              color: showProTour ? '#ffb300' : (isDark ? '#EA580C' : '#9A3412')
             }}>
               {currentStep.icon}
             </span>
@@ -489,12 +489,12 @@ export default function OnboardingTour() {
                 padding: '8px 16px',
                 borderRadius: '8px',
                 border: 'none',
-                background: showProTour ? 'linear-gradient(135deg, #ffe082, #ffb300)' : 'linear-gradient(135deg, #00ff88, #00b058)',
-                color: showProTour ? '#0b0803' : '#0b0803',
+                background: showProTour ? 'linear-gradient(135deg, #ffe082, #ffb300)' : 'linear-gradient(135deg, #EA580C, #C2410C)',
+                color: showProTour ? '#0b0803' : '#ffffff',
                 fontSize: '12px',
                 fontWeight: 700,
                 cursor: 'pointer',
-                boxShadow: showProTour ? '0 4px 12px rgba(255, 179, 0, 0.25)' : '0 4px 12px rgba(0, 255, 136, 0.2)',
+                boxShadow: showProTour ? '0 4px 12px rgba(255, 179, 0, 0.25)' : '0 4px 12px rgba(234, 88, 12, 0.25)',
                 transition: 'all 0.2s'
               }}
               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}

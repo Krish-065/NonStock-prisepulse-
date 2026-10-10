@@ -111,7 +111,7 @@ export default function FlyingCurrencyBg() {
         } else {
           // Canvas vector dollar note fallback
           ctx.fillStyle = '#065f46';
-          ctx.strokeStyle = '#34d399';
+          ctx.strokeStyle = '#FDBA74';
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.roundRect(-b.size, -b.size / 2, b.size * 2, b.size, 6);
@@ -119,7 +119,7 @@ export default function FlyingCurrencyBg() {
           ctx.stroke();
 
           // Inner emblem & dollar sign
-          ctx.fillStyle = '#10b981';
+          ctx.fillStyle = '#EA580C';
           ctx.beginPath();
           ctx.arc(0, 0, b.size * 0.28, 0, Math.PI * 2);
           ctx.fill();
